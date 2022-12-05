@@ -1,3 +1,8 @@
 name = "wildebeest"
 main = "src/index.ts"
 compatibility_date = "2022-12-05"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wildebeest"
+database_id = "b2e40a58-61fa-46d3-8486-e4ed0cfa7366"
