@@ -1,0 +1,43 @@
+@use '../styles/theme.scss' as theme;
+
+.rounded {
+	border-radius: theme.$radius-medium;
+}
+
+.rounded-sm {
+	border-radius: theme.$radius-small;
+}
+
+.rounded-lg {
+	border-radius: theme.$radius-large;
+}
+
+.rounded-t {
+	border-top-left-radius: theme.$radius-medium;
+	border-top-right-radius: theme.$radius-medium;
+}
+
+.rounded-t-sm {
+	border-top-left-radius: theme.$radius-small;
+	border-top-right-radius: theme.$radius-small;
+}
+
+.rounded-t-lg {
+	border-top-left-radius: theme.$radius-large;
+	border-top-right-radius: theme.$radius-large;
+}
+
+.rounded-b {
+	border-bottom-left-radius: theme.$radius-medium;
+	border-bottom-right-radius: theme.$radius-medium;
+}
+
+.rounded-b-sm {
+	border-bottom-left-radius: theme.$radius-small;
+	border-bottom-right-radius: theme.$radius-small;
+}
+
+.rounded-b-lg {
+	border-bottom-left-radius: theme.$radius-large;
+	border-bottom-right-radius: theme.$radius-large;
+}

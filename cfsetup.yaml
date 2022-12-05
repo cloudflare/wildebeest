@@ -1,0 +1,19 @@
+default-flavor: bullseye
+
+template:
+  build:
+    builddeps: &builddeps
+      nodejs:
+      procps:
+    post-cache:
+
+bullseye:
+  test:
+    builddeps:
+      <<: *builddeps
+    post-cache:
+      - yarn install
+      - yarn pretty
+      - yarn test
+      # Until https://github.com/cloudflare/wrangler2/issues/2463 is resolved.
+      # - yarn database:create-mock && yarn test:ui

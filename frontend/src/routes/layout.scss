@@ -1,0 +1,17 @@
+@use '../styles/theme.scss' as theme;
+
+.container {
+	height: 100%;
+	display: flex;
+	justify-content: center;
+}
+
+.side-column {
+	width: 285px;
+	margin: 0 10px;
+}
+
+.sticky {
+	position: sticky;
+	top: 10px;
+}

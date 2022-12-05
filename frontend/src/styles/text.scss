@@ -1,0 +1,128 @@
+@use './theme.scss' as theme;
+@use './interactive-utilities.scss' as utils;
+
+// Color
+.secondary {
+	color: theme.$slate400;
+}
+
+.text-slate-50 {
+	color: theme.$slate50;
+}
+.text-slate-100 {
+	color: theme.$slate100;
+}
+.text-slate-200 {
+	color: theme.$slate200;
+}
+.text-slate-300 {
+	color: theme.$slate300;
+}
+.text-slate-400 {
+	color: theme.$slate400;
+}
+.text-slate-500 {
+	color: theme.$slate500;
+}
+.text-slate-600 {
+	color: theme.$slate600;
+}
+.text-slate-700 {
+	color: theme.$slate700;
+}
+.text-slate-800 {
+	color: theme.$slate800;
+}
+.text-slate-900 {
+	color: theme.$slate900;
+}
+
+.text-indigo-400 {
+	color: theme.$indigo400;
+}
+
+.text-white {
+	color: theme.$white;
+}
+
+@include utils.hoverAndFocus('text-white') {
+	color: theme.$white;
+}
+
+// Size
+.text-xs {
+	font-size: theme.$font-xsmall;
+}
+.text-sm {
+	font-size: theme.$font-small;
+}
+.text-md {
+	font-size: theme.$font-medium;
+}
+.text-lg {
+	font-size: theme.$font-large;
+}
+.text-xl {
+	font-size: theme.$font-xlarge;
+}
+
+// Weight
+
+.text-light {
+	font-weight: 300;
+}
+.text-reg {
+	font-weight: 400;
+}
+.text-semi {
+	font-weight: 500;
+}
+.text-bold {
+	font-weight: 600;
+}
+
+// Alignment
+.text-center {
+	text-align: center;
+}
+.text-left {
+	text-align: left;
+}
+.text-right {
+	text-align: right;
+}
+
+// Transform
+.text-uppercase {
+	text-transform: uppercase;
+}
+.text-capitalize {
+	text-transform: capitalize;
+}
+
+// Decoration
+.no-decoration {
+	text-decoration: none;
+}
+
+// Line Height
+.leading-tight {
+	line-height: 1.25;
+}
+.leading-snug {
+	line-height: 1.375;
+}
+.leading-normal {
+	line-height: 1.5;
+}
+.leading-relaxed {
+	line-height: 1.625;
+}
+
+.underline {
+	text-decoration: underline;
+}
+
+@include utils.hover('underline') {
+	text-decoration: underline;
+}

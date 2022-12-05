@@ -1,0 +1,17 @@
+@use '../../styles/theme.scss';
+
+.search {
+	outline: 0;
+	box-sizing: border-box;
+	width: 100%;
+	border: 0;
+	box-shadow: none;
+	font-family: inherit;
+	background: theme.$slate800;
+	color: theme.$slate400;
+	border-radius: theme.$radius-medium;
+	margin: 0;
+	display: block;
+	padding: theme.$sp4;
+	line-height: 18px;
+}

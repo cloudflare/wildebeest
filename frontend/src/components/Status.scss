@@ -1,0 +1,45 @@
+@use '../styles/theme.scss' as theme;
+
+.status-content {
+  a {
+    text-decoration: none;
+    color: theme.$indigo400;
+  }
+  a.mention {
+    color: theme.$slate200;
+  }
+  a.hashtag {
+    color: theme.$slate200;
+  }
+}
+
+.preview-image {
+  width: 4rem;
+  height: 4rem;
+}
+
+// These are rules that are attached to content and expected to be
+// defined by the client
+.invisible {
+	font-size: 0;
+	line-height: 0;
+	display: inline-block;
+	width: 0;
+	height: 0;
+}
+
+.ellipsis {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	text-decoration: none;
+}
+
+.ellipsis::after {
+	content: "...";
+}
+
+.status-link {
+  color: theme.$slate200;
+	text-decoration: none;
+}

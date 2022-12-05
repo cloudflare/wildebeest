@@ -1,0 +1,9 @@
+{
+	"$schema": "https://json.schemastore.org/web-manifest-combined.json",
+	"name": "Wildebeest (Mastodon on Cloudflare)",
+	"short_name": "Wildebeest",
+	"start_url": ".",
+	"display": "standalone",
+	"background_color": "#fff",
+	"description": "A mastodon server deployed on Cloudflare."
+}

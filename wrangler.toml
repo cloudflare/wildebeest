@@ -1,0 +1,14 @@
+# This wrangler.toml file is not used for deploying the Pages project.
+# It is needed so that Wrangler can run the d1 commands to create the db and process migrations.
+name = "wildebeest"
+main = "src/index.ts"
+compatibility_date = "2022-12-05"
+
+# Specify your account id here so that all commands run agains the correct account.
+# account_id = "<your account id>"
+
+[[d1_databases]]
+binding = "DATABASE"
+database_name = "wildebeest"
+# Replace this database_id with the id of the database created by `yarn deploy:init`.
+database_id = "83821907-97fd-44b4-8f21-e3d6b736e7ef"
