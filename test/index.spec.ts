@@ -1,6 +1,7 @@
-import app from "../src/index";
+import * as api from "../functions/api/v1/_middleware";
 
 test("responds with hi", async () => {
-  const res = await app.request('http://localhost/')
-  expect(await res.text()).toBe("hi");
+  const req = new Request("http://localhost/");
+  const res = await api.handleRequest(req, "a@cloudflare.com")
+  expect(await res.text()).toBe("hi a@cloudflare.com");
 });
