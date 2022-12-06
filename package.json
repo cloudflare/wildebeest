@@ -4,7 +4,7 @@
   "type": "module",
   "author": "Sven Sauleau <sven@cloudflare.com>",
   "devDependencies": {
-    "@cloudflare/pages-plugin-cloudflare-access": "^1.0.1",
+    "@cloudflare/pages-plugin-cloudflare-access": "^1.0.2",
     "@cloudflare/workers-types": "^4.20221111.1",
     "@types/jest": "^29.2.4",
     "jest": "^29.3.1",
