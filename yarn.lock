@@ -805,7 +805,7 @@
     "expect" "^29.0.0"
     "pretty-format" "^29.0.0"
 
-"@types/node@*":
+"@types/node@*", "@types/node@^18.11.11":
   "integrity" "sha512-KJ021B1nlQUBLopzZmPBVuGU9un7WJd/W4ya7Ih02B4Uwky5Nja0yGYav2EfYIk0RR2Q9oVhf60S2XR1BCWJ2g=="
   "resolved" "https://registry.npmjs.org/@types/node/-/node-18.11.11.tgz"
   "version" "18.11.11"
