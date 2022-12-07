@@ -6,6 +6,7 @@ import * as instance from "../functions/api/v1/instance";
 import * as apps from "../functions/api/v1/apps";
 import * as oauth_authorize from "../functions/oauth/authorize";
 import * as oauth_token from "../functions/oauth/token";
+import * as search from "../functions/api/v2/search";
 import * as accounts_verify_creds from "../functions/api/v1/accounts/verify_credentials";
 import { TEST_JWT, ACCESS_CERTS } from "./test-data";
 import  * as Database from 'better-sqlite3';
@@ -211,6 +212,139 @@ describe("Mastodon APIs", () => {
       const data = await res.json<any>();
       assert.equal(data.access_token, "some-code");
       assert.equal(data.scope, "read write follow push");
+    });
+  });
+
+  describe("search", () => {
+    beforeEach(() => {
+      globalThis.fetch = async (input: RequestInfo) => {
+        if (input.toString() === "https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com") {
+          return new Response(JSON.stringify({
+            links: [
+              {"rel":"self","type":"application/activity+json","href":"https://social.com/sven"},
+            ]
+          }));
+        }
+
+        if (input.toString() === "https://remote.com/.well-known/webfinger?resource=acct%3Adefault-avatar-and-header%40remote.com") {
+          return new Response(JSON.stringify({
+            links: [
+              {"rel":"self","type":"application/activity+json","href":"https://social.com/default-avatar-and-header"},
+            ]
+          }));
+        }
+
+        if (input === "https://social.com/sven") {
+          return new Response(JSON.stringify({
+            id: "1234",
+            type: "Person",
+            preferredUsername: "sven",
+            name: "sven ssss",
+
+            icon: { url: "icon.jpg" },
+            image: { url: "image.jpg" }
+          }));
+        }
+
+        if (input === "https://social.com/default-avatar-and-header") {
+          return new Response(JSON.stringify({
+            id: "1234",
+            type: "Person",
+            preferredUsername: "sven",
+            name: "sven ssss",
+          }));
+        }
+
+        throw new Error(`unexpected request to "${input}"`);
+      };
+    });
+
+    test("no query returns an error", async () => {
+      const req = new Request("https://example.com/api/v2/search");
+      const res = await search.handleRequest(req);
+      assert.equal(res.status, 400);
+    });
+
+    test("empty results", async () => {
+      const req = new Request("https://example.com/api/v2/search?q=non-existing-local-user");
+      const res = await search.handleRequest(req);
+      assert.equal(res.status, 200);
+      assertJSON(res);
+      assertCORS(res);
+
+      const data = await res.json<any>();
+      assert.equal(data.accounts.length, 0);
+      assert.equal(data.statuses.length, 0);
+      assert.equal(data.hashtags.length, 0);
+    });
+
+    test("queries WebFinger when remote account", async () => {
+      const req = new Request("https://example.com/api/v2/search?q=@sven@remote.com&resolve=true");
+      const res = await search.handleRequest(req);
+      assert.equal(res.status, 200);
+      assertJSON(res);
+      assertCORS(res);
+
+      const data = await res.json<any>();
+      assert.equal(data.accounts.length, 1);
+      assert.equal(data.statuses.length, 0);
+      assert.equal(data.hashtags.length, 0);
+
+      const account = data.accounts[0];
+      assert.equal(account.id, "1234");
+      assert.equal(account.username, "sven");
+      assert.equal(account.acct, "sven@remote.com");
+    });
+
+    test("queries WebFinger when remote account with default avatar / header", async () => {
+      const req = new Request("https://example.com/api/v2/search?q=@default-avatar-and-header@remote.com&resolve=true");
+      const res = await search.handleRequest(req);
+      assert.equal(res.status, 200);
+      assertJSON(res);
+      assertCORS(res);
+
+      const data = await res.json<any>();
+      assert.equal(data.accounts.length, 1);
+      assert.equal(data.statuses.length, 0);
+      assert.equal(data.hashtags.length, 0);
+
+      const account = data.accounts[0];
+      assert.equal(account.avatar, "https://jpeg.speedcf.com/cat/21.jpg");
+      assert.equal(account.header, "https://jpeg.speedcf.com/cat/20.jpg");
+    });
+
+    test("don't queries WebFinger when resolve is set to false", async () => {
+      globalThis.fetch = () =>  { throw new Error("unreachable") };
+
+      const req = new Request("https://example.com/api/v2/search?q=@sven@remote.com&resolve=false");
+      const res = await search.handleRequest(req);
+      assert.equal(res.status, 200);
+      assertJSON(res);
+      assertCORS(res);
+    });
+
+    test("query parsing", async () => {
+      let res;
+
+      res = search.parseQuery("");
+      assert.equal(res.localPart, "");
+      assert.equal(res.domain, null);
+
+      res = search.parseQuery("@a");
+      assert.equal(res.localPart, "a");
+      assert.equal(res.domain, null);
+
+      res = search.parseQuery("a");
+      assert.equal(res.localPart, "a");
+      assert.equal(res.domain, null);
+
+      res = search.parseQuery("@a@remote.com");
+      assert.equal(res.localPart, "a");
+      assert.equal(res.domain, "remote.com");
+
+      res = search.parseQuery("a@remote.com");
+      assert.equal(res.localPart, "a");
+      assert.equal(res.domain, "remote.com");
     });
   });
 });
