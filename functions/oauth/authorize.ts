@@ -1,14 +1,18 @@
 // https://docs.joinmastodon.org/methods/oauth/#authorize
 
-// Extract the JWT token sent by Access (running before us).
-const extractJWTFromRequest = (request: Request) =>
-  request.headers.get("Cf-Access-Jwt-Assertion");
+import type { Env } from "../../types/env";
+import { ACCESS_CONFIG } from "../_middleware";
+import * as access from "../../access/";
+import * as user from "../../users/";
 
-export const onRequest: PagesFunction<unknown, any> = async ({ request }) => {
-  return handleRequest(request);
+// Extract the JWT token sent by Access (running before us).
+const extractJWTFromRequest = (request: Request) => request.headers.get("Cf-Access-Jwt-Assertion") || "";
+
+export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
+  return handleRequest(request, env.DATABASE);
 };
 
-export function handleRequest(request: Request): Response {
+export async function handleRequest(request: Request, db: D1Database): Promise<Response> {
   const url = new URL(request.url);
 
   if (!(
@@ -27,7 +31,19 @@ export function handleRequest(request: Request): Response {
   const redirect_uri = url.searchParams.get("redirect_uri");
   const scope = url.searchParams.get("scope") || "";
 
-  const code = extractJWTFromRequest(request);
+  const jwt = extractJWTFromRequest(request);
+  const validator = access.generateValidator({ jwt, ...ACCESS_CONFIG });
+  const { payload } = await validator(request);
 
-  return Response.redirect(redirect_uri + "?code=" + code, 307);
+  const identity = await access.getIdentity({ jwt, domain: ACCESS_CONFIG.domain });
+  if (!identity) {
+    return new Response("", { status: 401 });
+  }
+
+  const person = await user.getPersonByEmail(db, identity.email);
+  if (person === null) {
+    await user.createPerson(db, identity.email);
+  }
+
+  return Response.redirect(redirect_uri + "?code=" + jwt, 307);
 };

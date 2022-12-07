@@ -1,6 +1,6 @@
 import * as access from "../access/";
 
-const ACCESS_CONFIG = {
+export const ACCESS_CONFIG = {
   domain: "https://that-test.cloudflareaccess.com",
   aud: "b45b16274a1a212b95cbc6081035c5c761c8122969323f1644cafdcd0b27355e",
 };
@@ -43,8 +43,11 @@ async function main(context: EventContext<unknown, any, any>) {
     return context.next();
   } else {
     try {
-      const validator = access.generateValidator(ACCESS_CONFIG);
-      const { jwt, payload } = await validator(context.request);
+      const authorization = context.request.headers.get("Authorization") || "";
+      const jwt = authorization.replace("Bearer ", "");
+
+      const validator = access.generateValidator({ jwt, ...ACCESS_CONFIG });
+      const { payload } = await validator(context.request);
 
       context.data.cloudflareAccess = {
         JWT: {

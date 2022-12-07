@@ -1,18 +1,25 @@
 // https://docs.joinmastodon.org/methods/accounts/#verify_credentials
 
 import type { PluginData } from "@cloudflare/pages-plugin-cloudflare-access";
+import type { Env } from "../../../../types/env";
+import * as user from "../../../../users/";
 
-export const onRequest: PagesFunction<unknown, any, PluginData> = async ({ data }) => {
+export const onRequest: PagesFunction<Env, any, PluginData> = async ({ data, env }) => {
   const identity = await data.cloudflareAccess.JWT.getIdentity();
   if (!identity) {
     return new Response("", { status: 401 });
   }
 
+  const person = await user.getPersonByEmail(env.DATABASE, identity.email);
+  if (person === null) {
+    return new Response("", { status: 404 });
+  }
+
   const res = {
-    "id": "109440052394327266",
-    "username": identity.email.replace("@", "_").replace(".", "_"),
-    "acct": identity.email.replace("@", "_").replace(".", "_"),
-    "display_name": identity.email,
+    "id": person.id,
+    "username": person.email.replace("@", "_").replace(".", "_"),
+    "acct": person.email.replace("@", "_").replace(".", "_"),
+    "display_name": person.email,
     "locked": false,
     "bot": false,
     "discoverable": false,

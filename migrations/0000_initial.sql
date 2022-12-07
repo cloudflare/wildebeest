@@ -5,6 +5,7 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS actors (
   id TEXT PRIMARY KEY,
   type TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
   privkey TEXT,
   pubkey TEXT,
   cdate DATETIME NOT NULL DEFAULT (datetime()),

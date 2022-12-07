@@ -59,16 +59,11 @@ type CloudflareAccessPagesPluginFunction<
   Data extends Record<string, unknown> = Record<string, unknown>
 > = PagesPluginFunction<Env, Params, Data, PluginArgs>;
 
-const extractJWTFromRequest = (request: Request) => {
-  const authorization = request.headers.get("Authorization") || "";
-  const token = authorization.replace("Bearer ", "");
-  return token;
-}
-
 // Adapted slightly from https://github.com/cloudflare/workers-access-external-auth-example
 const base64URLDecode = (s: string) => {
   s = s.replace(/-/g, "+").replace(/_/g, "/").replace(/\s/g, "");
   return new Uint8Array(
+    // @ts-ignore
     Array.prototype.map.call(atob(s), (c: string) => c.charCodeAt(0))
   );
 };
@@ -82,15 +77,12 @@ const asciiToUint8Array = (s: string) => {
 };
 
 export const generateValidator =
-  ({ domain, aud }: { domain: string; aud: string }) =>
+  ({ domain, aud, jwt }: { domain: string; aud: string, jwt: string }) =>
   async (
     request: Request
   ): Promise<{
-    jwt: string;
     payload: object;
   }> => {
-    const jwt = extractJWTFromRequest(request);
-
     const parts = jwt.split(".");
     if (parts.length !== 3) {
       throw new Error("JWT does not have three parts.");
@@ -166,7 +158,7 @@ export const generateValidator =
       throw new Error("Could not verify JWT.");
     }
 
-    return { jwt, payload: payloadObj };
+    return { payload: payloadObj };
   };
 
 export const getIdentity = async ({
