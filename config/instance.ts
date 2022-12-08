@@ -29,7 +29,7 @@ const rules: Array<Rule> = [
 
 export const instanceConfig: InstanceConfig = {
   // The domain name of the instance
-  uri: "social.that-test.site",
+  uri: "social.eng.chat",
 
   // The title of the website
   title: "Mastodon on Workers",
@@ -42,7 +42,7 @@ export const instanceConfig: InstanceConfig = {
 
   // Hints related to contacting a representative of the website.
   // An email address that can be messaged regarding inquiries or issues.
-  email: "admin@social.that-test.site",
+  email: "admin@social.eng.chat",
 
   // A short, plain-text description defined by the admin.
   description: "A general Mastodon server for all languages (expect PHP).",

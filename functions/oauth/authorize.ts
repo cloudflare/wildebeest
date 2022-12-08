@@ -1,7 +1,7 @@
 // https://docs.joinmastodon.org/methods/oauth/#authorize
 
 import type { Env } from "wildebeest/types/env";
-import { ACCESS_CONFIG } from "../_middleware";
+import { accessConfig } from "wildebeest/config/access";
 import * as access from "wildebeest/access/";
 import * as user from "wildebeest/users/";
 
@@ -32,10 +32,10 @@ export async function handleRequest(request: Request, db: D1Database): Promise<R
   const scope = url.searchParams.get("scope") || "";
 
   const jwt = extractJWTFromRequest(request);
-  const validator = access.generateValidator({ jwt, ...ACCESS_CONFIG });
+  const validator = access.generateValidator({ jwt, ...accessConfig });
   const { payload } = await validator(request);
 
-  const identity = await access.getIdentity({ jwt, domain: ACCESS_CONFIG.domain });
+  const identity = await access.getIdentity({ jwt, domain: accessConfig.domain });
   if (!identity) {
     return new Response("", { status: 401 });
   }

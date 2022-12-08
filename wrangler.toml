@@ -6,4 +6,4 @@ workers_dev = true
 [[d1_databases]]
 binding = "DB"
 database_name = "wildebeest"
-database_id = "b2e40a58-61fa-46d3-8486-e4ed0cfa7366"
+database_id = "83821907-97fd-44b4-8f21-e3d6b736e7ef"

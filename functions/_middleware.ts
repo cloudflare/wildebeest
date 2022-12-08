@@ -1,9 +1,5 @@
 import * as access from "wildebeest/access/";
-
-export const ACCESS_CONFIG = {
-  domain: "https://that-test.cloudflareaccess.com",
-  aud: "b45b16274a1a212b95cbc6081035c5c761c8122969323f1644cafdcd0b27355e",
-};
+import { accessConfig } from "wildebeest/config/access";
 
 async function errorHandling(context: EventContext<unknown, any, any>) {
   try {
@@ -48,13 +44,13 @@ async function main(context: EventContext<unknown, any, any>) {
       const authorization = context.request.headers.get("Authorization") || "";
       const jwt = authorization.replace("Bearer ", "");
 
-      const validator = access.generateValidator({ jwt, ...ACCESS_CONFIG });
+      const validator = access.generateValidator({ jwt, ...accessConfig });
       const { payload } = await validator(context.request);
 
       context.data.cloudflareAccess = {
         JWT: {
           payload,
-          getIdentity: () => access.getIdentity({ jwt, domain: ACCESS_CONFIG.domain }),
+          getIdentity: () => access.getIdentity({ jwt, domain: accessConfig.domain }),
         },
       };
 
@@ -64,7 +60,7 @@ async function main(context: EventContext<unknown, any, any>) {
     return new Response(null, {
       status: 302,
       headers: {
-        Location: access.generateLoginURL({ redirectURL: context.request.url, domain: ACCESS_CONFIG.domain, aud: ACCESS_CONFIG.aud }),
+        Location: access.generateLoginURL({ redirectURL: context.request.url, domain: accessConfig.domain, aud: accessConfig.aud }),
       },
     });
   }

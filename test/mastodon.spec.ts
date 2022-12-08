@@ -15,6 +15,7 @@ import * as accounts_relationships from "../functions/api/v1/accounts/relationsh
 import { TEST_JWT, ACCESS_CERTS } from "./test-data";
 import { defaultImages } from "../config/accounts";
 import { makeDB, assertCORS, assertJSON, assertCache } from "./utils"
+import { accessConfig } from "../config/access";
 
 describe("Mastodon APIs", () => {
   describe("instance", () => {
@@ -199,11 +200,11 @@ describe("Mastodon APIs", () => {
   describe("oauth", () => {
     beforeEach(() => {
       globalThis.fetch = async (input: RequestInfo) => {
-        if (input === "https://that-test.cloudflareaccess.com/cdn-cgi/access/certs") {
+        if (input === accessConfig.domain + "/cdn-cgi/access/certs") {
           return new Response(JSON.stringify(ACCESS_CERTS));
         }
 
-        if (input === "https://that-test.cloudflareaccess.com/cdn-cgi/access/get-identity") {
+        if (input === accessConfig.domain + "/cdn-cgi/access/get-identity") {
           return new Response(JSON.stringify({
             email: "some@cloudflare.com",
           }));
