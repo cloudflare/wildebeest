@@ -264,6 +264,26 @@ describe("Mastodon APIs", () => {
       assert.equal(actor.email, "some@cloudflare.com");
     });
 
+    test("authorize with redirect_uri urn:ietf:wg:oauth:2.0:oob", async () => {
+      const db = await makeDB();
+
+      const params = new URLSearchParams({
+        redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
+        response_type: "code",
+        client_id: "client_id",
+      });
+
+      const headers = {
+        "Cf-Access-Jwt-Assertion": TEST_JWT,
+      };
+
+      const req = new Request("https://example.com/oauth/authorize?" + params, { headers });
+      const res = await oauth_authorize.handleRequest(req, db);
+      assert.equal(res.status, 200);
+
+      assert.equal(await res.text(), TEST_JWT);
+    });
+
     test("token returns auth infos", async () => {
       const body = {
         code: "some-code",
@@ -281,6 +301,19 @@ describe("Mastodon APIs", () => {
       const data = await res.json<any>();
       assert.equal(data.access_token, "some-code");
       assert.equal(data.scope, "read write follow push");
+    });
+
+    test("token handles empty code", async () => {
+      const body = {
+        code: "",
+      };
+
+      const req = new Request("https://example.com/oauth/token", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+      const res = await oauth_token.handleRequest(req);
+      assert.equal(res.status, 401);
     });
   });
 

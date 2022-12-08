@@ -16,6 +16,10 @@ export async function handleRequest(request: Request): Promise<Response> {
   };
 
   const { code } = await request.json<Body>();
+  if (!code) {
+    return new Response("", { status: 401, headers });
+  }
+
   const res = {
     "access_token": code,
     "token_type": "Bearer",
@@ -23,5 +27,4 @@ export async function handleRequest(request: Request): Promise<Response> {
     "created_at": Date.now() / 1000 | 0,
   };
   return new Response(JSON.stringify(res), { headers });
-
 }

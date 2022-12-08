@@ -45,5 +45,9 @@ export async function handleRequest(request: Request, db: D1Database): Promise<R
     await user.createPerson(db, identity.email);
   }
 
-  return Response.redirect(redirect_uri + "?code=" + jwt, 307);
+  if (redirect_uri === "urn:ietf:wg:oauth:2.0:oob") {
+    return new Response(jwt);
+  } else {
+    return Response.redirect(redirect_uri + "?code=" + jwt, 307);
+  }
 };
