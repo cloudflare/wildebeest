@@ -1,9 +1,9 @@
 // https://docs.joinmastodon.org/methods/accounts/#verify_credentials
 
 import type { PluginData } from "@cloudflare/pages-plugin-cloudflare-access";
-import type { Env } from "../../../../types/env";
-import type { MastodonAccount } from "../../../../types/account";
-import * as user from "../../../../users/";
+import type { Env } from "wildebeest/types/env";
+import type { MastodonAccount } from "wildebeest/types/account";
+import * as user from "wildebeest/users/";
 
 export const onRequest: PagesFunction<Env, any, PluginData> = async ({ data, env }) => {
   const identity = await data.cloudflareAccess.JWT.getIdentity();

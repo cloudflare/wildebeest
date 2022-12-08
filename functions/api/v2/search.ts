@@ -1,7 +1,7 @@
 // https://docs.joinmastodon.org/methods/search/#v2
-import { queryAcct } from "../../../webfinger/";
-import { MastodonAccount } from "../../../types/account";
-import { parseHandle } from "../../../utils/parse"
+import { queryAcct } from "wildebeest/webfinger/";
+import { MastodonAccount } from "wildebeest/types/account";
+import { parseHandle } from "wildebeest/utils/parse"
 
 const headers = {
   "content-type": "application/json; charset=utf-8",

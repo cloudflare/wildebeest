@@ -1,9 +1,9 @@
 // https://docs.joinmastodon.org/methods/accounts/#get
 
-import type { Env } from "../../../../types/env";
-import type { MastodonAccount } from "../../../../types/account";
-import { parseHandle } from "../../../../utils/parse"
-import { queryAcct } from "../../../../webfinger/index"
+import type { Env } from "wildebeest/types/env";
+import type { MastodonAccount } from "wildebeest/types/account";
+import { parseHandle } from "wildebeest/utils/parse"
+import { queryAcct } from "wildebeest/webfinger/index"
 
 const headers = {
   "content-type": "application/json; charset=utf-8",

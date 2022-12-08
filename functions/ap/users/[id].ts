@@ -1,6 +1,6 @@
-import type { Env } from "../../../types/env";
-import { getPersonById } from "../../../users/";
-import { instanceConfig } from "../../../config/instance";
+import type { Env } from "wildebeest/types/env";
+import { getPersonById } from "wildebeest/users/";
+import { instanceConfig } from "wildebeest/config/instance";
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
   return handleRequest(env.DATABASE, params.id as string);

@@ -1,4 +1,4 @@
-import { instanceConfig } from "../../../config/instance";
+import { instanceConfig } from "wildebeest/config/instance";
 
 const INSTANCE_VERSION = "4.0.2";
 

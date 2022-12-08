@@ -1,9 +1,9 @@
 // https://docs.joinmastodon.org/methods/oauth/#authorize
 
-import type { Env } from "../../types/env";
+import type { Env } from "wildebeest/types/env";
 import { ACCESS_CONFIG } from "../_middleware";
-import * as access from "../../access/";
-import * as user from "../../users/";
+import * as access from "wildebeest/access/";
+import * as user from "wildebeest/users/";
 
 // Extract the JWT token sent by Access (running before us).
 const extractJWTFromRequest = (request: Request) => request.headers.get("Cf-Access-Jwt-Assertion") || "";

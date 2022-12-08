@@ -1,4 +1,4 @@
-import * as access from "../access/";
+import * as access from "wildebeest/access/";
 
 export const ACCESS_CONFIG = {
   domain: "https://that-test.cloudflareaccess.com",

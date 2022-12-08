@@ -1,4 +1,4 @@
-import * as user from "../../../../../users";
+import * as user from "wildebeest/users";
 
 export const onRequest = async () => {
   const headers = {
