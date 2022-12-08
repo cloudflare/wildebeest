@@ -7,6 +7,7 @@ import * as apps from "../functions/api/v1/apps";
 import * as oauth_authorize from "../functions/oauth/authorize";
 import * as oauth_token from "../functions/oauth/token";
 import * as search from "../functions/api/v2/search";
+import * as webfinger from "../functions/.well-known/webfinger";
 import { parseHandle } from "../utils/parse";
 import * as accounts_verify_creds from "../functions/api/v1/accounts/verify_credentials";
 import * as accounts_get from "../functions/api/v1/accounts/[id]";
@@ -16,6 +17,7 @@ import * as accounts_following from "../functions/api/v1/accounts/[id]/following
 import * as accounts_featured_tags from "../functions/api/v1/accounts/[id]/featured_tags";
 import * as accounts_lists from "../functions/api/v1/accounts/[id]/lists";
 import * as accounts_relationships from "../functions/api/v1/accounts/relationships";
+import * as ap_users from "../functions/ap/users/[id]";
 import { TEST_JWT, ACCESS_CERTS } from "./test-data";
 import  * as Database from 'better-sqlite3';
 import { defaultImages } from "../config/accounts";
@@ -455,6 +457,82 @@ describe("Mastodon APIs", () => {
       res = parseHandle("a%40masto.ai");
       assert.equal(res.localPart, "a");
       assert.equal(res.domain, "masto.ai");
+    });
+  });
+
+  describe("WebFinger", () => {
+    test("no resource queried", async () => {
+      const db = await makeDB();
+
+      const req = new Request("https://example.com/.well-known/webfinger");
+      const res = await webfinger.handleRequest(req, db);
+      assert.equal(res.status, 400);
+    });
+
+    test("invalid resource", async () => {
+      const db = await makeDB();
+
+      const req = new Request("https://example.com/.well-known/webfinger?resource=hein:a");
+      const res = await webfinger.handleRequest(req, db);
+      assert.equal(res.status, 400);
+    });
+
+    test("query local account", async () => {
+      const db = await makeDB();
+
+      const req = new Request("https://example.com/.well-known/webfinger?resource=acct:sven");
+      const res = await webfinger.handleRequest(req, db);
+      assert.equal(res.status, 400);
+    });
+
+    test("query remote non-existing account", async () => {
+      const db = await makeDB();
+
+      const req = new Request("https://example.com/.well-known/webfinger?resource=acct:sven@remote.com");
+      const res = await webfinger.handleRequest(req, db);
+      assert.equal(res.status, 404);
+    });
+
+    test("query remote existing account", async () => {
+      const db = await makeDB();
+      await db
+        .prepare("INSERT INTO actors (id, email, type) VALUES (?, ?, ?)")
+        .bind("sven", "sven@cloudflare.com", "Person")
+        .run();
+
+      const req = new Request("https://example.com/.well-known/webfinger?resource=acct:sven@remote.com");
+      const res = await webfinger.handleRequest(req, db);
+      assert.equal(res.status, 200);
+      assert.equal(res.headers.get("content-type"), "application/jrd+json");
+      assertCache(res, 3600);
+
+      const data = await res.json<any>();
+      assert.equal(data.links.length, 1);
+    });
+  });
+
+  describe("ActivityPub", () => {
+    test("fetch non-existant user by id", async () => {
+      const db = await makeDB();
+
+      const res = await ap_users.handleRequest(db, "nonexisting");
+      assert.equal(res.status, 404);
+    });
+
+    test("fetch user by id", async () => {
+      const db = await makeDB();
+      const properties = { summary: "test summary" };
+      await db
+        .prepare("INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)")
+        .bind("sven", "sven@cloudflare.com", "Person", JSON.stringify(properties))
+        .run();
+
+      const res = await ap_users.handleRequest(db, "sven");
+      assert.equal(res.status, 200);
+
+      const data = await res.json<any>();
+      assert.equal(data.summary, "test summary");
+      assert.equal(data.id, "sven");
     });
   });
 });

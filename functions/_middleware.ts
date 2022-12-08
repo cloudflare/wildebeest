@@ -39,6 +39,8 @@ async function main(context: EventContext<unknown, any, any>) {
     || url.pathname === "/oauth/authorize" // Cloudflare Access runs on /oauth/authorize
     || url.pathname === "/api/v1/instance"
     || url.pathname === "/api/v1/apps"
+    || url.pathname === "/.well-known/webfinger"
+    || url.pathname.startsWith("/ap/") // all ActivityPub endpoints
   ) {
     return context.next();
   } else {

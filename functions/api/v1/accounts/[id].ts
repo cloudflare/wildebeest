@@ -18,7 +18,6 @@ export const onRequest: PagesFunction<Env, any> = async ({ params }) => {
 export async function handleRequest(id: string): Promise<Response> {
   const handle = parseHandle(id);
 
-  console.log({ handle });
   if (handle.domain === null) {
     // FIXME: only remote users are supported at the moment.
     return new Response("", { status: 404 })

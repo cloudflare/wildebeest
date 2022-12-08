@@ -2,7 +2,8 @@ import { MastodonAccount } from "../types/account";
 import { defaultImages } from "../config/accounts"
 import * as actors from "../activitypub/actors/"
 
-type WebFingerResponse = {
+export type WebFingerResponse = {
+  subject: string,
   links: Array<any>,
 };
 
