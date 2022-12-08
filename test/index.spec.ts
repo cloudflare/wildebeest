@@ -237,7 +237,7 @@ describe("Mastodon APIs", () => {
 
         if (input === "https://social.com/sven") {
           return new Response(JSON.stringify({
-            id: "1234",
+            id: "sven@remote.com",
             type: "Person",
             preferredUsername: "sven",
             name: "sven ssss",
@@ -292,7 +292,7 @@ describe("Mastodon APIs", () => {
       assert.equal(data.hashtags.length, 0);
 
       const account = data.accounts[0];
-      assert.equal(account.id, "1234");
+      assert.equal(account.id, "sven@remote.com");
       assert.equal(account.username, "sven");
       assert.equal(account.acct, "sven@remote.com");
     });

@@ -57,14 +57,29 @@ function toMastodonAccount(acct: string, res: any): MastodonAccount {
   return {
     acct,
 
-    id: res.id,
+    id: acct,
     username: res.preferredUsername,
+    url: res.url,
     display_name: res.name,
+    note: res.summary,
+    created_at: res.published,
 
     avatar,
     avatar_static: avatar,
 
     header,
     header_static: header,
+
+    locked: false,
+    bot: false,
+    discoverable: true,
+    group: false,
+
+    followers_count: 0,
+    following_count: 0,
+    statuses_count: 0,
+
+    emojis: [],
+    fields: [],
   }
 }

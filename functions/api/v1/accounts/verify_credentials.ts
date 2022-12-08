@@ -2,6 +2,7 @@
 
 import type { PluginData } from "@cloudflare/pages-plugin-cloudflare-access";
 import type { Env } from "../../../../types/env";
+import type { MastodonAccount } from "../../../../types/account";
 import * as user from "../../../../users/";
 
 export const onRequest: PagesFunction<Env, any, PluginData> = async ({ data, env }) => {
@@ -15,7 +16,7 @@ export const onRequest: PagesFunction<Env, any, PluginData> = async ({ data, env
     return new Response("", { status: 404 });
   }
 
-  const res = {
+  const res: MastodonAccount = {
     "id": person.id,
     "username": person.email.replace("@", "_").replace(".", "_"),
     "acct": person.email.replace("@", "_").replace(".", "_"),
@@ -34,8 +35,6 @@ export const onRequest: PagesFunction<Env, any, PluginData> = async ({ data, env
     "followers_count": 0,
     "following_count": 0,
     "statuses_count": 3,
-    "last_status_at": "2022-12-05",
-    "noindex": false,
     "emojis": [],
     "fields": []
   }
