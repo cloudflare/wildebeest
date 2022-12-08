@@ -1,4 +1,6 @@
-import config from "../../../config/instance.json";
+import { instanceConfig } from "../../../config/instance";
+
+const INSTANCE_VERSION = "4.0.2";
 
 export const onRequest = () => {
   const headers = {
@@ -7,5 +9,15 @@ export const onRequest = () => {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "max-age=180, public",
   };
-  return new Response(JSON.stringify(config), { headers });
+
+  const res = {
+    ...instanceConfig,
+    version: INSTANCE_VERSION,
+  };
+
+  if (instanceConfig.short_description === undefined) {
+    instanceConfig.short_description = instanceConfig.description;
+  }
+
+  return new Response(JSON.stringify(res), { headers });
 };

@@ -1,4 +1,5 @@
 import { MastodonAccount } from "../types/account";
+import { defaultImages } from "../config/accounts"
 
 type WebFingerResponse = {
   links: Array<any>,
@@ -42,12 +43,9 @@ export async function queryAcct(domain: string, acct: string): Promise<MastodonA
   return null;
 }
 
-const DEFAULT_AVATAR = "https://jpeg.speedcf.com/cat/21.jpg";
-const DEFAULT_HEADER = "https://jpeg.speedcf.com/cat/20.jpg";
-
 function toMastodonAccount(acct: string, res: any): MastodonAccount {
-  let avatar = DEFAULT_AVATAR;
-  let header = DEFAULT_HEADER;
+  let avatar = defaultImages.avatar;
+  let header = defaultImages.header;
 
   if (res.icon !== undefined && typeof res.icon.url === "string") {
     avatar = res.icon.url;

@@ -10,6 +10,7 @@ import * as search from "../functions/api/v2/search";
 import * as accounts_verify_creds from "../functions/api/v1/accounts/verify_credentials";
 import { TEST_JWT, ACCESS_CERTS } from "./test-data";
 import  * as Database from 'better-sqlite3';
+import { defaultImages } from "../config/accounts";
 
 async function makeDB(): Promise<any> {
   const db = new BetaDatabase(new Database(":memory:"))!;
@@ -309,8 +310,8 @@ describe("Mastodon APIs", () => {
       assert.equal(data.hashtags.length, 0);
 
       const account = data.accounts[0];
-      assert.equal(account.avatar, "https://jpeg.speedcf.com/cat/21.jpg");
-      assert.equal(account.header, "https://jpeg.speedcf.com/cat/20.jpg");
+      assert.equal(account.avatar, defaultImages.avatar);
+      assert.equal(account.header, defaultImages.header);
     });
 
     test("don't queries WebFinger when resolve is set to false", async () => {
