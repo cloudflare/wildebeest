@@ -1,5 +1,6 @@
 import { MastodonAccount } from "../types/account";
 import { defaultImages } from "../config/accounts"
+import * as actors from "../activitypub/actors/"
 
 type WebFingerResponse = {
   links: Array<any>,
@@ -28,15 +29,8 @@ export async function queryAcct(domain: string, acct: string): Promise<MastodonA
   for (let i = 0, len = data.links.length; i < len; i++) {
     const link = data.links[i];
     if (link.rel === "self" && link.type === "application/activity+json") {
-      const headers = {
-        "accept": "application/activity+json",
-      };
-      const res = await fetch(link.href, { headers });
-      if (!res.ok) {
-        throw new Error(`${link.href} returned: ${res.status}`);
-      }
-
-      return toMastodonAccount(acct, await res.json<any>());
+      const actor = await actors.get(link.href);
+      return toMastodonAccount(acct, actor);
     }
   }
 

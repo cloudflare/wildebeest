@@ -7,7 +7,15 @@ import * as apps from "../functions/api/v1/apps";
 import * as oauth_authorize from "../functions/oauth/authorize";
 import * as oauth_token from "../functions/oauth/token";
 import * as search from "../functions/api/v2/search";
+import { parseHandle } from "../utils/parse";
 import * as accounts_verify_creds from "../functions/api/v1/accounts/verify_credentials";
+import * as accounts_get from "../functions/api/v1/accounts/[id]";
+import * as accounts_statuses from "../functions/api/v1/accounts/[id]/statuses";
+import * as accounts_followers from "../functions/api/v1/accounts/[id]/followers";
+import * as accounts_following from "../functions/api/v1/accounts/[id]/following";
+import * as accounts_featured_tags from "../functions/api/v1/accounts/[id]/featured_tags";
+import * as accounts_lists from "../functions/api/v1/accounts/[id]/lists";
+import * as accounts_relationships from "../functions/api/v1/accounts/relationships";
 import { TEST_JWT, ACCESS_CERTS } from "./test-data";
 import  * as Database from 'better-sqlite3';
 import { defaultImages } from "../config/accounts";
@@ -65,6 +73,32 @@ describe("Mastodon APIs", () => {
   });
 
   describe("accounts", () => {
+    beforeEach(() => {
+      globalThis.fetch = async (input: RequestInfo) => {
+        if (input.toString() === "https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com") {
+          return new Response(JSON.stringify({
+            links: [
+              {"rel":"self","type":"application/activity+json","href":"https://social.com/sven"},
+            ]
+          }));
+        }
+
+        if (input === "https://social.com/sven") {
+          return new Response(JSON.stringify({
+            id: "sven@remote.com",
+            type: "Person",
+            preferredUsername: "sven",
+            name: "sven ssss",
+
+            icon: { url: "icon.jpg" },
+            image: { url: "image.jpg" }
+          }));
+        }
+
+        throw new Error("unexpected request to " + input);
+      };
+    });
+
     test("missing identity", async () => {
       const data = {
         cloudflareAccess: {
@@ -126,6 +160,75 @@ describe("Mastodon APIs", () => {
       const context: any = { env, data: { cloudflareAccess }};
       const res = await accounts_verify_creds.onRequest(context);
       assert.equal(res.status, 404);
+    });
+
+    test("get remote actor by id", async () => {
+      const res = await accounts_get.handleRequest("sven@remote.com");
+      assert.equal(res.status, 200);
+    });
+
+    test("get remote actor statuses", async () => {
+      const res = await accounts_statuses.onRequest();
+      assert.equal(res.status, 200);
+    });
+
+    test("get remote actor followers", async () => {
+      const res = await accounts_followers.onRequest();
+      assert.equal(res.status, 200);
+    });
+
+    test("get remote actor following", async () => {
+      const res = await accounts_following.onRequest();
+      assert.equal(res.status, 200);
+    });
+
+    test("get remote actor featured_tags", async () => {
+      const res = await accounts_featured_tags.onRequest();
+      assert.equal(res.status, 200);
+    });
+
+    test("get remote actor lists", async () => {
+      const res = await accounts_lists.onRequest();
+      assert.equal(res.status, 200);
+    });
+
+    test("get local actor by id", async () => {
+      const res = await accounts_get.handleRequest("sven");
+      assert.equal(res.status, 404);
+    });
+
+    test("relationships missing ids", async () => {
+      const req = new Request("https://mastodon.example/api/v1/accounts/relationships");
+      const res = await accounts_relationships.handleRequest(req);
+      assert.equal(res.status, 400);
+    });
+
+    test("relationships with ids", async () => {
+      const req = new Request("https://mastodon.example/api/v1/accounts/relationships?id[]=first&id[]=second");
+      const res = await accounts_relationships.handleRequest(req);
+      assert.equal(res.status, 200);
+      assertCORS(res);
+      assertJSON(res);
+
+      const data = await res.json<Array<any>>();
+      assert.equal(data.length, 2);
+      assert.equal(data[0].id, "first");
+      assert.equal(data[0].following, false);
+      assert.equal(data[1].id, "second");
+      assert.equal(data[1].following, false);
+    });
+
+    test("relationships with one id", async () => {
+      const req = new Request("https://mastodon.example/api/v1/accounts/relationships?id[]=first");
+      const res = await accounts_relationships.handleRequest(req);
+      assert.equal(res.status, 200);
+      assertCORS(res);
+      assertJSON(res);
+
+      const data = await res.json<Array<any>>();
+      assert.equal(data.length, 1);
+      assert.equal(data[0].id, "first");
+      assert.equal(data[0].following, false);
     });
   });
 
@@ -323,29 +426,35 @@ describe("Mastodon APIs", () => {
       assertJSON(res);
       assertCORS(res);
     });
+  });
 
-    test("query parsing", async () => {
+  describe("utils", () => {
+    test("handle parsing", async () => {
       let res;
 
-      res = search.parseQuery("");
+      res = parseHandle("");
       assert.equal(res.localPart, "");
       assert.equal(res.domain, null);
 
-      res = search.parseQuery("@a");
+      res = parseHandle("@a");
       assert.equal(res.localPart, "a");
       assert.equal(res.domain, null);
 
-      res = search.parseQuery("a");
+      res = parseHandle("a");
       assert.equal(res.localPart, "a");
       assert.equal(res.domain, null);
 
-      res = search.parseQuery("@a@remote.com");
+      res = parseHandle("@a@remote.com");
       assert.equal(res.localPart, "a");
       assert.equal(res.domain, "remote.com");
 
-      res = search.parseQuery("a@remote.com");
+      res = parseHandle("a@remote.com");
       assert.equal(res.localPart, "a");
       assert.equal(res.domain, "remote.com");
+
+      res = parseHandle("a%40masto.ai");
+      assert.equal(res.localPart, "a");
+      assert.equal(res.domain, "masto.ai");
     });
   });
 });

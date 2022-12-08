@@ -1,6 +1,7 @@
 // https://docs.joinmastodon.org/methods/search/#v2
 import { queryAcct } from "../../../webfinger/";
 import { MastodonAccount } from "../../../types/account";
+import { parseHandle } from "../../../utils/parse"
 
 const headers = {
   "content-type": "application/json; charset=utf-8",
@@ -33,7 +34,7 @@ export async function handleRequest(request: Request): Promise<Response> {
     hashtags: [],
   };
 
-  const query = parseQuery(url.searchParams.get("q") || "");
+  const query = parseHandle(url.searchParams.get("q") || "");
   if (useWebFinger && query.domain !== null) {
     const acct = `${query.localPart}@${query.domain}`;
     const res = await queryAcct(query.domain, acct);
@@ -43,18 +44,4 @@ export async function handleRequest(request: Request): Promise<Response> {
   }
 
   return new Response(JSON.stringify(results), { headers });
-}
-
-export function parseQuery(query: string): { localPart: string, domain: string | null } {
-  // Remove the leading @, if there's one.
-  if (query.startsWith("@")) {
-    query = query.substring(1);
-  }
-
-  const parts = query.split("@");
-  if (parts.length > 1) {
-    return { localPart: parts[0], domain: parts[1] };
-  } else {
-    return { localPart: parts[0], domain: null };
-  }
 }
