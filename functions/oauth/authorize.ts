@@ -9,10 +9,10 @@ import * as user from "wildebeest/users/";
 const extractJWTFromRequest = (request: Request) => request.headers.get("Cf-Access-Jwt-Assertion") || "";
 
 export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
-  return handleRequest(request, env.DATABASE);
+  return handleRequest(request, env.DATABASE, env.USER_KEK);
 };
 
-export async function handleRequest(request: Request, db: D1Database): Promise<Response> {
+export async function handleRequest(request: Request, db: D1Database, user_kek: string): Promise<Response> {
   const url = new URL(request.url);
 
   if (!(
@@ -42,7 +42,7 @@ export async function handleRequest(request: Request, db: D1Database): Promise<R
 
   const person = await user.getPersonByEmail(db, identity.email);
   if (person === null) {
-    await user.createPerson(db, identity.email);
+    await user.createPerson(db, user_kek, identity.email);
   }
 
   if (redirect_uri === "urn:ietf:wg:oauth:2.0:oob") {

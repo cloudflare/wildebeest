@@ -18,7 +18,7 @@ import * as timelines_public from "../functions/api/v1/timelines/public";
 import * as notifications from "../functions/api/v1/notifications";
 import { TEST_JWT, ACCESS_CERTS } from "./test-data";
 import { defaultImages } from "../config/accounts";
-import { makeDB, assertCORS, assertJSON, assertCache } from "./utils"
+import { makeDB, assertCORS, assertJSON, assertCache } from "./utils";
 import { accessConfig } from "../config/access";
 
 describe("Mastodon APIs", () => {
@@ -44,24 +44,35 @@ describe("Mastodon APIs", () => {
   describe("accounts", () => {
     beforeEach(() => {
       globalThis.fetch = async (input: RequestInfo) => {
-        if (input.toString() === "https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com") {
-          return new Response(JSON.stringify({
-            links: [
-              {"rel":"self","type":"application/activity+json","href":"https://social.com/sven"},
-            ]
-          }));
+        if (
+          input.toString() ===
+          "https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com"
+        ) {
+          return new Response(
+            JSON.stringify({
+              links: [
+                {
+                  rel: "self",
+                  type: "application/activity+json",
+                  href: "https://social.com/sven",
+                },
+              ],
+            })
+          );
         }
 
         if (input === "https://social.com/sven") {
-          return new Response(JSON.stringify({
-            id: "sven@remote.com",
-            type: "Person",
-            preferredUsername: "sven",
-            name: "sven ssss",
+          return new Response(
+            JSON.stringify({
+              id: "sven@remote.com",
+              type: "Person",
+              preferredUsername: "sven",
+              name: "sven ssss",
 
-            icon: { url: "icon.jpg" },
-            image: { url: "image.jpg" }
-          }));
+              icon: { url: "icon.jpg" },
+              image: { url: "image.jpg" },
+            })
+          );
         }
 
         throw new Error("unexpected request to " + input);
@@ -74,9 +85,9 @@ describe("Mastodon APIs", () => {
           JWT: {
             getIdentity() {
               return null;
-            }
-          }
-        }
+            },
+          },
+        },
       };
 
       const context: any = { data };
@@ -96,13 +107,13 @@ describe("Mastodon APIs", () => {
         JWT: {
           getIdentity() {
             return {
-              email: "sven@cloudflare.com"
-            }
-          }
-        }
+              email: "sven@cloudflare.com",
+            };
+          },
+        },
       };
 
-      const context: any = { env, data: { cloudflareAccess }};
+      const context: any = { env, data: { cloudflareAccess } };
       const res = await accounts_verify_creds.onRequest(context);
       assert.equal(res.status, 200);
       assertCORS(res);
@@ -120,13 +131,13 @@ describe("Mastodon APIs", () => {
         JWT: {
           getIdentity() {
             return {
-              email: "sven@cloudflare.com"
-            }
-          }
-        }
+              email: "sven@cloudflare.com",
+            };
+          },
+        },
       };
 
-      const context: any = { env, data: { cloudflareAccess }};
+      const context: any = { env, data: { cloudflareAccess } };
       const res = await accounts_verify_creds.onRequest(context);
       assert.equal(res.status, 404);
     });
@@ -167,13 +178,17 @@ describe("Mastodon APIs", () => {
     });
 
     test("relationships missing ids", async () => {
-      const req = new Request("https://mastodon.example/api/v1/accounts/relationships");
+      const req = new Request(
+        "https://mastodon.example/api/v1/accounts/relationships"
+      );
       const res = await accounts_relationships.handleRequest(req);
       assert.equal(res.status, 400);
     });
 
     test("relationships with ids", async () => {
-      const req = new Request("https://mastodon.example/api/v1/accounts/relationships?id[]=first&id[]=second");
+      const req = new Request(
+        "https://mastodon.example/api/v1/accounts/relationships?id[]=first&id[]=second"
+      );
       const res = await accounts_relationships.handleRequest(req);
       assert.equal(res.status, 200);
       assertCORS(res);
@@ -188,7 +203,9 @@ describe("Mastodon APIs", () => {
     });
 
     test("relationships with one id", async () => {
-      const req = new Request("https://mastodon.example/api/v1/accounts/relationships?id[]=first");
+      const req = new Request(
+        "https://mastodon.example/api/v1/accounts/relationships?id[]=first"
+      );
       const res = await accounts_relationships.handleRequest(req);
       assert.equal(res.status, 200);
       assertCORS(res);
@@ -209,9 +226,11 @@ describe("Mastodon APIs", () => {
         }
 
         if (input === accessConfig.domain + "/cdn-cgi/access/get-identity") {
-          return new Response(JSON.stringify({
-            email: "some@cloudflare.com",
-          }));
+          return new Response(
+            JSON.stringify({
+              email: "some@cloudflare.com",
+            })
+          );
         }
 
         throw new Error("unexpected request to " + input);
@@ -220,18 +239,20 @@ describe("Mastodon APIs", () => {
 
     test("authorize missing params", async () => {
       const db = await makeDB();
+      const user_kek = "test_kek";
 
       let req = new Request("https://example.com/oauth/authorize");
-      let res = await oauth_authorize.handleRequest(req, db);
+      let res = await oauth_authorize.handleRequest(req, db, user_kek);
       assert.equal(res.status, 400);
 
       req = new Request("https://example.com/oauth/authorize?scope=foobar");
-      res = await oauth_authorize.handleRequest(req, db);
+      res = await oauth_authorize.handleRequest(req, db, user_kek);
       assert.equal(res.status, 400);
     });
 
     test("authorize unsupported response_type", async () => {
       const db = await makeDB();
+      const user_kek = "test_kek";
 
       const params = new URLSearchParams({
         redirect_uri: "https://example.com",
@@ -240,12 +261,13 @@ describe("Mastodon APIs", () => {
       });
 
       const req = new Request("https://example.com/oauth/authorize?" + params);
-      const res = await oauth_authorize.handleRequest(req, db);
+      const res = await oauth_authorize.handleRequest(req, db, user_kek);
       assert.equal(res.status, 400);
     });
 
     test("authorize redirects with code on success and creates user", async () => {
       const db = await makeDB();
+      const user_kek = "test_kek";
 
       const params = new URLSearchParams({
         redirect_uri: "https://example.com",
@@ -257,8 +279,10 @@ describe("Mastodon APIs", () => {
         "Cf-Access-Jwt-Assertion": TEST_JWT,
       };
 
-      const req = new Request("https://example.com/oauth/authorize?" + params, { headers });
-      const res = await oauth_authorize.handleRequest(req, db);
+      const req = new Request("https://example.com/oauth/authorize?" + params, {
+        headers,
+      });
+      const res = await oauth_authorize.handleRequest(req, db, user_kek);
       assert.equal(res.status, 307);
 
       const location = res.headers.get("location");
@@ -270,6 +294,7 @@ describe("Mastodon APIs", () => {
 
     test("authorize with redirect_uri urn:ietf:wg:oauth:2.0:oob", async () => {
       const db = await makeDB();
+      const user_kek = "test_kek";
 
       const params = new URLSearchParams({
         redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
@@ -281,8 +306,10 @@ describe("Mastodon APIs", () => {
         "Cf-Access-Jwt-Assertion": TEST_JWT,
       };
 
-      const req = new Request("https://example.com/oauth/authorize?" + params, { headers });
-      const res = await oauth_authorize.handleRequest(req, db);
+      const req = new Request("https://example.com/oauth/authorize?" + params, {
+        headers,
+      });
+      const res = await oauth_authorize.handleRequest(req, db, user_kek);
       assert.equal(res.status, 200);
 
       assert.equal(await res.text(), TEST_JWT);
@@ -324,41 +351,63 @@ describe("Mastodon APIs", () => {
   describe("search", () => {
     beforeEach(() => {
       globalThis.fetch = async (input: RequestInfo) => {
-        if (input.toString() === "https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com") {
-          return new Response(JSON.stringify({
-            links: [
-              {"rel":"self","type":"application/activity+json","href":"https://social.com/sven"},
-            ]
-          }));
+        if (
+          input.toString() ===
+          "https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com"
+        ) {
+          return new Response(
+            JSON.stringify({
+              links: [
+                {
+                  rel: "self",
+                  type: "application/activity+json",
+                  href: "https://social.com/sven",
+                },
+              ],
+            })
+          );
         }
 
-        if (input.toString() === "https://remote.com/.well-known/webfinger?resource=acct%3Adefault-avatar-and-header%40remote.com") {
-          return new Response(JSON.stringify({
-            links: [
-              {"rel":"self","type":"application/activity+json","href":"https://social.com/default-avatar-and-header"},
-            ]
-          }));
+        if (
+          input.toString() ===
+          "https://remote.com/.well-known/webfinger?resource=acct%3Adefault-avatar-and-header%40remote.com"
+        ) {
+          return new Response(
+            JSON.stringify({
+              links: [
+                {
+                  rel: "self",
+                  type: "application/activity+json",
+                  href: "https://social.com/default-avatar-and-header",
+                },
+              ],
+            })
+          );
         }
 
         if (input === "https://social.com/sven") {
-          return new Response(JSON.stringify({
-            id: "sven@remote.com",
-            type: "Person",
-            preferredUsername: "sven",
-            name: "sven ssss",
+          return new Response(
+            JSON.stringify({
+              id: "sven@remote.com",
+              type: "Person",
+              preferredUsername: "sven",
+              name: "sven ssss",
 
-            icon: { url: "icon.jpg" },
-            image: { url: "image.jpg" }
-          }));
+              icon: { url: "icon.jpg" },
+              image: { url: "image.jpg" },
+            })
+          );
         }
 
         if (input === "https://social.com/default-avatar-and-header") {
-          return new Response(JSON.stringify({
-            id: "1234",
-            type: "Person",
-            preferredUsername: "sven",
-            name: "sven ssss",
-          }));
+          return new Response(
+            JSON.stringify({
+              id: "1234",
+              type: "Person",
+              preferredUsername: "sven",
+              name: "sven ssss",
+            })
+          );
         }
 
         throw new Error(`unexpected request to "${input}"`);
@@ -372,7 +421,9 @@ describe("Mastodon APIs", () => {
     });
 
     test("empty results", async () => {
-      const req = new Request("https://example.com/api/v2/search?q=non-existing-local-user");
+      const req = new Request(
+        "https://example.com/api/v2/search?q=non-existing-local-user"
+      );
       const res = await search.handleRequest(req);
       assert.equal(res.status, 200);
       assertJSON(res);
@@ -385,7 +436,9 @@ describe("Mastodon APIs", () => {
     });
 
     test("queries WebFinger when remote account", async () => {
-      const req = new Request("https://example.com/api/v2/search?q=@sven@remote.com&resolve=true");
+      const req = new Request(
+        "https://example.com/api/v2/search?q=@sven@remote.com&resolve=true"
+      );
       const res = await search.handleRequest(req);
       assert.equal(res.status, 200);
       assertJSON(res);
@@ -403,7 +456,9 @@ describe("Mastodon APIs", () => {
     });
 
     test("queries WebFinger when remote account with default avatar / header", async () => {
-      const req = new Request("https://example.com/api/v2/search?q=@default-avatar-and-header@remote.com&resolve=true");
+      const req = new Request(
+        "https://example.com/api/v2/search?q=@default-avatar-and-header@remote.com&resolve=true"
+      );
       const res = await search.handleRequest(req);
       assert.equal(res.status, 200);
       assertJSON(res);
@@ -420,9 +475,13 @@ describe("Mastodon APIs", () => {
     });
 
     test("don't queries WebFinger when resolve is set to false", async () => {
-      globalThis.fetch = () =>  { throw new Error("unreachable") };
+      globalThis.fetch = () => {
+        throw new Error("unreachable");
+      };
 
-      const req = new Request("https://example.com/api/v2/search?q=@sven@remote.com&resolve=false");
+      const req = new Request(
+        "https://example.com/api/v2/search?q=@sven@remote.com&resolve=false"
+      );
       const res = await search.handleRequest(req);
       assert.equal(res.status, 200);
       assertJSON(res);

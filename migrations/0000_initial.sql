@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS actors (
   id TEXT PRIMARY KEY,
   type TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  privkey TEXT,
+  privkey BLOB,
   pubkey TEXT,
   cdate DATETIME NOT NULL DEFAULT (datetime()),
   properties TEXT NOT NULL DEFAULT (json_object())
