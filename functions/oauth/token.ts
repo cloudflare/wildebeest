@@ -23,7 +23,7 @@ export async function handleRequest(request: Request): Promise<Response> {
     const res = {
         access_token: code,
         token_type: 'Bearer',
-        scope: 'read write follow push', // hardcoded by the Mastodon app.
+        scope: 'read write follow push', // hardcoded by the Mastodon app. TODO: get from /oauth/authorize call.
         created_at: (Date.now() / 1000) | 0,
     }
     return new Response(JSON.stringify(res), { headers })

@@ -50,6 +50,6 @@ export async function handleRequest(request: Request, db: D1Database, user_kek: 
     if (redirect_uri === 'urn:ietf:wg:oauth:2.0:oob') {
         return new Response(jwt)
     } else {
-        return Response.redirect(redirect_uri + '?code=' + jwt, 307)
+        return Response.redirect(redirect_uri + '?code=' + jwt, 302)
     }
 }

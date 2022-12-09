@@ -21,6 +21,7 @@ import { defaultImages } from '../config/accounts'
 import { makeDB, assertCORS, assertJSON, assertCache } from './utils'
 import { accessConfig } from '../config/access'
 import * as middleware from '../functions/_middleware'
+import * as statuses from '../functions/api/v1/statuses'
 
 describe('Mastodon APIs', () => {
     describe('instance', () => {
@@ -144,6 +145,7 @@ describe('Mastodon APIs', () => {
             const res = await middleware.main(ctx)
             assert.equal(res.status, 200)
             assert.equal(data.connectedUser.id, 'sven')
+            assert.equal(data.connectedUser.acct, 'sven_cloudflare_com')
         })
     })
 
@@ -348,7 +350,7 @@ describe('Mastodon APIs', () => {
                 headers,
             })
             const res = await oauth_authorize.handleRequest(req, db, user_kek)
-            assert.equal(res.status, 307)
+            assert.equal(res.status, 302)
 
             const location = res.headers.get('location')
             assert.equal(location, 'https://example.com/?code=' + TEST_JWT)
@@ -589,6 +591,66 @@ describe('Mastodon APIs', () => {
 
             const data = await res.json<any>()
             assert.equal(data.length, 0)
+        })
+    })
+
+    describe('statuses', () => {
+        test('create new status missing params', async () => {
+            const db = await makeDB()
+
+            const body = { status: 'my status' }
+            const req = new Request('https://example.com', {
+                method: 'POST',
+                body: JSON.stringify(body),
+            })
+
+            const connectedUser: any = {}
+            const res = await statuses.handleRequest(req, db, connectedUser)
+            assert.equal(res.status, 400)
+        })
+
+        test('create new status creates Note', async () => {
+            const db = await makeDB()
+
+            const body = {
+                status: 'my status',
+                visibility: 'public',
+                sensitive: false,
+            }
+            const req = new Request('https://example.com', {
+                method: 'POST',
+                body: JSON.stringify(body),
+            })
+
+            const connectedUser: any = {}
+            const res = await statuses.handleRequest(req, db, connectedUser)
+            assert.equal(res.status, 200)
+            assertJSON(res)
+
+            const data = await res.json<any>()
+            // Required fields from https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Status.java
+            assert(data.id !== undefined)
+            assert(data.uri !== undefined)
+            assert(data.created_at !== undefined)
+            assert(data.account !== undefined)
+            assert(data.visibility !== undefined)
+            assert(data.spoiler_text !== undefined)
+            assert(data.media_attachments !== undefined)
+            assert(data.mentions !== undefined)
+            assert(data.tags !== undefined)
+            assert(data.emojis !== undefined)
+
+            const row = await db
+                .prepare(
+                    `
+          SELECT
+              json_extract(properties, '$.content') as content
+          FROM objects WHERE id = ?
+        `
+                )
+                .bind(data.id)
+                .first()
+            assert.equal(row.content, 'my status')
         })
     })
 })

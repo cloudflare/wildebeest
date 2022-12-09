@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS actor_following (
   cdate DATETIME NOT NULL DEFAULT (datetime()),
 
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
-  FOREIGN KEY(object_id) REFERENCES objects(object_id)
+  FOREIGN KEY(object_id) REFERENCES objects(id)
 );
 
 CREATE TABLE IF NOT EXISTS actor_followers (
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS actor_followers (
   cdate DATETIME NOT NULL DEFAULT (datetime()),
 
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
-  FOREIGN KEY(object_id) REFERENCES objects(object_id)
+  FOREIGN KEY(object_id) REFERENCES objects(id)
 );
 
 CREATE TABLE IF NOT EXISTS objects (
@@ -46,5 +46,5 @@ CREATE TABLE IF NOT EXISTS inbox_objects (
   cdate DATETIME NOT NULL DEFAULT (datetime()),
 
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
-  FOREIGN KEY(object_id) REFERENCES objects(object_id)
+  FOREIGN KEY(object_id) REFERENCES objects(id)
 );

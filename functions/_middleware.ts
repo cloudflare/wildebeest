@@ -2,6 +2,7 @@ import * as access from 'wildebeest/access/'
 import * as actors from 'wildebeest/activitypub/actors'
 import { accessConfig } from 'wildebeest/config/access'
 import type { Env } from 'wildebeest/types/env'
+import * as errors from 'wildebeest/errors/'
 
 async function errorHandling(context: EventContext<unknown, any, any>) {
     try {
@@ -52,19 +53,20 @@ export async function main(context: EventContext<Env, any, any>) {
 
             const identity = await access.getIdentity({ jwt, domain: accessConfig.domain })
             if (!identity) {
-                return new Response(`{"error": "failed to load identity"}`, { status: 401 })
+                return errors.notAuthorized('failed to load identity')
             }
 
             const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email)
             if (person === null) {
-                return new Response(`{"error": "user not found"}`, { status: 401 })
+                return errors.notAuthorized('user not found')
             }
 
-            context.data.connectedUser = person
+            context.data.connectedUser = actors.toMastodonAccount(person)
 
             return context.next()
         } catch (err: any) {
             console.warn(err.stack)
+            return errors.notAuthorized('unknown error occurred')
         }
 
         return new Response(null, {
