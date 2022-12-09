@@ -4,6 +4,7 @@ import * as apps from "../functions/api/v1/apps";
 import * as oauth_authorize from "../functions/oauth/authorize";
 import * as oauth_token from "../functions/oauth/token";
 import * as search from "../functions/api/v2/search";
+import * as custom_emojis from "../functions/api/v1/custom_emojis";
 import * as accounts_verify_creds from "../functions/api/v1/accounts/verify_credentials";
 import * as accounts_get from "../functions/api/v1/accounts/[id]";
 import * as accounts_statuses from "../functions/api/v1/accounts/[id]/statuses";
@@ -12,6 +13,9 @@ import * as accounts_following from "../functions/api/v1/accounts/[id]/following
 import * as accounts_featured_tags from "../functions/api/v1/accounts/[id]/featured_tags";
 import * as accounts_lists from "../functions/api/v1/accounts/[id]/lists";
 import * as accounts_relationships from "../functions/api/v1/accounts/relationships";
+import * as timelines_home from "../functions/api/v1/timelines/home";
+import * as timelines_public from "../functions/api/v1/timelines/public";
+import * as notifications from "../functions/api/v1/notifications";
 import { TEST_JWT, ACCESS_CERTS } from "./test-data";
 import { defaultImages } from "../config/accounts";
 import { makeDB, assertCORS, assertJSON, assertCache } from "./utils"
@@ -423,6 +427,53 @@ describe("Mastodon APIs", () => {
       assert.equal(res.status, 200);
       assertJSON(res);
       assertCORS(res);
+    });
+  });
+
+  describe("custom emojis", () => {
+    test("returns an empty array", async () => {
+      const res = await custom_emojis.onRequest();
+      assert.equal(res.status, 200);
+      assertJSON(res);
+      assertCORS(res);
+      assertCache(res, 300);
+
+      const data = await res.json<any>();
+      assert.equal(data.length, 0);
+    });
+  });
+
+  describe("timelines", () => {
+    test("home returns an empty array", async () => {
+      const res = await timelines_home.onRequest();
+      assert.equal(res.status, 200);
+      assertJSON(res);
+      assertCORS(res);
+
+      const data = await res.json<any>();
+      assert.equal(data.length, 0);
+    });
+
+    test("public returns an empty array", async () => {
+      const res = await timelines_home.onRequest();
+      assert.equal(res.status, 200);
+      assertJSON(res);
+      assertCORS(res);
+
+      const data = await res.json<any>();
+      assert.equal(data.length, 0);
+    });
+  });
+
+  describe("notifications", () => {
+    test("returns an empty array", async () => {
+      const res = await notifications.onRequest();
+      assert.equal(res.status, 200);
+      assertJSON(res);
+      assertCORS(res);
+
+      const data = await res.json<any>();
+      assert.equal(data.length, 0);
     });
   });
 });
