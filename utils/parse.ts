@@ -1,4 +1,9 @@
-export function parseHandle(query: string): { localPart: string; domain: string | null } {
+export type Handle = {
+    localPart: string
+    domain: string | null
+}
+
+export function parseHandle(query: string): Handle {
     // Remove the leading @, if there's one.
     if (query.startsWith('@')) {
         query = query.substring(1)

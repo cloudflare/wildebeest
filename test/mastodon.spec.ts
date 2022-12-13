@@ -22,6 +22,7 @@ import { makeDB, assertCORS, assertJSON, assertCache } from './utils'
 import { accessConfig } from '../config/access'
 import * as middleware from '../functions/_middleware'
 import * as statuses from '../functions/api/v1/statuses'
+import { getMentions } from '../mastodon/status'
 
 describe('Mastodon APIs', () => {
     describe('instance', () => {
@@ -651,6 +652,84 @@ describe('Mastodon APIs', () => {
                 .bind(data.id)
                 .first()
             assert.equal(row.content, 'my status')
+        })
+
+        test('create new status with mention delivers ActivityPub Note', async () => {
+            let deliveredNote: any = null
+
+            globalThis.fetch = async (input: RequestInfo, data: any) => {
+                if (input.toString() === 'https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com') {
+                    return new Response(
+                        JSON.stringify({
+                            links: [
+                                {
+                                    rel: 'self',
+                                    type: 'application/activity+json',
+                                    href: 'https://social.com/sven',
+                                },
+                            ],
+                        })
+                    )
+                }
+
+                if (input === 'https://social.com/sven') {
+                    return new Response(
+                        JSON.stringify({
+                            inbox: 'https://social.com/sven/inbox',
+                        })
+                    )
+                }
+
+                if (input === 'https://social.com/sven/inbox') {
+                    assert.equal(data.method, 'POST')
+                    const body = JSON.parse(data.body)
+                    deliveredNote = body
+                    return new Response()
+                }
+
+                throw new Error('unexpected request to ' + input)
+            }
+
+            const db = await makeDB()
+
+            const body = {
+                status: '@sven@remote.com my status',
+                visibility: 'public',
+            }
+            const req = new Request('https://example.com', {
+                method: 'POST',
+                body: JSON.stringify(body),
+            })
+
+            const connectedUser: any = {}
+            const res = await statuses.handleRequest(req, db, connectedUser)
+            assert.equal(res.status, 200)
+
+            assert(deliveredNote)
+            assert.equal(deliveredNote.type, 'Create')
+            assert.equal(deliveredNote.actor.type, 'Person')
+            assert.equal(deliveredNote.object.type, 'Note')
+        })
+
+        test('get mentions from status', () => {
+            {
+                const mentions = getMentions('test status')
+                assert.equal(mentions.length, 0)
+            }
+
+            {
+                const mentions = getMentions('@sven@instance.horse test status')
+                assert.equal(mentions.length, 1)
+                assert.equal(mentions[0].localPart, 'sven')
+                assert.equal(mentions[0].domain, 'instance.horse')
+            }
+
+            {
+                const mentions = getMentions('@sven test status')
+                assert.equal(mentions.length, 1)
+                assert.equal(mentions[0].localPart, 'sven')
+                assert.equal(mentions[0].domain, null)
+            }
         })
     })
 })

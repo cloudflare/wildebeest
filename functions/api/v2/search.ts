@@ -2,6 +2,7 @@
 import { queryAcct } from 'wildebeest/webfinger/'
 import { MastodonAccount } from 'wildebeest/types/account'
 import { parseHandle } from 'wildebeest/utils/parse'
+import { toMastodonAccount } from 'wildebeest/mastodon/account'
 
 const headers = {
     'content-type': 'application/json; charset=utf-8',
@@ -39,7 +40,7 @@ export async function handleRequest(request: Request): Promise<Response> {
         const acct = `${query.localPart}@${query.domain}`
         const res = await queryAcct(query.domain, acct)
         if (res !== null) {
-            results.accounts.push(res)
+            results.accounts.push(toMastodonAccount(acct, res))
         }
     }
 

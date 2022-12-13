@@ -1,26 +1,38 @@
 import { MastodonAccount } from 'wildebeest/types/account'
+import { instanceConfig } from 'wildebeest/config/instance'
 import { generateUserKey } from 'wildebeest/utils/key-ops'
+import type { Object } from '../objects'
+import * as objects from '../objects'
 
 const PERSON = 'Person'
+
+function inboxURL(id: string): URL {
+    return new URL(`/ap/users/${id}/inbox`, 'https://' + instanceConfig.uri)
+}
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
+export interface Actor extends Object {
+    inbox: URL
+}
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
+export interface Person extends Actor {
+    email: string
+    properties: object
+    pubkey: string
+}
 
 const headers = {
     accept: 'application/activity+json',
 }
 
-export async function get(url: string): Promise<any> {
+export async function get(url: string): Promise<Actor> {
     const res = await fetch(url, { headers })
     if (!res.ok) {
         throw new Error(`${url} returned: ${res.status}`)
     }
 
-    return res.json<any>()
-}
-
-export type Person = {
-    email: string
-    id: string
-    properties: object
-    pubkey: string
+    return res.json<Actor>()
 }
 
 export async function getPersonByEmail(db: D1Database, email: string): Promise<Person | null> {
@@ -32,8 +44,11 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
     const person: any = results[0]
 
     return {
+        type: PERSON,
         email,
         id: person.id,
+        inbox: inboxURL(person.id),
+        url: objects.uri(person.id),
         properties: JSON.parse(person.properties),
         pubkey: person.pubkey,
     }
@@ -59,7 +74,10 @@ export async function getPersonById(db: D1Database, id: string): Promise<Person 
     const person: any = results[0]
 
     return {
+        type: PERSON,
         id,
+        url: objects.uri(person.id),
+        inbox: inboxURL(person.id),
         email: person.email,
         properties: JSON.parse(person.properties),
         pubkey: person.pubkey,
@@ -85,7 +103,7 @@ export function toMastodonAccount(person: Person): MastodonAccount {
         header_static: 'https://jpeg.speedcf.com/cat/22.jpg',
         followers_count: 0,
         following_count: 0,
-        statuses_count: 3,
+        statuses_count: 0,
         emojis: [],
         fields: [],
     }
