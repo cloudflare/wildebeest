@@ -3,7 +3,7 @@
 import type { Env } from "wildebeest/types/env";
 import { accessConfig } from "wildebeest/config/access";
 import * as access from "wildebeest/access/";
-import * as user from "wildebeest/users/";
+import { getPersonByEmail, createPerson } from "wildebeest/activitypub/actors";
 
 // Extract the JWT token sent by Access (running before us).
 const extractJWTFromRequest = (request: Request) => request.headers.get("Cf-Access-Jwt-Assertion") || "";
@@ -40,9 +40,9 @@ export async function handleRequest(request: Request, db: D1Database, user_kek: 
     return new Response("", { status: 401 });
   }
 
-  const person = await user.getPersonByEmail(db, identity.email);
+  const person = await getPersonByEmail(db, identity.email);
   if (person === null) {
-    await user.createPerson(db, user_kek, identity.email);
+    await createPerson(db, user_kek, identity.email);
   }
 
   if (redirect_uri === "urn:ietf:wg:oauth:2.0:oob") {

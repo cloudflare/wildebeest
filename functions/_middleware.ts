@@ -1,5 +1,7 @@
 import * as access from "wildebeest/access/";
+import * as actors from "wildebeest/activitypub/actors";
 import { accessConfig } from "wildebeest/config/access";
+import type { Env } from "wildebeest/types/env";
 
 async function errorHandling(context: EventContext<unknown, any, any>) {
   try {
@@ -19,7 +21,7 @@ async function logger(context: EventContext<unknown, any, any>) {
   return res;
 }
 
-async function main(context: EventContext<unknown, any, any>) {
+export async function main(context: EventContext<Env, any, any>) {
   if (context.request.method === "OPTIONS") {
     const headers = {
       "Access-Control-Allow-Origin": "*",
@@ -48,15 +50,22 @@ async function main(context: EventContext<unknown, any, any>) {
       const validator = access.generateValidator({ jwt, ...accessConfig });
       const { payload } = await validator(context.request);
 
-      context.data.cloudflareAccess = {
-        JWT: {
-          payload,
-          getIdentity: () => access.getIdentity({ jwt, domain: accessConfig.domain }),
-        },
-      };
+      const identity = await access.getIdentity({ jwt, domain: accessConfig.domain });
+      if (!identity) {
+        return new Response(`{"error": "failed to load identity"}`, { status: 401 });
+      }
+
+      const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email);
+      if (person === null) {
+        return new Response(`{"error": "user not found"}`, { status: 401 });
+      }
+
+      context.data.connectedUser = person;
 
       return context.next();
-    } catch {}
+    } catch (err: any) {
+      console.warn(err.stack);
+    }
 
     return new Response(null, {
       status: 302,

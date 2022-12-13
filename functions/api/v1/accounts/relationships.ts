@@ -3,9 +3,8 @@
 import type { PluginData } from "@cloudflare/pages-plugin-cloudflare-access";
 import type { Env } from "wildebeest/types/env";
 import type { MastodonAccount } from "wildebeest/types/account";
-import * as user from "wildebeest/users/";
 
-export const onRequest: PagesFunction<Env, any, PluginData> = async ({ request }) => {
+export const onRequest: PagesFunction<Env, any> = async ({ request }) => {
   return handleRequest(request);
 };
 

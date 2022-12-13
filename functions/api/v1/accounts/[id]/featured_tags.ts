@@ -1,5 +1,3 @@
-import * as user from "wildebeest/users";
-
 export const onRequest = async () => {
   const headers = {
     "content-type": "application/json; charset=utf-8",

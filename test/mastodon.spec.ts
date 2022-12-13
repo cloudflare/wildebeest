@@ -20,6 +20,7 @@ import { TEST_JWT, ACCESS_CERTS } from "./test-data";
 import { defaultImages } from "../config/accounts";
 import { makeDB, assertCORS, assertJSON, assertCache } from "./utils";
 import { accessConfig } from "../config/access";
+import * as middleware from "../functions/_middleware";
 
 describe("Mastodon APIs", () => {
   describe("instance", () => {
@@ -38,6 +39,107 @@ describe("Mastodon APIs", () => {
       assert.equal(res.status, 200);
       assertCORS(res);
       assertJSON(res);
+    });
+  });
+
+  describe("middleware", () => {
+    test("CORS on OPTIONS", async () => {
+      const request = new Request("https://example.com", { method: "OPTIONS" });
+      const ctx: any = {
+        request,
+      };
+
+      const res = await middleware.main(ctx);
+      assert.equal(res.status, 200);
+      assertCORS(res);
+    });
+
+    test("test no identity", async () => {
+      globalThis.fetch = async (input: RequestInfo) => {
+        if (input === accessConfig.domain + "/cdn-cgi/access/certs") {
+          return new Response(JSON.stringify(ACCESS_CERTS));
+        }
+
+        if (input === accessConfig.domain + "/cdn-cgi/access/get-identity") {
+          return new Response("", { status: 404 });
+        }
+
+        throw new Error("unexpected request to " + input);
+      };
+
+      const headers = { authorization: "Bearer " + TEST_JWT };
+      const request = new Request("https://example.com", { headers });
+      const ctx: any = {
+        request,
+      };
+
+      const res = await middleware.main(ctx);
+      assert.equal(res.status, 401);
+    });
+
+    test("test user not found", async () => {
+      globalThis.fetch = async (input: RequestInfo) => {
+        if (input === accessConfig.domain + "/cdn-cgi/access/certs") {
+          return new Response(JSON.stringify(ACCESS_CERTS));
+        }
+
+        if (input === accessConfig.domain + "/cdn-cgi/access/get-identity") {
+          return new Response(JSON.stringify({
+            email: "some@cloudflare.com",
+          }));
+        }
+
+        throw new Error("unexpected request to " + input);
+      };
+
+      const db = await makeDB();
+
+      const headers = { authorization: "Bearer " + TEST_JWT };
+      const request = new Request("https://example.com", { headers });
+      const ctx: any = {
+        env: { DATABASE: db },
+        request,
+      };
+
+      const res = await middleware.main(ctx);
+      assert.equal(res.status, 401);
+    });
+
+    test("success passes data and calls next", async () => {
+      globalThis.fetch = async (input: RequestInfo) => {
+        if (input === accessConfig.domain + "/cdn-cgi/access/certs") {
+          return new Response(JSON.stringify(ACCESS_CERTS));
+        }
+
+        if (input === accessConfig.domain + "/cdn-cgi/access/get-identity") {
+          return new Response(JSON.stringify({
+            email: "sven@cloudflare.com",
+          }));
+        }
+
+        throw new Error("unexpected request to " + input);
+      };
+
+      const db = await makeDB();
+      await db
+        .prepare("INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)")
+        .bind("sven", "sven@cloudflare.com", "Person", JSON.stringify({}))
+        .run();
+
+      const data: any = {};
+
+      const headers = { authorization: "Bearer " + TEST_JWT };
+      const request = new Request("https://example.com", { headers });
+      const ctx: any = {
+        next: () => new Response(),
+        data,
+        env: { DATABASE: db },
+        request,
+      };
+
+      const res = await middleware.main(ctx);
+      assert.equal(res.status, 200);
+      assert.equal(data.connectedUser.id, "sven");
     });
   });
 
@@ -96,50 +198,18 @@ describe("Mastodon APIs", () => {
     });
 
     test("verify the credentials", async () => {
-      const db = await makeDB();
-      await db
-        .prepare("INSERT INTO actors (id, email, type) VALUES (?, ?, ?)")
-        .bind("1", "sven@cloudflare.com", "Person")
-        .run();
-
-      const env = { DATABASE: db };
-      const cloudflareAccess = {
-        JWT: {
-          getIdentity() {
-            return {
-              email: "sven@cloudflare.com",
-            };
-          },
-        },
+      const connectedUser = {
+        display_name: "sven"
       };
 
-      const context: any = { env, data: { cloudflareAccess } };
+      const context: any = { data: { connectedUser }};
       const res = await accounts_verify_creds.onRequest(context);
       assert.equal(res.status, 200);
       assertCORS(res);
       assertJSON(res);
 
       const data = await res.json<any>();
-      assert.equal(data.display_name, "sven@cloudflare.com");
-    });
-
-    test("missing user", async () => {
-      const db = await makeDB();
-
-      const env = { DATABASE: db };
-      const cloudflareAccess = {
-        JWT: {
-          getIdentity() {
-            return {
-              email: "sven@cloudflare.com",
-            };
-          },
-        },
-      };
-
-      const context: any = { env, data: { cloudflareAccess } };
-      const res = await accounts_verify_creds.onRequest(context);
-      assert.equal(res.status, 404);
+      assert.equal(data.display_name, "sven");
     });
 
     test("get remote actor by id", async () => {

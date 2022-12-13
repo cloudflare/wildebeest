@@ -1,7 +1,7 @@
 // https://www.rfc-editor.org/rfc/rfc7033
 
 import { parseHandle } from "../../utils/parse";
-import { getPersonById } from "../../users/";
+import { getPersonById } from "wildebeest/activitypub/actors";
 import { instanceConfig } from "../../config/instance";
 import type { Env } from "../../types/env";
 import type { WebFingerResponse } from "../../webfinger/";
