@@ -71,8 +71,8 @@ export async function createPerson(db: D1Database, user_kek: string, email: stri
 
     const userKeyPair = await generateUserKey(user_kek)
 
-    db.prepare('INSERT INTO actors(id, type, email, pubkey, privkey) VALUES(?, ?, ?, ?, ?)')
-        .bind(id, PERSON, email, userKeyPair.pubKey, Buffer.from(userKeyPair.wrappedPrivKey))
+    db.prepare('INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt) VALUES(?, ?, ?, ?, ?, ?)')
+        .bind(id, PERSON, email, userKeyPair.pubKey, Buffer.from(userKeyPair.wrappedPrivKey), userKeyPair.salt)
         .run()
 }
 

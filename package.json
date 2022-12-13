@@ -23,5 +23,8 @@
     "pretty": "npx prettier --list-different './**/*.ts'",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "lint": "npx eslint ."
+  },
+  "dependencies": {
+    "http-message-signatures": "^0.1.2"
   }
 }
