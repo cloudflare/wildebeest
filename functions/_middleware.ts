@@ -1,79 +1,83 @@
-import * as access from "wildebeest/access/";
-import * as actors from "wildebeest/activitypub/actors";
-import { accessConfig } from "wildebeest/config/access";
-import type { Env } from "wildebeest/types/env";
+import * as access from 'wildebeest/access/'
+import * as actors from 'wildebeest/activitypub/actors'
+import { accessConfig } from 'wildebeest/config/access'
+import type { Env } from 'wildebeest/types/env'
 
 async function errorHandling(context: EventContext<unknown, any, any>) {
-  try {
-    return await context.next();
-  } catch (err: any) {
-    console.log(err.stack);
-    return new Response(`${err.message}\n${err.stack}`, { status: 500 });
-  }
+    try {
+        return await context.next()
+    } catch (err: any) {
+        console.log(err.stack)
+        return new Response(`${err.message}\n${err.stack}`, { status: 500 })
+    }
 }
 
 async function logger(context: EventContext<unknown, any, any>) {
-  const { method, url } = context.request;
-  console.log(`-> ${method} ${url}`);
-  const res = await context.next();
-  console.log(`<- ${res.status}`);
+    const { method, url } = context.request
+    console.log(`-> ${method} ${url}`)
+    const res = await context.next()
+    console.log(`<- ${res.status}`)
 
-  return res;
+    return res
 }
 
 export async function main(context: EventContext<Env, any, any>) {
-  if (context.request.method === "OPTIONS") {
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "content-type, authorization",
-      "content-type": "application/json",
-    };
-    return new Response("", { headers });
-  }
-
-  const url = new URL(context.request.url);
-  if (
-    url.pathname === "/oauth/token"
-    || url.pathname === "/oauth/authorize" // Cloudflare Access runs on /oauth/authorize
-    || url.pathname === "/api/v1/instance"
-    || url.pathname === "/api/v1/apps"
-    || url.pathname === "/api/v1/custom_emojis"
-    || url.pathname === "/.well-known/webfinger"
-    || url.pathname.startsWith("/ap/") // all ActivityPub endpoints
-  ) {
-    return context.next();
-  } else {
-    try {
-      const authorization = context.request.headers.get("Authorization") || "";
-      const jwt = authorization.replace("Bearer ", "");
-
-      const validator = access.generateValidator({ jwt, ...accessConfig });
-      const { payload } = await validator(context.request);
-
-      const identity = await access.getIdentity({ jwt, domain: accessConfig.domain });
-      if (!identity) {
-        return new Response(`{"error": "failed to load identity"}`, { status: 401 });
-      }
-
-      const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email);
-      if (person === null) {
-        return new Response(`{"error": "user not found"}`, { status: 401 });
-      }
-
-      context.data.connectedUser = person;
-
-      return context.next();
-    } catch (err: any) {
-      console.warn(err.stack);
+    if (context.request.method === 'OPTIONS') {
+        const headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'content-type, authorization',
+            'content-type': 'application/json',
+        }
+        return new Response('', { headers })
     }
 
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: access.generateLoginURL({ redirectURL: context.request.url, domain: accessConfig.domain, aud: accessConfig.aud }),
-      },
-    });
-  }
+    const url = new URL(context.request.url)
+    if (
+        url.pathname === '/oauth/token' ||
+        url.pathname === '/oauth/authorize' || // Cloudflare Access runs on /oauth/authorize
+        url.pathname === '/api/v1/instance' ||
+        url.pathname === '/api/v1/apps' ||
+        url.pathname === '/api/v1/custom_emojis' ||
+        url.pathname === '/.well-known/webfinger' ||
+        url.pathname.startsWith('/ap/') // all ActivityPub endpoints
+    ) {
+        return context.next()
+    } else {
+        try {
+            const authorization = context.request.headers.get('Authorization') || ''
+            const jwt = authorization.replace('Bearer ', '')
+
+            const validator = access.generateValidator({ jwt, ...accessConfig })
+            const { payload } = await validator(context.request)
+
+            const identity = await access.getIdentity({ jwt, domain: accessConfig.domain })
+            if (!identity) {
+                return new Response(`{"error": "failed to load identity"}`, { status: 401 })
+            }
+
+            const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email)
+            if (person === null) {
+                return new Response(`{"error": "user not found"}`, { status: 401 })
+            }
+
+            context.data.connectedUser = person
+
+            return context.next()
+        } catch (err: any) {
+            console.warn(err.stack)
+        }
+
+        return new Response(null, {
+            status: 302,
+            headers: {
+                Location: access.generateLoginURL({
+                    redirectURL: context.request.url,
+                    domain: accessConfig.domain,
+                    aud: accessConfig.aud,
+                }),
+            },
+        })
+    }
 }
 
-export const onRequest = [logger, errorHandling, main];
+export const onRequest = [logger, errorHandling, main]
