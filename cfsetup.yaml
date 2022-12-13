@@ -11,5 +11,6 @@ bullseye:
     builddeps:
       <<: *builddeps
     post-cache:
-      - npm install
+      - yarn install
+      - npm run pretty
       - npm run test
