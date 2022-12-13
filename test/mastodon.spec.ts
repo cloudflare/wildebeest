@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
+import { instanceConfig } from 'wildebeest/config/instance'
 import * as instance from '../functions/api/v1/instance'
 import * as apps from '../functions/api/v1/apps'
 import * as oauth_authorize from '../functions/oauth/authorize'
@@ -145,8 +146,7 @@ describe('Mastodon APIs', () => {
 
             const res = await middleware.main(ctx)
             assert.equal(res.status, 200)
-            assert.equal(data.connectedUser.id, 'sven')
-            assert.equal(data.connectedUser.acct, 'sven_cloudflare_com')
+            assert.equal(data.connectedUser.id, 'https://' + instanceConfig.uri + '/ap/users/sven@social.eng.chat')
         })
     })
 

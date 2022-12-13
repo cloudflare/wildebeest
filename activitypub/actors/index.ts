@@ -1,4 +1,5 @@
 import { MastodonAccount } from 'wildebeest/types/account'
+import { defaultImages } from 'wildebeest/config/accounts'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { generateUserKey } from 'wildebeest/utils/key-ops'
 import type { Object } from '../objects'
@@ -6,20 +7,39 @@ import * as objects from '../objects'
 
 const PERSON = 'Person'
 
+export function actorURL(id: string): URL {
+    return new URL(`/ap/users/${id}`, 'https://' + instanceConfig.uri)
+}
+
 function inboxURL(id: string): URL {
     return new URL(`/ap/users/${id}/inbox`, 'https://' + instanceConfig.uri)
+}
+
+function outboxURL(id: string): URL {
+    return new URL(`/ap/users/${id}/outbox`, 'https://' + instanceConfig.uri)
+}
+
+function followingURL(id: string): URL {
+    return new URL(`/ap/users/${id}/following`, 'https://' + instanceConfig.uri)
+}
+
+function followersURL(id: string): URL {
+    return new URL(`/ap/users/${id}/followers`, 'https://' + instanceConfig.uri)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
 export interface Actor extends Object {
     inbox: URL
+    outbox: URL
+    following: URL
+    followers: URL
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 export interface Person extends Actor {
+    // TODO: shouldn't return email publicly
     email: string
-    properties: object
-    pubkey: string
+    publicKey: string
 }
 
 const headers = {
@@ -41,17 +61,8 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
     if (!results || results.length === 0) {
         return null
     }
-    const person: any = results[0]
-
-    return {
-        type: PERSON,
-        email,
-        id: person.id,
-        inbox: inboxURL(person.id),
-        url: objects.uri(person.id),
-        properties: JSON.parse(person.properties),
-        pubkey: person.pubkey,
-    }
+    const row: any = results[0]
+    return personFromRow(row)
 }
 
 export async function createPerson(db: D1Database, user_kek: string, email: string): Promise<void> {
@@ -71,16 +82,51 @@ export async function getPersonById(db: D1Database, id: string): Promise<Person 
     if (!results || results.length === 0) {
         return null
     }
-    const person: any = results[0]
+    const row: any = results[0]
+    return personFromRow(row)
+}
+
+function personFromRow(row: any): Person {
+    const icon: Object = {
+        type: 'Image',
+        mediaType: 'image/jpeg',
+        url: new URL(defaultImages.avatar),
+        id: actorURL(row.id) + '#icon',
+    }
+    const image: Object = {
+        type: 'Image',
+        mediaType: 'image/jpeg',
+        url: new URL(defaultImages.header),
+        id: actorURL(row.id) + '#image',
+    }
+
+    let publicKey = null
+    if (row.pubkey !== null) {
+        publicKey = {
+            id: actorURL(row.id) + '#main-key',
+            owner: actorURL(row.id),
+            publicKeyPem: row.pubkey,
+        }
+    }
 
     return {
+        ...JSON.parse(row.properties),
+
         type: PERSON,
-        id,
-        url: objects.uri(person.id),
-        inbox: inboxURL(person.id),
-        email: person.email,
-        properties: JSON.parse(person.properties),
-        pubkey: person.pubkey,
+        id: actorURL(row.id),
+        url: 'https://social.eng.chat/@' + row.id,
+        name: row.id,
+        preferredUsername: row.id,
+        published: new Date(row.cdate).toISOString(),
+        discoverable: true,
+        inbox: inboxURL(row.id),
+        outbox: outboxURL(row.id),
+        following: followingURL(row.id),
+        followers: followersURL(row.id),
+        email: row.email,
+        publicKey,
+        icon,
+        image,
     }
 }
 

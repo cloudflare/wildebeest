@@ -13,20 +13,13 @@ export function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
         header = res.image.url
     }
 
-    if (!res.preferredUsername) {
-        throw new Error('missing field preferredUsername')
-    }
-    if (!res.name) {
-        throw new Error('missing field name')
-    }
-
     return {
         acct,
 
         id: acct,
-        username: res.preferredUsername,
+        username: res.preferredUsername ? res.preferredUsername : res.id,
         url: res.url ? res.url.toString() : '',
-        display_name: res.name,
+        display_name: res.name || '',
         note: res.summary || '',
         created_at: res.published || new Date().toISOString(),
 

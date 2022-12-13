@@ -39,15 +39,16 @@ export async function handleRequest(request: Request, db: D1Database): Promise<R
         return new Response('', { status: 404 })
     }
 
-    const href = `https://${instanceConfig.uri}/ap/users/${person.id}`
+    const jsonLink = person.id
 
     const res: WebFingerResponse = {
-        subject: resource,
+        subject: `acct:${handle.localPart}@${handle.domain}`,
+        aliases: [jsonLink],
         links: [
             {
                 rel: 'self',
                 type: 'application/activity+json',
-                href,
+                href: jsonLink,
             },
         ],
     }

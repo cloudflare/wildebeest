@@ -10,6 +10,7 @@ export interface Object {
     image?: Object
     summary?: string
     name?: string
+    mediaType?: string
 
     // Extension
     preferredUsername?: string

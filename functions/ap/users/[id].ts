@@ -1,39 +1,44 @@
-import { instanceConfig } from 'wildebeest/config/instance'
+import { parseHandle } from 'wildebeest/utils/parse'
 import type { Env } from 'wildebeest/types/env'
-import { getPersonById } from 'wildebeest/activitypub/actors'
+import * as actors from 'wildebeest/activitypub/actors'
+import { instanceConfig } from 'wildebeest/config/instance'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
     return handleRequest(env.DATABASE, params.id as string)
 }
 
 const headers = {
-    'content-type': 'application/jrd+json; charset=utf-8',
+    'content-type': 'application/activity+json; charset=utf-8',
+    'Cache-Control': 'max-age=180, public',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
 export async function handleRequest(db: D1Database, id: string): Promise<Response> {
-    const person = await getPersonById(db, id)
+    const handle = parseHandle(id)
+
+    if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
+        return new Response('', { status: 403 })
+    }
+
+    const person = await actors.getPersonById(db, handle.localPart)
     if (person === null) {
         return new Response('', { status: 404 })
     }
 
-    const userUrl = `https://${instanceConfig.uri}/ap/user/${id}`
-
     const res = {
-        ...person.properties,
-        '@context': ['https://www.w3.org/ns/activitystreams'],
-        type: 'Person',
-        preferredUsername: person.id,
-        id: person.id,
-        url: userUrl,
-        following: userUrl + '/following',
-        followers: userUrl + '/followers',
-        inbox: userUrl + '/inbox',
-        outbox: userUrl + '/outbox',
-        publicKey: {
-            id: `${userUrl}#main-key`,
-            owner: userUrl,
-            publicKeyPem: person.pubkey,
-        },
+        // TODO: should this be part of the actor object?
+        '@context': [
+            'https://www.w3.org/ns/activitystreams',
+            'https://w3id.org/security/v1',
+            {
+                toot: 'http://joinmastodon.org/ns#',
+                discoverable: 'toot:discoverable',
+            },
+        ],
+
+        ...person,
     }
+
     return new Response(JSON.stringify(res), { status: 200, headers })
 }

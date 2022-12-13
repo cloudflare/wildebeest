@@ -4,6 +4,7 @@ import type { Actor } from '../activitypub/actors/'
 
 export type WebFingerResponse = {
     subject: string
+    aliases: Array<string>
     links: Array<any>
 }
 

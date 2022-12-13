@@ -3,6 +3,16 @@ import { strict as assert } from 'node:assert/strict'
 
 import * as ap_users from '../functions/ap/users/[id]'
 
+function isUrlValid(s: string) {
+    let url
+    try {
+        url = new URL(s)
+    } catch (err) {
+        return false
+    }
+    return url.protocol === 'https:'
+}
+
 describe('ActivityPub', () => {
     test('fetch non-existant user by id', async () => {
         const db = await makeDB()
@@ -26,7 +36,14 @@ describe('ActivityPub', () => {
 
         const data = await res.json<any>()
         assert.equal(data.summary, 'test summary')
-        assert.equal(data.id, 'sven')
+        assert(data.discoverable)
+        assert(data['@context'])
+        assert(isUrlValid(data.id))
+        assert(isUrlValid(data.url))
+        assert(isUrlValid(data.inbox))
+        assert(isUrlValid(data.outbox))
+        assert(isUrlValid(data.following))
+        assert(isUrlValid(data.followers))
         assert.equal(data.publicKey.publicKeyPem, pubKey)
     })
 })
