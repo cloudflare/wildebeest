@@ -32,7 +32,6 @@ export async function queryAcct(domain: string, acct: string): Promise<Actor | n
         const link = data.links[i]
         if (link.rel === 'self' && link.type === 'application/activity+json') {
             return actors.get(link.href)
-            // return toMastodonAccount(acct, actor)
         }
     }
 

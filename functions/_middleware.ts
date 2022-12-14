@@ -50,6 +50,10 @@ export async function main(context: EventContext<Env, any, any>) {
             const authorization = context.request.headers.get('Authorization') || ''
             const jwt = authorization.replace('Bearer ', '')
 
+            if (jwt === '') {
+                return errors.notAuthorized('missing authorization')
+            }
+
             const validator = access.generateValidator({ jwt, ...accessConfig })
             const { payload } = await validator(context.request)
 
@@ -63,7 +67,7 @@ export async function main(context: EventContext<Env, any, any>) {
                 return errors.notAuthorized('user not found')
             }
 
-            const acct = `${person.id}@${instanceConfig.uri}`
+            const acct = `${person.preferredUsername}@${instanceConfig.uri}`
             context.data.connectedUser = toMastodonAccount(acct, person)
 
             return context.next()

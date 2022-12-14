@@ -3,6 +3,16 @@ import { strict as assert } from 'node:assert/strict'
 import { promises as fs } from 'fs'
 import * as Database from 'better-sqlite3'
 
+export function isUrlValid(s: string) {
+    let url
+    try {
+        url = new URL(s)
+    } catch (err) {
+        return false
+    }
+    return url.protocol === 'https:'
+}
+
 export async function makeDB(): Promise<any> {
     const db = new BetaDatabase(new Database(':memory:'))!
 

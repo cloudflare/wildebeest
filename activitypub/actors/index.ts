@@ -11,20 +11,20 @@ export function actorURL(id: string): URL {
     return new URL(`/ap/users/${id}`, 'https://' + instanceConfig.uri)
 }
 
-function inboxURL(id: string): URL {
-    return new URL(`/ap/users/${id}/inbox`, 'https://' + instanceConfig.uri)
+function inboxURL(id: URL): URL {
+    return new URL(id + '/inbox')
 }
 
-function outboxURL(id: string): URL {
-    return new URL(`/ap/users/${id}/outbox`, 'https://' + instanceConfig.uri)
+function outboxURL(id: URL): URL {
+    return new URL(id + '/outbox')
 }
 
-function followingURL(id: string): URL {
-    return new URL(`/ap/users/${id}/following`, 'https://' + instanceConfig.uri)
+function followingURL(id: URL): URL {
+    return new URL(id + '/following')
 }
 
-function followersURL(id: string): URL {
-    return new URL(`/ap/users/${id}/followers`, 'https://' + instanceConfig.uri)
+function followersURL(id: URL): URL {
+    return new URL(id + '/followers')
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
@@ -67,8 +67,7 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
 
 export async function createPerson(db: D1Database, user_kek: string, email: string): Promise<void> {
     const parts = email.split('@')
-    const id = parts[0]
-
+    const id = actorURL(parts[0]).toString()
     const userKeyPair = await generateUserKey(user_kek)
 
     let privkey, salt
@@ -76,24 +75,30 @@ export async function createPerson(db: D1Database, user_kek: string, email: stri
     // because Buffer support is different in Node/Worker. We have to transform
     // the values depending on the platform.
     if (isTesting) {
-        const privkey = userKeyPair.wrappedPrivKey
-        const salt = userKeyPair.salt
+        privkey = Buffer.from(userKeyPair.wrappedPrivKey)
+        salt = Buffer.from(userKeyPair.salt)
     } else {
-        const privkey = [...new Uint8Array(userKeyPair.wrappedPrivKey)]
-        const salt = [...new Uint8Array(userKeyPair.salt)]
+        privkey = [...new Uint8Array(userKeyPair.wrappedPrivKey)]
+        salt = [...new Uint8Array(userKeyPair.salt)]
+    }
+
+    const properties = {
+        preferredUsername: parts[0],
     }
 
     const { success, error } = await db
-        .prepare('INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt) VALUES(?, ?, ?, ?, ?, ?)')
-        .bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt)
+        .prepare(
+            'INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt, properties) VALUES(?, ?, ?, ?, ?, ?, ?)'
+        )
+        .bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt, JSON.stringify(properties))
         .run()
     if (!success) {
         throw new Error('SQL error: ' + error)
     }
 }
 
-export async function getPersonById(db: D1Database, id: string): Promise<Person | null> {
-    const stmt = db.prepare('SELECT * FROM actors WHERE id=? AND type=?').bind(id, PERSON)
+export async function getPersonById(db: D1Database, id: URL): Promise<Person | null> {
+    const stmt = db.prepare('SELECT * FROM actors WHERE id=? AND type=?').bind(id.toString(), PERSON)
     const { results } = await stmt.all()
     if (!results || results.length === 0) {
         return null
@@ -107,20 +112,20 @@ function personFromRow(row: any): Person {
         type: 'Image',
         mediaType: 'image/jpeg',
         url: new URL(defaultImages.avatar),
-        id: actorURL(row.id) + '#icon',
+        id: row.id + '#icon',
     }
     const image: Object = {
         type: 'Image',
         mediaType: 'image/jpeg',
         url: new URL(defaultImages.header),
-        id: actorURL(row.id) + '#image',
+        id: row.id + '#image',
     }
 
     let publicKey = null
     if (row.pubkey !== null) {
         publicKey = {
-            id: actorURL(row.id) + '#main-key',
-            owner: actorURL(row.id),
+            id: row.id + '#main-key',
+            owner: row.id,
             publicKeyPem: row.pubkey,
         }
     }
@@ -129,10 +134,8 @@ function personFromRow(row: any): Person {
         ...JSON.parse(row.properties),
 
         type: PERSON,
-        id: actorURL(row.id),
-        url: 'https://social.eng.chat/@' + row.id,
+        id: row.id,
         name: row.id,
-        preferredUsername: row.id,
         published: new Date(row.cdate).toISOString(),
         discoverable: true,
         inbox: inboxURL(row.id),
@@ -143,6 +146,9 @@ function personFromRow(row: any): Person {
         publicKey,
         icon,
         image,
+
+        // FIXME: stub
+        url: 'https://social.eng.chat/@todo',
     }
 }
 

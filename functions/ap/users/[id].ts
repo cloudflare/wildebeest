@@ -1,4 +1,5 @@
 import { parseHandle } from 'wildebeest/utils/parse'
+import { actorURL } from 'wildebeest/activitypub/actors'
 import type { Env } from 'wildebeest/types/env'
 import * as actors from 'wildebeest/activitypub/actors'
 import { instanceConfig } from 'wildebeest/config/instance'
@@ -21,7 +22,7 @@ export async function handleRequest(db: D1Database, id: string): Promise<Respons
         return new Response('', { status: 403 })
     }
 
-    const person = await actors.getPersonById(db, handle.localPart)
+    const person = await actors.getPersonById(db, actorURL(handle.localPart))
     if (person === null) {
         return new Response('', { status: 404 })
     }

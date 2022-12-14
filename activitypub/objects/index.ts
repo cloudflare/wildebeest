@@ -19,3 +19,20 @@ export interface Object {
 export function uri(id: string): URL {
     return new URL('/ap/o/' + id, 'https://' + instanceConfig.uri)
 }
+
+export async function createObject(db: D1Database, type: string, properties: any): Promise<Object> {
+    const id = crypto.randomUUID()
+
+    const row: any = await db
+        .prepare('INSERT INTO objects(id, type, properties) VALUES(?, ?, ?) RETURNING *')
+        .bind(id, type, JSON.stringify(properties))
+        .first()
+
+    return {
+        type,
+        id: row.id,
+        url: uri(row.id),
+        published: new Date(row.cdate).toISOString(),
+        ...properties,
+    }
+}

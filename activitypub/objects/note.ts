@@ -12,22 +12,8 @@ export interface Note extends objects.Object {
 
 // TODO: any way to get TS typing from SQL tables?
 export async function createNote(db: D1Database, content: string): Promise<Note> {
-    const id = crypto.randomUUID()
-
     const properties = {
         content,
     }
-
-    const row: any = await db
-        .prepare('INSERT INTO objects(id, type, properties) VALUES(?, ?, ?) RETURNING *')
-        .bind(id, NOTE, JSON.stringify(properties))
-        .first()
-
-    return {
-        type: NOTE,
-        id: row.id,
-        url: objects.uri(row.id),
-        published: new Date(row.cdate).toISOString(),
-        content,
-    }
+    return (await objects.createObject(db, NOTE, properties)) as Note
 }

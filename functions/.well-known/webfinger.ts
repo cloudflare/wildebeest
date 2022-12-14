@@ -1,7 +1,7 @@
 // https://www.rfc-editor.org/rfc/rfc7033
 
 import { parseHandle } from '../../utils/parse'
-import { getPersonById } from 'wildebeest/activitypub/actors'
+import { getPersonById, actorURL } from 'wildebeest/activitypub/actors'
 import { instanceConfig } from '../../config/instance'
 import type { Env } from '../../types/env'
 import type { WebFingerResponse } from '../../webfinger/'
@@ -32,9 +32,11 @@ export async function handleRequest(request: Request, db: D1Database): Promise<R
         return new Response('', { status: 400 })
     }
 
-    // TODO: check that the domain is the current uri
+    if (handle.domain !== instanceConfig.uri) {
+        return new Response('', { status: 403 })
+    }
 
-    const person = await getPersonById(db, handle.localPart)
+    const person = await getPersonById(db, actorURL(handle.localPart))
     if (person === null) {
         return new Response('', { status: 404 })
     }

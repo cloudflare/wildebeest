@@ -16,10 +16,10 @@ export function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
     return {
         acct,
 
-        id: acct,
+        id: res.id,
         username: res.preferredUsername ? res.preferredUsername : res.id,
         url: res.url ? res.url.toString() : '',
-        display_name: res.name || '',
+        display_name: res.preferredUsername || '',
         note: res.summary || '',
         created_at: res.published || new Date().toISOString(),
 
