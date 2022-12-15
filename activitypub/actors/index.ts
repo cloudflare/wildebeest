@@ -5,6 +5,7 @@ import { generateUserKey } from 'wildebeest/utils/key-ops'
 import type { Object } from '../objects'
 
 const PERSON = 'Person'
+const isTesting = typeof jest !== 'undefined'
 
 export function actorURL(id: string): URL {
     return new URL(`/ap/users/${id}`, 'https://' + instanceConfig.uri)
@@ -70,9 +71,25 @@ export async function createPerson(db: D1Database, user_kek: string, email: stri
 
     const userKeyPair = await generateUserKey(user_kek)
 
-    db.prepare('INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt) VALUES(?, ?, ?, ?, ?, ?)')
-        .bind(id, PERSON, email, userKeyPair.pubKey, new Uint8Array(userKeyPair.wrappedPrivKey), userKeyPair.salt)
+    let privkey, salt
+    // Since D1 and better-sqlite3 behaviors don't exactly match, presumable
+    // because Buffer support is different in Node/Worker. We have to transform
+    // the values depending on the platform.
+    if (isTesting) {
+        const privkey = userKeyPair.wrappedPrivKey
+        const salt = userKeyPair.salt
+    } else {
+        const privkey = [...new Uint8Array(userKeyPair.wrappedPrivKey)]
+        const salt = [...new Uint8Array(userKeyPair.salt)]
+    }
+
+    const { success, error } = await db
+        .prepare('INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt) VALUES(?, ?, ?, ?, ?, ?)')
+        .bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt)
         .run()
+    if (!success) {
+        throw new Error('SQL error: ' + error)
+    }
 }
 
 export async function getPersonById(db: D1Database, id: string): Promise<Person | null> {
