@@ -36,11 +36,11 @@ function getKey(keyMaterial: CryptoKey, salt: ArrayBuffer): Promise<CryptoKey> {
         {
             name: 'PBKDF2',
             salt,
-            iterations: 100000,
+            iterations: 10000,
             hash: 'SHA-256',
         },
         keyMaterial,
-        { name: 'AES-KW', length: 256 },
+        { name: 'AES-GCM', length: 256 },
         true,
         ['wrapKey', 'unwrapKey']
     )
@@ -57,7 +57,10 @@ async function wrapCryptoKey(
     const keyMaterial = await getKeyMaterial(user_kek)
     const salt = crypto.getRandomValues(new Uint8Array(16))
     const wrappingKey = await getKey(keyMaterial, salt)
-    const wrappedPrivKey = await crypto.subtle.wrapKey('jwk', keyToWrap, wrappingKey, 'AES-KW')
+    const wrappedPrivKey = await crypto.subtle.wrapKey('jwk', keyToWrap, wrappingKey, {
+        name: 'AES-GCM',
+        iv: salt,
+    })
 
     return { wrappedPrivKey, salt }
 }
@@ -101,7 +104,10 @@ export async function unwrapPrivateKey(
         'jwk',
         wrappedPrivKey,
         wrappingKey,
-        'AES-KW',
+        {
+            name: 'AES-GCM',
+            iv: salt,
+        },
         {
             name: 'RSASSA-PKCS1-v1_5',
             hash: 'SHA-256',

@@ -18,10 +18,6 @@ export type Parameters = { [name: Parameter]: string | number | Date | { [Symbol
 
 export type Algorithm = 'rsa-v1_5-sha256' | 'ecdsa-p256-sha256' | 'hmac-sha256' | 'rsa-pss-sha512'
 
-export type HeaderExtractionOptions = {
-    allowMissing: boolean
-}
-
 export interface Signer {
     (data: string): Promise<Buffer>
     alg: Algorithm
@@ -30,7 +26,6 @@ export interface Signer {
 export type SignOptions = {
     components?: Component[]
     parameters?: Parameters
-    allowMissingHeaders?: boolean
     keyId: string
     signer: Signer
 }
@@ -41,11 +36,10 @@ const ALG_MAP: { [name: string]: string } = {
     'rsa-v1_5-sha256': 'rsa-sha256',
 }
 
-export function extractHeader({ headers }: Request, header: string, opts?: HeaderExtractionOptions): string {
+export function extractHeader({ headers }: Request, header: string): string {
     const lcHeader = header.toLowerCase()
     const key = Object.keys(headers).find((name) => name.toLowerCase() === lcHeader)
-    const allowMissing = opts?.allowMissing ?? true
-    if (!allowMissing && !key) {
+    if (!key) {
         throw new Error(`Unable to extract header "${header}" from message`)
     }
     let val = key ? headers.getAll(key) ?? '' : ''
