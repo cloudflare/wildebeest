@@ -4,7 +4,7 @@ import * as actors from 'wildebeest/activitypub/actors'
 import { accessConfig } from 'wildebeest/config/access'
 import type { Env } from 'wildebeest/types/env'
 import * as errors from 'wildebeest/errors/'
-import { toMastodonAccount } from 'wildebeest/mastodon/account'
+import { loadLocalMastodonAccount } from 'wildebeest/mastodon/account'
 
 async function errorHandling(context: EventContext<unknown, any, any>) {
     try {
@@ -69,7 +69,7 @@ export async function main(context: EventContext<Env, any, any>) {
 
             context.data.connectedActor = person
             const acct = `${person.preferredUsername}@${instanceConfig.uri}`
-            context.data.connectedUser = toMastodonAccount(acct, person)
+            context.data.connectedUser = await loadLocalMastodonAccount(context.env.DATABASE, acct, person)
 
             return context.next()
         } catch (err: any) {

@@ -1,4 +1,5 @@
 // https://docs.joinmastodon.org/entities/Account/
+// https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Account.java
 
 export type MastodonAccount = {
     id: string

@@ -2,7 +2,19 @@ import { MastodonAccount } from 'wildebeest/types/account'
 import type { Actor } from '../activitypub/actors/'
 import { defaultImages } from '../config/accounts'
 
-export function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
+async function getStatusesCount(db: D1Database, actorId: URL): Promise<number> {
+    const query = `
+SELECT count(*) as count
+FROM outbox_objects
+INNER JOIN objects ON objects.id = outbox_objects.object_id
+WHERE outbox_objects.actor_id=? AND objects.type = 'Note'
+  `
+
+    const row: any = await db.prepare(query).bind(actorId.toString()).first()
+    return row.count
+}
+
+function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
     let avatar = defaultImages.avatar
     let header = defaultImages.header
 
@@ -34,11 +46,18 @@ export function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
         discoverable: true,
         group: false,
 
-        followers_count: 0,
-        following_count: 0,
-        statuses_count: 0,
-
         emojis: [],
         fields: [],
     }
+}
+
+export function loadExternalMastodonAccount(acct: string, res: Actor): MastodonAccount {
+    return toMastodonAccount(acct, res)
+}
+
+export async function loadLocalMastodonAccount(db: D1Database, acct: string, res: Actor): Promise<MastodonAccount> {
+    const account = toMastodonAccount(acct, res)
+    account.statuses_count = await getStatusesCount(db, new URL(res.id))
+
+    return account
 }

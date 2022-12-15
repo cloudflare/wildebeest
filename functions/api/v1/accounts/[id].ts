@@ -4,7 +4,7 @@ import type { Env } from 'wildebeest/types/env'
 import type { MastodonAccount } from 'wildebeest/types/account'
 import { parseHandle } from 'wildebeest/utils/parse'
 import { queryAcct } from 'wildebeest/webfinger/index'
-import { toMastodonAccount } from 'wildebeest/mastodon/account'
+import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
 
 const headers = {
     'content-type': 'application/json; charset=utf-8',
@@ -33,6 +33,6 @@ export async function handleRequest(id: string): Promise<Response> {
         return new Response('', { status: 404 })
     }
 
-    const res = toMastodonAccount(acct, actor)
+    const res = loadExternalMastodonAccount(acct, actor)
     return new Response(JSON.stringify(res), { headers })
 }

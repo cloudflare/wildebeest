@@ -24,6 +24,7 @@ import { accessConfig } from '../config/access'
 import * as middleware from '../functions/_middleware'
 import * as statuses from '../functions/api/v1/statuses'
 import { getMentions } from '../mastodon/status'
+import { loadLocalMastodonAccount } from '../mastodon/account'
 
 describe('Mastodon APIs', () => {
     describe('instance', () => {
@@ -815,6 +816,33 @@ describe('Mastodon APIs', () => {
                 assert.equal(mentions[0].localPart, 'sven')
                 assert.equal(mentions[0].domain, null)
             }
+        })
+    })
+
+    describe('loadLocalMastodonAccount', () => {
+        test('ensure correct statuses_count', async () => {
+            const db = await makeDB()
+            const actorId = 'https://' + instanceConfig.uri + '/ap/users/sven'
+            await db
+                .prepare('INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)')
+                .bind(actorId, 'sven@cloudflare.com', 'Person', JSON.stringify({ preferredUsername: 'sven' }))
+                .run()
+            await db
+                .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+                .bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
+                .run()
+            await db
+                .prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
+                .bind('outbox1', actorId, 'object1')
+                .run()
+
+            const acct = 'doesntmatter@instance.com'
+            const actor: any = {
+                id: actorId,
+            }
+            const account = await loadLocalMastodonAccount(db, acct, actor)
+
+            assert.equal(account.statuses_count, 1)
         })
     })
 })

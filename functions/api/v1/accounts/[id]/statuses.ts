@@ -1,5 +1,5 @@
 import type { Env } from 'wildebeest/types/env'
-import { toMastodonAccount } from 'wildebeest/mastodon/account'
+import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
 import { getPersonById } from 'wildebeest/activitypub/actors'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { parseHandle } from 'wildebeest/utils/parse'
@@ -52,7 +52,7 @@ export async function handleRequest(db: D1Database, id: string): Promise<Respons
             }
 
             const acct = `${author.preferredUsername}@${instanceConfig.uri}`
-            const account = toMastodonAccount(acct, author)
+            const account = loadExternalMastodonAccount(acct, author)
 
             out.push({
                 id: result.id,

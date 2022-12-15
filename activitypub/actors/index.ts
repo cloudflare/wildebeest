@@ -151,28 +151,3 @@ function personFromRow(row: any): Person {
         url: 'https://social.eng.chat/@todo',
     }
 }
-
-export function toMastodonAccount(person: Person): MastodonAccount {
-    return {
-        id: person.id,
-        username: person.email.replace('@', '_').replace('.', '_'),
-        acct: person.email.replace('@', '_').replace('.', '_'),
-        display_name: person.email,
-        locked: false,
-        bot: false,
-        discoverable: false,
-        group: false,
-        created_at: '2022-12-01T00:00:00.000Z',
-        note: '',
-        url: 'https://social.that-test.site/@sven2',
-        avatar: 'https://jpeg.speedcf.com/cat/23.jpg',
-        avatar_static: 'https://jpeg.speedcf.com/cat/23.jpg',
-        header: 'https://jpeg.speedcf.com/cat/22.jpg',
-        header_static: 'https://jpeg.speedcf.com/cat/22.jpg',
-        followers_count: 0,
-        following_count: 0,
-        statuses_count: 0,
-        emojis: [],
-        fields: [],
-    }
-}
