@@ -15,8 +15,18 @@ export async function signRequest(request: Request, key: CryptoKey, keyId: strin
         )
     mySigner.alg = 'hs2019' as Algorithm
 
+    if (!request.headers.has('Host')) {
+        const url = new URL(request.url)
+        request.headers.set('Host', url.host)
+    }
+
+    let components = ['@request-target', 'host']
+    if (request.method == 'POST') {
+        components.push('digest')
+    }
+
     await sign(request, {
-        components: ['@request-target'],
+        components: components,
         parameters: {
             created: Math.floor(Date.now() / 1000),
         },

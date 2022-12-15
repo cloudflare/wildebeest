@@ -4,6 +4,7 @@ import { parseHandle } from '../utils/parse'
 
 import { generateUserKey, unwrapPrivateKey, importPublicKey } from 'wildebeest/utils/key-ops'
 import { signRequest } from 'wildebeest/utils/http-signing'
+import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
 
 describe('utils', () => {
     test('user key lifecycle', async () => {
@@ -14,10 +15,12 @@ describe('utils', () => {
     })
 
     test('request signing', async () => {
+        const body = '{"foo": "bar"}'
+        const digest = await generateDigestHeader(body)
         const request = new Request('https://example.com', {
             method: 'POST',
-            body: '{"foo": "bar"}',
-            headers: { header1: 'value1' },
+            body: body,
+            headers: { header1: 'value1', Digest: digest },
         })
         const user_kek = 'userkey'
         const userKeyPair = await generateUserKey(user_kek)

@@ -38,11 +38,11 @@ const ALG_MAP: { [name: string]: string } = {
 
 export function extractHeader({ headers }: Request, header: string): string {
     const lcHeader = header.toLowerCase()
-    const key = Object.keys(headers).find((name) => name.toLowerCase() === lcHeader)
+    const key = Array.from(headers.keys()).find((name) => name.toLowerCase() === lcHeader)
     if (!key) {
         throw new Error(`Unable to extract header "${header}" from message`)
     }
-    let val = key ? headers.getAll(key) ?? '' : ''
+    let val = key ? headers.get(key) ?? '' : ''
     if (Array.isArray(val)) {
         val = val.join(', ')
     }
@@ -146,6 +146,13 @@ export function buildSignatureInputString(componentNames: Component[], parameter
 function uint8ArrayToBase64(a: Uint8Array): string {
     var a_s = Array.prototype.map.call(a, (c) => String.fromCharCode(c)).join(String())
     return btoa(a_s)
+}
+
+export async function generateDigestHeader(body: string): Promise<string> {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(body)
+    const hash = uint8ArrayToBase64(new Uint8Array(await crypto.subtle.digest('SHA-256', data)))
+    return `SHA-256=${hash}`
 }
 
 export async function sign(request: Request, opts: SignOptions): Promise<void> {
