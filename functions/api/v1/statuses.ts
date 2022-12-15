@@ -8,6 +8,7 @@ import type { ContextData } from 'wildebeest/types/context'
 import type { MastodonAccount } from 'wildebeest/types/account'
 import { queryAcct } from 'wildebeest/webfinger/'
 import { deliver } from 'wildebeest/activitypub/deliver'
+import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 
 type StatusCreate = {
     status: string
@@ -40,7 +41,7 @@ export async function handleRequest(
 
     // If the status is mentioned other persons, we need to delivery it to them.
     const mentions = getMentions(body.status)
-    // TODO: how to get the current MastodonAccount as ActivityPub actor?
+    // FIXME: how to get the current MastodonAccount as ActivityPub actor?
     const currentActor: any = {
         type: 'Person',
         id: connectedUser.id,
@@ -60,6 +61,8 @@ export async function handleRequest(
         const activity = activities.create(currentActor, note)
         await deliver(targetActor, activity)
     }
+
+    await addObjectInOutbox(db, currentActor, note)
 
     const res: any = {
         id: note.id,

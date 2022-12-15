@@ -49,3 +49,13 @@ CREATE TABLE IF NOT EXISTS inbox_objects (
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
   FOREIGN KEY(object_id) REFERENCES objects(id)
 );
+
+CREATE TABLE IF NOT EXISTS outbox_objects (
+  id TEXT PRIMARY KEY,
+  actor_id TEXT NOT NULL,
+  object_id TEXT NOT NULL,
+  cdate DATETIME NOT NULL DEFAULT (datetime()),
+
+  FOREIGN KEY(actor_id)  REFERENCES actors(id),
+  FOREIGN KEY(object_id) REFERENCES objects(id)
+);

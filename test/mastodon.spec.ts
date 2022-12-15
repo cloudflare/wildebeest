@@ -222,8 +222,28 @@ describe('Mastodon APIs', () => {
         })
 
         test('get remote actor statuses', async () => {
-            const res = await accounts_statuses.onRequest()
+            const db = await makeDB()
+            await db
+                .prepare('INSERT INTO actors (id, email, type) VALUES (?, ?, ?)')
+                .bind('sven', 'sven@cloudflare.com', 'Person')
+                .run()
+            await db
+                .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+                .bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
+                .run()
+            await db
+                .prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
+                .bind('outbox1', 'sven', 'object1')
+                .run()
+
+            const connectedUser: any = { id: 'sven' }
+            const res = await accounts_statuses.handleRequest(db, connectedUser)
             assert.equal(res.status, 200)
+
+            const data = await res.json<Array<any>>()
+            assert.equal(data.length, 1)
+            assert.equal(data[0].content, 'my status')
+            assert.equal(data[0].account.id, 'sven')
         })
 
         test('get remote actor followers', async () => {
@@ -612,18 +632,21 @@ describe('Mastodon APIs', () => {
 
         test('create new status creates Note', async () => {
             const db = await makeDB()
+            await db
+                .prepare('INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)')
+                .bind('sven', 'sven@cloudflare.com', 'Person', JSON.stringify({}))
+                .run()
 
             const body = {
                 status: 'my status',
                 visibility: 'public',
-                sensitive: false,
             }
             const req = new Request('https://example.com', {
                 method: 'POST',
                 body: JSON.stringify(body),
             })
 
-            const connectedUser: any = {}
+            const connectedUser: any = { id: 'sven' }
             const res = await statuses.handleRequest(req, db, connectedUser)
             assert.equal(res.status, 200)
             assertJSON(res)
@@ -652,6 +675,40 @@ describe('Mastodon APIs', () => {
                 .bind(data.id)
                 .first()
             assert.equal(row.content, 'my status')
+        })
+
+        test("create new status adds to Actor's outbox", async () => {
+            const db = await makeDB()
+            await db
+                .prepare('INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)')
+                .bind('sven', 'sven@cloudflare.com', 'Person', JSON.stringify({}))
+                .run()
+
+            const body = {
+                status: 'my status',
+                visibility: 'public',
+            }
+            const req = new Request('https://example.com', {
+                method: 'POST',
+                body: JSON.stringify(body),
+            })
+
+            const connectedUser: any = { id: 'sven' }
+            const res = await statuses.handleRequest(req, db, connectedUser)
+            assert.equal(res.status, 200)
+
+            const data = await res.json<any>()
+            const row = await db
+                .prepare(
+                    `
+          SELECT
+              count(*) as count
+          FROM outbox_objects WHERE object_id = ?
+        `
+                )
+                .bind(data.id)
+                .first()
+            assert.equal(row.count, 1)
         })
 
         test('create new status with mention delivers ActivityPub Note', async () => {
@@ -691,6 +748,10 @@ describe('Mastodon APIs', () => {
             }
 
             const db = await makeDB()
+            await db
+                .prepare('INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)')
+                .bind('sven', 'sven@cloudflare.com', 'Person', JSON.stringify({}))
+                .run()
 
             const body = {
                 status: '@sven@remote.com my status',
@@ -701,7 +762,7 @@ describe('Mastodon APIs', () => {
                 body: JSON.stringify(body),
             })
 
-            const connectedUser: any = {}
+            const connectedUser: any = { id: 'sven' }
             const res = await statuses.handleRequest(req, db, connectedUser)
             assert.equal(res.status, 200)
 
