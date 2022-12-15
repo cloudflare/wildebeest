@@ -19,7 +19,7 @@ export type Parameters = { [name: Parameter]: string | number | Date | { [Symbol
 export type Algorithm = 'rsa-v1_5-sha256' | 'ecdsa-p256-sha256' | 'hmac-sha256' | 'rsa-pss-sha512'
 
 export interface Signer {
-    (data: string): Promise<Buffer>
+    (data: string): Promise<Uint8Array>
     alg: Algorithm
 }
 
@@ -143,6 +143,11 @@ export function buildSignatureInputString(componentNames: Component[], parameter
         .join(',')},headers="${headers.join(' ')}"`
 }
 
+function uint8ArrayToBase64(a: Uint8Array): string {
+    var a_s = Array.prototype.map.call(a, (c) => String.fromCharCode(c)).join(String())
+    return btoa(a_s)
+}
+
 export async function sign(request: Request, opts: SignOptions): Promise<void> {
     const signingComponents: Component[] = opts.components ?? defaultSigningComponents
     const signingParams: Parameters = {
@@ -153,5 +158,6 @@ export async function sign(request: Request, opts: SignOptions): Promise<void> {
     const signatureInputString = buildSignatureInputString(signingComponents, signingParams)
     const dataToSign = buildSignedData(request, signingComponents, signingParams)
     const signature = await opts.signer(dataToSign)
-    request.headers.set('Signature', `${signatureInputString},signature="${signature.toString('base64')}"`)
+    const sigBase64 = uint8ArrayToBase64(signature)
+    request.headers.set('Signature', `${signatureInputString},signature="${sigBase64}"`)
 }

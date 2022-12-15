@@ -3,7 +3,6 @@ import { defaultImages } from 'wildebeest/config/accounts'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { generateUserKey } from 'wildebeest/utils/key-ops'
 import type { Object } from '../objects'
-import * as objects from '../objects'
 
 const PERSON = 'Person'
 
@@ -72,7 +71,7 @@ export async function createPerson(db: D1Database, user_kek: string, email: stri
     const userKeyPair = await generateUserKey(user_kek)
 
     db.prepare('INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt) VALUES(?, ?, ?, ?, ?, ?)')
-        .bind(id, PERSON, email, userKeyPair.pubKey, Buffer.from(userKeyPair.wrappedPrivKey), userKeyPair.salt)
+        .bind(id, PERSON, email, userKeyPair.pubKey, new Uint8Array(userKeyPair.wrappedPrivKey), userKeyPair.salt)
         .run()
 }
 

@@ -3,7 +3,7 @@ import { str2ab } from './key-ops'
 
 export async function signRequest(request: Request, key: CryptoKey, keyId: string): Promise<void> {
     const mySigner = async (data: string) =>
-        Buffer.from(
+        new Uint8Array(
             await crypto.subtle.sign(
                 {
                     name: 'RSASSA-PKCS1-v1_5',
@@ -13,10 +13,13 @@ export async function signRequest(request: Request, key: CryptoKey, keyId: strin
                 str2ab(data as string)
             )
         )
-    mySigner.alg = 'rsa-v1_5-sha256' as Algorithm
+    mySigner.alg = 'hs2019' as Algorithm
 
     await sign(request, {
-        components: ['(request-target)', 'host', 'date'],
+        components: ['@request-target'],
+        parameters: {
+            created: Math.floor(Date.now() / 1000),
+        },
         keyId: keyId,
         signer: mySigner,
     })
