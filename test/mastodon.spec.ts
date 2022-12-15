@@ -25,6 +25,7 @@ import * as middleware from '../functions/_middleware'
 import * as statuses from '../functions/api/v1/statuses'
 import { getMentions } from '../mastodon/status'
 import { loadLocalMastodonAccount } from '../mastodon/account'
+import { getSigningKey } from '../mastodon/account'
 import { createPerson } from 'wildebeest/activitypub/actors'
 
 describe('Mastodon APIs', () => {
@@ -394,9 +395,8 @@ describe('Mastodon APIs', () => {
             const actor = await db.prepare('SELECT * FROM actors').first()
             assert.equal(actor.email, 'some@cloudflare.com')
             assert(isUrlValid(actor.id))
-            assert(actor.privkey instanceof Buffer)
-            assert(actor.privkey_salt instanceof Buffer)
-            assert(actor.pubkey.includes('BEGIN PUBLIC KEY'))
+            // ensure that we generate a correct key pairs for the user
+            assert((await getSigningKey(userKEK, db, actor)) instanceof CryptoKey)
         })
 
         test('authorize with redirect_uri urn:ietf:wg:oauth:2.0:oob', async () => {
