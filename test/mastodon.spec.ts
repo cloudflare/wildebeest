@@ -19,12 +19,13 @@ import * as timelines_public from '../functions/api/v1/timelines/public'
 import * as notifications from '../functions/api/v1/notifications'
 import { TEST_JWT, ACCESS_CERTS } from './test-data'
 import { defaultImages } from '../config/accounts'
-import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache } from './utils'
+import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from './utils'
 import { accessConfig } from '../config/access'
 import * as middleware from '../functions/_middleware'
 import * as statuses from '../functions/api/v1/statuses'
 import { getMentions } from '../mastodon/status'
 import { loadLocalMastodonAccount } from '../mastodon/account'
+import { createPerson } from 'wildebeest/activitypub/actors'
 
 describe('Mastodon APIs', () => {
     describe('instance', () => {
@@ -341,20 +342,20 @@ describe('Mastodon APIs', () => {
 
         test('authorize missing params', async () => {
             const db = await makeDB()
-            const user_kek = 'test_kek'
+            const userKEK = 'test_kek'
 
             let req = new Request('https://example.com/oauth/authorize')
-            let res = await oauth_authorize.handleRequest(req, db, user_kek)
+            let res = await oauth_authorize.handleRequest(req, db, userKEK)
             assert.equal(res.status, 400)
 
             req = new Request('https://example.com/oauth/authorize?scope=foobar')
-            res = await oauth_authorize.handleRequest(req, db, user_kek)
+            res = await oauth_authorize.handleRequest(req, db, userKEK)
             assert.equal(res.status, 400)
         })
 
         test('authorize unsupported response_type', async () => {
             const db = await makeDB()
-            const user_kek = 'test_kek'
+            const userKEK = 'test_kek'
 
             const params = new URLSearchParams({
                 redirect_uri: 'https://example.com',
@@ -363,13 +364,13 @@ describe('Mastodon APIs', () => {
             })
 
             const req = new Request('https://example.com/oauth/authorize?' + params)
-            const res = await oauth_authorize.handleRequest(req, db, user_kek)
+            const res = await oauth_authorize.handleRequest(req, db, userKEK)
             assert.equal(res.status, 400)
         })
 
         test('authorize redirects with code on success and creates user', async () => {
             const db = await makeDB()
-            const user_kek = 'test_kek'
+            const userKEK = 'test_kek'
 
             const params = new URLSearchParams({
                 redirect_uri: 'https://example.com',
@@ -384,7 +385,7 @@ describe('Mastodon APIs', () => {
             const req = new Request('https://example.com/oauth/authorize?' + params, {
                 headers,
             })
-            const res = await oauth_authorize.handleRequest(req, db, user_kek)
+            const res = await oauth_authorize.handleRequest(req, db, userKEK)
             assert.equal(res.status, 302)
 
             const location = res.headers.get('location')
@@ -400,7 +401,7 @@ describe('Mastodon APIs', () => {
 
         test('authorize with redirect_uri urn:ietf:wg:oauth:2.0:oob', async () => {
             const db = await makeDB()
-            const user_kek = 'test_kek'
+            const userKEK = 'test_kek'
 
             const params = new URLSearchParams({
                 redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
@@ -415,7 +416,7 @@ describe('Mastodon APIs', () => {
             const req = new Request('https://example.com/oauth/authorize?' + params, {
                 headers,
             })
-            const res = await oauth_authorize.handleRequest(req, db, user_kek)
+            const res = await oauth_authorize.handleRequest(req, db, userKEK)
             assert.equal(res.status, 200)
 
             assert.equal(await res.text(), TEST_JWT)
@@ -636,6 +637,7 @@ describe('Mastodon APIs', () => {
     describe('statuses', () => {
         test('create new status missing params', async () => {
             const db = await makeDB()
+            const userKEK = 'test_kek'
 
             const body = { status: 'my status' }
             const req = new Request('https://example.com', {
@@ -645,12 +647,13 @@ describe('Mastodon APIs', () => {
 
             const connectedActor: any = {}
             const connectedUser: any = {}
-            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser)
+            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
             assert.equal(res.status, 400)
         })
 
         test('create new status creates Note', async () => {
             const db = await makeDB()
+            const userKEK = 'test_kek'
             const actorId = 'https://' + instanceConfig.uri + '/ap/users/sven'
             await db
                 .prepare('INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)')
@@ -668,7 +671,7 @@ describe('Mastodon APIs', () => {
 
             const connectedActor: any = { id: actorId }
             const connectedUser: any = {}
-            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser)
+            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
             assert.equal(res.status, 200)
             assertJSON(res)
 
@@ -700,6 +703,7 @@ describe('Mastodon APIs', () => {
 
         test("create new status adds to Actor's outbox", async () => {
             const db = await makeDB()
+            const userKEK = 'test_kek'
             const actorId = 'https://' + instanceConfig.uri + '/ap/users/sven'
             await db
                 .prepare('INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)')
@@ -717,7 +721,7 @@ describe('Mastodon APIs', () => {
 
             const connectedActor: any = { id: actorId }
             const connectedUser: any = {}
-            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser)
+            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
             assert.equal(res.status, 200)
 
             const data = await res.json<any>()
@@ -767,15 +771,24 @@ describe('Mastodon APIs', () => {
                     return new Response()
                 }
 
+                // @ts-ignore: shut up
+                if (Object.keys(input).includes('url') && input.url === 'https://social.com/sven/inbox') {
+                    const request = input as Request
+                    assert.equal(request.method, 'POST')
+                    const bodyB = await streamToArrayBuffer(request.body as ReadableStream)
+                    const dec = new TextDecoder()
+                    const body = JSON.parse(dec.decode(bodyB))
+                    deliveredNote = body
+                    return new Response()
+                }
+
                 throw new Error('unexpected request to ' + input)
             }
 
             const db = await makeDB()
+            const userKEK = 'test_kek'
             const actorId = 'https://' + instanceConfig.uri + '/ap/users/sven'
-            await db
-                .prepare('INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)')
-                .bind(actorId, 'sven@cloudflare.com', 'Person', JSON.stringify({}))
-                .run()
+            await createPerson(db, userKEK, 'sven@cloudflare.com')
 
             const body = {
                 status: '@sven@remote.com my status',
@@ -788,7 +801,7 @@ describe('Mastodon APIs', () => {
 
             const connectedActor: any = { id: actorId, type: 'Person' }
             const connectedUser: any = {}
-            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser)
+            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
             assert.equal(res.status, 200)
 
             assert(deliveredNote)

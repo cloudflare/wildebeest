@@ -1,4 +1,5 @@
 import { MastodonAccount } from 'wildebeest/types/account'
+import { unwrapPrivateKey } from 'wildebeest/utils/key-ops'
 import type { Actor } from '../activitypub/actors/'
 import { defaultImages } from '../config/accounts'
 
@@ -60,4 +61,10 @@ export async function loadLocalMastodonAccount(db: D1Database, acct: string, res
     account.statuses_count = await getStatusesCount(db, new URL(res.id))
 
     return account
+}
+
+export async function getSigningKey(instanceKey: string, db: D1Database, user: Actor): Promise<CryptoKey> {
+    const stmt = db.prepare('SELECT privkey, privkey_salt FROM actors WHERE id=?').bind(user.id)
+    const { privkey, privkey_salt } = (await stmt.first()) as any
+    return unwrapPrivateKey(instanceKey, privkey, privkey_salt)
 }

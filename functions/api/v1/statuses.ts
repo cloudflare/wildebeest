@@ -10,6 +10,7 @@ import { queryAcct } from 'wildebeest/webfinger/'
 import { deliver } from 'wildebeest/activitypub/deliver'
 import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 import type { Person } from 'wildebeest/activitypub/actors'
+import { getSigningKey } from 'wildebeest/mastodon/account'
 
 type StatusCreate = {
     status: string
@@ -18,14 +19,15 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-    return handleRequest(request, env.DATABASE, data.connectedActor, data.connectedUser)
+    return handleRequest(request, env.DATABASE, data.connectedActor, data.connectedUser, env.userKEK)
 }
 
 export async function handleRequest(
     request: Request,
     db: D1Database,
     connectedActor: Person,
-    connectedUser: MastodonAccount
+    connectedUser: MastodonAccount,
+    userKEK: string
 ): Promise<Response> {
     // TODO: implement Idempotency-Key
 
@@ -55,7 +57,8 @@ export async function handleRequest(
             continue
         }
         const activity = activities.create(connectedActor, note)
-        await deliver(targetActor, activity)
+        const signingKey = await getSigningKey(userKEK, db, connectedActor)
+        await deliver(signingKey, targetActor, activity)
     }
 
     await addObjectInOutbox(db, connectedActor, note)

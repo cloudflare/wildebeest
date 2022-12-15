@@ -44,3 +44,20 @@ export function assertCache(response: Response, maxge: number) {
     assert(response.headers.has('cache-control'))
     assert(response.headers.get('cache-control')!.includes('max-age=' + maxge))
 }
+
+export async function streamToArrayBuffer(stream: ReadableStream) {
+    let result = new Uint8Array(0)
+    const reader = stream.getReader()
+    while (true) {
+        const { done, value } = await reader.read()
+        if (done) {
+            break
+        }
+
+        const newResult = new Uint8Array(result.length + value.length)
+        newResult.set(result)
+        newResult.set(value, result.length)
+        result = newResult
+    }
+    return result
+}

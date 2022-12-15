@@ -51,10 +51,10 @@ Wrap the given key.
 */
 async function wrapCryptoKey(
     keyToWrap: CryptoKey,
-    user_kek: string
+    userKEK: string
 ): Promise<{ wrappedPrivKey: ArrayBuffer; salt: Uint8Array }> {
     // get the key encryption key
-    const keyMaterial = await getKeyMaterial(user_kek)
+    const keyMaterial = await getKeyMaterial(userKEK)
     const salt = crypto.getRandomValues(new Uint8Array(16))
     const wrappingKey = await getKey(keyMaterial, salt)
     const wrappedPrivKey = await crypto.subtle.wrapKey('jwk', keyToWrap, wrappingKey, {
@@ -69,7 +69,7 @@ async function wrapCryptoKey(
 Generate a new wrapped user key
 */
 export async function generateUserKey(
-    user_kek: string
+    userKEK: string
 ): Promise<{ wrappedPrivKey: ArrayBuffer; salt: Uint8Array; pubKey: string }> {
     const keyPair = await crypto.subtle.generateKey(
         {
@@ -82,7 +82,7 @@ export async function generateUserKey(
         ['sign', 'verify']
     )
 
-    const { wrappedPrivKey, salt } = await wrapCryptoKey((keyPair as CryptoKeyPair).privateKey, user_kek)
+    const { wrappedPrivKey, salt } = await wrapCryptoKey((keyPair as CryptoKeyPair).privateKey, userKEK)
     const pubKeyBuf = (await crypto.subtle.exportKey('spki', (keyPair as CryptoKeyPair).publicKey)) as ArrayBuffer
     const pubKeyAsBase64 = arrayBufferToBase64(pubKeyBuf)
     const pubKey = `-----BEGIN PUBLIC KEY-----\n${pubKeyAsBase64}\n-----END PUBLIC KEY-----`
@@ -94,11 +94,11 @@ export async function generateUserKey(
 Unwrap and import private key
 */
 export async function unwrapPrivateKey(
-    user_kek: string,
+    userKEK: string,
     wrappedPrivKey: ArrayBuffer,
     salt: Uint8Array
 ): Promise<CryptoKey> {
-    const keyMaterial = await getKeyMaterial(user_kek)
+    const keyMaterial = await getKeyMaterial(userKEK)
     const wrappingKey = await getKey(keyMaterial, salt)
     return crypto.subtle.unwrapKey(
         'jwk',

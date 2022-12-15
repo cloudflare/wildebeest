@@ -9,10 +9,10 @@ import { getPersonByEmail, createPerson } from 'wildebeest/activitypub/actors'
 const extractJWTFromRequest = (request: Request) => request.headers.get('Cf-Access-Jwt-Assertion') || ''
 
 export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
-    return handleRequest(request, env.DATABASE, env.USER_KEK)
+    return handleRequest(request, env.DATABASE, env.userKEK)
 }
 
-export async function handleRequest(request: Request, db: D1Database, user_kek: string): Promise<Response> {
+export async function handleRequest(request: Request, db: D1Database, userKEK: string): Promise<Response> {
     const url = new URL(request.url)
 
     if (
@@ -44,7 +44,7 @@ export async function handleRequest(request: Request, db: D1Database, user_kek: 
 
     const person = await getPersonByEmail(db, identity.email)
     if (person === null) {
-        await createPerson(db, user_kek, identity.email)
+        await createPerson(db, userKEK, identity.email)
     }
 
     if (redirect_uri === 'urn:ietf:wg:oauth:2.0:oob') {

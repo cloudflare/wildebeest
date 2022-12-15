@@ -8,9 +8,9 @@ import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
 
 describe('utils', () => {
     test('user key lifecycle', async () => {
-        const user_kek = 'userkey'
-        const userKeyPair = await generateUserKey(user_kek)
-        await unwrapPrivateKey(user_kek, userKeyPair.wrappedPrivKey, userKeyPair.salt)
+        const userKEK = 'userkey'
+        const userKeyPair = await generateUserKey(userKEK)
+        await unwrapPrivateKey(userKEK, userKeyPair.wrappedPrivKey, userKeyPair.salt)
         await importPublicKey(userKeyPair.pubKey)
     })
 
@@ -22,9 +22,9 @@ describe('utils', () => {
             body: body,
             headers: { header1: 'value1', Digest: digest },
         })
-        const user_kek = 'userkey'
-        const userKeyPair = await generateUserKey(user_kek)
-        const privateKey = await unwrapPrivateKey(user_kek, userKeyPair.wrappedPrivKey, userKeyPair.salt)
+        const userKEK = 'userkey'
+        const userKeyPair = await generateUserKey(userKEK)
+        const privateKey = await unwrapPrivateKey(userKEK, userKeyPair.wrappedPrivKey, userKeyPair.salt)
         await signRequest(request, privateKey, 'KEYid')
         assert(request.headers.has('Signature'), 'no signature in signed request')
     })
