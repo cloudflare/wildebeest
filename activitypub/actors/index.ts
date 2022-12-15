@@ -65,7 +65,7 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
     return personFromRow(row)
 }
 
-export async function createPerson(db: D1Database, userKEK: string, email: string): Promise<void> {
+export async function createPerson(db: D1Database, userKEK: string, email: string): Promise<string> {
     const parts = email.split('@')
     const id = actorURL(parts[0]).toString()
     const userKeyPair = await generateUserKey(userKEK)
@@ -95,6 +95,8 @@ export async function createPerson(db: D1Database, userKEK: string, email: strin
     if (!success) {
         throw new Error('SQL error: ' + error)
     }
+
+    return id
 }
 
 export async function getPersonById(db: D1Database, id: URL): Promise<Person | null> {
