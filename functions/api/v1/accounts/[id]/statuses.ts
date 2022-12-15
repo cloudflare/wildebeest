@@ -1,7 +1,12 @@
 import type { Env } from 'wildebeest/types/env'
+import { toMastodonAccount } from 'wildebeest/mastodon/account'
+import { getPersonById } from 'wildebeest/activitypub/actors'
+import { instanceConfig } from 'wildebeest/config/instance'
+import { parseHandle } from 'wildebeest/utils/parse'
 import type { ContextData } from 'wildebeest/types/context'
 import type { MastodonAccount, MastodonStatus } from 'wildebeest/types/'
 import * as objects from 'wildebeest/activitypub/objects/'
+import { actorURL } from 'wildebeest/activitypub/actors/'
 
 const headers = {
     'content-type': 'application/json; charset=utf-8',
@@ -9,8 +14,8 @@ const headers = {
     'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-    return handleRequest(env.DATABASE, data.connectedUser)
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
+    return handleRequest(env.DATABASE, params.id as string)
 }
 
 const QUERY = `
@@ -20,10 +25,17 @@ INNER JOIN objects ON objects.id = outbox_objects.object_id
 WHERE actor_id = ?
 `
 
-export async function handleRequest(db: D1Database, connectedUser: MastodonAccount): Promise<Response> {
+export async function handleRequest(db: D1Database, id: string): Promise<Response> {
+    const handle = parseHandle(id)
+    if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
+        // Only retriving statuses of a local user is supported
+        return new Response('', { status: 400 })
+    }
+    const actorId = actorURL(handle.localPart)
+
     const out: Array<MastodonStatus> = []
 
-    const { success, error, results } = await db.prepare(QUERY).bind(connectedUser.id).all()
+    const { success, error, results } = await db.prepare(QUERY).bind(actorId.toString()).all()
     if (!success) {
         throw new Error('SQL error: ' + error)
     }
@@ -33,12 +45,25 @@ export async function handleRequest(db: D1Database, connectedUser: MastodonAccou
             const result: any = results[i]
             const properties = JSON.parse(result.properties)
 
+            const author = await getPersonById(db, actorId)
+            if (author === null) {
+                console.error('note author is unknown')
+                continue
+            }
+
+            const acct = `${author.preferredUsername}@${instanceConfig.uri}`
+            const account = toMastodonAccount(acct, author)
+
             out.push({
                 id: result.id,
                 uri: objects.uri(result.id),
                 created_at: new Date(result.cdate).toISOString(),
                 content: properties.content,
-                account: connectedUser,
+                emojis: [],
+                media_attachments: [],
+                tags: [],
+                mentions: [],
+                account,
 
                 // TODO: stub values
                 visibility: 'public',

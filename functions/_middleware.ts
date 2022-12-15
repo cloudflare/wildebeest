@@ -67,6 +67,7 @@ export async function main(context: EventContext<Env, any, any>) {
                 return errors.notAuthorized('user not found')
             }
 
+            context.data.connectedActor = person
             const acct = `${person.preferredUsername}@${instanceConfig.uri}`
             context.data.connectedUser = toMastodonAccount(acct, person)
 

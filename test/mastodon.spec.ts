@@ -147,8 +147,8 @@ describe('Mastodon APIs', () => {
 
             const res = await middleware.main(ctx)
             assert.equal(res.status, 200)
-            assert.equal(data.connectedUser.id, 'https://social.com/sven')
-            assert.equal(data.connectedUser.acct, 'username@' + instanceConfig.uri)
+            assert.equal(data.connectedUser.id, 'username@' + instanceConfig.uri)
+            assert(isUrlValid(data.connectedActor.id))
         })
     })
 
@@ -216,6 +216,10 @@ describe('Mastodon APIs', () => {
 
             const data = await res.json<any>()
             assert.equal(data.display_name, 'sven')
+            // Mastodon app expects the id to be a number (as string), it uses
+            // it to construct an URL. ActivityPub uses URL as ObjectId so we
+            // make sure we don't return the URL.
+            assert(!isUrlValid(data.id))
         })
 
         test('get remote actor by id', async () => {
@@ -223,12 +227,12 @@ describe('Mastodon APIs', () => {
             assert.equal(res.status, 200)
         })
 
-        test('get remote actor statuses', async () => {
+        test('get local actor statuses', async () => {
             const db = await makeDB()
             const actorId = 'https://' + instanceConfig.uri + '/ap/users/sven'
             await db
-                .prepare('INSERT INTO actors (id, email, type) VALUES (?, ?, ?)')
-                .bind(actorId, 'sven@cloudflare.com', 'Person')
+                .prepare('INSERT INTO actors (id, email, type, properties) VALUES (?, ?, ?, ?)')
+                .bind(actorId, 'sven@cloudflare.com', 'Person', JSON.stringify({ preferredUsername: 'sven' }))
                 .run()
             await db
                 .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
@@ -239,14 +243,20 @@ describe('Mastodon APIs', () => {
                 .bind('outbox1', actorId, 'object1')
                 .run()
 
-            const connectedUser: any = { id: actorId }
-            const res = await accounts_statuses.handleRequest(db, connectedUser)
+            const res = await accounts_statuses.handleRequest(db, 'sven@' + instanceConfig.uri)
             assert.equal(res.status, 200)
 
             const data = await res.json<Array<any>>()
             assert.equal(data.length, 1)
             assert.equal(data[0].content, 'my status')
-            assert.equal(data[0].account.id, actorId)
+            assert.equal(data[0].account.acct, 'sven@' + instanceConfig.uri)
+        })
+
+        test('get remote actor statuses', async () => {
+            const db = await makeDB()
+
+            const res = await accounts_statuses.handleRequest(db, 'someone@somesocial.com')
+            assert.equal(res.status, 400)
         })
 
         test('get remote actor followers', async () => {
@@ -632,8 +642,9 @@ describe('Mastodon APIs', () => {
                 body: JSON.stringify(body),
             })
 
+            const connectedActor: any = {}
             const connectedUser: any = {}
-            const res = await statuses.handleRequest(req, db, connectedUser)
+            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser)
             assert.equal(res.status, 400)
         })
 
@@ -654,8 +665,9 @@ describe('Mastodon APIs', () => {
                 body: JSON.stringify(body),
             })
 
-            const connectedUser: any = { id: actorId }
-            const res = await statuses.handleRequest(req, db, connectedUser)
+            const connectedActor: any = { id: actorId }
+            const connectedUser: any = {}
+            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser)
             assert.equal(res.status, 200)
             assertJSON(res)
 
@@ -702,8 +714,9 @@ describe('Mastodon APIs', () => {
                 body: JSON.stringify(body),
             })
 
-            const connectedUser: any = { id: actorId }
-            const res = await statuses.handleRequest(req, db, connectedUser)
+            const connectedActor: any = { id: actorId }
+            const connectedUser: any = {}
+            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser)
             assert.equal(res.status, 200)
 
             const data = await res.json<any>()
@@ -772,8 +785,9 @@ describe('Mastodon APIs', () => {
                 body: JSON.stringify(body),
             })
 
-            const connectedUser: any = { id: actorId }
-            const res = await statuses.handleRequest(req, db, connectedUser)
+            const connectedActor: any = { id: actorId, type: 'Person' }
+            const connectedUser: any = {}
+            const res = await statuses.handleRequest(req, db, connectedActor, connectedUser)
             assert.equal(res.status, 200)
 
             assert(deliveredNote)

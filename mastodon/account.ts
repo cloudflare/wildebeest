@@ -16,7 +16,7 @@ export function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
     return {
         acct,
 
-        id: res.id,
+        id: acct,
         username: res.preferredUsername ? res.preferredUsername : res.id,
         url: res.url ? res.url.toString() : '',
         display_name: res.preferredUsername || '',

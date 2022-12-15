@@ -9,6 +9,7 @@ import type { MastodonAccount } from 'wildebeest/types/account'
 import { queryAcct } from 'wildebeest/webfinger/'
 import { deliver } from 'wildebeest/activitypub/deliver'
 import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
+import type { Person } from 'wildebeest/activitypub/actors'
 
 type StatusCreate = {
     status: string
@@ -17,12 +18,13 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-    return handleRequest(request, env.DATABASE, data.connectedUser)
+    return handleRequest(request, env.DATABASE, data.connectedActor, data.connectedUser)
 }
 
 export async function handleRequest(
     request: Request,
     db: D1Database,
+    connectedActor: Person,
     connectedUser: MastodonAccount
 ): Promise<Response> {
     // TODO: implement Idempotency-Key
@@ -41,12 +43,6 @@ export async function handleRequest(
 
     // If the status is mentioned other persons, we need to delivery it to them.
     const mentions = getMentions(body.status)
-    // FIXME: how to get the current MastodonAccount as ActivityPub actor?
-    const currentActor: any = {
-        type: 'Person',
-        id: connectedUser.id,
-        url: connectedUser.url,
-    }
     for (let i = 0, len = mentions.length; i < len; i++) {
         if (mentions[i].domain === null) {
             // Only deliver the note for remote actors
@@ -58,11 +54,11 @@ export async function handleRequest(
             console.warn(`actor ${acct} not found`)
             continue
         }
-        const activity = activities.create(currentActor, note)
+        const activity = activities.create(connectedActor, note)
         await deliver(targetActor, activity)
     }
 
-    await addObjectInOutbox(db, currentActor, note)
+    await addObjectInOutbox(db, connectedActor, note)
 
     const res: any = {
         id: note.id,
