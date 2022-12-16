@@ -30,9 +30,9 @@ function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
         acct,
 
         id: acct,
-        username: res.preferredUsername ? res.preferredUsername : res.id,
+        username: res.preferredUsername || res.id,
         url: res.url ? res.url.toString() : '',
-        display_name: res.preferredUsername || '',
+        display_name: res.name || res.preferredUsername || '',
         note: res.summary || '',
         created_at: res.published || new Date().toISOString(),
 

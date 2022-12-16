@@ -164,11 +164,87 @@ describe('Mastodon APIs', () => {
         })
 
         test('get remote actor statuses', async () => {
+            globalThis.fetch = async (input: RequestInfo) => {
+                if (
+                    input.toString() ===
+                    'https://somesocial.com/.well-known/webfinger?resource=acct%3Asomeone%40somesocial.com'
+                ) {
+                    return new Response(
+                        JSON.stringify({
+                            links: [
+                                {
+                                    rel: 'self',
+                                    type: 'application/activity+json',
+                                    href: 'https://social.com/someone',
+                                },
+                            ],
+                        })
+                    )
+                }
+
+                if (input.toString() === 'https://social.com/someone') {
+                    return new Response(
+                        JSON.stringify({
+                            outbox: 'https://social.com/outbox',
+                        })
+                    )
+                }
+
+                if (input.toString() === 'https://social.com/outbox') {
+                    return new Response(
+                        JSON.stringify({
+                            first: 'https://social.com/outbox/page1',
+                        })
+                    )
+                }
+
+                if (input.toString() === 'https://social.com/outbox/page1') {
+                    return new Response(
+                        JSON.stringify({
+                            orderedItems: [
+                                {
+                                    id: 'https://mastodon.social/users/a/statuses/b/activity',
+                                    type: 'Create',
+                                    actor: 'https://mastodon.social/users/someone',
+                                    published: '2022-12-10T23:48:38Z',
+                                    object: {
+                                        id: 'object1',
+                                        type: 'Note',
+                                        content: '<p>p</p>',
+                                    },
+                                },
+                            ],
+                        })
+                    )
+                }
+
+                if (input === 'https://mastodon.social/users/someone') {
+                    return new Response(
+                        JSON.stringify({
+                            id: 'sven@remote.com',
+                            type: 'Person',
+                            preferredUsername: 'sven',
+                            name: 'sven ssss',
+
+                            icon: { url: 'icon.jpg' },
+                            image: { url: 'image.jpg' },
+                        })
+                    )
+                }
+
+                throw new Error('unexpected request to ' + input)
+            }
+
             const db = await makeDB()
 
             const req = new Request('https://example.com')
             const res = await accounts_statuses.handleRequest(req, db, 'someone@somesocial.com')
-            assert.equal(res.status, 400)
+            assert.equal(res.status, 200)
+
+            const data = await res.json<Array<any>>()
+            assert.equal(data.length, 1)
+            assert.equal(data[0].content, '<p>p</p>')
+            assert.equal(data[0].account.acct, 'sven@' + instanceConfig.uri)
         })
 
         test('get remote actor followers', async () => {
