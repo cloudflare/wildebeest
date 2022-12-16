@@ -1,7 +1,7 @@
 import { Algorithm, sign } from './http-signing-cavage'
 import { str2ab } from './key-ops'
 
-export async function signRequest(request: Request, key: CryptoKey, keyId: string): Promise<void> {
+export async function signRequest(request: Request, key: CryptoKey, keyId: URL): Promise<void> {
     const mySigner = async (data: string) =>
         new Uint8Array(
             await crypto.subtle.sign(
@@ -30,7 +30,7 @@ export async function signRequest(request: Request, key: CryptoKey, keyId: strin
         parameters: {
             created: Math.floor(Date.now() / 1000),
         },
-        keyId: keyId,
+        keyId: keyId.toString(),
         signer: mySigner,
     })
 }

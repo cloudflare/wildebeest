@@ -58,7 +58,7 @@ export async function handleRequest(
         }
         const activity = activities.create(connectedActor, note)
         const signingKey = await getSigningKey(userKEK, db, connectedActor)
-        await deliver(signingKey, targetActor, activity)
+        await deliver(signingKey, connectedActor, targetActor, activity)
     }
 
     await addObjectInOutbox(db, connectedActor, note)

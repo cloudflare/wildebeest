@@ -25,7 +25,8 @@ describe('utils', () => {
         const userKEK = 'userkey'
         const userKeyPair = await generateUserKey(userKEK)
         const privateKey = await unwrapPrivateKey(userKEK, userKeyPair.wrappedPrivKey, userKeyPair.salt)
-        await signRequest(request, privateKey, 'KEYid')
+        const keyid = new URL('https://foo.com/key')
+        await signRequest(request, privateKey, keyid)
         assert(request.headers.has('Signature'), 'no signature in signed request')
     })
 
