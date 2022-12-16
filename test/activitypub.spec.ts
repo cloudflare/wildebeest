@@ -24,6 +24,7 @@ describe('ActivityPub', () => {
 
             const activity: any = {
                 type: 'Create',
+                actor: actorId,
                 to: [actorId],
                 cc: [],
                 object: {
@@ -39,6 +40,66 @@ describe('ActivityPub', () => {
                 .first()
             const properties = JSON.parse(entry.properties)
             assert.equal(properties.content, 'test note')
+        })
+
+        test('local actor sends Note with mention create notification', async () => {
+            const db = await makeDB()
+            const actorA = await createPerson(db, userKEK, 'a@cloudflare.com')
+            const actorB = await createPerson(db, userKEK, 'b@cloudflare.com')
+
+            const activity: any = {
+                type: 'Create',
+                actor: actorB,
+                to: [actorA],
+                cc: [],
+                object: {
+                    type: 'Note',
+                    content: 'test note',
+                },
+            }
+            const res = await ap_inbox.handleRequest(db, 'a', activity)
+            assert.equal(res.status, 200)
+
+            const entry = await db.prepare('SELECT * FROM actor_notifications').first()
+            assert.equal(entry.type, 'mention')
+            assert.equal(entry.actor_id, actorA)
+            assert.equal(entry.from_actor_id, actorB)
+        })
+
+        test('remote actor sends Note with mention create notification and download actor', async () => {
+            const actorB = 'https://remote.com/actorb'
+
+            globalThis.fetch = async (input: RequestInfo) => {
+                if (input.toString() === actorB) {
+                    return new Response(
+                        JSON.stringify({
+                            id: actorB,
+                            type: 'Person',
+                        })
+                    )
+                }
+
+                throw new Error('unexpected request to ' + input)
+            }
+
+            const db = await makeDB()
+            const actorA = await createPerson(db, userKEK, 'a@cloudflare.com')
+
+            const activity: any = {
+                type: 'Create',
+                actor: actorB,
+                to: [actorA],
+                cc: [],
+                object: {
+                    type: 'Note',
+                    content: 'test note',
+                },
+            }
+            const res = await ap_inbox.handleRequest(db, 'a', activity)
+            assert.equal(res.status, 200)
+
+            const entry = await db.prepare('SELECT * FROM actors WHERE id=?').bind(actorB).first()
+            assert.equal(entry.id, actorB)
         })
     })
 

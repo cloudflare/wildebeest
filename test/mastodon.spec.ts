@@ -15,6 +15,7 @@ import * as middleware from '../functions/_middleware'
 import { loadLocalMastodonAccount } from '../mastodon/account'
 import { getSigningKey } from '../mastodon/account'
 import { createPerson } from 'wildebeest/activitypub/actors'
+import { insertNotification } from 'wildebeest/mastodon/notification'
 
 const userKEK = 'test_kek'
 
@@ -309,14 +310,36 @@ describe('Mastodon APIs', () => {
     })
 
     describe('notifications', () => {
-        test('returns an empty array', async () => {
-            const res = await notifications.onRequest()
+        test('returns notifications stored in db', async () => {
+            const db = await makeDB()
+            const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+            const fromActorId = await createPerson(db, userKEK, 'from@cloudflare.com')
+            await db
+                .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+                .bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
+                .run()
+
+            const connectedActor: any = {
+                id: actorId,
+            }
+            const fromActor: any = {
+                id: fromActorId,
+            }
+            const obj: any = {
+                id: 'object1',
+            }
+            await insertNotification(db, 'mention', connectedActor, fromActor, obj)
+
+            const res = await notifications.handleRequest(db, connectedActor)
             assert.equal(res.status, 200)
             assertJSON(res)
             assertCORS(res)
 
-            const data = await res.json<any>()
-            assert.equal(data.length, 0)
+            const data = await res.json<Array<any>>()
+            assert.equal(data.length, 1)
+            assert.equal(data[0].type, 'mention')
+            assert.equal(data[0].account.username, 'from')
+            assert.equal(data[0].status.id, 'object1')
         })
     })
 

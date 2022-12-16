@@ -10,6 +10,4 @@ export async function addObjectInInbox(db: D1Database, actor: Actor, obj: Object
     if (!out.success) {
         throw new Error('SQL error: ' + out.error)
     }
-
-    console.log({ out })
 }

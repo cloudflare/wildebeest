@@ -42,17 +42,37 @@ export interface Person extends Actor {
     publicKey: string
 }
 
-const headers = {
-    accept: 'application/activity+json',
-}
-
-export async function get(url: string): Promise<Actor> {
+export async function get(url: string | URL): Promise<Actor> {
+    const headers = {
+        accept: 'application/activity+json',
+    }
     const res = await fetch(url, { headers })
     if (!res.ok) {
         throw new Error(`${url} returned: ${res.status}`)
     }
 
     return res.json<Actor>()
+}
+
+export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
+    const person = await getPersonById(db, url)
+    if (person !== null) {
+        return person
+    }
+
+    const actor = await get(url)
+    const properties = actor
+
+    const sql = `
+  INSERT INTO actors (id, type, properties)
+  VALUES (?, ?, ?)
+  `
+
+    const { success, error } = await db.prepare(sql).bind(actor.id, actor.type, JSON.stringify(properties)).run()
+    if (!success) {
+        throw new Error('SQL error: ' + error)
+    }
+    return actor
 }
 
 export async function getPersonByEmail(db: D1Database, email: string): Promise<Person | null> {

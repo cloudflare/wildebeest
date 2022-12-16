@@ -2,6 +2,7 @@ import * as actors from 'wildebeest/activitypub/actors/'
 import { actorURL } from 'wildebeest/activitypub/actors/'
 import * as objects from 'wildebeest/activitypub/objects/'
 import { addObjectInInbox } from 'wildebeest/activitypub/actors/inbox'
+import { insertNotification } from 'wildebeest/mastodon/notification'
 import type { Object } from 'wildebeest/activitypub/objects/'
 import { parseHandle } from 'wildebeest/utils/parse'
 import { instanceConfig } from 'wildebeest/config/instance'
@@ -38,8 +39,9 @@ export async function handle(activity: Activity, db: D1Database) {
 
                 const obj = await createObject(activity.object, db)
                 if (obj !== null) {
-                    console.log({ obj })
                     await addObjectInInbox(db, person, obj)
+                    const fromActor = await actors.getAndCache(new URL(activity.actor), db)
+                    await insertNotification(db, 'mention', person, fromActor, obj)
                 }
             }
 
