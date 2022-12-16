@@ -15,17 +15,21 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
-    return handleRequest(env.DATABASE, params.id as string)
+    return handleRequest(request, env.DATABASE, params.id as string)
 }
 
 const QUERY = `
 SELECT objects.*
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE actor_id = ?
+WHERE outbox_objects.actor_id = ? AND outbox_objects.cdate > ?
+ORDER by outbox_objects.cdate DESC
+LIMIT ?
 `
 
-export async function handleRequest(db: D1Database, id: string): Promise<Response> {
+const DEFAULT_LIMIT = 20
+
+export async function handleRequest(request: Request, db: D1Database, id: string): Promise<Response> {
     const handle = parseHandle(id)
     if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
         // Only retriving statuses of a local user is supported
@@ -35,7 +39,23 @@ export async function handleRequest(db: D1Database, id: string): Promise<Respons
 
     const out: Array<MastodonStatus> = []
 
-    const { success, error, results } = await db.prepare(QUERY).bind(actorId.toString()).all()
+    const url = new URL(request.url)
+
+    let afterCdate = '00-00-00 00:00:00'
+    if (url.searchParams.has('max_id')) {
+        // Client asked to retrieve statuses after the max_id
+        // As opposed to Mastodon we don't use incremental ID but UUID, we need
+        // to retrieve the cdate of the max_id row and only show the newer statuses.
+        const maxId = url.searchParams.get('max_id')
+
+        const row: any = await db.prepare('SELECT cdate FROM outbox_objects WHERE object_id=?').bind(maxId).first()
+        afterCdate = row.cdate
+    }
+
+    const { success, error, results } = await db
+        .prepare(QUERY)
+        .bind(actorId.toString(), afterCdate, DEFAULT_LIMIT)
+        .all()
     if (!success) {
         throw new Error('SQL error: ' + error)
     }
@@ -71,6 +91,5 @@ export async function handleRequest(db: D1Database, id: string): Promise<Respons
             })
         }
     }
-
     return new Response(JSON.stringify(out), { headers })
 }

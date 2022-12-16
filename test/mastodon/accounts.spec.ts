@@ -94,26 +94,80 @@ describe('Mastodon APIs', () => {
             const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
             await db
                 .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
-                .bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
+                .bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
                 .run()
             await db
                 .prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
                 .bind('outbox1', actorId, 'object1')
                 .run()
+            await db
+                .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+                .bind('object2', 'Note', JSON.stringify({ content: 'my second status' }))
+                .run()
+            await db
+                .prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
+                .bind('outbox2', actorId, 'object2')
+                .run()
 
-            const res = await accounts_statuses.handleRequest(db, 'sven@' + instanceConfig.uri)
+            const req = new Request('https://example.com')
+            const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri)
             assert.equal(res.status, 200)
 
             const data = await res.json<Array<any>>()
-            assert.equal(data.length, 1)
-            assert.equal(data[0].content, 'my status')
+            assert.equal(data.length, 2)
+            assert.equal(data[0].content, 'my first status')
             assert.equal(data[0].account.acct, 'sven@' + instanceConfig.uri)
+            assert.equal(data[1].content, 'my second status')
+        })
+
+        test('get local actor statuses with max_id', async () => {
+            const db = await makeDB()
+            const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+            await db
+                .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+                .bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
+                .run()
+            await db
+                .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+                .bind('object2', 'Note', JSON.stringify({ content: 'my second status' }))
+                .run()
+            await db
+                .prepare('INSERT INTO outbox_objects (id, actor_id, object_id, cdate) VALUES (?, ?, ?, ?)')
+                .bind('outbox1', actorId, 'object1', '2022-12-16 08:14:48')
+                .run()
+            await db
+                .prepare('INSERT INTO outbox_objects (id, actor_id, object_id, cdate) VALUES (?, ?, ?, ?)')
+                .bind('outbox2', actorId, 'object2', '2022-12-16 10:14:48')
+                .run()
+
+            {
+                // Query statuses after object1, should only see object2.
+                const req = new Request('https://example.com?max_id=object1')
+                const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri)
+                assert.equal(res.status, 200)
+
+                const data = await res.json<Array<any>>()
+                assert.equal(data.length, 1)
+                assert.equal(data[0].content, 'my second status')
+                assert.equal(data[0].account.acct, 'sven@' + instanceConfig.uri)
+            }
+
+            {
+                // Query statuses after object2, nothing is after.
+                const req = new Request('https://example.com?max_id=object2')
+                const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri)
+                assert.equal(res.status, 200)
+
+                const data = await res.json<Array<any>>()
+                assert.equal(data.length, 0)
+            }
         })
 
         test('get remote actor statuses', async () => {
             const db = await makeDB()
 
-            const res = await accounts_statuses.handleRequest(db, 'someone@somesocial.com')
+            const req = new Request('https://example.com')
+            const res = await accounts_statuses.handleRequest(req, db, 'someone@somesocial.com')
             assert.equal(res.status, 400)
         })
 

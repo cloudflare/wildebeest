@@ -21,7 +21,7 @@
   "private": true,
   "scripts": {
     "pretty": "npx prettier --list-different './**/*.ts'",
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --test-timeout=15000",
     "lint": "npx eslint ."
   },
   "dependencies": {
