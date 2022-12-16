@@ -44,7 +44,13 @@ export async function handleRequest(request: Request, db: D1Database, userKEK: s
 
     const person = await getPersonByEmail(db, identity.email)
     if (person === null) {
-        await createPerson(db, userKEK, identity.email)
+        const properties: any = {}
+
+        if (identity.name !== undefined) {
+            properties.name = identity.name
+        }
+
+        await createPerson(db, userKEK, identity.email, properties)
     }
 
     if (redirect_uri === 'urn:ietf:wg:oauth:2.0:oob') {
