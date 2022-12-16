@@ -1,10 +1,47 @@
 import { makeDB, assertCache, isUrlValid } from './utils'
+import { createPerson } from 'wildebeest/activitypub/actors'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { strict as assert } from 'node:assert/strict'
 
 import * as ap_users from '../functions/ap/users/[id]'
+import * as ap_inbox from '../functions/ap/users/[id]/inbox'
+
+const userKEK = 'test_kek5'
 
 describe('ActivityPub', () => {
+    describe('Inbox', () => {
+        test('send Note to non existant user', async () => {
+            const db = await makeDB()
+
+            const activity: any = {}
+            const res = await ap_inbox.handleRequest(db, 'sven', activity)
+            assert.equal(res.status, 404)
+        })
+
+        test('send Note to inbox stores in DB', async () => {
+            const db = await makeDB()
+            const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+
+            const activity: any = {
+                type: 'Create',
+                to: [actorId],
+                cc: [],
+                object: {
+                    type: 'Note',
+                    content: 'test note',
+                },
+            }
+            const res = await ap_inbox.handleRequest(db, 'sven', activity)
+            assert.equal(res.status, 200)
+
+            const entry = await db
+                .prepare('SELECT objects.* FROM inbox_objects INNER JOIN objects ON objects.id=inbox_objects.object_id')
+                .first()
+            const properties = JSON.parse(entry.properties)
+            assert.equal(properties.content, 'test note')
+        })
+    })
+
     test('fetch non-existant user by id', async () => {
         const db = await makeDB()
 

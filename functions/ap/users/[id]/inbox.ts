@@ -4,6 +4,7 @@ import * as actors from 'wildebeest/activitypub/actors'
 import { instanceConfig } from 'wildebeest/config/instance'
 import type { Activity } from 'wildebeest/activitypub/activities/'
 import * as activities from 'wildebeest/activitypub/activities/'
+import { actorURL } from 'wildebeest/activitypub/actors/'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
     const activity = await request.json<Activity>()
@@ -18,7 +19,8 @@ export async function handleRequest(db: D1Database, id: string, activity: Activi
         return new Response('', { status: 403 })
     }
 
-    const person = await actors.getPersonById(db, handle.localPart)
+    const actorId = actorURL(handle.localPart)
+    const person = await actors.getPersonById(db, actorId)
     if (person === null) {
         return new Response('', { status: 404 })
     }
