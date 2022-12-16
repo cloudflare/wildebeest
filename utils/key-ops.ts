@@ -42,7 +42,7 @@ function getKey(keyMaterial: CryptoKey, salt: ArrayBuffer): Promise<CryptoKey> {
         keyMaterial,
         { name: 'AES-GCM', length: 256 },
         true,
-        ['wrapKey', 'unwrapKey']
+        ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
     )
 }
 
@@ -57,10 +57,15 @@ async function wrapCryptoKey(
     const keyMaterial = await getKeyMaterial(userKEK)
     const salt = crypto.getRandomValues(new Uint8Array(16))
     const wrappingKey = await getKey(keyMaterial, salt)
-    const wrappedPrivKey = await crypto.subtle.wrapKey('jwk', keyToWrap, wrappingKey, {
-        name: 'AES-GCM',
-        iv: salt,
-    })
+    const bytesToWrap = await crypto.subtle.exportKey('pkcs8', keyToWrap)
+    const wrappedPrivKey = await crypto.subtle.encrypt(
+        {
+            name: 'AES-GCM',
+            iv: salt,
+        },
+        wrappingKey,
+        bytesToWrap as ArrayBuffer
+    )
 
     return { wrappedPrivKey, salt }
 }
@@ -100,14 +105,17 @@ export async function unwrapPrivateKey(
 ): Promise<CryptoKey> {
     const keyMaterial = await getKeyMaterial(userKEK)
     const wrappingKey = await getKey(keyMaterial, salt)
-    return crypto.subtle.unwrapKey(
-        'jwk',
-        wrappedPrivKey,
-        wrappingKey,
+    const keyBytes = await crypto.subtle.decrypt(
         {
             name: 'AES-GCM',
             iv: salt,
         },
+        wrappingKey,
+        wrappedPrivKey
+    )
+    return await crypto.subtle.importKey(
+        'pkcs8',
+        keyBytes,
         {
             name: 'RSASSA-PKCS1-v1_5',
             hash: 'SHA-256',
