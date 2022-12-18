@@ -3,12 +3,13 @@
 ## Getting started
 
 Install:
+
 ```sh
-npm install
+yarn
 ```
 
 ## Running tests
 
 ```sh
-npm run test
+yarn test
 ```
