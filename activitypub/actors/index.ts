@@ -164,11 +164,6 @@ function personFromRow(row: any): Person {
 		image,
 		discoverable: true,
 		publicKey,
-		// FIXME: stub
-		url: 'https://social.eng.chat/@todo',
-
-		...JSON.parse(row.properties),
-
 		type: PERSON,
 		id: row.id,
 		published: new Date(row.cdate).toISOString(),
@@ -176,5 +171,10 @@ function personFromRow(row: any): Person {
 		outbox: outboxURL(row.id),
 		following: followingURL(row.id),
 		followers: followersURL(row.id),
+
+		// FIXME: stub
+		url: 'https://social.eng.chat/@todo',
+
+		...JSON.parse(row.properties),
 	}
 }

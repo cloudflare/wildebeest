@@ -12,9 +12,10 @@ const headers = {
 
 export async function deliver(signingKey: CryptoKey, from: Actor, to: Actor, activity: Activity) {
 	const body = JSON.stringify(activity)
+	console.log({ body })
 	let req = new Request(to.inbox, {
 		method: 'POST',
-		body: body,
+		body,
 		headers,
 	})
 	const digest = await generateDigestHeader(body)

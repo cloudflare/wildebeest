@@ -12,9 +12,11 @@ export interface Object {
 	summary?: string
 	name?: string
 	mediaType?: string
+	content?: string
 
 	// Extension
 	preferredUsername?: string
+	originatingActor?: string
 }
 
 export function uri(id: string): URL {
@@ -40,5 +42,34 @@ export async function createObject(
 		id: row.id,
 		url: uri(row.id),
 		published: new Date(row.cdate).toISOString(),
+		originatingActor: row.originating_actor,
+	}
+}
+
+export async function getObjectById(db: D1Database, id: string): Promise<Object | null> {
+	const query = `
+SELECT id, properties, type, originating_actor
+FROM objects
+WHERE objects.id=?
+  `
+	const { results, success, error } = await db.prepare(query).bind(id).all()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+
+	if (!results || results.length === 0) {
+		return null
+	}
+
+	const result: any = results[0]
+	const properties = JSON.parse(result.properties)
+
+	return {
+		...properties,
+
+		id: result.id,
+		type: result.type,
+		url: uri(result.id),
+		originatingActor: result.originating_actor,
 	}
 }

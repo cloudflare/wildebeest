@@ -2,6 +2,7 @@ import { strict as assert } from 'node:assert/strict'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { getMentions } from '../../mastodon/status'
 import * as statuses from '../../functions/api/v1/statuses'
+import * as statuses_favourite from '../../functions/api/v1/statuses/[id]/favourite'
 import { createPerson } from 'wildebeest/activitypub/actors'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
 
@@ -171,6 +172,45 @@ describe('Mastodon APIs', () => {
 			assert.equal(deliveredNote.type, 'Create')
 			assert.equal(deliveredNote.actor, `https://${instanceConfig.uri}/ap/users/sven`)
 			assert.equal(deliveredNote.object.type, 'Note')
+		})
+
+		test('favourite status sends Like activity', async () => {
+			let deliveredActivity: any = null
+
+			const db = await makeDB()
+			const actor = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+
+			await db
+				.prepare('INSERT INTO objects (id, type, properties, originating_actor) VALUES (?, ?, ?, ?)')
+				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }), actor.id)
+				.run()
+
+			globalThis.fetch = async (input: any, data: any) => {
+				if (input.toString() === actor.id) {
+					return new Response(
+						JSON.stringify({
+							inbox: 'https://social.com/sven/inbox',
+						})
+					)
+				}
+
+				if (input.url === 'https://social.com/sven/inbox') {
+					assert.equal(input.method, 'POST')
+					const body = await input.json()
+					deliveredActivity = body
+					return new Response()
+				}
+
+				throw new Error('unexpected request to ' + input.url)
+			}
+
+			const connectedActor: any = actor
+
+			const res = await statuses_favourite.handleRequest(db, 'object1', connectedActor, userKEK)
+			assert.equal(res.status, 200)
+
+			assert(deliveredActivity)
+			assert.equal(deliveredActivity.type, 'Like')
 		})
 
 		test('get mentions from status', () => {
