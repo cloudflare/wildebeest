@@ -39,6 +39,16 @@ export async function handleRequest(request: Request, db: D1Database, id: string
 }
 
 async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database, userKEK: string): Promise<Response> {
+    const out: Array<MastodonStatus> = []
+
+    const url = new URL(request.url)
+    const isPinned = url.searchParams.get('pinned') === 'true'
+    if (isPinned) {
+        // TODO: pinned statuses are not implemented yet. Stub the endpoint
+        // to avoid returning statuses that aren't pinned.
+        return new Response(JSON.stringify(out), { headers })
+    }
+
     const acct = `${handle.localPart}@${handle.domain}`
     const link = await webfinger.queryAcctLink(handle.domain!, acct)
     if (link === null) {
@@ -55,8 +65,6 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
         const { createdObjects } = await activityHandler.handle(activity, db, userKEK, 'caching')
         results = [...results, ...createdObjects]
     }
-
-    const out: Array<MastodonStatus> = []
 
     if (results && results.length > 0) {
         for (let i = 0, len = results.length; i < len; i++) {
@@ -103,6 +111,13 @@ LIMIT ?
     const out: Array<MastodonStatus> = []
 
     const url = new URL(request.url)
+
+    const isPinned = url.searchParams.get('pinned') === 'true'
+    if (isPinned) {
+        // TODO: pinned statuses are not implemented yet. Stub the endpoint
+        // to avoid returning statuses that aren't pinned.
+        return new Response(JSON.stringify(out), { headers })
+    }
 
     let afterCdate = '00-00-00 00:00:00'
     if (url.searchParams.has('max_id')) {

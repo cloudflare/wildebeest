@@ -164,6 +164,18 @@ describe('Mastodon APIs', () => {
             assert.equal(data[1].content, 'my second status')
         })
 
+        test('get pinned statuses', async () => {
+            const db = await makeDB()
+            const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+
+            const req = new Request('https://example.com?pinned=true')
+            const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri, userKEK)
+            assert.equal(res.status, 200)
+
+            const data = await res.json<Array<any>>()
+            assert.equal(data.length, 0)
+        })
+
         test('get local actor statuses with max_id', async () => {
             const db = await makeDB()
             const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
