@@ -292,13 +292,82 @@ describe('Mastodon APIs', () => {
         })
 
         test('get remote actor followers', async () => {
-            const res = await accounts_followers.onRequest()
+            const db = await makeDB()
+            const connectedActor: any = { id: 'someid' }
+            const res = await accounts_followers.handleRequest(db, 'sven@example.com', connectedActor)
+            assert.equal(res.status, 403)
+        })
+
+        test('get local actor followers', async () => {
+            globalThis.fetch = async (input: any, opts: any) => {
+                if (input.toString() === 'https://social.eng.chat/ap/users/sven2') {
+                    return new Response(
+                        JSON.stringify({
+                            id: 'actor',
+                            type: 'Person',
+                        })
+                    )
+                }
+
+                throw new Error('unexpected request to ' + input)
+            }
+
+            const db = await makeDB()
+            const actor: any = {
+                id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+            }
+            const actor2: any = {
+                id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+            }
+            await addFollowing(db, actor2, actor, 'sven@' + instanceConfig.uri)
+            await acceptFollowing(db, actor2, actor)
+
+            const connectedActor = actor
+            const res = await accounts_followers.handleRequest(db, 'sven', connectedActor)
             assert.equal(res.status, 200)
+
+            const data = await res.json<Array<any>>()
+            assert.equal(data.length, 1)
+        })
+
+        test('get local actor following', async () => {
+            globalThis.fetch = async (input: any, opts: any) => {
+                if (input.toString() === 'https://social.eng.chat/ap/users/sven2') {
+                    return new Response(
+                        JSON.stringify({
+                            id: 'https://example.com/foo',
+                            type: 'Person',
+                        })
+                    )
+                }
+
+                throw new Error('unexpected request to ' + input)
+            }
+
+            const db = await makeDB()
+            const actor: any = {
+                id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+            }
+            const actor2: any = {
+                id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+            }
+            await addFollowing(db, actor, actor2, 'sven@' + instanceConfig.uri)
+            await acceptFollowing(db, actor, actor2)
+
+            const connectedActor = actor
+            const res = await accounts_following.handleRequest(db, 'sven', connectedActor)
+            assert.equal(res.status, 200)
+
+            const data = await res.json<Array<any>>()
+            assert.equal(data.length, 1)
         })
 
         test('get remote actor following', async () => {
-            const res = await accounts_following.onRequest()
-            assert.equal(res.status, 200)
+            const db = await makeDB()
+
+            const connectedActor: any = { id: 'someid' }
+            const res = await accounts_following.handleRequest(db, 'sven@example.com', connectedActor)
+            assert.equal(res.status, 403)
         })
 
         test('get remote actor featured_tags', async () => {

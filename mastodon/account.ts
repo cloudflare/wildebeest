@@ -2,7 +2,7 @@ import { MastodonAccount } from 'wildebeest/types/account'
 import { unwrapPrivateKey } from 'wildebeest/utils/key-ops'
 import type { Actor } from '../activitypub/actors/'
 import { defaultImages } from '../config/accounts'
-import { getFollowing, getFollowers } from 'wildebeest/activitypub/actors/follow'
+import { getFollowingAcct, getFollowers } from 'wildebeest/activitypub/actors/follow'
 
 async function getStatusesCount(db: D1Database, actorId: URL): Promise<number> {
     const query = `
@@ -61,7 +61,7 @@ export async function loadLocalMastodonAccount(db: D1Database, acct: string, res
     const account = toMastodonAccount(acct, res)
     account.statuses_count = await getStatusesCount(db, new URL(res.id))
     account.followers_count = (await getFollowers(db, res)).length
-    account.following_count = (await getFollowing(db, res)).length
+    account.following_count = (await getFollowingAcct(db, res)).length
 
     return account
 }

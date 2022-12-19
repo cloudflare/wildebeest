@@ -5,7 +5,7 @@ import type { Person } from 'wildebeest/activitypub/actors'
 import type { Env } from 'wildebeest/types/env'
 import type { ContextData } from 'wildebeest/types/context'
 import type { MastodonAccount } from 'wildebeest/types/account'
-import { getFollowing } from 'wildebeest/activitypub/actors/follow'
+import { getFollowingAcct } from 'wildebeest/activitypub/actors/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
     return handleRequest(request, env.DATABASE, data.connectedActor)
@@ -28,7 +28,7 @@ export async function handleRequest(req: Request, db: D1Database, connectedActor
     }
 
     const res = []
-    const following = await getFollowing(db, connectedActor)
+    const following = await getFollowingAcct(db, connectedActor)
 
     for (let i = 0, len = ids.length; i < len; i++) {
         const id = ids[i]
