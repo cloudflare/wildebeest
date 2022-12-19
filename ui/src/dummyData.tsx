@@ -1,4 +1,4 @@
-import { InstanceDetails, Status, TagDetails } from '../../types'
+import { InstanceDetails, Status, TagDetails } from './types'
 
 export const statuses: Status[] = [
 	{
