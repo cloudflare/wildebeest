@@ -9,7 +9,7 @@ export function create(actor: Actor, object: Object): Activity {
     return {
         '@context': 'https://www.w3.org/ns/activitystreams',
         type: UNDO,
-        actor,
+        actor: actor.id,
         object: follow.create(actor, object),
     }
 }

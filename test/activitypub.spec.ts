@@ -240,7 +240,7 @@ describe('ActivityPub', () => {
 
             assert(receivedActivity)
             assert.equal(receivedActivity.type, 'Accept')
-            assert.equal(receivedActivity.actor.id, actor.id)
+            assert.equal(receivedActivity.actor, actor.id)
             assert.equal(receivedActivity.object.actor, activity.actor)
             assert.equal(receivedActivity.object.type, activity.type)
         })

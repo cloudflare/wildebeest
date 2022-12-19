@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
+import { instanceConfig } from 'wildebeest/config/instance'
 import { getMentions } from '../../mastodon/status'
 import * as statuses from '../../functions/api/v1/statuses'
 import { createPerson } from 'wildebeest/activitypub/actors'
@@ -166,7 +167,7 @@ describe('Mastodon APIs', () => {
 
             assert(deliveredNote)
             assert.equal(deliveredNote.type, 'Create')
-            assert.equal(deliveredNote.actor.type, 'Person')
+            assert.equal(deliveredNote.actor, `https://${instanceConfig.uri}/ap/users/sven`)
             assert.equal(deliveredNote.object.type, 'Note')
         })
 
