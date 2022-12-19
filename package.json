@@ -21,13 +21,13 @@
 	},
 	"private": true,
 	"scripts": {
-    "pretty": "npx prettier --list-different './**/*.ts'",
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --test-timeout=15000",
-    "lint": "npx eslint .",
-    "build": "yarn --cwd ui install && yarn --cwd ui build",
-    "database:migrate": "wrangler d1 migrations apply DATABASE",
-    "dev": "yarn build && yarn database:migrate --local && yarn wrangler pages dev ui/dist --d1 DATABASE --persist",
-    "deploy": "yarn build && yarn database:migrate && yarn wrangler pages publish ui/dist"
+		"pretty": "npx prettier --list-different './**/*.ts'",
+		"test": "NODE_OPTIONS=--experimental-vm-modules npx jest --test-timeout=15000",
+		"lint": "npx eslint .",
+		"build": "yarn --cwd ui install && yarn --cwd ui build",
+		"database:migrate": "wrangler d1 migrations apply DATABASE",
+		"dev": "yarn build && yarn database:migrate --local && yarn wrangler pages dev ui/dist --d1 DATABASE --persist",
+		"deploy": "yarn build && yarn database:migrate && yarn wrangler pages publish ui/dist"
 	},
 	"dependencies": {
 		"http-message-signatures": "^0.1.2"
