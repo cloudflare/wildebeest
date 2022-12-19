@@ -1,11 +1,7 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik'
-import { DocumentHead, RequestHandler } from '@builder.io/qwik-city'
+import { DocumentHead } from '@builder.io/qwik-city'
 import { Status } from '~/types'
 import { statuses } from '../dummyData'
-
-export const onGet: RequestHandler<{}> = async () => {
-	return statuses
-}
 
 export default component$(() => {
 	const resource = useResource$<Status[]>(async () => {
