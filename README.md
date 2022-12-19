@@ -13,3 +13,9 @@ yarn
 ```sh
 yarn test
 ```
+
+## Debugging locally
+
+```sh
+yarn dev
+```

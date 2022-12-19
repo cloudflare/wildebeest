@@ -24,8 +24,8 @@
     "pretty": "npx prettier --list-different './**/*.ts'",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --test-timeout=15000",
     "lint": "npx eslint .",
-    "predev": "wrangler d1 migrations apply DATABASE --local",
-    "dev": "npx wrangler pages dev public --d1 DATABASE --persist"
+    "predev": "wrangler d1 migrations apply DATABASE --local && yarn --cwd ui build",
+    "dev": "npx wrangler pages dev ui/dist --d1 DATABASE --persist"
   },
   "dependencies": {
     "http-message-signatures": "^0.1.2"

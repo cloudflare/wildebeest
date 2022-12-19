@@ -41,6 +41,7 @@ export async function main(context: EventContext<Env, any, any>) {
         url.pathname === '/api/v1/instance' ||
         url.pathname === '/api/v2/instance' ||
         url.pathname === '/api/v1/apps' ||
+        url.pathname === '/api/v1/timelines/public' ||
         url.pathname === '/api/v1/custom_emojis' ||
         url.pathname === '/.well-known/webfinger' ||
         url.pathname.startsWith('/ap/') // all ActivityPub endpoints
