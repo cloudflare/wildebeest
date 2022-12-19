@@ -41,7 +41,7 @@ export async function handleRequest(
 		return new Response('', { status: 400 })
 	}
 
-	const note = await createNote(db, body.status)
+	const note = await createNote(db, body.status, connectedActor)
 
 	// If the status is mentioned other persons, we need to delivery it to them.
 	const mentions = getMentions(body.status)

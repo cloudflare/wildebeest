@@ -60,13 +60,15 @@ describe('Mastodon APIs', () => {
 				.prepare(
 					`
           SELECT
-              json_extract(properties, '$.content') as content
+              json_extract(properties, '$.content') as content,
+              originating_actor
           FROM objects WHERE id = ?
         `
 				)
 				.bind(data.id)
 				.first()
 			assert.equal(row.content, 'my status')
+			assert.equal(row.originating_actor, actorId)
 		})
 
 		test("create new status adds to Actor's outbox", async () => {

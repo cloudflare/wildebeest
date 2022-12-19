@@ -1,6 +1,7 @@
 import * as actors from 'wildebeest/activitypub/actors/'
 import { actorURL } from 'wildebeest/activitypub/actors/'
 import * as objects from 'wildebeest/activitypub/objects/'
+import type { Actor } from 'wildebeest/activitypub/actors/'
 import * as accept from 'wildebeest/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/activitypub/actors/inbox'
 import { insertNotification } from 'wildebeest/mastodon/notification'
@@ -64,6 +65,7 @@ export async function handle(
 		// https://www.w3.org/TR/activitypub/#create-activity-inbox
 		case 'Create': {
 			requireComplexObject()
+			const actorId = new URL(getActorAsId())
 
 			let recipients: Array<string> = []
 
@@ -74,7 +76,7 @@ export async function handle(
 				recipients = [...recipients, ...activity.cc]
 			}
 
-			const obj = await createObject(activity.object, db)
+			const obj = await createObject(activity.object, db, actorId)
 			if (obj === null) {
 				break
 			}
@@ -149,12 +151,12 @@ export async function handle(
 	return { createdObjects }
 }
 
-async function createObject(obj: Object, db: D1Database): Promise<Object | null> {
+async function createObject(obj: Object, db: D1Database, originatingActor: URL): Promise<Object | null> {
 	switch (obj.type) {
 		case 'Note': {
 			// FIXME: ensure that the object isn't there yet
 			// use the ID in properties
-			return objects.createObject(db, 'Note', obj)
+			return objects.createObject(db, 'Note', obj, originatingActor)
 			break
 		}
 
