@@ -37,8 +37,6 @@ export interface Actor extends Object {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 export interface Person extends Actor {
-    // TODO: shouldn't return email publicly
-    email: string
     publicKey: string
 }
 
@@ -173,7 +171,6 @@ function personFromRow(row: any): Person {
         outbox: outboxURL(row.id),
         following: followingURL(row.id),
         followers: followersURL(row.id),
-        email: row.email,
         publicKey,
         icon,
         image,
