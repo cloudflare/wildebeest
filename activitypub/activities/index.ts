@@ -1,2 +1,1 @@
 export type Activity = any
-
