@@ -1,4 +1,5 @@
 import { parseHandle } from 'wildebeest/utils/parse'
+import * as activityHandler from 'wildebeest/activitypub/activities/handle'
 import type { Env } from 'wildebeest/types/env'
 import * as actors from 'wildebeest/activitypub/actors'
 import { instanceConfig } from 'wildebeest/config/instance'
@@ -29,7 +30,7 @@ export async function handleRequest(
         return new Response('', { status: 404 })
     }
 
-    await activities.handle(activity, db, userKEK)
+    await activityHandler.handle(activity, db, userKEK)
 
     return new Response('', { status: 200 })
 }

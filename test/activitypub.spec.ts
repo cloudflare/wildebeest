@@ -1,7 +1,7 @@
 import { makeDB, assertCache, isUrlValid } from './utils'
 import { addFollowing } from 'wildebeest/activitypub/actors/follow'
 import { createPerson } from 'wildebeest/activitypub/actors'
-import * as activities from 'wildebeest/activitypub/activities'
+import * as activityHandler from 'wildebeest/activitypub/activities/handle'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { strict as assert } from 'node:assert/strict'
 
@@ -181,7 +181,7 @@ describe('ActivityPub', () => {
                 },
             }
 
-            await activities.handle(activity, db, userKEK)
+            await activityHandler.handle(activity, db, userKEK)
 
             const row = await db
                 .prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
@@ -228,7 +228,7 @@ describe('ActivityPub', () => {
                 object: actor.id,
             }
 
-            await activities.handle(activity, db, userKEK)
+            await activityHandler.handle(activity, db, userKEK)
 
             const row = await db
                 .prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
