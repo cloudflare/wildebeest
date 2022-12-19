@@ -1,6 +1,7 @@
 import * as actors from 'wildebeest/activitypub/actors/'
 import { actorURL } from 'wildebeest/activitypub/actors/'
 import * as objects from 'wildebeest/activitypub/objects/'
+import * as accept from 'wildebeest/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/activitypub/actors/inbox'
 import { insertNotification } from 'wildebeest/mastodon/notification'
 import type { Object } from 'wildebeest/activitypub/objects/'
@@ -8,7 +9,9 @@ import { parseHandle } from 'wildebeest/utils/parse'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { createNote } from 'wildebeest/activitypub/objects/note'
 import type { Note } from 'wildebeest/activitypub/objects/note'
-import { acceptFollowing } from 'wildebeest/activitypub/actors/follow'
+import { acceptFollowing, addFollowing } from 'wildebeest/activitypub/actors/follow'
+import { deliver } from 'wildebeest/activitypub/deliver'
+import { getSigningKey } from 'wildebeest/mastodon/account'
 
 export type Activity = any
 
@@ -16,7 +19,9 @@ function extractID(s: string): string {
     return s.replace(`https://${instanceConfig.uri}/ap/users/`, '')
 }
 
-export async function handle(activity: Activity, db: D1Database) {
+// FIXME: support Actor field in object or string forms. Same with Object field.
+
+export async function handle(activity: Activity, db: D1Database, userKEK: string) {
     console.log(activity)
     switch (activity.type) {
         // https://www.w3.org/TR/activitypub/#create-activity-inbox
@@ -57,6 +62,26 @@ export async function handle(activity: Activity, db: D1Database) {
                 await acceptFollowing(db, actor, follower)
             } else {
                 console.warn(`actor ${activity.object.actor} not found`)
+            }
+
+            break
+        }
+
+        // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-follow
+        case 'Follow': {
+            const receiver = await actors.getPersonById(db, activity.object)
+            if (receiver !== null) {
+                const originatingActor = await actors.getAndCache(new URL(activity.actor), db)
+                const receiverAcct = `${receiver.preferredUsername}@${instanceConfig.uri}`
+                await addFollowing(db, originatingActor, receiver, receiverAcct)
+                await acceptFollowing(db, originatingActor, receiver)
+
+                // Automatically send the Accept reply
+                const reply = accept.create(receiver, activity)
+                const signingKey = await getSigningKey(userKEK, db, receiver)
+                await deliver(signingKey, receiver, originatingActor, reply)
+            } else {
+                console.warn(`actor ${activity.object} not found`)
             }
 
             break

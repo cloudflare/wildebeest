@@ -8,11 +8,15 @@ import { actorURL } from 'wildebeest/activitypub/actors/'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
     const activity = await request.json<Activity>()
-
-    return handleRequest(env.DATABASE, params.id as string, activity)
+    return handleRequest(env.DATABASE, params.id as string, activity, env.userKEK)
 }
 
-export async function handleRequest(db: D1Database, id: string, activity: Activity): Promise<Response> {
+export async function handleRequest(
+    db: D1Database,
+    id: string,
+    activity: Activity,
+    userKEK: string
+): Promise<Response> {
     const handle = parseHandle(id)
 
     if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
@@ -25,7 +29,7 @@ export async function handleRequest(db: D1Database, id: string, activity: Activi
         return new Response('', { status: 404 })
     }
 
-    await activities.handle(activity, db)
+    await activities.handle(activity, db, userKEK)
 
     return new Response('', { status: 200 })
 }

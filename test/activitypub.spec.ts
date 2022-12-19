@@ -16,7 +16,7 @@ describe('ActivityPub', () => {
             const db = await makeDB()
 
             const activity: any = {}
-            const res = await ap_inbox.handleRequest(db, 'sven', activity)
+            const res = await ap_inbox.handleRequest(db, 'sven', activity, userKEK)
             assert.equal(res.status, 404)
         })
 
@@ -34,7 +34,7 @@ describe('ActivityPub', () => {
                     content: 'test note',
                 },
             }
-            const res = await ap_inbox.handleRequest(db, 'sven', activity)
+            const res = await ap_inbox.handleRequest(db, 'sven', activity, userKEK)
             assert.equal(res.status, 200)
 
             const entry = await db
@@ -59,7 +59,7 @@ describe('ActivityPub', () => {
                     content: 'test note',
                 },
             }
-            const res = await ap_inbox.handleRequest(db, 'a', activity)
+            const res = await ap_inbox.handleRequest(db, 'a', activity, userKEK)
             assert.equal(res.status, 200)
 
             const entry = await db.prepare('SELECT * FROM actor_notifications').first()
@@ -97,7 +97,7 @@ describe('ActivityPub', () => {
                     content: 'test note',
                 },
             }
-            const res = await ap_inbox.handleRequest(db, 'a', activity)
+            const res = await ap_inbox.handleRequest(db, 'a', activity, userKEK)
             assert.equal(res.status, 200)
 
             const entry = await db.prepare('SELECT * FROM actors WHERE id=?').bind(actorB).first()
@@ -172,18 +172,16 @@ describe('ActivityPub', () => {
 
             const activity = {
                 '@context': 'https://www.w3.org/ns/activitystreams',
-                id: `https://${instanceConfig.uri}/ap/users/sven2#accepts/follows/`,
                 type: 'Accept',
                 actor: `https://${instanceConfig.uri}/ap/users/sven2`,
                 object: {
-                    id: 'https://localhost/users/sven#follows/',
                     type: 'Follow',
                     actor: actor.id,
                     object: `https://${instanceConfig.uri}/ap/users/sven2`,
                 },
             }
 
-            await activities.handle(activity, db)
+            await activities.handle(activity, db, userKEK)
 
             const row = await db
                 .prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
@@ -192,6 +190,59 @@ describe('ActivityPub', () => {
             assert(row)
             assert.equal(row.target_actor_id, 'https://social.eng.chat/ap/users/sven2')
             assert.equal(row.state, 'accepted')
+        })
+    })
+
+    describe('Follow', () => {
+        let receivedActivity: any = null
+
+        beforeEach(() => {
+            receivedActivity = null
+
+            globalThis.fetch = async (input: any) => {
+                if (input.url === 'https://social.eng.chat/ap/users/sven2/inbox') {
+                    assert.equal(input.method, 'POST')
+                    const data = await input.json()
+                    receivedActivity = data
+                    console.log({ receivedActivity })
+                    return new Response('')
+                }
+
+                throw new Error('unexpected request to ' + input.url)
+            }
+        })
+
+        test('Receive follow with Accept reply', async () => {
+            const db = await makeDB()
+            const actor: any = {
+                id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+            }
+            const actor2: any = {
+                id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+            }
+
+            const activity = {
+                '@context': 'https://www.w3.org/ns/activitystreams',
+                type: 'Follow',
+                actor: actor2.id,
+                object: actor.id,
+            }
+
+            await activities.handle(activity, db, userKEK)
+
+            const row = await db
+                .prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
+                .bind(actor2.id)
+                .first()
+            assert(row)
+            assert.equal(row.target_actor_id, actor.id)
+            assert.equal(row.state, 'accepted')
+
+            assert(receivedActivity)
+            assert.equal(receivedActivity.type, 'Accept')
+            assert.equal(receivedActivity.actor.id, actor.id)
+            assert.equal(receivedActivity.object.actor, activity.actor)
+            assert.equal(receivedActivity.object.type, activity.type)
         })
     })
 })
