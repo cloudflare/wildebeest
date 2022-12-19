@@ -23,7 +23,6 @@ export type HandleResponse = {
 
 export type HandleMode = 'caching' | 'inbox'
 
-// FIXME: support Actor field in object or string forms. Same with Object field.
 export async function handle(
 	activity: Activity,
 	db: D1Database,
@@ -32,10 +31,40 @@ export async function handle(
 ): Promise<HandleResponse> {
 	const createdObjects: Array<Object> = []
 
+	// The `object` field of the activity is required to be an object, with an
+	// `id` and a `type` field.
+	const requireComplexObject = () => {
+		if (typeof activity.object !== 'object') {
+			throw new Error('`activity.object` must be of type object')
+		}
+	}
+
+	const getObjectAsId = () => {
+		if (activity.object.id !== undefined) {
+			return activity.object.id
+		}
+		if (typeof activity.object === 'string') {
+			return activity.object
+		}
+		throw new Error('unknown value')
+	}
+
+	const getActorAsId = () => {
+		if (activity.actor.id !== undefined) {
+			return activity.actor.id
+		}
+		if (typeof activity.actor === 'string') {
+			return activity.actor
+		}
+		throw new Error('unknown value')
+	}
+
 	console.log(activity)
 	switch (activity.type) {
 		// https://www.w3.org/TR/activitypub/#create-activity-inbox
 		case 'Create': {
+			requireComplexObject()
+
 			let recipients: Array<string> = []
 
 			if (Array.isArray(activity.to)) {
@@ -59,15 +88,14 @@ export async function handle(
 						continue
 					}
 
-					const actorId = actorURL(handle.localPart)
-					const person = await actors.getPersonById(db, actorId)
+					const person = await actors.getPersonById(db, actorURL(handle.localPart))
 					if (person === null) {
 						console.warn(`person ${recipients[i]} not found`)
 						continue
 					}
 
 					await addObjectInInbox(db, person, obj)
-					const fromActor = await actors.getAndCache(new URL(activity.actor), db)
+					const fromActor = await actors.getAndCache(new URL(getActorAsId()), db)
 					await insertNotification(db, 'mention', person, fromActor, obj)
 				}
 			}
@@ -77,9 +105,12 @@ export async function handle(
 
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
 		case 'Accept': {
+			requireComplexObject()
+			const actorId = getActorAsId()
+
 			const actor = await actors.getPersonById(db, activity.object.actor)
 			if (actor !== null) {
-				const follower = await actors.getAndCache(new URL(activity.actor), db)
+				const follower = await actors.getAndCache(new URL(actorId), db)
 				await acceptFollowing(db, actor, follower)
 			} else {
 				console.warn(`actor ${activity.object.actor} not found`)
@@ -90,9 +121,12 @@ export async function handle(
 
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-follow
 		case 'Follow': {
-			const receiver = await actors.getPersonById(db, activity.object)
+			const objectId = getObjectAsId()
+			const actorId = getActorAsId()
+
+			const receiver = await actors.getPersonById(db, objectId)
 			if (receiver !== null) {
-				const originatingActor = await actors.getAndCache(new URL(activity.actor), db)
+				const originatingActor = await actors.getAndCache(new URL(actorId), db)
 				const receiverAcct = `${receiver.preferredUsername}@${instanceConfig.uri}`
 				await addFollowing(db, originatingActor, receiver, receiverAcct)
 				await acceptFollowing(db, originatingActor, receiver)
@@ -102,7 +136,7 @@ export async function handle(
 				const signingKey = await getSigningKey(userKEK, db, receiver)
 				await deliver(signingKey, receiver, originatingActor, reply)
 			} else {
-				console.warn(`actor ${activity.object} not found`)
+				console.warn(`actor ${objectId} not found`)
 			}
 
 			break

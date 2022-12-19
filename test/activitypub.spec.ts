@@ -173,7 +173,7 @@ describe('ActivityPub', () => {
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',
 				type: 'Accept',
-				actor: `https://${instanceConfig.uri}/ap/users/sven2`,
+				actor: { id: `https://${instanceConfig.uri}/ap/users/sven2` },
 				object: {
 					type: 'Follow',
 					actor: actor.id,
@@ -190,6 +190,40 @@ describe('ActivityPub', () => {
 			assert(row)
 			assert.equal(row.target_actor_id, 'https://social.eng.chat/ap/users/sven2')
 			assert.equal(row.state, 'accepted')
+		})
+
+		test('Object must be an object', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Accept',
+				actor: 'https://example.com/actor',
+				object: 'a',
+			}
+
+			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+				message: '`activity.object` must be of type object',
+			})
+		})
+	})
+
+	describe('Create', () => {
+		test('Object must be an object', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Create',
+				actor: 'https://example.com/actor',
+				object: 'a',
+			}
+
+			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+				message: '`activity.object` must be of type object',
+			})
 		})
 	})
 
