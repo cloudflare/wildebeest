@@ -160,22 +160,21 @@ function personFromRow(row: any): Person {
     return {
         // Default values, likely being overrided by the properties.
         name: row.preferredUsername,
+        icon,
+        image,
+        discoverable: true,
+        publicKey,
+        // FIXME: stub
+        url: 'https://social.eng.chat/@todo',
 
         ...JSON.parse(row.properties),
 
         type: PERSON,
         id: row.id,
         published: new Date(row.cdate).toISOString(),
-        discoverable: true,
         inbox: inboxURL(row.id),
         outbox: outboxURL(row.id),
         following: followingURL(row.id),
         followers: followersURL(row.id),
-        publicKey,
-        icon,
-        image,
-
-        // FIXME: stub
-        url: 'https://social.eng.chat/@todo',
     }
 }
