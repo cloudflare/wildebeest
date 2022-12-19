@@ -88,8 +88,49 @@ describe('Mastodon APIs', () => {
         })
 
         test('get remote actor by id', async () => {
-            const res = await accounts_get.handleRequest('sven@remote.com')
+            const db = await makeDB()
+            const res = await accounts_get.handleRequest('sven@remote.com', db)
             assert.equal(res.status, 200)
+
+            const data = await res.json<any>()
+            assert.equal(data.username, 'sven')
+        })
+
+        test('get unknown local actor by id', async () => {
+            const db = await makeDB()
+            const res = await accounts_get.handleRequest('sven', db)
+            assert.equal(res.status, 404)
+        })
+
+        test('get local actor by id', async () => {
+            const db = await makeDB()
+            const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+            const actor2: any = { id: await createPerson(db, userKEK, 'sven2@cloudflare.com') }
+            const actor3: any = { id: await createPerson(db, userKEK, 'sven3@cloudflare.com') }
+            await addFollowing(db, actor, actor2, 'sven2@' + instanceConfig.uri)
+            await acceptFollowing(db, actor, actor2)
+            await addFollowing(db, actor, actor3, 'sven3@' + instanceConfig.uri)
+            await acceptFollowing(db, actor, actor3)
+            await addFollowing(db, actor3, actor, 'sven@' + instanceConfig.uri)
+            await acceptFollowing(db, actor3, actor)
+
+            await db
+                .prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+                .bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
+                .run()
+            await db
+                .prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
+                .bind('outbox1', actor.id, 'object1')
+                .run()
+
+            const res = await accounts_get.handleRequest('sven', db)
+            assert.equal(res.status, 200)
+
+            const data = await res.json<any>()
+            assert.equal(data.username, 'sven')
+            assert.equal(data.followers_count, 1)
+            assert.equal(data.following_count, 2)
+            assert.equal(data.statuses_count, 1)
         })
 
         test('get local actor statuses', async () => {
@@ -268,11 +309,6 @@ describe('Mastodon APIs', () => {
         test('get remote actor lists', async () => {
             const res = await accounts_lists.onRequest()
             assert.equal(res.status, 200)
-        })
-
-        test('get local actor by id', async () => {
-            const res = await accounts_get.handleRequest('sven')
-            assert.equal(res.status, 404)
         })
 
         describe('relationships', () => {

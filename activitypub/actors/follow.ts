@@ -60,3 +60,20 @@ export async function getFollowing(db: D1Database, actor: Actor): Promise<Array<
         return []
     }
 }
+
+export async function getFollowers(db: D1Database, actor: Actor): Promise<Array<string>> {
+    const query = `
+        SELECT actor_id FROM actor_following WHERE target_actor_id=? AND state=?
+    `
+
+    const out: any = await db.prepare(query).bind(actor.id, STATE_ACCEPTED).all()
+    if (!out.success) {
+        throw new Error('SQL error: ' + out.error)
+    }
+
+    if (out.results !== null) {
+        return out.results.map((x: any) => x.actor_id)
+    } else {
+        return []
+    }
+}
