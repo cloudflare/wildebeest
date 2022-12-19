@@ -6,6 +6,8 @@ import { urlToHandle } from '../utils/handle'
 import { generateUserKey, unwrapPrivateKey, importPublicKey } from 'wildebeest/utils/key-ops'
 import { signRequest } from 'wildebeest/utils/http-signing'
 import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
+import { parseRequest } from 'wildebeest/utils/httpsigjs/parser'
+import { verifySignature } from 'wildebeest/utils/httpsigjs/verifier'
 
 describe('utils', () => {
 	test('user key lifecycle', async () => {
@@ -29,6 +31,10 @@ describe('utils', () => {
 		const keyid = new URL('https://foo.com/key')
 		await signRequest(request, privateKey, keyid)
 		assert(request.headers.has('Signature'), 'no signature in signed request')
+
+		const parsedSignature = parseRequest(request)
+		const publicKey = await importPublicKey(userKeyPair.pubKey)
+		assert(verifySignature(parsedSignature, publicKey), 'verify signature failed')
 	})
 
 	test('handle parsing', async () => {
