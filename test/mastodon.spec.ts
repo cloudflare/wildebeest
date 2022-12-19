@@ -1,6 +1,7 @@
 import { strict as assert } from 'node:assert/strict'
 import { instanceConfig } from 'wildebeest/config/instance'
-import * as instance from '../functions/api/v1/instance'
+import * as v1_instance from '../functions/api/v1/instance'
+import * as v2_instance from '../functions/api/v2/instance'
 import * as apps from '../functions/api/v1/apps'
 import * as search from '../functions/api/v2/search'
 import * as custom_emojis from '../functions/api/v1/custom_emojis'
@@ -21,8 +22,16 @@ const userKEK = 'test_kek'
 
 describe('Mastodon APIs', () => {
     describe('instance', () => {
-        test('return the instance infos', async () => {
-            const res = await instance.onRequest()
+        test('return the instance infos v1', async () => {
+            const res = await v1_instance.onRequest()
+            assert.equal(res.status, 200)
+            assertCORS(res)
+            assertJSON(res)
+            assertCache(res, 180)
+        })
+
+        test('return the instance infos v2', async () => {
+            const res = await v2_instance.onRequest()
             assert.equal(res.status, 200)
             assertCORS(res)
             assertJSON(res)
