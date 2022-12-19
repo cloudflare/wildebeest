@@ -1,6 +1,8 @@
 import type { Env } from 'wildebeest/types/env'
 import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
+import type { Object } from 'wildebeest/activitypub/objects/'
 import { getPersonById } from 'wildebeest/activitypub/actors'
+import * as activityHandler from 'wildebeest/activitypub/activities/handle'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { parseHandle } from 'wildebeest/utils/parse'
 import type { Handle } from 'wildebeest/utils/parse'
@@ -19,72 +21,74 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
-    return handleRequest(request, env.DATABASE, params.id as string)
+    return handleRequest(request, env.DATABASE, params.id as string, env.userKEK)
 }
 
-export async function handleRequest(request: Request, db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(request: Request, db: D1Database, id: string, userKEK: string): Promise<Response> {
     const handle = parseHandle(id)
 
     if (handle.domain === null || (handle.domain !== null && handle.domain === instanceConfig.uri)) {
         // Retrieve the statuses from a local user
-        return getLocalStatus(request, db, handle)
+        return getLocalStatuses(request, db, handle)
     } else if (handle.domain !== null) {
         // Retrieve the statuses of a remote actor
-        return getRemoteStatus(request, handle)
+        return getRemoteStatuses(request, handle, db, userKEK)
     } else {
         return new Response('', { status: 403 })
     }
 }
 
-async function getRemoteStatus(request: Request, handle: Handle): Promise<Response> {
+async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database, userKEK: string): Promise<Response> {
     const acct = `${handle.localPart}@${handle.domain}`
-    const actor = await webfinger.queryAcct(handle.domain!, acct)
-    if (actor === null) {
+    const link = await webfinger.queryAcctLink(handle.domain!, acct)
+    if (link === null) {
         return new Response('', { status: 404 })
     }
 
+    const actor = await actors.getAndCache(link, db)
+
     const activities = await outbox.get(actor)
-    const out: Array<MastodonStatus> = []
+    let results: Array<Object> = []
 
     for (let i = 0, len = activities.items.length; i < len; i++) {
-        // TODO: a better implementation would be to import in the db and reuse the
-        // local user code.
-
         const activity = activities.items[i]
-        if (activity.type === 'Create') {
-            const obj = activity.object
-            if (obj.type === 'Note') {
-                const author = await actors.get(activity.actor)
-                const acct = `${author.preferredUsername}@${instanceConfig.uri}`
-                const account = loadExternalMastodonAccount(acct, author)
+        const { createdObjects } = await activityHandler.handle(activity, db, userKEK, 'caching')
+        results = [...results, ...createdObjects]
+    }
 
-                out.push({
-                    id: obj.id,
-                    uri: obj.url,
-                    created_at: obj.published,
-                    content: obj.content,
-                    emojis: [],
-                    media_attachments: [],
-                    tags: [],
-                    mentions: [],
-                    account,
+    const out: Array<MastodonStatus> = []
 
-                    // TODO: stub values
-                    visibility: 'public',
-                    spoiler_text: '',
-                })
-            } else {
-                console.warn(`unsupported object type: ${obj.type}`)
-            }
-        } else {
-            console.warn(`unsupported activity type: ${activity.type}`)
+    if (results && results.length > 0) {
+        for (let i = 0, len = results.length; i < len; i++) {
+            const result: any = results[i]
+
+            const acct = `${actor.preferredUsername}@${instanceConfig.uri}`
+            const account = loadExternalMastodonAccount(acct, actor)
+
+            out.push({
+                id: result.id,
+                uri: objects.uri(result.id),
+                created_at: result.published,
+                content: result.content,
+                emojis: [],
+                media_attachments: [],
+                tags: [],
+                mentions: [],
+                account,
+
+                // TODO: stub values
+                visibility: 'public',
+                spoiler_text: '',
+            })
         }
     }
 
     return new Response(JSON.stringify(out), { headers })
 }
 
-async function getLocalStatus(request: Request, db: D1Database, handle: Handle): Promise<Response> {
+async function getLocalStatuses(request: Request, db: D1Database, handle: Handle): Promise<Response> {
+    const actorId = actorURL(handle.localPart)
+
     const QUERY = `
 SELECT objects.*
 FROM outbox_objects
@@ -95,8 +99,6 @@ LIMIT ?
 `
 
     const DEFAULT_LIMIT = 20
-
-    const actorId = actorURL(handle.localPart)
 
     const out: Array<MastodonStatus> = []
 

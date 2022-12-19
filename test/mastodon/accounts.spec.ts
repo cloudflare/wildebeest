@@ -154,7 +154,7 @@ describe('Mastodon APIs', () => {
                 .run()
 
             const req = new Request('https://example.com')
-            const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri)
+            const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri, userKEK)
             assert.equal(res.status, 200)
 
             const data = await res.json<Array<any>>()
@@ -187,7 +187,7 @@ describe('Mastodon APIs', () => {
             {
                 // Query statuses after object1, should only see object2.
                 const req = new Request('https://example.com?max_id=object1')
-                const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri)
+                const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri, userKEK)
                 assert.equal(res.status, 200)
 
                 const data = await res.json<Array<any>>()
@@ -199,7 +199,7 @@ describe('Mastodon APIs', () => {
             {
                 // Query statuses after object2, nothing is after.
                 const req = new Request('https://example.com?max_id=object2')
-                const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri)
+                const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri, userKEK)
                 assert.equal(res.status, 200)
 
                 const data = await res.json<Array<any>>()
@@ -210,8 +210,7 @@ describe('Mastodon APIs', () => {
         test('get remote actor statuses', async () => {
             globalThis.fetch = async (input: RequestInfo) => {
                 if (
-                    input.toString() ===
-                    'https://somesocial.com/.well-known/webfinger?resource=acct%3Asomeone%40somesocial.com'
+                    input.toString() === 'https://social.com/.well-known/webfinger?resource=acct%3Asomeone%40social.com'
                 ) {
                     return new Response(
                         JSON.stringify({
@@ -229,6 +228,9 @@ describe('Mastodon APIs', () => {
                 if (input.toString() === 'https://social.com/someone') {
                     return new Response(
                         JSON.stringify({
+                            id: 'https://social.com/someone',
+                            type: 'Person',
+                            preferredUsername: 'someone',
                             outbox: 'https://social.com/outbox',
                         })
                     )
@@ -262,33 +264,23 @@ describe('Mastodon APIs', () => {
                     )
                 }
 
-                if (input === 'https://mastodon.social/users/someone') {
-                    return new Response(
-                        JSON.stringify({
-                            id: 'sven@remote.com',
-                            type: 'Person',
-                            preferredUsername: 'sven',
-                            name: 'sven ssss',
-
-                            icon: { url: 'icon.jpg' },
-                            image: { url: 'image.jpg' },
-                        })
-                    )
-                }
-
                 throw new Error('unexpected request to ' + input)
             }
 
             const db = await makeDB()
 
             const req = new Request('https://example.com')
-            const res = await accounts_statuses.handleRequest(req, db, 'someone@somesocial.com')
+            const res = await accounts_statuses.handleRequest(req, db, 'someone@social.com', userKEK)
             assert.equal(res.status, 200)
 
             const data = await res.json<Array<any>>()
             assert.equal(data.length, 1)
             assert.equal(data[0].content, '<p>p</p>')
-            assert.equal(data[0].account.acct, 'sven@' + instanceConfig.uri)
+            assert.equal(data[0].account.username, 'someone')
+
+            // Statuses were imported locally
+            const row = await db.prepare(`SELECT count(*) as count FROM objects`).first()
+            assert.equal(row.count, 1)
         })
 
         test('get remote actor followers', async () => {

@@ -7,7 +7,6 @@ import { insertNotification } from 'wildebeest/mastodon/notification'
 import type { Object } from 'wildebeest/activitypub/objects/'
 import { parseHandle } from 'wildebeest/utils/parse'
 import { instanceConfig } from 'wildebeest/config/instance'
-import { createNote } from 'wildebeest/activitypub/objects/note'
 import type { Note } from 'wildebeest/activitypub/objects/note'
 import { acceptFollowing, addFollowing } from 'wildebeest/activitypub/actors/follow'
 import { deliver } from 'wildebeest/activitypub/deliver'
@@ -18,31 +17,55 @@ function extractID(s: string): string {
     return s.replace(`https://${instanceConfig.uri}/ap/users/`, '')
 }
 
+export type HandleResponse = {
+    createdObjects: Array<Object>
+}
+
+export type HandleMode = 'caching' | 'inbox'
+
 // FIXME: support Actor field in object or string forms. Same with Object field.
-export async function handle(activity: Activity, db: D1Database, userKEK: string) {
+export async function handle(
+    activity: Activity,
+    db: D1Database,
+    userKEK: string,
+    mode: HandleMode
+): Promise<HandleResponse> {
+    const createdObjects: Array<Object> = []
+
     console.log(activity)
     switch (activity.type) {
         // https://www.w3.org/TR/activitypub/#create-activity-inbox
         case 'Create': {
-            const recipients = [...activity.to, ...activity.cc]
-            // FIXME: check that `to` matches the id in the URL
+            let recipients: Array<string> = []
 
-            for (let i = 0, len = recipients.length; i < len; i++) {
-                const handle = parseHandle(extractID(recipients[i]))
-                if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
-                    console.warn('activity not for current instance')
-                    continue
-                }
+            if (Array.isArray(activity.to)) {
+                recipients = [...recipients, ...activity.to]
+            }
+            if (Array.isArray(activity.cc)) {
+                recipients = [...recipients, ...activity.cc]
+            }
 
-                const actorId = actorURL(handle.localPart)
-                const person = await actors.getPersonById(db, actorId)
-                if (person === null) {
-                    console.warn(`person ${recipients[i]} not found`)
-                    continue
-                }
+            const obj = await createObject(activity.object, db)
+            if (obj === null) {
+                break
+            }
+            createdObjects.push(obj)
 
-                const obj = await createObject(activity.object, db)
-                if (obj !== null) {
+            if (mode === 'inbox') {
+                for (let i = 0, len = recipients.length; i < len; i++) {
+                    const handle = parseHandle(extractID(recipients[i]))
+                    if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
+                        console.warn('activity not for current instance')
+                        continue
+                    }
+
+                    const actorId = actorURL(handle.localPart)
+                    const person = await actors.getPersonById(db, actorId)
+                    if (person === null) {
+                        console.warn(`person ${recipients[i]} not found`)
+                        continue
+                    }
+
                     await addObjectInInbox(db, person, obj)
                     const fromActor = await actors.getAndCache(new URL(activity.actor), db)
                     await insertNotification(db, 'mention', person, fromActor, obj)
@@ -88,13 +111,16 @@ export async function handle(activity: Activity, db: D1Database, userKEK: string
         default:
             console.warn(`Unsupported activity: ${activity.type}`)
     }
+
+    return { createdObjects }
 }
 
 async function createObject(obj: Object, db: D1Database): Promise<Object | null> {
     switch (obj.type) {
         case 'Note': {
-            const note = obj as Note
-            return createNote(db, note.content)
+            // FIXME: ensure that the object isn't there yet
+            // use the ID in properties
+            return objects.createObject(db, 'Note', obj)
             break
         }
 

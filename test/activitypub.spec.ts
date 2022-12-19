@@ -181,7 +181,7 @@ describe('ActivityPub', () => {
                 },
             }
 
-            await activityHandler.handle(activity, db, userKEK)
+            await activityHandler.handle(activity, db, userKEK, 'inbox')
 
             const row = await db
                 .prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
@@ -228,7 +228,7 @@ describe('ActivityPub', () => {
                 object: actor.id,
             }
 
-            await activityHandler.handle(activity, db, userKEK)
+            await activityHandler.handle(activity, db, userKEK, 'inbox')
 
             const row = await db
                 .prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)

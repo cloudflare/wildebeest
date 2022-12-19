@@ -30,7 +30,7 @@ export async function handleRequest(
         return new Response('', { status: 404 })
     }
 
-    await activityHandler.handle(activity, db, userKEK)
+    await activityHandler.handle(activity, db, userKEK, 'inbox')
 
     return new Response('', { status: 200 })
 }

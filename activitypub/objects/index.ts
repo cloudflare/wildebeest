@@ -29,10 +29,10 @@ export async function createObject(db: D1Database, type: string, properties: any
         .first()
 
     return {
+        ...properties,
         type,
         id: row.id,
         url: uri(row.id),
         published: new Date(row.cdate).toISOString(),
-        ...properties,
     }
 }
