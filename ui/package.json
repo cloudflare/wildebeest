@@ -7,7 +7,7 @@
 	"private": true,
 	"scripts": {
 		"build": "vite build && vite build -c adaptors/cloudflare-pages/vite.config.ts",
-		"dev": "vite --mode ssr"
+		"watch": "concurrently \"vite build -w\" \"vite build -w -c adaptors/cloudflare-pages/vite.config.ts\""
 	},
 	"devDependencies": {
 		"@builder.io/qwik": "0.16.1",
@@ -17,6 +17,7 @@
 		"@types/node-fetch": "latest",
 		"@typescript-eslint/eslint-plugin": "5.46.1",
 		"@typescript-eslint/parser": "5.46.1",
+		"concurrently": "^7.6.0",
 		"eslint": "8.30.0",
 		"eslint-plugin-qwik": "0.16.1",
 		"node-fetch": "3.3.0",
