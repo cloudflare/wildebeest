@@ -1,0 +1,95 @@
+// Color
+.secondary {
+	color: var(--wb-gray-5);
+}
+
+.text-slate-50 {
+	color: var(--wb-slate-50);
+}
+.text-slate-100 {
+	color: var(--wb-slate-100);
+}
+.text-slate-200 {
+	color: var(--wb-slate-200);
+}
+.text-slate-300 {
+	color: var(--wb-slate-300);
+}
+.text-slate-400 {
+	color: var(--wb-slate-400);
+}
+.text-slate-500 {
+	color: var(--wb-slate-500);
+}
+.text-slate-600 {
+	color: var(--wb-slate-600);
+}
+.text-slate-700 {
+	color: var(--wb-slate-700);
+}
+.text-slate-800 {
+	color: var(--wb-slate-800);
+}
+.text-slate-900 {
+	color: var(--wb-slate-900);
+}
+
+.text-indigo-400 {
+	color: var(--wb-indigo-400);
+}
+
+// Size
+.text-xs {
+	font-size: var(--wb-font-xsmall);
+}
+.text-sm {
+	font-size: var(--wb-font-small);
+}
+.text-md {
+	font-size: var(--wb-font-medium);
+}
+.text-lg {
+	font-size: var(--wb-font-large);
+}
+.text-xl {
+	font-size: var(--wb-font-xlarge);
+}
+
+// Weight
+
+.text-light {
+	font-weight: 300;
+}
+.text-reg {
+	font-weight: 400;
+}
+.text-semi {
+	font-weight: 500;
+}
+.text-bold {
+	font-weight: 600;
+}
+
+// Alignment
+.text-center {
+	text-align: center;
+}
+.text-left {
+	text-align: left;
+}
+.text-right {
+	text-align: right;
+}
+
+// Transform
+.text-uppercase {
+	text-transform: uppercase;
+}
+.text-capitalize {
+	text-transform: capitalize;
+}
+
+// Decoration
+.no-decoration {
+	text-decoration: none;
+}

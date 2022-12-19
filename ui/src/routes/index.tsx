@@ -21,7 +21,7 @@ export default component$(() => {
 				return (
 					<div class="bg-slate-800 rounded">
 						<h2 class="text-reg text-md m0 p4">
-							<span class="bold">#</span>Explore
+							<span class="text-bold">#</span>Explore
 						</h2>
 						{statuses.map((status) => (
 							<div class="p4 border-t border-slate-600">
