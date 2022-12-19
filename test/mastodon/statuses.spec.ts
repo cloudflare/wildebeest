@@ -118,7 +118,7 @@ describe('Mastodon APIs', () => {
                     )
                 }
 
-                if (input === 'https://social.com/sven') {
+                if (input.toString() === 'https://social.com/sven') {
                     return new Response(
                         JSON.stringify({
                             inbox: 'https://social.com/sven/inbox',

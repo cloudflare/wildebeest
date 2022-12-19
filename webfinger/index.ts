@@ -13,6 +13,14 @@ const headers = {
 }
 
 export async function queryAcct(domain: string, acct: string): Promise<Actor | null> {
+    const url = await queryAcctLink(domain, acct)
+    if (url === null) {
+        return null
+    }
+    return actors.get(url)
+}
+
+export async function queryAcctLink(domain: string, acct: string): Promise<URL | null> {
     const params = new URLSearchParams({ resource: `acct:${acct}` })
     let res
     try {
@@ -31,7 +39,7 @@ export async function queryAcct(domain: string, acct: string): Promise<Actor | n
     for (let i = 0, len = data.links.length; i < len; i++) {
         const link = data.links[i]
         if (link.rel === 'self' && link.type === 'application/activity+json') {
-            return actors.get(link.href)
+            return new URL(link.href)
         }
     }
 

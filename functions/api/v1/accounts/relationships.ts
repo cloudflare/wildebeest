@@ -1,14 +1,17 @@
 // https://docs.joinmastodon.org/methods/accounts/#relationships
 
 import type { PluginData } from '@cloudflare/pages-plugin-cloudflare-access'
+import type { Person } from 'wildebeest/activitypub/actors'
 import type { Env } from 'wildebeest/types/env'
+import type { ContextData } from 'wildebeest/types/context'
 import type { MastodonAccount } from 'wildebeest/types/account'
+import { getFollowing } from 'wildebeest/activitypub/actors/follow'
 
-export const onRequest: PagesFunction<Env, any> = async ({ request }) => {
-    return handleRequest(request)
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
+    return handleRequest(request, env.DATABASE, data.connectedActor)
 }
 
-export function handleRequest(req: Request): Response {
+export async function handleRequest(req: Request, db: D1Database, connectedActor: Person): Promise<Response> {
     const url = new URL(req.url)
 
     let ids = []
@@ -25,11 +28,17 @@ export function handleRequest(req: Request): Response {
     }
 
     const res = []
+    const following = await getFollowing(db, connectedActor)
 
     for (let i = 0, len = ids.length; i < len; i++) {
+        const id = ids[i]
+        if (!id) {
+            break
+        }
+
         res.push({
-            id: ids[i],
-            following: false,
+            id,
+            following: following.includes(id),
             showing_reblogs: false,
             notifying: false,
             followed_by: false,

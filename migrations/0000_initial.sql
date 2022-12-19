@@ -15,22 +15,14 @@ CREATE TABLE IF NOT EXISTS actors (
 
 CREATE TABLE IF NOT EXISTS actor_following (
   id TEXT PRIMARY KEY,
-  object_id TEXT NOT NULL,
   actor_id TEXT NOT NULL,
+  target_actor_id TEXT NOT NULL,
+  target_actor_acct TEXT NOT NULL,
+  state TEXT NOT NULL DEFAULT 'pending',
   cdate DATETIME NOT NULL DEFAULT (datetime()),
 
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
-  FOREIGN KEY(object_id) REFERENCES objects(id)
-);
-
-CREATE TABLE IF NOT EXISTS actor_followers (
-  id TEXT PRIMARY KEY,
-  object_id TEXT NOT NULL,
-  actor_id TEXT NOT NULL,
-  cdate DATETIME NOT NULL DEFAULT (datetime()),
-
-  FOREIGN KEY(actor_id)  REFERENCES actors(id),
-  FOREIGN KEY(object_id) REFERENCES objects(id)
+  FOREIGN KEY(target_actor_id)  REFERENCES actors(id)
 );
 
 CREATE TABLE IF NOT EXISTS objects (

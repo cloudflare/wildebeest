@@ -8,6 +8,7 @@ import { parseHandle } from 'wildebeest/utils/parse'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { createNote } from 'wildebeest/activitypub/objects/note'
 import type { Note } from 'wildebeest/activitypub/objects/note'
+import { acceptFollowing } from 'wildebeest/activitypub/actors/follow'
 
 export type Activity = any
 
@@ -43,6 +44,19 @@ export async function handle(activity: Activity, db: D1Database) {
                     const fromActor = await actors.getAndCache(new URL(activity.actor), db)
                     await insertNotification(db, 'mention', person, fromActor, obj)
                 }
+            }
+
+            break
+        }
+
+        // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
+        case 'Accept': {
+            const actor = await actors.getPersonById(db, activity.object.actor)
+            if (actor !== null) {
+                const follower = await actors.getAndCache(new URL(activity.actor), db)
+                await acceptFollowing(db, actor, follower)
+            } else {
+                console.warn(`actor ${activity.object.actor} not found`)
             }
 
             break

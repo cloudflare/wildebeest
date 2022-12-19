@@ -1,5 +1,7 @@
 import { makeDB, assertCache, isUrlValid } from './utils'
+import { addFollowing } from 'wildebeest/activitypub/actors/follow'
 import { createPerson } from 'wildebeest/activitypub/actors'
+import * as activities from 'wildebeest/activitypub/activities'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { strict as assert } from 'node:assert/strict'
 
@@ -140,5 +142,56 @@ describe('ActivityPub', () => {
         assert(isUrlValid(data.following))
         assert(isUrlValid(data.followers))
         assert.equal(data.publicKey.publicKeyPem, pubKey)
+    })
+
+    describe('Accept', () => {
+        beforeEach(() => {
+            globalThis.fetch = async (input: RequestInfo) => {
+                if (input.toString() === 'https://example.com/user/foo') {
+                    return new Response(
+                        JSON.stringify({
+                            id: 'https://example.com/users/foo',
+                            type: 'Person',
+                        })
+                    )
+                }
+
+                throw new Error('unexpected request to ' + input)
+            }
+        })
+
+        test('Accept follow request stores in db', async () => {
+            const db = await makeDB()
+            const actor: any = {
+                id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+            }
+            const actor2: any = {
+                id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+            }
+            await addFollowing(db, actor, actor2, 'not needed')
+
+            const activity = {
+                '@context': 'https://www.w3.org/ns/activitystreams',
+                id: `https://${instanceConfig.uri}/ap/users/sven2#accepts/follows/`,
+                type: 'Accept',
+                actor: `https://${instanceConfig.uri}/ap/users/sven2`,
+                object: {
+                    id: 'https://localhost/users/sven#follows/',
+                    type: 'Follow',
+                    actor: actor.id,
+                    object: `https://${instanceConfig.uri}/ap/users/sven2`,
+                },
+            }
+
+            await activities.handle(activity, db)
+
+            const row = await db
+                .prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
+                .bind(actor.id)
+                .first()
+            assert(row)
+            assert.equal(row.target_actor_id, 'https://social.eng.chat/ap/users/sven2')
+            assert.equal(row.state, 'accepted')
+        })
     })
 })

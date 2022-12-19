@@ -1,6 +1,5 @@
 // https://docs.joinmastodon.org/entities/Account/
 // https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Account.java
-
 export type MastodonAccount = {
     id: string
     username: string
@@ -28,4 +27,10 @@ export type MastodonAccount = {
 
     emojis?: Array<any>
     fields?: Array<any>
+}
+
+// https://docs.joinmastodon.org/entities/Relationship/
+// https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Relationship.java
+export type Relationship = {
+    id: string
 }

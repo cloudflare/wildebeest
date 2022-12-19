@@ -176,7 +176,7 @@ describe('Mastodon APIs', () => {
                     )
                 }
 
-                if (input === 'https://social.com/sven') {
+                if (input.toString() === 'https://social.com/sven') {
                     return new Response(
                         JSON.stringify({
                             id: 'sven@remote.com',
@@ -190,7 +190,7 @@ describe('Mastodon APIs', () => {
                     )
                 }
 
-                if (input === 'https://social.com/default-avatar-and-header') {
+                if (input.toString() === 'https://social.com/default-avatar-and-header') {
                     return new Response(
                         JSON.stringify({
                             id: '1234',

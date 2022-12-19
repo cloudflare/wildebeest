@@ -4,12 +4,15 @@ import * as accounts_featured_tags from '../../functions/api/v1/accounts/[id]/fe
 import * as accounts_lists from '../../functions/api/v1/accounts/[id]/lists'
 import * as accounts_relationships from '../../functions/api/v1/accounts/relationships'
 import * as accounts_followers from '../../functions/api/v1/accounts/[id]/followers'
+import * as accounts_follow from '../../functions/api/v1/accounts/[id]/follow'
+import * as accounts_unfollow from '../../functions/api/v1/accounts/[id]/unfollow'
 import { instanceConfig } from 'wildebeest/config/instance'
 import * as accounts_statuses from '../../functions/api/v1/accounts/[id]/statuses'
 import * as accounts_get from '../../functions/api/v1/accounts/[id]'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
 import * as accounts_verify_creds from '../../functions/api/v1/accounts/verify_credentials'
 import { createPerson } from 'wildebeest/activitypub/actors'
+import { addFollowing, acceptFollowing } from 'wildebeest/activitypub/actors/follow'
 
 const userKEK = 'test_kek2'
 
@@ -31,7 +34,7 @@ describe('Mastodon APIs', () => {
                     )
                 }
 
-                if (input === 'https://social.com/sven') {
+                if (input.toString() === 'https://social.com/sven') {
                     return new Response(
                         JSON.stringify({
                             id: 'sven@remote.com',
@@ -272,38 +275,194 @@ describe('Mastodon APIs', () => {
             assert.equal(res.status, 404)
         })
 
-        test('relationships missing ids', async () => {
-            const req = new Request('https://mastodon.example/api/v1/accounts/relationships')
-            const res = await accounts_relationships.handleRequest(req)
-            assert.equal(res.status, 400)
+        describe('relationships', () => {
+            test('relationships missing ids', async () => {
+                const db = await makeDB()
+                const connectedActor: any = { id: 'someid' }
+                const req = new Request('https://mastodon.example/api/v1/accounts/relationships')
+                const res = await accounts_relationships.handleRequest(req, db, connectedActor)
+                assert.equal(res.status, 400)
+            })
+
+            test('relationships with ids', async () => {
+                const db = await makeDB()
+                const req = new Request('https://mastodon.example/api/v1/accounts/relationships?id[]=first&id[]=second')
+                const connectedActor: any = { id: 'someid' }
+                const res = await accounts_relationships.handleRequest(req, db, connectedActor)
+                assert.equal(res.status, 200)
+                assertCORS(res)
+                assertJSON(res)
+
+                const data = await res.json<Array<any>>()
+                assert.equal(data.length, 2)
+                assert.equal(data[0].id, 'first')
+                assert.equal(data[0].following, false)
+                assert.equal(data[1].id, 'second')
+                assert.equal(data[1].following, false)
+            })
+
+            test('relationships with one id', async () => {
+                const db = await makeDB()
+                const req = new Request('https://mastodon.example/api/v1/accounts/relationships?id[]=first')
+                const connectedActor: any = { id: 'someid' }
+                const res = await accounts_relationships.handleRequest(req, db, connectedActor)
+                assert.equal(res.status, 200)
+                assertCORS(res)
+                assertJSON(res)
+
+                const data = await res.json<Array<any>>()
+                assert.equal(data.length, 1)
+                assert.equal(data[0].id, 'first')
+                assert.equal(data[0].following, false)
+            })
+
+            test('relationships following', async () => {
+                const db = await makeDB()
+                const actor: any = {
+                    id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+                }
+                const actor2: any = {
+                    id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+                }
+                await addFollowing(db, actor, actor2, 'sven2@' + instanceConfig.uri)
+                await acceptFollowing(db, actor, actor2)
+
+                const req = new Request(
+                    'https://mastodon.example/api/v1/accounts/relationships?id[]=sven2@' + instanceConfig.uri
+                )
+                const res = await accounts_relationships.handleRequest(req, db, actor)
+                assert.equal(res.status, 200)
+
+                const data = await res.json<Array<any>>()
+                assert.equal(data.length, 1)
+                assert.equal(data[0].following, true)
+            })
         })
 
-        test('relationships with ids', async () => {
-            const req = new Request('https://mastodon.example/api/v1/accounts/relationships?id[]=first&id[]=second')
-            const res = await accounts_relationships.handleRequest(req)
-            assert.equal(res.status, 200)
-            assertCORS(res)
-            assertJSON(res)
+        test('follow local account', async () => {
+            const db = await makeDB()
 
-            const data = await res.json<Array<any>>()
-            assert.equal(data.length, 2)
-            assert.equal(data[0].id, 'first')
-            assert.equal(data[0].following, false)
-            assert.equal(data[1].id, 'second')
-            assert.equal(data[1].following, false)
+            const connectedActor: any = {
+                id: 'connectedActor',
+            }
+
+            const req = new Request('https://example.com', { method: 'POST' })
+            const res = await accounts_follow.handleRequest(req, db, 'localuser', connectedActor, userKEK)
+            assert.equal(res.status, 403)
         })
 
-        test('relationships with one id', async () => {
-            const req = new Request('https://mastodon.example/api/v1/accounts/relationships?id[]=first')
-            const res = await accounts_relationships.handleRequest(req)
-            assert.equal(res.status, 200)
-            assertCORS(res)
-            assertJSON(res)
+        describe('follow', () => {
+            let receivedActivity: any = null
 
-            const data = await res.json<Array<any>>()
-            assert.equal(data.length, 1)
-            assert.equal(data[0].id, 'first')
-            assert.equal(data[0].following, false)
+            beforeEach(() => {
+                receivedActivity = null
+
+                globalThis.fetch = async (input: any, opts: any) => {
+                    if (
+                        input.toString() ===
+                        'https://social.eng.chat/.well-known/webfinger?resource=acct%3Aactor%40social.eng.chat'
+                    ) {
+                        return new Response(
+                            JSON.stringify({
+                                links: [
+                                    {
+                                        rel: 'self',
+                                        type: 'application/activity+json',
+                                        href: 'https://social.com/sven',
+                                    },
+                                ],
+                            })
+                        )
+                    }
+
+                    if (input.toString() === 'https://social.com/sven') {
+                        return new Response(
+                            JSON.stringify({
+                                id: `https://${instanceConfig.uri}/ap/users/actor`,
+                                type: 'Person',
+                                inbox: 'https://example.com/inbox',
+                            })
+                        )
+                    }
+
+                    if (input.url === 'https://example.com/inbox') {
+                        assert.equal(input.method, 'POST')
+                        receivedActivity = await input.json()
+                        return new Response('')
+                    }
+
+                    throw new Error('unexpected request to ' + input)
+                }
+            })
+
+            test('follow account', async () => {
+                const db = await makeDB()
+                const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+
+                const connectedActor: any = {
+                    id: actorId,
+                }
+
+                const req = new Request('https://example.com', { method: 'POST' })
+                const res = await accounts_follow.handleRequest(
+                    req,
+                    db,
+                    'actor@' + instanceConfig.uri,
+                    connectedActor,
+                    userKEK
+                )
+                assert.equal(res.status, 200)
+                assertCORS(res)
+                assertJSON(res)
+
+                assert(receivedActivity)
+                assert.equal(receivedActivity.type, 'Follow')
+
+                const row = await db
+                    .prepare(`SELECT target_actor_acct, target_actor_id, state FROM actor_following WHERE actor_id=?`)
+                    .bind(actorId)
+                    .first()
+                assert(row)
+                assert.equal(row.target_actor_acct, 'actor@' + instanceConfig.uri)
+                assert.equal(row.target_actor_id, `https://${instanceConfig.uri}/ap/users/actor`)
+                assert.equal(row.state, 'pending')
+            })
+
+            test('unfollow account', async () => {
+                const db = await makeDB()
+                const actor: any = {
+                    id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+                }
+                const follower: any = {
+                    id: await createPerson(db, userKEK, 'actor@cloudflare.com'),
+                }
+                await addFollowing(db, actor, follower, 'not needed')
+
+                const connectedActor: any = actor
+
+                const req = new Request('https://example.com', { method: 'POST' })
+                const res = await accounts_unfollow.handleRequest(
+                    req,
+                    db,
+                    'actor@' + instanceConfig.uri,
+                    connectedActor,
+                    userKEK
+                )
+                assert.equal(res.status, 200)
+                assertCORS(res)
+                assertJSON(res)
+
+                assert(receivedActivity)
+                assert.equal(receivedActivity.type, 'Undo')
+                assert.equal(receivedActivity.object.type, 'Follow')
+
+                const row = await db
+                    .prepare(`SELECT count(*) as count FROM actor_following WHERE actor_id=?`)
+                    .bind(actor.id)
+                    .first()
+                assert(row)
+                assert.equal(row.count, 0)
+            })
         })
     })
 })

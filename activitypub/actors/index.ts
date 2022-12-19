@@ -61,6 +61,10 @@ export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
     }
 
     const actor = await get(url)
+    if (!actor.type || !actor.id) {
+        throw new Error('missing fields on Actor')
+    }
+
     const properties = actor
 
     const sql = `
