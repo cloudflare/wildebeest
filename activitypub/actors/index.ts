@@ -156,11 +156,13 @@ function personFromRow(row: any): Person {
     }
 
     return {
+        // Default values, likely being overrided by the properties.
+        name: row.preferredUsername,
+
         ...JSON.parse(row.properties),
 
         type: PERSON,
         id: row.id,
-        name: row.id,
         published: new Date(row.cdate).toISOString(),
         discoverable: true,
         inbox: inboxURL(row.id),
