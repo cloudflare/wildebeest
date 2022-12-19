@@ -1,0 +1,15 @@
+.container {
+  height: 100%;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.side-column {
+  width: 285px;
+  margin: 0 10px;
+}
+
+.main-content {
+  max-width: 600px;
+}

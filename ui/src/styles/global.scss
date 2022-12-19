@@ -1,0 +1,15 @@
+body {
+  background-color: var(--wb-base-background-color);
+  color: var(--wb-base-font-color);
+  font-family: ui-sans-serif, sans-serif, ui-sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+* {
+  // border defaults
+  border: 0 solid var(--wb-slate-100);
+}

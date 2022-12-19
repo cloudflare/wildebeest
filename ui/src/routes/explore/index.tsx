@@ -1,7 +1,7 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik'
 import { DocumentHead, RequestHandler } from '@builder.io/qwik-city'
 import { Status } from '~/types'
-import { statuses } from '../dummyData'
+import { statuses } from '../../dummyData'
 
 export const onGet: RequestHandler<{}> = async () => {
   return statuses
@@ -36,11 +36,5 @@ export default component$(() => {
 })
 
 export const head: DocumentHead = {
-  title: 'Wildebeest (Mastodon on Cloudflare)',
-  meta: [
-    {
-      name: 'description',
-      content: 'A frontend for a mastodon server deployed on Cloudflare.',
-    },
-  ],
+  title: 'Mastodon',
 }
