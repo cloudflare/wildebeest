@@ -1,6 +1,7 @@
 import { strict as assert } from 'node:assert/strict'
 
 import { parseHandle } from '../utils/parse'
+import { urlToHandle } from '../utils/handle'
 
 import { generateUserKey, unwrapPrivateKey, importPublicKey } from 'wildebeest/utils/key-ops'
 import { signRequest } from 'wildebeest/utils/http-signing'
@@ -56,5 +57,12 @@ describe('utils', () => {
         res = parseHandle('a%40masto.ai')
         assert.equal(res.localPart, 'a')
         assert.equal(res.domain, 'masto.ai')
+    })
+
+    test('URL to handle', async () => {
+        let res
+
+        res = urlToHandle(new URL('https://host.org/users/foobar'))
+        assert.equal(res, 'foobar@host.org')
     })
 })

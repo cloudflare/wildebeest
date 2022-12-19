@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/notifications/#get
 
+import { urlToHandle } from 'wildebeest/utils/handle'
 import type { Env } from 'wildebeest/types/env'
 import * as objects from 'wildebeest/activitypub/objects/'
 import type { Person } from 'wildebeest/activitypub/actors'
@@ -47,15 +48,16 @@ export async function handleRequest(db: D1Database, connectedActor: Person): Pro
     for (let i = 0, len = results.length; i < len; i++) {
         const result = results[i] as any
         const properties = JSON.parse(result.properties)
+        const from_actor_id = new URL(result.from_actor_id)
 
-        const fromActor = await getPersonById(db, result.from_actor_id)
+        const fromActor = await getPersonById(db, from_actor_id)
         if (!fromActor) {
             console.warn('unknown actor')
             continue
         }
 
-        const acct2 = `todo@example.com` // FIXME: how to deal with remote acct?
-        const fromAccount = loadExternalMastodonAccount(acct2, fromActor)
+        const acct = urlToHandle(from_actor_id)
+        const fromAccount = loadExternalMastodonAccount(acct, fromActor)
 
         const status: MastodonStatus = {
             id: result.id,

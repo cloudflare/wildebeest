@@ -1,6 +1,7 @@
 // https://docs.joinmastodon.org/methods/accounts/#followers
 
 import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
+import { urlToHandle } from 'wildebeest/utils/handle'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { parseHandle } from 'wildebeest/utils/parse'
 import * as actors from 'wildebeest/activitypub/actors/'
@@ -27,7 +28,7 @@ export async function handleRequest(db: D1Database, id: string, connectedActor: 
     for (let i = 0, len = followers.length; i < len; i++) {
         const id = new URL(followers[i])
 
-        const acct = 'todo@example.com' // FIXME: how to construct acct
+        const acct = urlToHandle(id)
         const actor = await actors.get(id)
         out.push(loadExternalMastodonAccount(acct, actor))
     }

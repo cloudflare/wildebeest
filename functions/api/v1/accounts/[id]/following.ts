@@ -3,6 +3,7 @@
 import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { parseHandle } from 'wildebeest/utils/parse'
+import { urlToHandle } from 'wildebeest/utils/handle'
 import * as actors from 'wildebeest/activitypub/actors/'
 import { MastodonAccount } from 'wildebeest/types/account'
 import type { Person } from 'wildebeest/activitypub/actors'
@@ -27,7 +28,7 @@ export async function handleRequest(db: D1Database, id: string, connectedActor: 
     for (let i = 0, len = following.length; i < len; i++) {
         const id = new URL(following[i])
 
-        const acct = 'todo@example.com' // FIXME: how to construct acct
+        const acct = urlToHandle(id)
         const actor = await actors.get(id)
         out.push(loadExternalMastodonAccount(acct, actor))
     }
