@@ -4,16 +4,16 @@ import type { Env } from 'wildebeest/types/env'
 import type { ContextData } from 'wildebeest/types/context'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data }) => {
-    if (!data.connectedUser) {
-        return new Response('', { status: 401 })
-    }
+	if (!data.connectedUser) {
+		return new Response('', { status: 401 })
+	}
 
-    const res = data.connectedUser
+	const res = data.connectedUser
 
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'content-type, authorization',
-        'content-type': 'application/json; charset=utf-8',
-    }
-    return new Response(JSON.stringify(res), { headers })
+	const headers = {
+		'Access-Control-Allow-Origin': '*',
+		'Access-Control-Allow-Headers': 'content-type, authorization',
+		'content-type': 'application/json; charset=utf-8',
+	}
+	return new Response(JSON.stringify(res), { headers })
 }

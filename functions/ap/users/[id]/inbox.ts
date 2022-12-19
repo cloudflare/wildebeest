@@ -8,29 +8,29 @@ import * as activities from 'wildebeest/activitypub/activities/'
 import { actorURL } from 'wildebeest/activitypub/actors/'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
-    const activity = await request.json<Activity>()
-    return handleRequest(env.DATABASE, params.id as string, activity, env.userKEK)
+	const activity = await request.json<Activity>()
+	return handleRequest(env.DATABASE, params.id as string, activity, env.userKEK)
 }
 
 export async function handleRequest(
-    db: D1Database,
-    id: string,
-    activity: Activity,
-    userKEK: string
+	db: D1Database,
+	id: string,
+	activity: Activity,
+	userKEK: string
 ): Promise<Response> {
-    const handle = parseHandle(id)
+	const handle = parseHandle(id)
 
-    if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
-        return new Response('', { status: 403 })
-    }
+	if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
+		return new Response('', { status: 403 })
+	}
 
-    const actorId = actorURL(handle.localPart)
-    const person = await actors.getPersonById(db, actorId)
-    if (person === null) {
-        return new Response('', { status: 404 })
-    }
+	const actorId = actorURL(handle.localPart)
+	const person = await actors.getPersonById(db, actorId)
+	if (person === null) {
+		return new Response('', { status: 404 })
+	}
 
-    await activityHandler.handle(activity, db, userKEK, 'inbox')
+	await activityHandler.handle(activity, db, userKEK, 'inbox')
 
-    return new Response('', { status: 200 })
+	return new Response('', { status: 200 })
 }

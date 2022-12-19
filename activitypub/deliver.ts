@@ -7,27 +7,27 @@ import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
 import { signRequest } from 'wildebeest/utils/http-signing'
 
 const headers = {
-    accept: 'application/ld+json',
+	accept: 'application/ld+json',
 }
 
 export async function deliver(signingKey: CryptoKey, from: Actor, to: Actor, activity: Activity) {
-    const body = JSON.stringify(activity)
-    let req = new Request(to.inbox, {
-        method: 'POST',
-        body: body,
-        headers,
-    })
-    const digest = await generateDigestHeader(body)
-    req.headers.set('Digest', digest)
-    await signRequest(req, signingKey, new URL(from.id))
+	const body = JSON.stringify(activity)
+	let req = new Request(to.inbox, {
+		method: 'POST',
+		body: body,
+		headers,
+	})
+	const digest = await generateDigestHeader(body)
+	req.headers.set('Digest', digest)
+	await signRequest(req, signingKey, new URL(from.id))
 
-    const res = await fetch(req)
-    if (!res.ok) {
-        const body = await res.text()
-        throw new Error(`delivery to ${to.inbox} returned ${res.status}: ${body}`)
-    }
-    {
-        const body = await res.text()
-        console.log(`${to.inbox} returned 200: ${body}`)
-    }
+	const res = await fetch(req)
+	if (!res.ok) {
+		const body = await res.text()
+		throw new Error(`delivery to ${to.inbox} returned ${res.status}: ${body}`)
+	}
+	{
+		const body = await res.text()
+		console.log(`${to.inbox} returned 200: ${body}`)
+	}
 }

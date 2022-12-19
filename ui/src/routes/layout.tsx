@@ -4,19 +4,19 @@ import { LeftColumn } from './LeftColumn/LeftColumn'
 import { RightColumn } from './RightColumn/RightColumn'
 
 export default component$(() => {
-  useStylesScoped$(styles)
+	useStylesScoped$(styles)
 
-  return (
-    <main class="container">
-      <div class="side-column">
-        <LeftColumn />
-      </div>
-      <section class="main-content">
-        <Slot />
-      </section>
-      <div class="side-column">
-        <RightColumn />
-      </div>
-    </main>
-  )
+	return (
+		<main class="container">
+			<div class="side-column">
+				<LeftColumn />
+			</div>
+			<section class="main-content">
+				<Slot />
+			</section>
+			<div class="side-column">
+				<RightColumn />
+			</div>
+		</main>
+	)
 })

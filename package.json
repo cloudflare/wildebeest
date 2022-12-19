@@ -1,26 +1,26 @@
 {
-  "name": "wildebeest",
-  "version": "0.0.0",
-  "type": "module",
-  "author": "Sven Sauleau <sven@cloudflare.com>",
-  "devDependencies": {
-    "@cloudflare/pages-plugin-cloudflare-access": "^1.0.2",
-    "@cloudflare/workers-types": "^4.20221111.1",
-    "@types/jest": "^29.2.4",
-    "@types/node": "^18.11.11",
-    "@typescript-eslint/eslint-plugin": "^5.46.1",
-    "@typescript-eslint/parser": "^5.46.1",
-    "better-sqlite3": "8",
-    "eslint": "^8.29.0",
-    "jest": "^29.3.1",
-    "jest-environment-miniflare": "^2.11.0",
-    "prettier": "^2.8.1",
-    "ts-jest": "^29.0.3",
-    "typescript": "^4.9.4",
-    "wrangler": "^2.6.2"
-  },
-  "private": true,
-  "scripts": {
+	"name": "wildebeest",
+	"version": "0.0.0",
+	"type": "module",
+	"author": "Sven Sauleau <sven@cloudflare.com>",
+	"devDependencies": {
+		"@cloudflare/pages-plugin-cloudflare-access": "^1.0.2",
+		"@cloudflare/workers-types": "^4.20221111.1",
+		"@types/jest": "^29.2.4",
+		"@types/node": "^18.11.11",
+		"@typescript-eslint/eslint-plugin": "^5.46.1",
+		"@typescript-eslint/parser": "^5.46.1",
+		"better-sqlite3": "8",
+		"eslint": "^8.29.0",
+		"jest": "^29.3.1",
+		"jest-environment-miniflare": "^2.11.0",
+		"prettier": "^2.8.1",
+		"ts-jest": "^29.0.3",
+		"typescript": "^4.9.4",
+		"wrangler": "^2.6.2"
+	},
+	"private": true,
+	"scripts": {
     "pretty": "npx prettier --list-different './**/*.ts'",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --test-timeout=15000",
     "lint": "npx eslint .",
@@ -28,8 +28,8 @@
     "database:migrate": "wrangler d1 migrations apply DATABASE",
     "dev": "yarn build && yarn database:migrate --local && yarn wrangler pages dev ui/dist --d1 DATABASE --persist",
     "deploy": "yarn build && yarn database:migrate && yarn wrangler pages publish ui/dist"
-  },
-  "dependencies": {
-    "http-message-signatures": "^0.1.2"
-  }
+	},
+	"dependencies": {
+		"http-message-signatures": "^0.1.2"
+	}
 }

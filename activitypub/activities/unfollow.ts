@@ -6,10 +6,10 @@ import * as follow from './follow'
 const UNDO = 'Undo'
 
 export function create(actor: Actor, object: Object): Activity {
-    return {
-        '@context': 'https://www.w3.org/ns/activitystreams',
-        type: UNDO,
-        actor: actor.id,
-        object: follow.create(actor, object),
-    }
+	return {
+		'@context': 'https://www.w3.org/ns/activitystreams',
+		type: UNDO,
+		actor: actor.id,
+		object: follow.create(actor, object),
+	}
 }

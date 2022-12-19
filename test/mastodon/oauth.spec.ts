@@ -9,132 +9,132 @@ import { strict as assert } from 'node:assert/strict'
 const userKEK = 'test_kek3'
 
 describe('Mastodon APIs', () => {
-    describe('oauth', () => {
-        beforeEach(() => {
-            globalThis.fetch = async (input: RequestInfo) => {
-                if (input === accessConfig.domain + '/cdn-cgi/access/certs') {
-                    return new Response(JSON.stringify(ACCESS_CERTS))
-                }
+	describe('oauth', () => {
+		beforeEach(() => {
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input === accessConfig.domain + '/cdn-cgi/access/certs') {
+					return new Response(JSON.stringify(ACCESS_CERTS))
+				}
 
-                if (input === accessConfig.domain + '/cdn-cgi/access/get-identity') {
-                    return new Response(
-                        JSON.stringify({
-                            email: 'some@cloudflare.com',
-                        })
-                    )
-                }
+				if (input === accessConfig.domain + '/cdn-cgi/access/get-identity') {
+					return new Response(
+						JSON.stringify({
+							email: 'some@cloudflare.com',
+						})
+					)
+				}
 
-                throw new Error('unexpected request to ' + input)
-            }
-        })
+				throw new Error('unexpected request to ' + input)
+			}
+		})
 
-        test('authorize missing params', async () => {
-            const db = await makeDB()
+		test('authorize missing params', async () => {
+			const db = await makeDB()
 
-            let req = new Request('https://example.com/oauth/authorize')
-            let res = await oauth_authorize.handleRequest(req, db, userKEK)
-            assert.equal(res.status, 400)
+			let req = new Request('https://example.com/oauth/authorize')
+			let res = await oauth_authorize.handleRequest(req, db, userKEK)
+			assert.equal(res.status, 400)
 
-            req = new Request('https://example.com/oauth/authorize?scope=foobar')
-            res = await oauth_authorize.handleRequest(req, db, userKEK)
-            assert.equal(res.status, 400)
-        })
+			req = new Request('https://example.com/oauth/authorize?scope=foobar')
+			res = await oauth_authorize.handleRequest(req, db, userKEK)
+			assert.equal(res.status, 400)
+		})
 
-        test('authorize unsupported response_type', async () => {
-            const db = await makeDB()
+		test('authorize unsupported response_type', async () => {
+			const db = await makeDB()
 
-            const params = new URLSearchParams({
-                redirect_uri: 'https://example.com',
-                response_type: 'hein',
-                client_id: 'client_id',
-            })
+			const params = new URLSearchParams({
+				redirect_uri: 'https://example.com',
+				response_type: 'hein',
+				client_id: 'client_id',
+			})
 
-            const req = new Request('https://example.com/oauth/authorize?' + params)
-            const res = await oauth_authorize.handleRequest(req, db, userKEK)
-            assert.equal(res.status, 400)
-        })
+			const req = new Request('https://example.com/oauth/authorize?' + params)
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
+			assert.equal(res.status, 400)
+		})
 
-        test('authorize redirects with code on success and creates user', async () => {
-            const db = await makeDB()
+		test('authorize redirects with code on success and creates user', async () => {
+			const db = await makeDB()
 
-            const params = new URLSearchParams({
-                redirect_uri: 'https://example.com',
-                response_type: 'code',
-                client_id: 'client_id',
-            })
+			const params = new URLSearchParams({
+				redirect_uri: 'https://example.com',
+				response_type: 'code',
+				client_id: 'client_id',
+			})
 
-            const headers = {
-                'Cf-Access-Jwt-Assertion': TEST_JWT,
-            }
+			const headers = {
+				'Cf-Access-Jwt-Assertion': TEST_JWT,
+			}
 
-            const req = new Request('https://example.com/oauth/authorize?' + params, {
-                headers,
-            })
-            const res = await oauth_authorize.handleRequest(req, db, userKEK)
-            assert.equal(res.status, 302)
+			const req = new Request('https://example.com/oauth/authorize?' + params, {
+				headers,
+			})
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
+			assert.equal(res.status, 302)
 
-            const location = res.headers.get('location')
-            assert.equal(location, 'https://example.com/?code=' + TEST_JWT)
+			const location = res.headers.get('location')
+			assert.equal(location, 'https://example.com/?code=' + TEST_JWT)
 
-            const actor = await db.prepare('SELECT * FROM actors').first()
-            assert.equal(actor.email, 'some@cloudflare.com')
-            assert(isUrlValid(actor.id))
-            // ensure that we generate a correct key pairs for the user
-            assert((await getSigningKey(userKEK, db, actor)) instanceof CryptoKey)
-        })
+			const actor = await db.prepare('SELECT * FROM actors').first()
+			assert.equal(actor.email, 'some@cloudflare.com')
+			assert(isUrlValid(actor.id))
+			// ensure that we generate a correct key pairs for the user
+			assert((await getSigningKey(userKEK, db, actor)) instanceof CryptoKey)
+		})
 
-        test('authorize with redirect_uri urn:ietf:wg:oauth:2.0:oob', async () => {
-            const db = await makeDB()
+		test('authorize with redirect_uri urn:ietf:wg:oauth:2.0:oob', async () => {
+			const db = await makeDB()
 
-            const params = new URLSearchParams({
-                redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
-                response_type: 'code',
-                client_id: 'client_id',
-            })
+			const params = new URLSearchParams({
+				redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+				response_type: 'code',
+				client_id: 'client_id',
+			})
 
-            const headers = {
-                'Cf-Access-Jwt-Assertion': TEST_JWT,
-            }
+			const headers = {
+				'Cf-Access-Jwt-Assertion': TEST_JWT,
+			}
 
-            const req = new Request('https://example.com/oauth/authorize?' + params, {
-                headers,
-            })
-            const res = await oauth_authorize.handleRequest(req, db, userKEK)
-            assert.equal(res.status, 200)
+			const req = new Request('https://example.com/oauth/authorize?' + params, {
+				headers,
+			})
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
+			assert.equal(res.status, 200)
 
-            assert.equal(await res.text(), TEST_JWT)
-        })
+			assert.equal(await res.text(), TEST_JWT)
+		})
 
-        test('token returns auth infos', async () => {
-            const body = {
-                code: 'some-code',
-            }
+		test('token returns auth infos', async () => {
+			const body = {
+				code: 'some-code',
+			}
 
-            const req = new Request('https://example.com/oauth/token', {
-                method: 'POST',
-                body: JSON.stringify(body),
-            })
-            const res = await oauth_token.handleRequest(req)
-            assert.equal(res.status, 200)
-            assertCORS(res)
-            assertJSON(res)
+			const req = new Request('https://example.com/oauth/token', {
+				method: 'POST',
+				body: JSON.stringify(body),
+			})
+			const res = await oauth_token.handleRequest(req)
+			assert.equal(res.status, 200)
+			assertCORS(res)
+			assertJSON(res)
 
-            const data = await res.json<any>()
-            assert.equal(data.access_token, 'some-code')
-            assert.equal(data.scope, 'read write follow push')
-        })
+			const data = await res.json<any>()
+			assert.equal(data.access_token, 'some-code')
+			assert.equal(data.scope, 'read write follow push')
+		})
 
-        test('token handles empty code', async () => {
-            const body = {
-                code: '',
-            }
+		test('token handles empty code', async () => {
+			const body = {
+				code: '',
+			}
 
-            const req = new Request('https://example.com/oauth/token', {
-                method: 'POST',
-                body: JSON.stringify(body),
-            })
-            const res = await oauth_token.handleRequest(req)
-            assert.equal(res.status, 401)
-        })
-    })
+			const req = new Request('https://example.com/oauth/token', {
+				method: 'POST',
+				body: JSON.stringify(body),
+			})
+			const res = await oauth_token.handleRequest(req)
+			assert.equal(res.status, 401)
+		})
+	})
 })

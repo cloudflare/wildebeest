@@ -3,12 +3,12 @@ import InstanceDetails from './InstanceDetails'
 import styles from './LeftColumn.scss?inline'
 
 export const LeftColumn = component$(() => {
-  useStylesScoped$(styles)
+	useStylesScoped$(styles)
 
-  return (
-    <>
-      <input class="search" type="text" placeholder="search" />
-      <InstanceDetails />
-    </>
-  )
+	return (
+		<>
+			<input class="search" type="text" placeholder="search" />
+			<InstanceDetails />
+		</>
+	)
 })

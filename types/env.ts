@@ -1,4 +1,4 @@
 export interface Env {
-    DATABASE: D1Database
-    userKEK: string
+	DATABASE: D1Database
+	userKEK: string
 }

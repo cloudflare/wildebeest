@@ -8,61 +8,61 @@ import { signRequest } from 'wildebeest/utils/http-signing'
 import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
 
 describe('utils', () => {
-    test('user key lifecycle', async () => {
-        const userKEK = 'userkey'
-        const userKeyPair = await generateUserKey(userKEK)
-        await unwrapPrivateKey(userKEK, userKeyPair.wrappedPrivKey, userKeyPair.salt)
-        await importPublicKey(userKeyPair.pubKey)
-    })
+	test('user key lifecycle', async () => {
+		const userKEK = 'userkey'
+		const userKeyPair = await generateUserKey(userKEK)
+		await unwrapPrivateKey(userKEK, userKeyPair.wrappedPrivKey, userKeyPair.salt)
+		await importPublicKey(userKeyPair.pubKey)
+	})
 
-    test('request signing', async () => {
-        const body = '{"foo": "bar"}'
-        const digest = await generateDigestHeader(body)
-        const request = new Request('https://example.com', {
-            method: 'POST',
-            body: body,
-            headers: { header1: 'value1', Digest: digest },
-        })
-        const userKEK = 'userkey'
-        const userKeyPair = await generateUserKey(userKEK)
-        const privateKey = await unwrapPrivateKey(userKEK, userKeyPair.wrappedPrivKey, userKeyPair.salt)
-        const keyid = new URL('https://foo.com/key')
-        await signRequest(request, privateKey, keyid)
-        assert(request.headers.has('Signature'), 'no signature in signed request')
-    })
+	test('request signing', async () => {
+		const body = '{"foo": "bar"}'
+		const digest = await generateDigestHeader(body)
+		const request = new Request('https://example.com', {
+			method: 'POST',
+			body: body,
+			headers: { header1: 'value1', Digest: digest },
+		})
+		const userKEK = 'userkey'
+		const userKeyPair = await generateUserKey(userKEK)
+		const privateKey = await unwrapPrivateKey(userKEK, userKeyPair.wrappedPrivKey, userKeyPair.salt)
+		const keyid = new URL('https://foo.com/key')
+		await signRequest(request, privateKey, keyid)
+		assert(request.headers.has('Signature'), 'no signature in signed request')
+	})
 
-    test('handle parsing', async () => {
-        let res
+	test('handle parsing', async () => {
+		let res
 
-        res = parseHandle('')
-        assert.equal(res.localPart, '')
-        assert.equal(res.domain, null)
+		res = parseHandle('')
+		assert.equal(res.localPart, '')
+		assert.equal(res.domain, null)
 
-        res = parseHandle('@a')
-        assert.equal(res.localPart, 'a')
-        assert.equal(res.domain, null)
+		res = parseHandle('@a')
+		assert.equal(res.localPart, 'a')
+		assert.equal(res.domain, null)
 
-        res = parseHandle('a')
-        assert.equal(res.localPart, 'a')
-        assert.equal(res.domain, null)
+		res = parseHandle('a')
+		assert.equal(res.localPart, 'a')
+		assert.equal(res.domain, null)
 
-        res = parseHandle('@a@remote.com')
-        assert.equal(res.localPart, 'a')
-        assert.equal(res.domain, 'remote.com')
+		res = parseHandle('@a@remote.com')
+		assert.equal(res.localPart, 'a')
+		assert.equal(res.domain, 'remote.com')
 
-        res = parseHandle('a@remote.com')
-        assert.equal(res.localPart, 'a')
-        assert.equal(res.domain, 'remote.com')
+		res = parseHandle('a@remote.com')
+		assert.equal(res.localPart, 'a')
+		assert.equal(res.domain, 'remote.com')
 
-        res = parseHandle('a%40masto.ai')
-        assert.equal(res.localPart, 'a')
-        assert.equal(res.domain, 'masto.ai')
-    })
+		res = parseHandle('a%40masto.ai')
+		assert.equal(res.localPart, 'a')
+		assert.equal(res.domain, 'masto.ai')
+	})
 
-    test('URL to handle', async () => {
-        let res
+	test('URL to handle', async () => {
+		let res
 
-        res = urlToHandle(new URL('https://host.org/users/foobar'))
-        assert.equal(res, 'foobar@host.org')
-    })
+		res = urlToHandle(new URL('https://host.org/users/foobar'))
+		assert.equal(res, 'foobar@host.org')
+	})
 })

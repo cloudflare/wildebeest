@@ -11,17 +11,17 @@ import { getPersonById } from 'wildebeest/activitypub/actors/'
 import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-    return handleRequest(env.DATABASE, data.connectedActor)
+	return handleRequest(env.DATABASE, data.connectedActor)
 }
 
 const headers = {
-    'content-type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'content-type, authorization',
+	'content-type': 'application/json; charset=utf-8',
+	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
 export async function handleRequest(db: D1Database, connectedActor: Person): Promise<Response> {
-    const query = `
+	const query = `
     SELECT
         objects.*,
         actor_notifications.type,
@@ -34,59 +34,59 @@ export async function handleRequest(db: D1Database, connectedActor: Person): Pro
     ORDER BY actor_notifications.cdate DESC
   `
 
-    const stmt = db.prepare(query).bind(connectedActor.id)
-    const { results, success, error } = await stmt.all()
-    if (!success) {
-        throw new Error('SQL error: ' + error)
-    }
+	const stmt = db.prepare(query).bind(connectedActor.id)
+	const { results, success, error } = await stmt.all()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
 
-    const out: Array<Notification> = []
-    if (!results || results.length === 0) {
-        return new Response(JSON.stringify(out), { headers })
-    }
+	const out: Array<Notification> = []
+	if (!results || results.length === 0) {
+		return new Response(JSON.stringify(out), { headers })
+	}
 
-    for (let i = 0, len = results.length; i < len; i++) {
-        const result = results[i] as any
-        const properties = JSON.parse(result.properties)
-        const from_actor_id = new URL(result.from_actor_id)
+	for (let i = 0, len = results.length; i < len; i++) {
+		const result = results[i] as any
+		const properties = JSON.parse(result.properties)
+		const from_actor_id = new URL(result.from_actor_id)
 
-        const fromActor = await getPersonById(db, from_actor_id)
-        if (!fromActor) {
-            console.warn('unknown actor')
-            continue
-        }
+		const fromActor = await getPersonById(db, from_actor_id)
+		if (!fromActor) {
+			console.warn('unknown actor')
+			continue
+		}
 
-        const acct = urlToHandle(from_actor_id)
-        const fromAccount = loadExternalMastodonAccount(acct, fromActor)
+		const acct = urlToHandle(from_actor_id)
+		const fromAccount = loadExternalMastodonAccount(acct, fromActor)
 
-        const status: MastodonStatus = {
-            id: result.id,
-            content: properties.content,
-            uri: objects.uri(result.id),
-            created_at: new Date(result.cdate).toISOString(),
+		const status: MastodonStatus = {
+			id: result.id,
+			content: properties.content,
+			uri: objects.uri(result.id),
+			created_at: new Date(result.cdate).toISOString(),
 
-            emojis: [],
-            media_attachments: [],
-            tags: [],
-            mentions: [],
+			emojis: [],
+			media_attachments: [],
+			tags: [],
+			mentions: [],
 
-            // TODO: a shortcut has been taked. We assume that the actor
-            // generating the notification also created the object. In practice
-            // likely true but not guarantee.
-            account: fromAccount,
+			// TODO: a shortcut has been taked. We assume that the actor
+			// generating the notification also created the object. In practice
+			// likely true but not guarantee.
+			account: fromAccount,
 
-            // TODO: stub values
-            visibility: 'public',
-            spoiler_text: '',
-        }
+			// TODO: stub values
+			visibility: 'public',
+			spoiler_text: '',
+		}
 
-        out.push({
-            id: result.notif_id,
-            type: result.type,
-            created_at: result.created_at,
-            account: fromAccount,
-            status,
-        })
-    }
-    return new Response(JSON.stringify(out), { headers })
+		out.push({
+			id: result.notif_id,
+			type: result.type,
+			created_at: result.created_at,
+			account: fromAccount,
+			status,
+		})
+	}
+	return new Response(JSON.stringify(out), { headers })
 }
