@@ -16,11 +16,11 @@
 		"isolatedModules": true,
 		"outDir": "tmp",
 		"noEmit": true,
-		"types": ["node", "vite/client"],
+		"types": ["node", "vite/client", "jest"],
 		"paths": {
 			"~/*": ["./src/*"]
 		}
 	},
 	"files": ["./.eslintrc.cjs"],
-	"include": ["src"]
+	"include": ["src", "test"]
 }

@@ -14,3 +14,4 @@ bullseye:
       - yarn install
       - npm run pretty
       - npm run test
+      - npm run test:ui
