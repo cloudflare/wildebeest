@@ -3817,10 +3817,10 @@ word-wrap@^1.2.3:
   resolved "https://registry.npmjs.org/word-wrap/-/word-wrap-1.2.3.tgz"
   integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
 
-wrangler@^2.6.2:
-  version "2.6.2"
-  resolved "https://registry.npmjs.org/wrangler/-/wrangler-2.6.2.tgz"
-  integrity sha512-+in4oEQXDs6+vE+1c6niBd3IrW1DMRTbauR6G0u3TpD6UaXOLwLdBxRLEbN3m82dN+WNm7l1MbFZrKc/TnWjhw==
+wrangler@0.0.0-616f8739:
+  version "0.0.0-616f8739"
+  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-0.0.0-616f8739.tgz#341c30716b0d850ec34c71fc19cbb984dd4bf56b"
+  integrity sha512-P1CUaEPKKtBpy+qFvUgSBxLVtw3rnFUrPrrE7HKURNpJMAbZnwofN1SQl2EMxSobdWs6Wkj49uSUl5n8SeMaLw==
   dependencies:
     "@cloudflare/kv-asset-handler" "^0.2.0"
     "@esbuild-plugins/node-globals-polyfill" "^0.1.1"

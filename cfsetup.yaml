@@ -4,6 +4,7 @@ template:
   build:
     builddeps: &builddeps
       nodejs:
+      procps:
     post-cache:
 
 bullseye:

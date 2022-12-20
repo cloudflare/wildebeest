@@ -18,7 +18,7 @@
 		"prettier": "^2.8.1",
 		"ts-jest": "^29.0.3",
 		"typescript": "^4.9.4",
-		"wrangler": "^2.6.2"
+		"wrangler": "0.0.0-616f8739"
 	},
 	"private": true,
 	"scripts": {
@@ -26,11 +26,13 @@
 		"test": "NODE_OPTIONS=--experimental-vm-modules yarn jest",
 		"lint": "npx eslint .",
 		"build": "yarn --cwd ui install && yarn --cwd ui build",
-		"database:migrate": "wrangler d1 migrations apply DATABASE",
-		"dev": "yarn build && yarn database:migrate --local && yarn wrangler pages dev ui/dist --d1 DATABASE --persist",
-		"test:ui": "yarn build && yarn database:migrate --local && concurrently --kill-others \"yarn wrangler pages dev ui/dist --d1 DATABASE --persist --port 6868\" \"yarn --cwd ui jest --verbose\"",
-		"deploy:init": "wrangler pages project create wildebeest && wrangler d1 create wildebeest",
-		"deploy": "yarn build && yarn database:migrate && yarn wrangler pages publish ui/dist --project-name=wildebeest"
+		"d1": "NO_D1_WARNING=true wrangler d1",
+		"pages": "NO_D1_WARNING=true wrangler pages",
+		"database:migrate": "yarn d1 migrations apply DATABASE",
+		"dev": "yarn build && yarn database:migrate --local && yarn pages dev ui/dist --d1 DATABASE --persist --compatibility-date=2022-12-20",
+		"test:ui": "yarn build && yarn database:migrate --local && NODE_DEBUG=child_process concurrently -s first --kill-others \"yarn pages dev ui/dist --d1 DATABASE --persist --port 6868 --compatibility-date=2022-12-20 || true\" \"sleep 5 && yarn --cwd ui jest --verbose\"",
+		"deploy:init": "yarn pages project create wildebeest && yarn d1 create wildebeest",
+		"deploy": "yarn build && yarn database:migrate && yarn pages publish ui/dist --project-name=wildebeest"
 	},
 	"dependencies": {
 		"http-message-signatures": "^0.1.2"

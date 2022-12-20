@@ -1,4 +1,4 @@
 node_modules/
 yarn-error.log
 package-lock.json
-.wrangler/state/d1
+.wrangler/state/d1/*.sqlite3
