@@ -15,6 +15,7 @@ export default component$(() => {
 			<head>
 				<meta charSet="utf-8" />
 				<link rel="manifest" href="/manifest.json" />
+				<script src="https://kit.fontawesome.com/e3d907997f.js" crossorigin="anonymous"></script>
 				<RouterHead />
 			</head>
 			<body lang="en">

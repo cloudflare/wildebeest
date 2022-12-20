@@ -2,14 +2,29 @@ body {
 	background-color: var(--wb-base-background-color);
 	color: var(--wb-base-font-color);
 	font-family: ui-sans-serif, sans-serif, ui-sans-serif;
+	line-height: 1.25rem;
+	text-rendering: optimizelegibility;
 }
 
 a {
 	color: inherit;
 	text-decoration: underline;
+	cursor: pointer;
 }
 
 * {
 	// border defaults
 	border: 0 solid var(--wb-slate-100);
+}
+
+.avatar {
+	width: 46px;
+	height: 46px;
+	border-radius: var(--wb-radius-medium);
+}
+
+.avatar-sm {
+	width: 36px;
+	height: 36px;
+	border-radius: var(--wb-radius-medium);
 }

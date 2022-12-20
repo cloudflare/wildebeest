@@ -1,11 +1,7 @@
 @use './text.scss';
 @use './border.scss';
+@use './background.scss';
 @use './spacing.scss';
 @use './rounding.scss';
 @use './display.scss';
-
-.ellipsis {
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	overflow: hidden;
-}
+@use './layout.scss';

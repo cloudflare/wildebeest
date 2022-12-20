@@ -1,12 +1,12 @@
 import { component$, Resource, useResource$, useStylesScoped$ } from '@builder.io/qwik'
 import { mastodonInstance } from '~/dummyData'
-import { InstanceDetails } from '~/types'
+import { MastodonInstanceV2 } from '../../../../types'
 import styles from './InstanceDetails.scss?inline'
 
 export default component$(() => {
 	useStylesScoped$(styles)
 
-	const resource = useResource$<InstanceDetails>(async () => {
+	const resource = useResource$<MastodonInstanceV2>(async () => {
 		return mastodonInstance
 	})
 

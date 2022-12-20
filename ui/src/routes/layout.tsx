@@ -12,7 +12,9 @@ export default component$(() => {
 				<LeftColumn />
 			</div>
 			<section class="main-content">
-				<Slot />
+				<div class="bg-slate-800 rounded">
+					<Slot />
+				</div>
 			</section>
 			<div class="side-column">
 				<RightColumn />
