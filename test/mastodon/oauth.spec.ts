@@ -136,5 +136,24 @@ describe('Mastodon APIs', () => {
 			const res = await oauth_token.handleRequest(req)
 			assert.equal(res.status, 401)
 		})
+
+		test('token returns CORS', async () => {
+			const req = new Request('https://example.com/oauth/token', {
+				method: 'OPTIONS',
+			})
+			const res = await oauth_token.handleRequest(req)
+			assert.equal(res.status, 200)
+			assertCORS(res)
+		})
+
+		test('authorize returns CORS', async () => {
+			const db = await makeDB()
+			const req = new Request('https://example.com/oauth/authorize', {
+				method: 'OPTIONS',
+			})
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
+			assert.equal(res.status, 200)
+			assertCORS(res)
+		})
 	})
 })

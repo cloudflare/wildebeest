@@ -13,6 +13,15 @@ export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
 }
 
 export async function handleRequest(request: Request, db: D1Database, userKEK: string): Promise<Response> {
+	if (request.method === 'OPTIONS') {
+		const headers = {
+			'Access-Control-Allow-Origin': '*',
+			'Access-Control-Allow-Headers': 'content-type, authorization',
+			'content-type': 'application/json',
+		}
+		return new Response('', { headers })
+	}
+
 	const url = new URL(request.url)
 
 	if (

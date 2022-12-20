@@ -15,6 +15,10 @@ export async function handleRequest(request: Request): Promise<Response> {
 		'content-type': 'application/json; charset=utf-8',
 	}
 
+	if (request.method === 'OPTIONS') {
+		return new Response('', { headers })
+	}
+
 	const { code } = await request.json<Body>()
 	if (!code) {
 		return new Response('', { status: 401, headers })
