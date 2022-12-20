@@ -29,7 +29,8 @@
 		"database:migrate": "wrangler d1 migrations apply DATABASE",
 		"dev": "yarn build && yarn database:migrate --local && yarn wrangler pages dev ui/dist --d1 DATABASE --persist",
 		"test:ui": "yarn build && yarn database:migrate --local && concurrently --kill-others \"yarn wrangler pages dev ui/dist --d1 DATABASE --persist --port 6868\" \"yarn --cwd ui jest --verbose\"",
-		"deploy": "yarn build && yarn database:migrate && yarn wrangler pages publish ui/dist"
+		"deploy:init": "wrangler pages project create wildebeest && wrangler d1 create wildebeest",
+		"deploy": "yarn build && yarn database:migrate && yarn wrangler pages publish ui/dist --project-name=wildebeest"
 	},
 	"dependencies": {
 		"http-message-signatures": "^0.1.2"

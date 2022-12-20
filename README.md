@@ -29,3 +29,48 @@ To do so, run the following in second terminal:
 ```sh
 yarn --cwd ui watch
 ```
+
+## Deploying
+
+This is a Cloudflare Pages project and can be deployed directly from the command line using Wrangler.
+
+First you must create and configure the Pages project and D1 database.
+
+### Initialization
+
+Run the following command to create the Pages project and the D1 database in your account.
+
+```
+yarn deploy:init
+```
+
+You should see output like:
+
+```
+✅ Successfully created DB 'wildebeest'!
+
+Add the following to your wrangler.toml to connect to it from a Worker:
+
+[[ d1_databases ]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "wildebeest"
+database_id = "ddce04a1-fd51-40cb-be21-e899d70fb9f3"
+```
+
+Grab the database_id from the command line output and add it to the wrangler.toml file. Don't change the binding name in the wrangler.toml. It should stay as `DATABASE`.
+
+Next go to the Pages dashboard and add the D1 database to the newly created Pages project. This can be found at
+
+```
+wildebeest->Settings->Functions->D1 database bindings->Add binding
+```
+
+Enter `DATABASE` for the variable name and select the `wildebeest` database from the dropdown.
+
+### Deployment
+
+Run the following command to deploy the current working directory to Cloudflare Pages:
+
+```
+yarn deploy
+```
