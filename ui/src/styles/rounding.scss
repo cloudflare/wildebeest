@@ -9,3 +9,33 @@
 .rounded-lg {
 	border-radius: var(--wb-radius-large);
 }
+
+.rounded-t {
+	border-top-left-radius: var(--wb-radius-medium);
+	border-top-right-radius: var(--wb-radius-medium);
+}
+
+.rounded-t-sm {
+	border-top-left-radius: var(--wb-radius-small);
+	border-top-right-radius: var(--wb-radius-small);
+}
+
+.rounded-t-lg {
+	border-top-left-radius: var(--wb-radius-large);
+	border-top-right-radius: var(--wb-radius-large);
+}
+
+.rounded-b {
+	border-bottom-left-radius: var(--wb-radius-medium);
+	border-bottom-right-radius: var(--wb-radius-medium);
+}
+
+.rounded-b-sm {
+	border-bottom-left-radius: var(--wb-radius-small);
+	border-bottom-right-radius: var(--wb-radius-small);
+}
+
+.rounded-b-lg {
+	border-bottom-left-radius: var(--wb-radius-large);
+	border-bottom-right-radius: var(--wb-radius-large);
+}

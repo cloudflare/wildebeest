@@ -1,4 +1,5 @@
 import { component$, Resource, useResource$, useStyles$ } from '@builder.io/qwik'
+import { formatTimeAgo } from '~/utils/dateTime'
 import { MastodonStatus } from '../../../../types/status'
 import { statuses } from '../../dummyData'
 import styles from './Explore.scss?inline'
@@ -18,9 +19,11 @@ export default component$(() => {
 			onResolved={(statuses) => {
 				return (
 					<>
-						<h2 class="text-reg text-md m0 p4">
-							<span class="text-bold mr-3">#</span>Explore
-						</h2>
+						<div class="header-wrapper">
+							<h2 class="text-reg text-md m0 p4 bg-slate-700 rounded-t">
+								<span class="text-bold mr-3">#</span>Explore
+							</h2>
+						</div>
 						<div class="bg-slate-900 flex justify-around">
 							<a class="no-decoration text-bold text-slate-200 py-4">Posts</a>
 							<a class="no-decoration text-bold text-slate-400 py-4" href="/explore/tags">
@@ -46,10 +49,9 @@ export default component$(() => {
 											</div>
 										</div>
 										<a class="no-decoration" href={statusUrl}>
-											<div class="text-slate-500">
-												<i class="fa fa-globe" title="Public" />
-												{/* TODO: stop hardcoding */}
-												<span class="ml-2">15h</span>
+											<div class="text-slate-500 flex items-center">
+												<i class="fa fa-xs fa-globe" />
+												<span class="ml-2 text-sm">{formatTimeAgo(new Date(status.created_at))}</span>
 											</div>
 										</a>
 									</div>

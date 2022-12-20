@@ -9,15 +9,19 @@ export default component$(() => {
 	return (
 		<main class="container">
 			<div class="side-column">
-				<LeftColumn />
+				<div class="sticky">
+					<LeftColumn />
+				</div>
 			</div>
 			<section class="main-content">
-				<div class="bg-slate-800 rounded">
+				<div class="content-wrapper bg-slate-800 rounded">
 					<Slot />
 				</div>
 			</section>
 			<div class="side-column">
-				<RightColumn />
+				<div class="sticky">
+					<RightColumn />
+				</div>
 			</div>
 		</main>
 	)

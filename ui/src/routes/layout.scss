@@ -1,6 +1,6 @@
 .container {
 	height: 100%;
-	margin-top: 10px;
+	// margin-top: 10px;
 	display: flex;
 	justify-content: center;
 }
@@ -10,6 +10,16 @@
 	margin: 0 10px;
 }
 
+.sticky {
+	position: sticky;
+	top: 10px;
+}
+
 .main-content {
 	max-width: 600px;
+}
+
+// compensates for the 10px set w/ sticky on the columns
+.content-wrapper {
+	margin-top: 10px;
 }
