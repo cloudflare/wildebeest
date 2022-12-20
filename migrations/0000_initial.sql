@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS objects (
   id TEXT PRIMARY KEY,
   type TEXT NOT NULL,
   cdate DATETIME NOT NULL DEFAULT (datetime()),
-  originating_actor TEXT,
+  original_actor_id TEXT,
   properties TEXT NOT NULL DEFAULT (json_object())
 );
 

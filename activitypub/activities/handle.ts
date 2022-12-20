@@ -128,15 +128,15 @@ export async function handle(
 
 			const receiver = await actors.getPersonById(db, objectId)
 			if (receiver !== null) {
-				const originatingActor = await actors.getAndCache(new URL(actorId), db)
+				const originalActorId = await actors.getAndCache(new URL(actorId), db)
 				const receiverAcct = `${receiver.preferredUsername}@${instanceConfig.uri}`
-				await addFollowing(db, originatingActor, receiver, receiverAcct)
-				await acceptFollowing(db, originatingActor, receiver)
+				await addFollowing(db, originalActorId, receiver, receiverAcct)
+				await acceptFollowing(db, originalActorId, receiver)
 
 				// Automatically send the Accept reply
 				const reply = accept.create(receiver, activity)
 				const signingKey = await getSigningKey(userKEK, db, receiver)
-				await deliver(signingKey, receiver, originatingActor, reply)
+				await deliver(signingKey, receiver, originalActorId, reply)
 			} else {
 				console.warn(`actor ${objectId} not found`)
 			}
@@ -151,12 +151,12 @@ export async function handle(
 	return { createdObjects }
 }
 
-async function createObject(obj: Object, db: D1Database, originatingActor: URL): Promise<Object | null> {
+async function createObject(obj: Object, db: D1Database, originalActorId: URL): Promise<Object | null> {
 	switch (obj.type) {
 		case 'Note': {
 			// FIXME: ensure that the object isn't there yet
 			// use the ID in properties
-			return objects.createObject(db, 'Note', obj, originatingActor)
+			return objects.createObject(db, 'Note', obj, originalActorId)
 			break
 		}
 

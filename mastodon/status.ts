@@ -29,12 +29,12 @@ export function getMentions(input: string): Array<Handle> {
 }
 
 export async function toMastodonStatus(obj: Object): Promise<MastodonStatus | null> {
-	if (obj.originatingActor === undefined) {
-		console.warn('missing `obj.originatingActor`')
+	if (obj.originalActorId === undefined) {
+		console.warn('missing `obj.originalActorId`')
 		return null
 	}
 
-	const actorId = new URL(obj.originatingActor)
+	const actorId = new URL(obj.originalActorId)
 	const actor = await actors.get(actorId)
 
 	const acct = urlToHandle(actorId)

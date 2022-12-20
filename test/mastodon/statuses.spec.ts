@@ -62,14 +62,14 @@ describe('Mastodon APIs', () => {
 					`
           SELECT
               json_extract(properties, '$.content') as content,
-              originating_actor
+              original_actor_id
           FROM objects WHERE id = ?
         `
 				)
 				.bind(data.id)
 				.first()
 			assert.equal(row.content, 'my status')
-			assert.equal(row.originating_actor, actorId)
+			assert.equal(row.original_actor_id, actorId)
 		})
 
 		test("create new status adds to Actor's outbox", async () => {
@@ -181,7 +181,7 @@ describe('Mastodon APIs', () => {
 			const actor = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
 
 			await db
-				.prepare('INSERT INTO objects (id, type, properties, originating_actor) VALUES (?, ?, ?, ?)')
+				.prepare('INSERT INTO objects (id, type, properties, original_actor_id) VALUES (?, ?, ?, ?)')
 				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }), actor.id)
 				.run()
 

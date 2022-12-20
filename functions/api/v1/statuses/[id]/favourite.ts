@@ -23,7 +23,7 @@ export async function handleRequest(
 	userKEK: string
 ): Promise<Response> {
 	const obj = await getObjectById(db, id)
-	if (obj === null || obj.originatingActor === undefined) {
+	if (obj === null || obj.originalActorId === undefined) {
 		return new Response('', { status: 404 })
 	}
 
@@ -32,12 +32,12 @@ export async function handleRequest(
 		return new Response('', { status: 404 })
 	}
 
-	const targetActor = await actors.get(obj.originatingActor)
+	const targetActor = await actors.get(obj.originalActorId)
 	if (!targetActor) {
-		return new Response(`target Actor ${obj.originatingActor} not found`, { status: 404 })
+		return new Response(`target Actor ${obj.originalActorId} not found`, { status: 404 })
 	}
 
-	const activity = like.create(connectedActor, new URL(obj.originatingActor))
+	const activity = like.create(connectedActor, new URL(obj.originalActorId))
 	const signingKey = await getSigningKey(userKEK, db, connectedActor)
 	await deliver(signingKey, connectedActor, targetActor, activity)
 

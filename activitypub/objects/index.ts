@@ -16,7 +16,7 @@ export interface Object {
 
 	// Extension
 	preferredUsername?: string
-	originatingActor?: string
+	originalActorId?: string
 }
 
 export function uri(id: string): URL {
@@ -27,13 +27,13 @@ export async function createObject(
 	db: D1Database,
 	type: string,
 	properties: any,
-	originatingActor: URL
+	originalActorId: URL
 ): Promise<Object> {
 	const id = crypto.randomUUID()
 
 	const row: any = await db
-		.prepare('INSERT INTO objects(id, type, properties, originating_actor) VALUES(?, ?, ?, ?) RETURNING *')
-		.bind(id, type, JSON.stringify(properties), originatingActor.toString())
+		.prepare('INSERT INTO objects(id, type, properties, original_actor_id) VALUES(?, ?, ?, ?) RETURNING *')
+		.bind(id, type, JSON.stringify(properties), originalActorId.toString())
 		.first()
 
 	return {
@@ -42,13 +42,13 @@ export async function createObject(
 		id: row.id,
 		url: uri(row.id),
 		published: new Date(row.cdate).toISOString(),
-		originatingActor: row.originating_actor,
+		originalActorId: row.original_actor_id,
 	}
 }
 
 export async function getObjectById(db: D1Database, id: string): Promise<Object | null> {
 	const query = `
-SELECT id, properties, type, originating_actor
+SELECT id, properties, type, original_actor_id
 FROM objects
 WHERE objects.id=?
   `
@@ -70,6 +70,6 @@ WHERE objects.id=?
 		id: result.id,
 		type: result.type,
 		url: uri(result.id),
-		originatingActor: result.originating_actor,
+		originalActorId: result.original_actor_id,
 	}
 }

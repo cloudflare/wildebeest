@@ -12,9 +12,9 @@ export interface Note extends objects.Object {
 }
 
 // TODO: any way to get TS typing from SQL tables?
-export async function createNote(db: D1Database, content: string, originatingActor: Actor): Promise<Note> {
+export async function createNote(db: D1Database, content: string, originalActorId: Actor): Promise<Note> {
 	const properties = {
 		content,
 	}
-	return (await objects.createObject(db, NOTE, properties, new URL(originatingActor.id))) as Note
+	return (await objects.createObject(db, NOTE, properties, new URL(originalActorId.id))) as Note
 }
