@@ -1,5 +1,5 @@
 import { makeDB, assertCache, isUrlValid } from './utils'
-import { addFollowing } from 'wildebeest/activitypub/actors/follow'
+import { addFollowing, acceptFollowing } from 'wildebeest/activitypub/actors/follow'
 import { createPerson } from 'wildebeest/activitypub/actors'
 import * as activityHandler from 'wildebeest/activitypub/activities/handle'
 import { instanceConfig } from 'wildebeest/config/instance'
@@ -10,6 +10,8 @@ import { strict as assert } from 'node:assert/strict'
 import * as ap_users from '../functions/ap/users/[id]'
 import * as ap_inbox from '../functions/ap/users/[id]/inbox'
 import * as ap_outbox from '../functions/ap/users/[id]/outbox'
+import * as ap_following from '../functions/ap/users/[id]/following'
+import * as ap_following_page from '../functions/ap/users/[id]/following/page'
 import * as ap_outbox_page from '../functions/ap/users/[id]/outbox/page'
 
 const userKEK = 'test_kek5'
@@ -284,6 +286,56 @@ describe('ActivityPub', () => {
 			assert.equal(receivedActivity.actor, actor.id)
 			assert.equal(receivedActivity.object.actor, activity.actor)
 			assert.equal(receivedActivity.object.type, activity.type)
+		})
+
+		test('list actor following', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+			const actor2: any = {
+				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+			}
+			const actor3: any = {
+				id: await createPerson(db, userKEK, 'sven3@cloudflare.com'),
+			}
+			await addFollowing(db, actor, actor2, 'not needed')
+			await acceptFollowing(db, actor, actor2)
+			await addFollowing(db, actor, actor3, 'not needed')
+			await acceptFollowing(db, actor, actor3)
+
+			const res = await ap_following.handleRequest(db, 'sven')
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.type, 'OrderedCollection')
+			assert.equal(data.totalItems, 2)
+		})
+
+		test('list actor following page', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+			const actor2: any = {
+				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+			}
+			const actor3: any = {
+				id: await createPerson(db, userKEK, 'sven3@cloudflare.com'),
+			}
+			await addFollowing(db, actor, actor2, 'not needed')
+			await acceptFollowing(db, actor, actor2)
+			await addFollowing(db, actor, actor3, 'not needed')
+			await acceptFollowing(db, actor, actor3)
+
+			const res = await ap_following_page.handleRequest(db, 'sven')
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			console.log({ data })
+			assert.equal(data.type, 'OrderedCollectionPage')
+			assert.equal(data.orderedItems[0], `https://${instanceConfig.uri}/ap/users/sven2`)
+			assert.equal(data.orderedItems[1], `https://${instanceConfig.uri}/ap/users/sven3`)
 		})
 	})
 
