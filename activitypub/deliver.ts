@@ -7,7 +7,7 @@ import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
 import { signRequest } from 'wildebeest/utils/http-signing'
 
 const headers = {
-	accept: 'application/ld+json',
+	'content-type': 'application/activity+json',
 }
 
 export async function deliver(signingKey: CryptoKey, from: Actor, to: Actor, activity: Activity) {

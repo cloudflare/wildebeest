@@ -9,6 +9,6 @@ export function create(actor: Actor, object: Object): Activity {
 		'@context': 'https://www.w3.org/ns/activitystreams',
 		type: FOLLOW,
 		actor: actor.id,
-		object,
+		object: object.id,
 	}
 }
