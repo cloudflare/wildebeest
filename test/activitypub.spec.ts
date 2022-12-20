@@ -3,10 +3,14 @@ import { addFollowing } from 'wildebeest/activitypub/actors/follow'
 import { createPerson } from 'wildebeest/activitypub/actors'
 import * as activityHandler from 'wildebeest/activitypub/activities/handle'
 import { instanceConfig } from 'wildebeest/config/instance'
+import { createPublicNote } from 'wildebeest/activitypub/objects/note'
+import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
 
 import * as ap_users from '../functions/ap/users/[id]'
 import * as ap_inbox from '../functions/ap/users/[id]/inbox'
+import * as ap_outbox from '../functions/ap/users/[id]/outbox'
+import * as ap_outbox_page from '../functions/ap/users/[id]/outbox/page'
 
 const userKEK = 'test_kek5'
 
@@ -280,6 +284,44 @@ describe('ActivityPub', () => {
 			assert.equal(receivedActivity.actor, actor.id)
 			assert.equal(receivedActivity.object.actor, activity.actor)
 			assert.equal(receivedActivity.object.type, activity.type)
+		})
+	})
+
+	describe('Outbox', () => {
+		test('return outbox', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+
+			await addObjectInOutbox(db, actor, await createPublicNote(db, 'my first status', actor))
+			await addObjectInOutbox(db, actor, await createPublicNote(db, 'my second status', actor))
+
+			const res = await ap_outbox.handleRequest(db, 'sven', userKEK)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.type, 'OrderedCollection')
+			assert.equal(data.totalItems, 2)
+		})
+
+		test('return outbox page', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+
+			await addObjectInOutbox(db, actor, await createPublicNote(db, 'my first status', actor))
+			await addObjectInOutbox(db, actor, await createPublicNote(db, 'my second status', actor))
+
+			const res = await ap_outbox_page.handleRequest(db, 'sven', userKEK)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.type, 'OrderedCollectionPage')
+			assert.equal(data.orderedItems.length, 2)
+			assert.equal(data.orderedItems[0].object.content, 'my second status')
+			assert.equal(data.orderedItems[1].object.content, 'my first status')
 		})
 	})
 })
