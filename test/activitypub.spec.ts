@@ -30,6 +30,7 @@ describe('ActivityPub', () => {
 				to: [actorId],
 				cc: [],
 				object: {
+					id: 'https://example.com/note1',
 					type: 'Note',
 					content: 'test note',
 				},
@@ -55,6 +56,7 @@ describe('ActivityPub', () => {
 				to: [actorA],
 				cc: [],
 				object: {
+					id: 'https://example.com/note2',
 					type: 'Note',
 					content: 'test note',
 				},
@@ -93,6 +95,7 @@ describe('ActivityPub', () => {
 				to: [actorA],
 				cc: [],
 				object: {
+					id: 'https://example.com/note3',
 					type: 'Note',
 					content: 'test note',
 				},

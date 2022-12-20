@@ -62,7 +62,8 @@ describe('Mastodon APIs', () => {
 					`
           SELECT
               json_extract(properties, '$.content') as content,
-              original_actor_id
+              original_actor_id,
+              original_object_id
           FROM objects WHERE id = ?
         `
 				)
@@ -70,6 +71,7 @@ describe('Mastodon APIs', () => {
 				.first()
 			assert.equal(row.content, 'my status')
 			assert.equal(row.original_actor_id, actorId)
+			assert.equal(row.original_object_id, null)
 		})
 
 		test("create new status adds to Actor's outbox", async () => {
@@ -179,10 +181,13 @@ describe('Mastodon APIs', () => {
 
 			const db = await makeDB()
 			const actor = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const originalObjectId = 'https://example.com/note123'
 
 			await db
-				.prepare('INSERT INTO objects (id, type, properties, original_actor_id) VALUES (?, ?, ?, ?)')
-				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }), actor.id)
+				.prepare(
+					'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id) VALUES (?, ?, ?, ?, ?)'
+				)
+				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }), actor.id, originalObjectId)
 				.run()
 
 			globalThis.fetch = async (input: any, data: any) => {
@@ -211,6 +216,7 @@ describe('Mastodon APIs', () => {
 
 			assert(deliveredActivity)
 			assert.equal(deliveredActivity.type, 'Like')
+			assert.equal(deliveredActivity.object, originalObjectId)
 		})
 
 		test('get mentions from status', () => {

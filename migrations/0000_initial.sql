@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS objects (
   type TEXT NOT NULL,
   cdate DATETIME NOT NULL DEFAULT (datetime()),
   original_actor_id TEXT,
+  original_object_id TEXT,
   properties TEXT NOT NULL DEFAULT (json_object())
 );
 

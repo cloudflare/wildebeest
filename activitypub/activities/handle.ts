@@ -76,7 +76,8 @@ export async function handle(
 				recipients = [...recipients, ...activity.cc]
 			}
 
-			const obj = await createObject(activity.object, db, actorId)
+			const objectId = new URL(getObjectAsId())
+			const obj = await createObject(activity.object, db, actorId, objectId)
 			if (obj === null) {
 				break
 			}
@@ -151,12 +152,17 @@ export async function handle(
 	return { createdObjects }
 }
 
-async function createObject(obj: Object, db: D1Database, originalActorId: URL): Promise<Object | null> {
+async function createObject(
+	obj: Object,
+	db: D1Database,
+	originalActorId: URL,
+	originalObjectId: URL
+): Promise<Object | null> {
 	switch (obj.type) {
 		case 'Note': {
 			// FIXME: ensure that the object isn't there yet
 			// use the ID in properties
-			return objects.createObject(db, 'Note', obj, originalActorId)
+			return objects.cacheObject(db, obj, originalActorId, originalObjectId)
 			break
 		}
 

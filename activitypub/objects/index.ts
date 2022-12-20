@@ -16,7 +16,9 @@ export interface Object {
 
 	// Extension
 	preferredUsername?: string
+	// Internal
 	originalActorId?: string
+	originalObjectId?: string
 }
 
 export function uri(id: string): URL {
@@ -46,9 +48,34 @@ export async function createObject(
 	}
 }
 
+export async function cacheObject(
+	db: D1Database,
+	properties: any,
+	originalActorId: URL,
+	originalObjectId: URL
+): Promise<Object> {
+	const id = crypto.randomUUID()
+
+	const row: any = await db
+		.prepare(
+			'INSERT INTO objects(id, type, properties, original_actor_id, original_object_id) VALUES(?, ?, ?, ?, ?) RETURNING *'
+		)
+		.bind(id, properties.type, JSON.stringify(properties), originalActorId.toString(), originalObjectId.toString())
+		.first()
+
+	return {
+		...properties,
+		id: row.id,
+		url: uri(row.id),
+		published: new Date(row.cdate).toISOString(),
+		originalActorId: row.original_actor_id,
+		originalObjectId: row.original_object_id,
+	}
+}
+
 export async function getObjectById(db: D1Database, id: string): Promise<Object | null> {
 	const query = `
-SELECT id, properties, type, original_actor_id
+SELECT id, properties, type, original_actor_id, original_object_id
 FROM objects
 WHERE objects.id=?
   `
@@ -71,5 +98,6 @@ WHERE objects.id=?
 		type: result.type,
 		url: uri(result.id),
 		originalActorId: result.original_actor_id,
+		originalObjectId: result.original_object_id,
 	}
 }

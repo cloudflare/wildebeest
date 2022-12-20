@@ -264,7 +264,7 @@ describe('Mastodon APIs', () => {
 									actor: 'https://mastodon.social/users/someone',
 									published: '2022-12-10T23:48:38Z',
 									object: {
-										id: 'object1',
+										id: 'https://example.com/object1',
 										type: 'Note',
 										content: '<p>p</p>',
 									},
