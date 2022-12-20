@@ -3,7 +3,7 @@
 // It might also be a good idea to use something like Zod and
 // then generate or infer type definitions from the schemas
 
-export type Status = {
+export type MastodonStatus = {
 	id: string
 	content: string
 	created_at: string
