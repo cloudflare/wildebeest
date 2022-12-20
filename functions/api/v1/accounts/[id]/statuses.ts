@@ -101,7 +101,7 @@ async function getLocalStatuses(request: Request, db: D1Database, handle: Handle
 SELECT objects.*
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE outbox_objects.actor_id = ? AND outbox_objects.cdate > ?
+WHERE outbox_objects.actor_id = ? AND outbox_objects.cdate > ? AND objects.type = 'Note'
 ORDER by outbox_objects.cdate DESC
 LIMIT ?
 `

@@ -1,4 +1,6 @@
 import { strict as assert } from 'node:assert/strict'
+import { createPublicNote } from 'wildebeest/activitypub/objects/note'
+import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 import { instanceConfig } from 'wildebeest/config/instance'
 import * as v1_instance from '../functions/api/v1/instance'
 import * as v2_instance from '../functions/api/v2/instance'
@@ -305,14 +307,29 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.length, 0)
 		})
 
-		test('public returns an empty array', async () => {
-			const res = await timelines_home.onRequest()
+		test('public returns Notes', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+			const actor2: any = {
+				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+			}
+
+			await addObjectInOutbox(db, actor, await createPublicNote(db, 'status from actor', actor))
+			await addObjectInOutbox(db, actor2, await createPublicNote(db, 'status from actor2', actor2))
+
+			const res = await timelines_public.handleRequest(db)
 			assert.equal(res.status, 200)
 			assertJSON(res)
 			assertCORS(res)
 
 			const data = await res.json<any>()
-			assert.equal(data.length, 0)
+			assert.equal(data.length, 2)
+			assert.equal(data[0].content, 'status from actor2')
+			assert.equal(data[0].account.username, 'sven2')
+			assert.equal(data[1].content, 'status from actor')
+			assert.equal(data[1].account.username, 'sven')
 		})
 	})
 
