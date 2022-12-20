@@ -1,5 +1,5 @@
 import { parseHandle } from 'wildebeest/utils/parse'
-import { deliver } from 'wildebeest/activitypub/deliver'
+import { deliverToActor } from 'wildebeest/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/mastodon/account'
 import type { Person } from 'wildebeest/activitypub/actors'
 import * as webfinger from 'wildebeest/webfinger/'
@@ -40,7 +40,7 @@ export async function handleRequest(
 
 	const activity = unfollow.create(connectedActor, targetActor)
 	const signingKey = await getSigningKey(userKEK, db, connectedActor)
-	await deliver(signingKey, connectedActor, targetActor, activity)
+	await deliverToActor(signingKey, connectedActor, targetActor, activity)
 	await removeFollowing(db, connectedActor, targetActor)
 
 	const res: Relationship = {

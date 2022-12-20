@@ -10,7 +10,7 @@ import { parseHandle } from 'wildebeest/utils/parse'
 import { instanceConfig } from 'wildebeest/config/instance'
 import type { Note } from 'wildebeest/activitypub/objects/note'
 import { acceptFollowing, addFollowing } from 'wildebeest/activitypub/actors/follow'
-import { deliver } from 'wildebeest/activitypub/deliver'
+import { deliverToActor } from 'wildebeest/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/mastodon/account'
 import type { Activity } from 'wildebeest/activitypub/activities/'
 
@@ -137,7 +137,7 @@ export async function handle(
 				// Automatically send the Accept reply
 				const reply = accept.create(receiver, activity)
 				const signingKey = await getSigningKey(userKEK, db, receiver)
-				await deliver(signingKey, receiver, originalActorId, reply)
+				await deliverToActor(signingKey, receiver, originalActorId, reply)
 			} else {
 				console.warn(`actor ${objectId} not found`)
 			}

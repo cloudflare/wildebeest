@@ -5,6 +5,7 @@ import * as statuses from '../../functions/api/v1/statuses'
 import * as statuses_favourite from '../../functions/api/v1/statuses/[id]/favourite'
 import { createPerson } from 'wildebeest/activitypub/actors'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
+import * as note from 'wildebeest/activitypub/objects/note'
 
 const userKEK = 'test_kek4'
 
@@ -173,7 +174,10 @@ describe('Mastodon APIs', () => {
 			assert(deliveredNote)
 			assert.equal(deliveredNote.type, 'Create')
 			assert.equal(deliveredNote.actor, `https://${instanceConfig.uri}/ap/users/sven`)
+			assert.equal(deliveredNote.object.attributedTo, `https://${instanceConfig.uri}/ap/users/sven`)
 			assert.equal(deliveredNote.object.type, 'Note')
+			assert(deliveredNote.object.to.includes(note.PUBLIC))
+			assert.equal(deliveredNote.object.cc.length, 1)
 		})
 
 		test('favourite status sends Like activity', async () => {

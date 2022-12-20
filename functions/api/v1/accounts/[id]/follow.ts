@@ -1,6 +1,6 @@
 import { parseHandle } from 'wildebeest/utils/parse'
 import * as actors from 'wildebeest/activitypub/actors/'
-import { deliver } from 'wildebeest/activitypub/deliver'
+import { deliverToActor } from 'wildebeest/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/mastodon/account'
 import type { Person } from 'wildebeest/activitypub/actors'
 import * as webfinger from 'wildebeest/webfinger/'
@@ -43,7 +43,7 @@ export async function handleRequest(
 
 	const activity = follow.create(connectedActor, targetActor)
 	const signingKey = await getSigningKey(userKEK, db, connectedActor)
-	await deliver(signingKey, connectedActor, targetActor, activity)
+	await deliverToActor(signingKey, connectedActor, targetActor, activity)
 
 	const res: Relationship = {
 		id: await addFollowing(db, connectedActor, targetActor, acct),

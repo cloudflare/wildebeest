@@ -1,13 +1,13 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
 
-import { createNote } from 'wildebeest/activitypub/objects/note'
+import { createPublicNote } from 'wildebeest/activitypub/objects/note'
 import { getMentions } from 'wildebeest/mastodon/status'
 import * as activities from 'wildebeest/activitypub/activities/create'
 import type { Env } from 'wildebeest/types/env'
 import type { ContextData } from 'wildebeest/types/context'
 import type { MastodonAccount } from 'wildebeest/types/account'
 import { queryAcct } from 'wildebeest/webfinger/'
-import { deliver } from 'wildebeest/activitypub/deliver'
+import { deliverFollowers, deliverToActor } from 'wildebeest/activitypub/deliver'
 import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 import type { Person } from 'wildebeest/activitypub/actors'
 import { getSigningKey } from 'wildebeest/mastodon/account'
@@ -22,6 +22,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	return handleRequest(request, env.DATABASE, data.connectedActor, data.connectedUser, env.userKEK)
 }
 
+// FIXME: add tests for delivery to followers and mentions to a specific Actor.
 export async function handleRequest(
 	request: Request,
 	db: D1Database,
@@ -41,9 +42,14 @@ export async function handleRequest(
 		return new Response('', { status: 400 })
 	}
 
-	const note = await createNote(db, body.status, connectedActor)
+	const note = await createPublicNote(db, body.status, connectedActor)
+	await addObjectInOutbox(db, connectedActor, note)
 
-	// If the status is mentioned other persons, we need to delivery it to them.
+	const activity = activities.create(connectedActor, note)
+	const signingKey = await getSigningKey(userKEK, db, connectedActor)
+	await deliverFollowers(db, signingKey, connectedActor, activity)
+
+	// If the status is mentioning other persons, we need to delivery it to them.
 	const mentions = getMentions(body.status)
 	for (let i = 0, len = mentions.length; i < len; i++) {
 		if (mentions[i].domain === null) {
@@ -56,12 +62,11 @@ export async function handleRequest(
 			console.warn(`actor ${acct} not found`)
 			continue
 		}
+		note.to.push(targetActor.id)
 		const activity = activities.create(connectedActor, note)
 		const signingKey = await getSigningKey(userKEK, db, connectedActor)
-		await deliver(signingKey, connectedActor, targetActor, activity)
+		await deliverToActor(signingKey, connectedActor, targetActor, activity)
 	}
-
-	await addObjectInOutbox(db, connectedActor, note)
 
 	const res: any = {
 		id: note.id,

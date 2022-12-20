@@ -3,7 +3,7 @@
 import type { Env } from 'wildebeest/types/env'
 import { parseHandle } from 'wildebeest/utils/parse'
 import { getSigningKey } from 'wildebeest/mastodon/account'
-import { deliver } from 'wildebeest/activitypub/deliver'
+import { deliverToActor } from 'wildebeest/activitypub/deliver'
 import type { Person } from 'wildebeest/activitypub/actors'
 import * as actors from 'wildebeest/activitypub/actors/'
 import * as like from 'wildebeest/activitypub/activities/like'
@@ -40,7 +40,7 @@ export async function handleRequest(
 
 	const activity = like.create(connectedActor, new URL(obj.originalObjectId))
 	const signingKey = await getSigningKey(userKEK, db, connectedActor)
-	await deliver(signingKey, connectedActor, targetActor, activity)
+	await deliverToActor(signingKey, connectedActor, targetActor, activity)
 
 	const headers = {
 		'content-type': 'application/json; charset=utf-8',

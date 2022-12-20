@@ -23,7 +23,7 @@ function followingURL(id: URL): URL {
 	return new URL(id + '/following')
 }
 
-function followersURL(id: URL): URL {
+export function followersURL(id: URL): URL {
 	return new URL(id + '/followers')
 }
 

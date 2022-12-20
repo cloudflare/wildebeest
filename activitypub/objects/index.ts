@@ -4,7 +4,7 @@ import type { Actor } from 'wildebeest/activitypub/actors/'
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
 export interface Object {
 	type: string
-	id: string
+	id: string // FIXME: switch to entirely to URL
 	url: URL
 	published?: string
 	icon?: Object
@@ -31,7 +31,7 @@ export async function createObject(
 	properties: any,
 	originalActorId: URL
 ): Promise<Object> {
-	const id = crypto.randomUUID()
+	const id = uri(crypto.randomUUID()).toString()
 
 	const row: any = await db
 		.prepare('INSERT INTO objects(id, type, properties, original_actor_id) VALUES(?, ?, ?, ?) RETURNING *')
@@ -41,8 +41,8 @@ export async function createObject(
 	return {
 		...properties,
 		type,
-		id: row.id,
-		url: uri(row.id),
+		id,
+		url: id,
 		published: new Date(row.cdate).toISOString(),
 		originalActorId: row.original_actor_id,
 	}
@@ -54,7 +54,7 @@ export async function cacheObject(
 	originalActorId: URL,
 	originalObjectId: URL
 ): Promise<Object> {
-	const id = crypto.randomUUID()
+	const id = uri(crypto.randomUUID()).toString()
 
 	const row: any = await db
 		.prepare(
@@ -65,8 +65,8 @@ export async function cacheObject(
 
 	return {
 		...properties,
-		id: row.id,
-		url: uri(row.id),
+		id,
+		url: id,
 		published: new Date(row.cdate).toISOString(),
 		originalActorId: row.original_actor_id,
 		originalObjectId: row.original_object_id,
@@ -96,7 +96,7 @@ WHERE objects.id=?
 
 		id: result.id,
 		type: result.type,
-		url: uri(result.id),
+		url: id,
 		originalActorId: result.original_actor_id,
 		originalObjectId: result.original_object_id,
 	}
