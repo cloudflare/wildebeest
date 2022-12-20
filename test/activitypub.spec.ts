@@ -11,6 +11,8 @@ import * as ap_users from '../functions/ap/users/[id]'
 import * as ap_inbox from '../functions/ap/users/[id]/inbox'
 import * as ap_outbox from '../functions/ap/users/[id]/outbox'
 import * as ap_following from '../functions/ap/users/[id]/following'
+import * as ap_followers from '../functions/ap/users/[id]/followers'
+import * as ap_followers_page from '../functions/ap/users/[id]/followers/page'
 import * as ap_following_page from '../functions/ap/users/[id]/following/page'
 import * as ap_outbox_page from '../functions/ap/users/[id]/outbox/page'
 
@@ -332,10 +334,47 @@ describe('ActivityPub', () => {
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
-			console.log({ data })
 			assert.equal(data.type, 'OrderedCollectionPage')
 			assert.equal(data.orderedItems[0], `https://${instanceConfig.uri}/ap/users/sven2`)
 			assert.equal(data.orderedItems[1], `https://${instanceConfig.uri}/ap/users/sven3`)
+		})
+
+		test('list actor follower', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+			const actor2: any = {
+				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+			}
+			await addFollowing(db, actor2, actor, 'not needed')
+			await acceptFollowing(db, actor2, actor)
+
+			const res = await ap_followers.handleRequest(db, 'sven')
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.type, 'OrderedCollection')
+			assert.equal(data.totalItems, 1)
+		})
+
+		test('list actor follower page', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+			const actor2: any = {
+				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+			}
+			await addFollowing(db, actor2, actor, 'not needed')
+			await acceptFollowing(db, actor2, actor)
+
+			const res = await ap_followers_page.handleRequest(db, 'sven')
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.type, 'OrderedCollectionPage')
+			assert.equal(data.orderedItems[0], `https://${instanceConfig.uri}/ap/users/sven2`)
 		})
 	})
 
