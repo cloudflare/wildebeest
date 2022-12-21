@@ -415,6 +415,30 @@ describe('ActivityPub', () => {
 			assert.equal(data.type, 'OrderedCollectionPage')
 			assert.equal(data.orderedItems[0], `https://${instanceConfig.uri}/ap/users/sven2`)
 		})
+
+		test('creates a notification', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+			const actor2: any = {
+				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+			}
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Follow',
+				actor: actor2.id,
+				object: actor.id,
+			}
+
+			await activityHandler.handle(activity, db, userKEK, 'inbox')
+
+			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
+			assert.equal(entry.type, 'follow')
+			assert.equal(entry.actor_id, actor.id)
+			assert.equal(entry.from_actor_id, actor2.id)
+		})
 	})
 
 	describe('Outbox', () => {

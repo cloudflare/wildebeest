@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS actor_notifications (
   type TEXT NOT NULL,
   actor_id TEXT NOT NULL,
   from_actor_id TEXT NOT NULL,
-  object_id TEXT NOT NULL,
+  object_id TEXT,
   cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
 
   FOREIGN KEY(actor_id)  REFERENCES actors(id),

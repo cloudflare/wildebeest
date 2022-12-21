@@ -29,7 +29,7 @@ export async function handleRequest(db: D1Database, connectedActor: Person): Pro
         actor_notifications.from_actor_id,
         actor_notifications.id as notif_id
     FROM actor_notifications
-    INNER JOIN objects ON objects.id=actor_notifications.object_id
+    LEFT JOIN objects ON objects.id=actor_notifications.object_id
     WHERE actor_id=?
     ORDER BY actor_notifications.cdate DESC
   `
@@ -59,34 +59,37 @@ export async function handleRequest(db: D1Database, connectedActor: Person): Pro
 		const acct = urlToHandle(from_actor_id)
 		const fromAccount = loadExternalMastodonAccount(acct, fromActor)
 
-		const status: MastodonStatus = {
-			id: result.id,
-			content: properties.content,
-			uri: objects.uri(result.id),
-			created_at: new Date(result.cdate).toISOString(),
-
-			emojis: [],
-			media_attachments: [],
-			tags: [],
-			mentions: [],
-
-			// TODO: a shortcut has been taked. We assume that the actor
-			// generating the notification also created the object. In practice
-			// likely true but not guarantee.
-			account: fromAccount,
-
-			// TODO: stub values
-			visibility: 'public',
-			spoiler_text: '',
-		}
-
-		out.push({
+		const notif: Notification = {
 			id: result.notif_id,
 			type: result.type,
 			created_at: result.created_at,
 			account: fromAccount,
-			status,
-		})
+		}
+
+		if (result.type === 'mention' || result.type === 'favourite') {
+			notif.status = {
+				id: result.id,
+				content: properties.content,
+				uri: objects.uri(result.id),
+				created_at: new Date(result.cdate).toISOString(),
+
+				emojis: [],
+				media_attachments: [],
+				tags: [],
+				mentions: [],
+
+				// TODO: a shortcut has been taked. We assume that the actor
+				// generating the notification also created the object. In practice
+				// likely true but not guarantee.
+				account: fromAccount,
+
+				// TODO: stub values
+				visibility: 'public',
+				spoiler_text: '',
+			}
+		}
+
+		out.push(notif)
 	}
 	return new Response(JSON.stringify(out), { headers })
 }

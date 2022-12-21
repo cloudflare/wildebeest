@@ -5,7 +5,7 @@ import * as objects from 'wildebeest/activitypub/objects/'
 import type { Actor } from 'wildebeest/activitypub/actors/'
 import * as accept from 'wildebeest/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/activitypub/actors/inbox'
-import { insertNotification } from 'wildebeest/mastodon/notification'
+import { insertNotification, insertFollowNotification } from 'wildebeest/mastodon/notification'
 import type { Object } from 'wildebeest/activitypub/objects/'
 import { parseHandle } from 'wildebeest/utils/parse'
 import { instanceConfig } from 'wildebeest/config/instance'
@@ -137,15 +137,18 @@ export async function handle(
 
 			const receiver = await actors.getPersonById(db, objectId)
 			if (receiver !== null) {
-				const originalActorId = await actors.getAndCache(new URL(actorId), db)
+				const originalActor = await actors.getAndCache(new URL(actorId), db)
 				const receiverAcct = `${receiver.preferredUsername}@${instanceConfig.uri}`
-				await addFollowing(db, originalActorId, receiver, receiverAcct)
-				await acceptFollowing(db, originalActorId, receiver)
+				await addFollowing(db, originalActor, receiver, receiverAcct)
+				await acceptFollowing(db, originalActor, receiver)
 
 				// Automatically send the Accept reply
 				const reply = accept.create(receiver, activity)
 				const signingKey = await getSigningKey(userKEK, db, receiver)
-				await deliverToActor(signingKey, receiver, originalActorId, reply)
+				await deliverToActor(signingKey, receiver, originalActor, reply)
+
+				// Notify the user
+				await insertFollowNotification(db, receiver, originalActor)
 			} else {
 				console.warn(`actor ${objectId} not found`)
 			}

@@ -14,7 +14,7 @@ import * as middleware from '../utils/auth'
 import { loadLocalMastodonAccount } from '../mastodon/account'
 import { getSigningKey } from '../mastodon/account'
 import { createPerson } from 'wildebeest/activitypub/actors'
-import { insertNotification } from 'wildebeest/mastodon/notification'
+import { insertNotification, insertFollowNotification } from 'wildebeest/mastodon/notification'
 
 const userKEK = 'test_kek'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -312,6 +312,10 @@ describe('Mastodon APIs', () => {
 			const obj: any = {
 				id: 'object1',
 			}
+			await insertFollowNotification(db, connectedActor, fromActor)
+			await sleep(10)
+			await insertNotification(db, 'favourite', connectedActor, fromActor, obj)
+			await sleep(10)
 			await insertNotification(db, 'mention', connectedActor, fromActor, obj)
 
 			const res = await notifications.handleRequest(db, connectedActor)
@@ -320,10 +324,19 @@ describe('Mastodon APIs', () => {
 			assertCORS(res)
 
 			const data = await res.json<Array<any>>()
-			assert.equal(data.length, 1)
+			assert.equal(data.length, 3)
+
 			assert.equal(data[0].type, 'mention')
 			assert.equal(data[0].account.username, 'from')
 			assert.equal(data[0].status.id, 'object1')
+
+			assert.equal(data[1].type, 'favourite')
+			assert.equal(data[1].account.username, 'from')
+			assert.equal(data[1].status.id, 'object1')
+
+			assert.equal(data[2].type, 'follow')
+			assert.equal(data[2].account.username, 'from')
+			assert.equal(data[2].status, undefined)
 		})
 	})
 
