@@ -1,4 +1,6 @@
 import type { Handle } from '../utils/parse'
+import { getPersonById } from 'wildebeest/activitypub/actors'
+import { getObjectById } from 'wildebeest/activitypub/objects'
 import type { Object } from 'wildebeest/activitypub/objects/'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
@@ -30,7 +32,7 @@ export function getMentions(input: string): Array<Handle> {
 	return mentions
 }
 
-export async function toMastodonStatus(db: D1Database, obj: Object): Promise<MastodonStatus | null> {
+export async function toMastodonStatusFromObject(db: D1Database, obj: Object): Promise<MastodonStatus | null> {
 	if (obj.originalActorId === undefined) {
 		console.warn('missing `obj.originalActorId`')
 		return null
@@ -65,4 +67,61 @@ export async function toMastodonStatus(db: D1Database, obj: Object): Promise<Mas
 		favourites_count: favourites.length,
 		reblogs_count: reblogs.length,
 	}
+}
+
+export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise<MastodonStatus | null> {
+	if (row.original_actor_id === undefined) {
+		console.warn('missing `row.original_actor_id`')
+		return null
+	}
+	const properties = JSON.parse(row.properties)
+
+	const actorId = new URL(row.original_actor_id)
+
+	const author = await getPersonById(db, actorId)
+	if (author === null) {
+		console.error('note author is unknown')
+		return null
+	}
+
+	const acct = urlToHandle(actorId)
+	const account = loadExternalMastodonAccount(acct, author)
+
+	const obj: any = {
+		// likes and reblogs can be retrieve only with the object id, we don't
+		// need to load the full object.
+		id: row.id,
+	}
+	const favourites = await getLikes(db, obj)
+	const reblogs = await getReblogs(db, obj)
+
+	return {
+		// Default values
+		id: row.id,
+		uri: objects.uri(row.id),
+		created_at: new Date(row.cdate).toISOString(),
+		content: properties.content,
+		emojis: [],
+		media_attachments: [],
+		tags: [],
+		mentions: [],
+		account,
+
+		// TODO: stub values
+		visibility: 'public',
+		spoiler_text: '',
+
+		...properties,
+
+		favourites_count: favourites.length,
+		reblogs_count: reblogs.length,
+	}
+}
+
+export async function getMastodonStatusById(db: D1Database, id: string): Promise<MastodonStatus | null> {
+	const obj = await getObjectById(db, id)
+	if (obj === null) {
+		return null
+	}
+	return toMastodonStatusFromObject(db, obj)
 }

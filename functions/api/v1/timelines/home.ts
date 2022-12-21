@@ -3,7 +3,7 @@ import type { ContextData } from 'wildebeest/types/context'
 import type { Actor } from 'wildebeest/activitypub/actors/'
 import * as objects from 'wildebeest/activitypub/objects/'
 import { urlToHandle } from 'wildebeest/utils/handle'
-import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
+import { toMastodonStatusFromRow } from 'wildebeest/mastodon/status'
 import { getPersonById } from 'wildebeest/activitypub/actors'
 import type { MastodonAccount, MastodonStatus } from 'wildebeest/types/'
 import { getFollowingId } from 'wildebeest/activitypub/actors/follow'
@@ -19,11 +19,9 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 }
 
 export async function handleRequest(db: D1Database, connectedActor: Actor): Promise<Response> {
-	const out: Array<MastodonStatus> = []
-
 	const following = await getFollowingId(db, connectedActor)
 	if (following.length === 0) {
-		return new Response(JSON.stringify(out), { headers })
+		return new Response(JSON.stringify([]), { headers })
 	}
 
 	const QUERY = `
@@ -40,39 +38,10 @@ LIMIT ?
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}
-
-	if (results && results.length > 0) {
-		for (let i = 0, len = results.length; i < len; i++) {
-			const result: any = results[i]
-			const properties = JSON.parse(result.properties)
-			const actorId = new URL(result.original_actor_id)
-
-			const author = await getPersonById(db, actorId)
-			if (author === null) {
-				console.error('note author is unknown')
-				continue
-			}
-
-			const acct = urlToHandle(actorId)
-			const account = loadExternalMastodonAccount(acct, author)
-
-			out.push({
-				id: result.id,
-				uri: objects.uri(result.id),
-				created_at: new Date(result.cdate).toISOString(),
-				content: properties.content,
-				emojis: [],
-				media_attachments: [],
-				tags: [],
-				mentions: [],
-				account,
-
-				// TODO: stub values
-				visibility: 'public',
-				spoiler_text: '',
-			})
-		}
+	if (!results) {
+		return new Response(JSON.stringify([]), { headers })
 	}
 
+	const out = await Promise.all(results.map((row) => toMastodonStatusFromRow(db, row)))
 	return new Response(JSON.stringify(out), { headers })
 }

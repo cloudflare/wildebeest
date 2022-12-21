@@ -5,21 +5,16 @@ import { parseHandle } from 'wildebeest/utils/parse'
 import type { Person } from 'wildebeest/activitypub/actors'
 import type { ContextData } from 'wildebeest/types/context'
 import { getFollowers } from 'wildebeest/activitypub/actors/follow'
-import { toMastodonStatus } from 'wildebeest/mastodon/status'
+import { getMastodonStatusById } from 'wildebeest/mastodon/status'
 import type { Env } from 'wildebeest/types/env'
-import { getObjectById } from 'wildebeest/activitypub/objects'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env, data }) => {
 	return handleRequest(env.DATABASE, params.id as string)
 }
 
 export async function handleRequest(db: D1Database, id: string): Promise<Response> {
-	const obj = await getObjectById(db, id)
-	if (obj === null) {
-		return new Response('', { status: 404 })
-	}
-	const status = await toMastodonStatus(db, obj)
-	if (!status) {
+	const status = await getMastodonStatusById(db, id)
+	if (status === null) {
 		return new Response('', { status: 404 })
 	}
 
