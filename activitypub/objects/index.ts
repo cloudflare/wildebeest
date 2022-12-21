@@ -85,13 +85,13 @@ export async function cacheObject(
 	}
 }
 
-export async function getObjectById(db: D1Database, id: string): Promise<Object | null> {
+export async function getObjectById(db: D1Database, id: string | URL): Promise<Object | null> {
 	const query = `
 SELECT id, properties, type, original_actor_id, original_object_id
 FROM objects
 WHERE objects.id=?
   `
-	const { results, success, error } = await db.prepare(query).bind(id).all()
+	const { results, success, error } = await db.prepare(query).bind(id.toString()).all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}

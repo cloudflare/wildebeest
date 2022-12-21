@@ -170,6 +170,28 @@ export async function handle(
 			break
 		}
 
+		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-like
+		case 'Like': {
+			const actorId = new URL(getActorAsId())
+			const objectId = new URL(getObjectAsId())
+
+			const obj = await objects.getObjectById(db, objectId)
+			if (obj === null || !obj.originalActorId) {
+				console.warn('unknown object')
+				break
+			}
+
+			const fromActor = await actors.getAndCache(actorId, db)
+			const targetActor = await actors.getPersonById(db, new URL(obj.originalActorId))
+			if (targetActor === null) {
+				console.warn('object actor not found')
+				break
+			}
+
+			await insertNotification(db, 'favourite', targetActor, fromActor, obj)
+			break
+		}
+
 		default:
 			console.warn(`Unsupported activity: ${activity.type}`)
 	}
