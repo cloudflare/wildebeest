@@ -27,7 +27,7 @@ Changes to the UI code will not trigger a rebuild automatically.
 To do so, run the following in second terminal:
 
 ```sh
-yarn --cwd ui watch
+yarn --cwd frontend watch
 ```
 
 ## Deploying

@@ -33,6 +33,6 @@ jobs:
         with:
           node-version: 16.13.x
       - name: Install
-        run: yarn && yarn --cwd ui
+        run: yarn && yarn --cwd frontend
       - name: Run UI tests
         run: yarn test:ui
