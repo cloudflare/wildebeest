@@ -2,7 +2,7 @@ import { makeDB, assertCache } from './utils'
 import { strict as assert } from 'node:assert/strict'
 import { instanceConfig } from 'wildebeest/config/instance'
 
-import * as webfinger from '../functions/.well-known/webfinger'
+import * as webfinger from 'wildebeest/functions/.well-known/webfinger'
 
 describe('WebFinger', () => {
 	test('no resource queried', async () => {

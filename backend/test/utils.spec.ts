@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert/strict'
 
-import { parseHandle } from '../utils/parse'
-import { urlToHandle } from '../utils/handle'
+import { parseHandle } from '../../utils/parse'
+import { urlToHandle } from '../../utils/handle'
 
 import { generateUserKey, unwrapPrivateKey, importPublicKey } from 'wildebeest/utils/key-ops'
 import { signRequest } from 'wildebeest/utils/http-signing'

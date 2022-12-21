@@ -1,7 +1,7 @@
 import { MastodonAccount } from 'wildebeest/types/account'
 import { unwrapPrivateKey } from 'wildebeest/utils/key-ops'
 import type { Actor } from '../activitypub/actors/'
-import { defaultImages } from '../config/accounts'
+import { defaultImages } from 'wildebeest/config/accounts'
 import { getFollowingAcct, getFollowers } from 'wildebeest/activitypub/actors/follow'
 
 async function getStatusesCount(db: D1Database, actorId: URL): Promise<number> {

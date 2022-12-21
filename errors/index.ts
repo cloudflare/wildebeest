@@ -1,4 +1,4 @@
-import { instanceConfig } from '../config/instance'
+import { instanceConfig } from 'wildebeest/config/instance'
 
 type ErrorResponse = {
 	error: string

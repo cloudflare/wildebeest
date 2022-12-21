@@ -4,8 +4,8 @@ import { createPublicNote } from 'wildebeest/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 import { createPerson } from 'wildebeest/activitypub/actors'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
-import * as timelines_home from '../../functions/api/v1/timelines/home'
-import * as timelines_public from '../../functions/api/v1/timelines/public'
+import * as timelines_home from 'wildebeest/functions/api/v1/timelines/home'
+import * as timelines_public from 'wildebeest/functions/api/v1/timelines/public'
 
 const userKEK = 'test_kek6'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
