@@ -98,7 +98,9 @@ async function getLocalStatuses(request: Request, db: D1Database, handle: Handle
 	const actorId = actorURL(handle.localPart)
 
 	const QUERY = `
-SELECT objects.*
+SELECT objects.*,
+       (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
+       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
 WHERE outbox_objects.actor_id = ? AND outbox_objects.cdate > ? AND objects.type = 'Note'
@@ -159,6 +161,8 @@ LIMIT ?
 				tags: [],
 				mentions: [],
 				account,
+				favourites_count: result.favourites_count,
+				reblogs_count: result.reblogs_count,
 
 				// TODO: stub values
 				visibility: 'public',

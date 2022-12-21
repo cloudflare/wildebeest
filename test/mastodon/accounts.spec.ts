@@ -1,4 +1,6 @@
 import { strict as assert } from 'node:assert/strict'
+import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
+import { createPublicNote } from 'wildebeest/activitypub/objects/note'
 import * as accounts_following from '../../functions/api/v1/accounts/[id]/following'
 import * as accounts_featured_tags from '../../functions/api/v1/accounts/[id]/featured_tags'
 import * as accounts_lists from '../../functions/api/v1/accounts/[id]/lists'
@@ -13,6 +15,8 @@ import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayB
 import * as accounts_verify_creds from '../../functions/api/v1/accounts/verify_credentials'
 import { createPerson } from 'wildebeest/activitypub/actors'
 import { addFollowing, acceptFollowing } from 'wildebeest/activitypub/actors/follow'
+import { insertLike } from 'wildebeest/mastodon/like'
+import { insertReblog } from 'wildebeest/mastodon/reblog'
 
 const userKEK = 'test_kek2'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -136,24 +140,17 @@ describe('Mastodon APIs', () => {
 
 		test('get local actor statuses', async () => {
 			const db = await makeDB()
-			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
-			await db
-				.prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
-				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
-				.run()
-			await db
-				.prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
-				.bind('outbox1', actorId, 'object1')
-				.run()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+
+			const firstNote = await createPublicNote(db, 'my first status', actor)
+			await addObjectInOutbox(db, actor, firstNote)
+			await insertLike(db, actor, firstNote)
 			await sleep(10)
-			await db
-				.prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
-				.bind('object2', 'Note', JSON.stringify({ content: 'my second status' }))
-				.run()
-			await db
-				.prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
-				.bind('outbox2', actorId, 'object2')
-				.run()
+			const secondNode = await createPublicNote(db, 'my second status', actor)
+			await addObjectInOutbox(db, actor, secondNode)
+			await insertReblog(db, actor, secondNode)
 
 			const req = new Request('https://example.com')
 			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + instanceConfig.uri, userKEK)
@@ -161,9 +158,15 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<Array<any>>()
 			assert.equal(data.length, 2)
+
 			assert.equal(data[0].content, 'my second status')
 			assert.equal(data[0].account.acct, 'sven@' + instanceConfig.uri)
+			assert.equal(data[0].favourites_count, 0)
+			assert.equal(data[0].reblogs_count, 1)
+
 			assert.equal(data[1].content, 'my first status')
+			assert.equal(data[1].favourites_count, 1)
+			assert.equal(data[1].reblogs_count, 0)
 		})
 
 		test('get pinned statuses', async () => {
