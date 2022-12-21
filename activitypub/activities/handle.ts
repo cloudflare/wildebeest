@@ -151,6 +151,24 @@ export async function handle(
 			break
 		}
 
+		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-announce
+		case 'Announce': {
+			requireComplexObject()
+			const actorId = new URL(getActorAsId())
+			const objectId = new URL(getObjectAsId())
+			const obj = await createObject(activity.object, db, actorId, objectId)
+			if (obj === null) {
+				break
+			}
+			createdObjects.push(obj)
+
+			const fromActor = await actors.getAndCache(new URL(getActorAsId()), db)
+			// Add the object in the originating actor's outbox, allowing other
+			// actors on this instance to see the note in their timelines.
+			await addObjectInOutbox(db, fromActor, obj)
+			break
+		}
+
 		default:
 			console.warn(`Unsupported activity: ${activity.type}`)
 	}

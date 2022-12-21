@@ -454,4 +454,50 @@ describe('ActivityPub', () => {
 			assert.equal(data.orderedItems[1].object.content, 'my first status')
 		})
 	})
+
+	describe('Announce', () => {
+		test('Announce objects are stored and added to the remote actors outbox', async () => {
+			const remoteActorId = 'https://example.com/actor'
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === remoteActorId) {
+					return new Response(
+						JSON.stringify({
+							id: remoteActorId,
+							type: 'Person',
+						})
+					)
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+
+			const activity: any = {
+				type: 'Announce',
+				actor: remoteActorId,
+				to: [],
+				cc: [],
+				object: {
+					id: 'https://example.com/note1',
+					type: 'Note',
+					content: 'test note',
+				},
+			}
+			await activityHandler.handle(activity, db, userKEK, 'inbox')
+
+			const object = await db.prepare('SELECT * FROM objects').bind(remoteActorId).first()
+			assert(object)
+			assert.equal(object.type, 'Note')
+			assert.equal(object.original_actor_id, remoteActorId)
+
+			const outbox_object = await db
+				.prepare('SELECT * FROM outbox_objects WHERE actor_id=?')
+				.bind(remoteActorId)
+				.first()
+			assert(outbox_object)
+			assert.equal(outbox_object.actor_id, remoteActorId)
+		})
+	})
 })
