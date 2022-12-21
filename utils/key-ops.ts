@@ -130,9 +130,10 @@ Import public key
 */
 export async function importPublicKey(exportedKey: string): Promise<CryptoKey> {
 	// fetch the part of the PEM string between header and footer
+	const trimmed = exportedKey.trim()
 	const pemHeader = '-----BEGIN PUBLIC KEY-----'
 	const pemFooter = '-----END PUBLIC KEY-----'
-	const pemContents = exportedKey.substring(pemHeader.length, exportedKey.length - pemFooter.length)
+	const pemContents = trimmed.substring(pemHeader.length, trimmed.length - pemFooter.length)
 
 	// base64 decode the string to get the binary data
 	const binaryDerString = atob(pemContents)

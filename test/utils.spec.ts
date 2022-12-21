@@ -7,7 +7,7 @@ import { generateUserKey, unwrapPrivateKey, importPublicKey } from 'wildebeest/u
 import { signRequest } from 'wildebeest/utils/http-signing'
 import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
 import { parseRequest } from 'wildebeest/utils/httpsigjs/parser'
-import { verifySignature } from 'wildebeest/utils/httpsigjs/verifier'
+import { fetchKey, verifySignature } from 'wildebeest/utils/httpsigjs/verifier'
 
 describe('utils', () => {
 	test('user key lifecycle', async () => {
