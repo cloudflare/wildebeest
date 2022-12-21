@@ -12,7 +12,6 @@ import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
 	const parsedSignature = parseRequest(request)
-	console.log(parsedSignature)
 	const pubKey = await fetchKey(parsedSignature)
 	const valid = await verifySignature(parsedSignature, pubKey)
 	if (!valid) {
