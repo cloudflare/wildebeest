@@ -10,6 +10,7 @@ import type { Person } from 'wildebeest/activitypub/actors'
 import type { ContextData } from 'wildebeest/types/context'
 import { getFollowers } from 'wildebeest/activitypub/actors/follow'
 import type { Env } from 'wildebeest/types/env'
+import { domainNotAuthorized } from 'wildebeest/errors/'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env, data }) => {
 	return handleRequest(env.DATABASE, params.id as string, data.connectedActor)
@@ -18,7 +19,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, 
 export async function handleRequest(db: D1Database, id: string, connectedActor: Person): Promise<Response> {
 	const handle = parseHandle(id)
 	if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
-		return new Response('', { status: 403 })
+		return domainNotAuthorized()
 	}
 
 	const out: Array<MastodonAccount> = []
