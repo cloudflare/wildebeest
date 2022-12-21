@@ -14,6 +14,7 @@ import { acceptFollowing, addFollowing } from 'wildebeest/activitypub/actors/fol
 import { deliverToActor } from 'wildebeest/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/mastodon/account'
 import { insertLike } from 'wildebeest/mastodon/like'
+import { insertReblog } from 'wildebeest/mastodon/reblog'
 import type { Activity } from 'wildebeest/activitypub/activities/'
 
 function extractID(s: string): string {
@@ -156,18 +157,31 @@ export async function handle(
 		case 'Announce': {
 			const actorId = new URL(getActorAsId())
 			const objectId = new URL(getObjectAsId())
-			const remoteObject = await objects.get<Note>(objectId)
 
-			const obj = await createObject(remoteObject, db, actorId, objectId)
-			if (obj === null) {
-				break
+			let obj: any = null
+
+			const localObject = await objects.getObjectById(db, objectId)
+			if (localObject === null) {
+				// Object doesn't exists locally, we'll need to download it.
+				const remoteObject = await objects.get<Note>(objectId)
+
+				obj = await createObject(remoteObject, db, actorId, objectId)
+				if (obj === null) {
+					break
+				}
+				createdObjects.push(obj)
+			} else {
+				// Object already exists locally, we can just use it.
+				obj = localObject
 			}
-			createdObjects.push(obj)
 
 			const fromActor = await actors.getAndCache(new URL(getActorAsId()), db)
 			// Add the object in the originating actor's outbox, allowing other
 			// actors on this instance to see the note in their timelines.
 			await addObjectInOutbox(db, fromActor, obj)
+
+			// Store the reblog for counting
+			await insertReblog(db, fromActor, obj)
 			break
 		}
 

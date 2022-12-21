@@ -8,6 +8,7 @@ import type { MastodonAccount, MastodonStatus } from 'wildebeest/types/'
 import { parseHandle } from '../utils/parse'
 import { urlToHandle } from '../utils/handle'
 import { getLikes } from './like'
+import { getReblogs } from './reblog'
 
 export function getMentions(input: string): Array<Handle> {
 	const mentions: Array<Handle> = []
@@ -42,6 +43,7 @@ export async function toMastodonStatus(db: D1Database, obj: Object): Promise<Mas
 	const account = loadExternalMastodonAccount(acct, actor)
 
 	const favourites = await getLikes(db, obj)
+	const reblogs = await getReblogs(db, obj)
 
 	return {
 		// Default values
@@ -61,5 +63,6 @@ export async function toMastodonStatus(db: D1Database, obj: Object): Promise<Mas
 		account,
 
 		favourites_count: favourites.length,
+		reblogs_count: reblogs.length,
 	}
 }

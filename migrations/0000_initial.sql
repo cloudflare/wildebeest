@@ -76,3 +76,13 @@ CREATE TABLE IF NOT EXISTS actor_favourites (
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
   FOREIGN KEY(object_id) REFERENCES objects(id)
 );
+
+CREATE TABLE IF NOT EXISTS actor_reblogs (
+  id TEXT PRIMARY KEY,
+  actor_id TEXT NOT NULL,
+  object_id TEXT NOT NULL,
+  cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
+
+  FOREIGN KEY(actor_id)  REFERENCES actors(id),
+  FOREIGN KEY(object_id) REFERENCES objects(id)
+);

@@ -17,4 +17,5 @@ export type MastodonStatus = {
 	mentions: Array<any>
 	tags: Array<any>
 	favourites_count?: number
+	reblogs_count?: number
 }
