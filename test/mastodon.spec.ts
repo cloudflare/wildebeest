@@ -1,14 +1,10 @@
 import { strict as assert } from 'node:assert/strict'
-import { createPublicNote } from 'wildebeest/activitypub/objects/note'
-import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 import { instanceConfig } from 'wildebeest/config/instance'
 import * as v1_instance from '../functions/api/v1/instance'
 import * as v2_instance from '../functions/api/v2/instance'
 import * as apps from '../functions/api/v1/apps'
 import * as search from '../functions/api/v2/search'
 import * as custom_emojis from '../functions/api/v1/custom_emojis'
-import * as timelines_home from '../functions/api/v1/timelines/home'
-import * as timelines_public from '../functions/api/v1/timelines/public'
 import * as notifications from '../functions/api/v1/notifications'
 import { TEST_JWT, ACCESS_CERTS } from './test-data'
 import { defaultImages } from '../config/accounts'
@@ -294,44 +290,6 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.length, 0)
-		})
-	})
-
-	describe('timelines', () => {
-		test('home returns an empty array', async () => {
-			const res = await timelines_home.onRequest()
-			assert.equal(res.status, 200)
-			assertJSON(res)
-			assertCORS(res)
-
-			const data = await res.json<any>()
-			assert.equal(data.length, 0)
-		})
-
-		test('public returns Notes', async () => {
-			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
-			}
-
-			await addObjectInOutbox(db, actor, await createPublicNote(db, 'status from actor', actor))
-			await sleep(10)
-			await addObjectInOutbox(db, actor2, await createPublicNote(db, 'status from actor2', actor2))
-
-			const res = await timelines_public.handleRequest(db)
-			assert.equal(res.status, 200)
-			assertJSON(res)
-			assertCORS(res)
-
-			const data = await res.json<any>()
-			assert.equal(data.length, 2)
-			assert.equal(data[0].content, 'status from actor2')
-			assert.equal(data[0].account.username, 'sven2')
-			assert.equal(data[1].content, 'status from actor')
-			assert.equal(data[1].account.username, 'sven')
 		})
 	})
 
