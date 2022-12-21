@@ -48,6 +48,18 @@ export async function createObject(
 	}
 }
 
+export async function get<T>(url: URL): Promise<T> {
+	const headers = {
+		accept: 'application/activity+json',
+	}
+	const res = await fetch(url, { headers })
+	if (!res.ok) {
+		throw new Error(`${url} returned: ${res.status}`)
+	}
+
+	return res.json<T>()
+}
+
 export async function cacheObject(
 	db: D1Database,
 	properties: any,

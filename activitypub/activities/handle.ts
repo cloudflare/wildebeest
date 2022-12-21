@@ -153,10 +153,11 @@ export async function handle(
 
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-announce
 		case 'Announce': {
-			requireComplexObject()
 			const actorId = new URL(getActorAsId())
 			const objectId = new URL(getObjectAsId())
-			const obj = await createObject(activity.object, db, actorId, objectId)
+			const remoteObject = await objects.get<Note>(objectId)
+
+			const obj = await createObject(remoteObject, db, actorId, objectId)
 			if (obj === null) {
 				break
 			}

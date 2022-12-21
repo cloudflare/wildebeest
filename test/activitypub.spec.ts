@@ -458,12 +458,23 @@ describe('ActivityPub', () => {
 	describe('Announce', () => {
 		test('Announce objects are stored and added to the remote actors outbox', async () => {
 			const remoteActorId = 'https://example.com/actor'
+			const objectId = 'https://example.com/some-object'
 			globalThis.fetch = async (input: RequestInfo) => {
 				if (input.toString() === remoteActorId) {
 					return new Response(
 						JSON.stringify({
 							id: remoteActorId,
 							type: 'Person',
+						})
+					)
+				}
+
+				if (input.toString() === objectId) {
+					return new Response(
+						JSON.stringify({
+							id: objectId,
+							type: 'Note',
+							content: 'foo',
 						})
 					)
 				}
@@ -479,11 +490,7 @@ describe('ActivityPub', () => {
 				actor: remoteActorId,
 				to: [],
 				cc: [],
-				object: {
-					id: 'https://example.com/note1',
-					type: 'Note',
-					content: 'test note',
-				},
+				object: objectId,
 			}
 			await activityHandler.handle(activity, db, userKEK, 'inbox')
 
