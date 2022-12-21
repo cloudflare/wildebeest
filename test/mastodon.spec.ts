@@ -21,6 +21,7 @@ import { createPerson } from 'wildebeest/activitypub/actors'
 import { insertNotification } from 'wildebeest/mastodon/notification'
 
 const userKEK = 'test_kek'
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 describe('Mastodon APIs', () => {
 	describe('instance', () => {
@@ -317,6 +318,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			await addObjectInOutbox(db, actor, await createPublicNote(db, 'status from actor', actor))
+			await sleep(10)
 			await addObjectInOutbox(db, actor2, await createPublicNote(db, 'status from actor2', actor2))
 
 			const res = await timelines_public.handleRequest(db)

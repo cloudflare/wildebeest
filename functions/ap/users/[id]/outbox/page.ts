@@ -40,7 +40,7 @@ export async function handleRequest(db: D1Database, id: string, userKEK: string)
 SELECT objects.*
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE outbox_objects.actor_id = ?
+WHERE outbox_objects.actor_id = ? AND objects.type = 'Note'
 ORDER by outbox_objects.cdate DESC
 LIMIT ?
 `
@@ -84,7 +84,7 @@ LIMIT ?
 			activity.published = new Date(result.cdate).toISOString()
 			activity.to = ['https://www.w3.org/ns/activitystreams#Public']
 			activity.cc = [actor.followers]
-			items.unshift(activity)
+			items.push(activity)
 		}
 	}
 

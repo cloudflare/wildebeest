@@ -15,6 +15,7 @@ import { createPerson } from 'wildebeest/activitypub/actors'
 import { addFollowing, acceptFollowing } from 'wildebeest/activitypub/actors/follow'
 
 const userKEK = 'test_kek2'
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 describe('Mastodon APIs', () => {
 	describe('accounts', () => {
@@ -144,6 +145,7 @@ describe('Mastodon APIs', () => {
 				.prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
 				.bind('outbox1', actorId, 'object1')
 				.run()
+			await sleep(10)
 			await db
 				.prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
 				.bind('object2', 'Note', JSON.stringify({ content: 'my second status' }))
@@ -159,9 +161,9 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<Array<any>>()
 			assert.equal(data.length, 2)
-			assert.equal(data[0].content, 'my first status')
+			assert.equal(data[0].content, 'my second status')
 			assert.equal(data[0].account.acct, 'sven@' + instanceConfig.uri)
-			assert.equal(data[1].content, 'my second status')
+			assert.equal(data[1].content, 'my first status')
 		})
 
 		test('get pinned statuses', async () => {

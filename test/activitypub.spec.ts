@@ -17,6 +17,7 @@ import * as ap_following_page from '../functions/ap/users/[id]/following/page'
 import * as ap_outbox_page from '../functions/ap/users/[id]/outbox/page'
 
 const userKEK = 'test_kek5'
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 describe('ActivityPub', () => {
 	describe('Inbox', () => {
@@ -403,6 +404,7 @@ describe('ActivityPub', () => {
 			}
 
 			await addObjectInOutbox(db, actor, await createPublicNote(db, 'my first status', actor))
+			await sleep(10)
 			await addObjectInOutbox(db, actor, await createPublicNote(db, 'my second status', actor))
 
 			const res = await ap_outbox_page.handleRequest(db, 'sven', userKEK)

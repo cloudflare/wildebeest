@@ -34,8 +34,7 @@ export async function handleRequest(db: D1Database, id: string, userKEK: string)
 SELECT count(*) as count
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE outbox_objects.actor_id = ?
-ORDER by outbox_objects.cdate DESC
+WHERE outbox_objects.actor_id = ? AND objects.type = 'Note'
 `
 
 	const { success, error, results } = await db.prepare(QUERY).bind(actorId.toString()).all()

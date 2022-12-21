@@ -48,7 +48,7 @@ LIMIT ?
 			const acct = urlToHandle(actorId)
 			const account = loadExternalMastodonAccount(acct, author)
 
-			out.unshift({
+			out.push({
 				id: result.id,
 				uri: objects.uri(result.id),
 				created_at: new Date(result.cdate).toISOString(),
