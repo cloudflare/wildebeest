@@ -1,14 +1,11 @@
-import { component$, Resource, useResource$, useStyles$, $ } from '@builder.io/qwik'
-import { useNavigate } from '@builder.io/qwik-city'
+import { component$, Resource, useResource$, useStyles$ } from '@builder.io/qwik'
 import { MastodonStatus } from '~/types'
-import { formatTimeAgo } from '~/utils/dateTime'
-import { statuses } from '../../dummyData'
+import { statuses } from '~/dummyData'
 import styles from './Explore.scss?inline'
+import Status from '~/components/Status'
 
 export default component$(() => {
 	useStyles$(styles)
-	const nav = useNavigate()
-
 	const resource = useResource$<MastodonStatus[]>(async () => {
 		return statuses
 	})
@@ -35,50 +32,9 @@ export default component$(() => {
 								News
 							</a>
 						</div>
-						{statuses.map((status) => {
-							const accountUrl = `/@${status.account.username}`
-							const tootUrl = `${accountUrl}/${status.account.id}`
-
-							// This doesn't actually work atm :(
-							const handleContentClick = $(() => {
-								nav.path = tootUrl
-							})
-
-							return (
-								<div class="p4 border-t border-slate-600 pointer" onClick$={handleContentClick}>
-									<div class="flex justify-between">
-										<div class="flex">
-											<img class="avatar" src={status.account.avatar} />
-											<div class="flex-column ml-3">
-												<div class="p1">
-													<a class="no-decoration">{status.account.display_name}</a>
-												</div>
-												<div class="p1 text-slate-500">@{status.account.username}</div>
-											</div>
-										</div>
-										<a class="no-decoration" href={tootUrl}>
-											<div class="text-slate-500 flex items-center">
-												<i class="fa fa-xs fa-globe" />
-												<span class="ml-2 text-sm">{formatTimeAgo(new Date(status.created_at))}</span>
-											</div>
-										</a>
-									</div>
-									<div class="leading-snug status-content" dangerouslySetInnerHTML={status.content} />
-
-									{status.card && (
-										<a class="no-decoration" href={status.card.url}>
-											<div class="rounded flex border border-slate-600">
-												<img class="preview-image" src={status.card.image} />
-												<div class="p3 overflow-hidden">
-													<div class="overflow-ellipsis text-sm text-bold text-slate-400">{status.card.title}</div>
-													<div class="overflow-ellipsis mt-2 text-sm text-slate-500">{status.card.provider_name}</div>
-												</div>
-											</div>
-										</a>
-									)}
-								</div>
-							)
-						})}
+						{statuses.map((status) => (
+							<Status status={status} />
+						))}
 					</>
 				)
 			}}

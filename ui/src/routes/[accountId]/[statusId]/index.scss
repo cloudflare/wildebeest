@@ -1,0 +1,19 @@
+// todo: this is broken but needs a big refactor
+// which is also needed for the explore sticky header
+.header {
+  position: sticky;
+  top: 0;
+}
+
+.back-button {
+  background: transparent;
+  color: var(--wb-indigo-400);
+}
+
+.back-button-text {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

@@ -11,7 +11,7 @@ export type MastodonStatus = {
 	in_reply_to_account_id: string | null
 	sensitive: boolean
 	spoiler_text: string
-	visibility: 'public' | 'private'
+	visibility: 'public' | 'private' | 'unlisted'
 	language: string
 	uri: string
 	url: string
@@ -37,7 +37,7 @@ export type Account = {
 	display_name: string
 	locked: boolean
 	bot: boolean
-	discoverable: boolean
+	discoverable: boolean | null
 	group: boolean
 	created_at: string
 	note: string
@@ -51,7 +51,7 @@ export type Account = {
 	statuses_count: number
 	last_status_at: string
 	noindex?: boolean
-	emojis: []
+	emojis: Array<any>
 	fields: AccountField[]
 }
 
@@ -108,13 +108,21 @@ export type MediaAttachment = {
 export type MediaMeta = {
 	width: number
 	height: number
-	size: string
-	aspect: number
+	size?: string
+	aspect?: number
+	frame_rate?: string
+	duration?: number
+	bitrate?: number
 }
 
 export type Point = {
 	x: number
 	y: number
+}
+
+export type StatusContext = {
+	ancestors: MastodonStatus[]
+	descendants: MastodonStatus[]
 }
 
 export type InstanceDetails = {
