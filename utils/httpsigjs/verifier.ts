@@ -13,7 +13,7 @@ export async function verifySignature(parsedSignature: ParsedSignature, key: Cry
 	return crypto.subtle.verify(
 		'RSASSA-PKCS1-v1_5',
 		key,
-		str2ab(parsedSignature.signature),
+		str2ab(atob(parsedSignature.signature)),
 		str2ab(parsedSignature.signingString)
 	)
 }

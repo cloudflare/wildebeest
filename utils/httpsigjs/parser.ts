@@ -283,7 +283,8 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 				throw new StrictParsingError('request-line is not a valid header ' + 'with strict parsing enabled.')
 			}
 		} else if (h === '(request-target)') {
-			parsed.signingString += '(request-target): ' + request.method.toLowerCase() + ' ' + request.url
+			const { pathname, search } = new URL(request.url)
+			parsed.signingString += '(request-target): ' + `${request.method.toLowerCase()} ${pathname}${search}`
 		} else if (h === '(keyid)') {
 			parsed.signingString += '(keyid): ' + parsed.params.keyId
 		} else if (h === '(algorithm)') {

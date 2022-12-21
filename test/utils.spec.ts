@@ -34,7 +34,7 @@ describe('utils', () => {
 
 		const parsedSignature = parseRequest(request)
 		const publicKey = await importPublicKey(userKeyPair.pubKey)
-		assert(verifySignature(parsedSignature, publicKey), 'verify signature failed')
+		assert(await verifySignature(parsedSignature, publicKey), 'verify signature failed')
 	})
 
 	test('handle parsing', async () => {
