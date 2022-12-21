@@ -1,4 +1,5 @@
 import * as actors from 'wildebeest/activitypub/actors/'
+import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 import { actorURL } from 'wildebeest/activitypub/actors/'
 import * as objects from 'wildebeest/activitypub/objects/'
 import type { Actor } from 'wildebeest/activitypub/actors/'
@@ -83,6 +84,11 @@ export async function handle(
 			}
 			createdObjects.push(obj)
 
+			const fromActor = await actors.getAndCache(new URL(getActorAsId()), db)
+			// Add the object in the originating actor's outbox, allowing other
+			// actors on this instance to see the note in their timelines.
+			await addObjectInOutbox(db, fromActor, obj)
+
 			if (mode === 'inbox') {
 				for (let i = 0, len = recipients.length; i < len; i++) {
 					const handle = parseHandle(extractID(recipients[i]))
@@ -98,7 +104,7 @@ export async function handle(
 					}
 
 					await addObjectInInbox(db, person, obj)
-					const fromActor = await actors.getAndCache(new URL(getActorAsId()), db)
+					// FIXME: check if the actor mentions the person
 					await insertNotification(db, 'mention', person, fromActor, obj)
 				}
 			}

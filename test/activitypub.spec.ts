@@ -54,6 +54,43 @@ describe('ActivityPub', () => {
 			assert.equal(properties.content, 'test note')
 		})
 
+		test("send Note adds in remote actor's outbox", async () => {
+			const remoteActorId = 'https://example.com/actor'
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === remoteActorId) {
+					return new Response(
+						JSON.stringify({
+							id: remoteActorId,
+							type: 'Person',
+						})
+					)
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
+			const db = await makeDB()
+			await createPerson(db, userKEK, 'sven@cloudflare.com')
+
+			const activity: any = {
+				type: 'Create',
+				actor: remoteActorId,
+				to: [],
+				cc: [],
+				object: {
+					id: 'https://example.com/note1',
+					type: 'Note',
+					content: 'test note',
+				},
+			}
+			const res = await ap_inbox.handleRequest(db, 'sven', activity, userKEK)
+			assert.equal(res.status, 200)
+
+			const entry = await db.prepare('SELECT * FROM outbox_objects WHERE actor_id=?').bind(remoteActorId).first()
+			assert.equal(entry.actor_id, remoteActorId)
+		})
+
 		test('local actor sends Note with mention create notification', async () => {
 			const db = await makeDB()
 			const actorA = await createPerson(db, userKEK, 'a@cloudflare.com')

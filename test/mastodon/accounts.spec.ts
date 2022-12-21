@@ -248,6 +248,15 @@ describe('Mastodon APIs', () => {
 					)
 				}
 
+				if (input.toString() === 'https://mastodon.social/users/someone') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://mastodon.social/users/someone',
+							type: 'Person',
+						})
+					)
+				}
+
 				if (input.toString() === 'https://social.com/outbox') {
 					return new Response(
 						JSON.stringify({
