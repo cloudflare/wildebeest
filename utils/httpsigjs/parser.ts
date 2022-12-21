@@ -111,7 +111,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 	if (options === undefined) {
 		options = {
 			clockSkew: 300,
-			headers: ['host', '(request-target)', '(created)'],
+			headers: ['host', '(request-target)'],
 			strict: false,
 		}
 	}
@@ -253,9 +253,13 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 
 	if (!parsed.params.signature) throw new InvalidHeaderError('signature was not specified')
 
+	if (['date', 'x-date', '(created)'].every((hdr) => parsed.params.headers.indexOf(hdr) < 0)) {
+		throw new MissingHeaderError('no signed date header')
+	}
+
 	// Check the algorithm against the official list
 	try {
-		validateAlgorithm(parsed.params.algorithm)
+		validateAlgorithm(parsed.params.algorithm, 'rsa')
 	} catch (e) {
 		if (e instanceof InvalidAlgorithmError)
 			throw new InvalidParamsError(parsed.params.algorithm + ' is not ' + 'supported')
