@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert/strict'
-import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
-import { createPublicNote } from 'wildebeest/activitypub/objects/note'
+import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
+import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as accounts_following from 'wildebeest/functions/api/v1/accounts/[id]/following'
 import * as accounts_featured_tags from 'wildebeest/functions/api/v1/accounts/[id]/featured_tags'
 import * as accounts_lists from 'wildebeest/functions/api/v1/accounts/[id]/lists'
@@ -13,10 +13,10 @@ import * as accounts_statuses from 'wildebeest/functions/api/v1/accounts/[id]/st
 import * as accounts_get from 'wildebeest/functions/api/v1/accounts/[id]'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
 import * as accounts_verify_creds from 'wildebeest/functions/api/v1/accounts/verify_credentials'
-import { createPerson } from 'wildebeest/activitypub/actors'
-import { addFollowing, acceptFollowing } from 'wildebeest/activitypub/actors/follow'
-import { insertLike } from 'wildebeest/mastodon/like'
-import { insertReblog } from 'wildebeest/mastodon/reblog'
+import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
+import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { insertLike } from 'wildebeest/backend/src/mastodon/like'
+import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
 
 const userKEK = 'test_kek2'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))

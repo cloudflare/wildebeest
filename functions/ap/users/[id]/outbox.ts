@@ -1,12 +1,12 @@
-import { parseHandle } from 'wildebeest/utils/parse'
-import * as objects from 'wildebeest/activitypub/objects/'
-import type { Activity } from 'wildebeest/activitypub/activities/'
-import { getPersonById } from 'wildebeest/activitypub/actors'
-import { actorURL } from 'wildebeest/activitypub/actors/'
-import type { ContextData } from 'wildebeest/types/context'
-import type { Env } from 'wildebeest/types/env'
-import type { Note } from 'wildebeest/activitypub/objects/note'
-import * as activityCreate from 'wildebeest/activitypub/activities/create'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import * as objects from 'wildebeest/backend/src/activitypub/objects'
+import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
+import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
+import * as activityCreate from 'wildebeest/backend/src/activitypub/activities/create'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	return handleRequest(env.DATABASE, params.id as string, env.userKEK)

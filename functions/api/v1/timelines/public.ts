@@ -1,9 +1,9 @@
-import type { Env } from 'wildebeest/types/env'
-import * as objects from 'wildebeest/activitypub/objects/'
-import { urlToHandle } from 'wildebeest/utils/handle'
-import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
-import { getPersonById } from 'wildebeest/activitypub/actors'
-import type { MastodonAccount, MastodonStatus } from 'wildebeest/types/'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import * as objects from 'wildebeest/backend/src/activitypub/objects'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
+import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import type { MastodonAccount, MastodonStatus } from 'wildebeest/backend/src/types'
 
 const headers = {
 	'Access-Control-Allow-Origin': '*',

@@ -1,15 +1,15 @@
 // https://docs.joinmastodon.org/methods/accounts/#get
 
 import { instanceConfig } from 'wildebeest/config/instance'
-import { actorURL } from 'wildebeest/activitypub/actors/'
-import { getPersonById } from 'wildebeest/activitypub/actors'
-import type { ContextData } from 'wildebeest/types/context'
-import type { Env } from 'wildebeest/types/env'
-import type { MastodonAccount } from 'wildebeest/types/account'
-import { parseHandle } from 'wildebeest/utils/parse'
-import type { Handle } from 'wildebeest/utils/parse'
-import { queryAcct } from 'wildebeest/webfinger/index'
-import { loadExternalMastodonAccount, loadLocalMastodonAccount } from 'wildebeest/mastodon/account'
+import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
+import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import type { MastodonAccount } from 'wildebeest/backend/src/types/account'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import type { Handle } from 'wildebeest/backend/src/utils/parse'
+import { queryAcct } from 'wildebeest/backend/src/webfinger/index'
+import { loadExternalMastodonAccount, loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
 const headers = {
 	'content-type': 'application/json; charset=utf-8',

@@ -1,16 +1,16 @@
 // https://docs.joinmastodon.org/methods/accounts/#following
 
-import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
+import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { instanceConfig } from 'wildebeest/config/instance'
-import { parseHandle } from 'wildebeest/utils/parse'
-import { urlToHandle } from 'wildebeest/utils/handle'
-import * as actors from 'wildebeest/activitypub/actors/'
-import { MastodonAccount } from 'wildebeest/types/account'
-import type { Person } from 'wildebeest/activitypub/actors'
-import type { ContextData } from 'wildebeest/types/context'
-import { getFollowingId } from 'wildebeest/activitypub/actors/follow'
-import type { Env } from 'wildebeest/types/env'
-import { domainNotAuthorized } from 'wildebeest/errors/'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { MastodonAccount } from 'wildebeest/backend/src/types/account'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import { getFollowingId } from 'wildebeest/backend/src/activitypub/actors/follow'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import { domainNotAuthorized } from 'wildebeest/backend/src/errors'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env, data }) => {
 	return handleRequest(env.DATABASE, params.id as string, data.connectedActor)

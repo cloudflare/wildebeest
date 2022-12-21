@@ -1,9 +1,9 @@
 // https://docs.joinmastodon.org/methods/oauth/#authorize
 
-import type { Env } from 'wildebeest/types/env'
+import type { Env } from 'wildebeest/backend/src/types/env'
 import { accessConfig } from 'wildebeest/config/access'
-import * as access from 'wildebeest/access/'
-import { getPersonByEmail, createPerson } from 'wildebeest/activitypub/actors'
+import * as access from 'wildebeest/backend/src/access'
+import { getPersonByEmail, createPerson } from 'wildebeest/backend/src/activitypub/actors'
 
 // Extract the JWT token sent by Access (running before us).
 const extractJWTFromRequest = (request: Request) => request.headers.get('Cf-Access-Jwt-Assertion') || ''

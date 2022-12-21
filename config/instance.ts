@@ -1,4 +1,4 @@
-import type { InstanceConfig, Rule } from '../types/configs'
+import type { InstanceConfig, Rule } from '../backend/src/types/configs'
 
 const rules: Array<Rule> = [
 	{

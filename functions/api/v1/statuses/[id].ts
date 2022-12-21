@@ -1,12 +1,12 @@
 // https://docs.joinmastodon.org/methods/statuses/#get
 
-import { urlToHandle } from 'wildebeest/utils/handle'
-import { parseHandle } from 'wildebeest/utils/parse'
-import type { Person } from 'wildebeest/activitypub/actors'
-import type { ContextData } from 'wildebeest/types/context'
-import { getFollowers } from 'wildebeest/activitypub/actors/follow'
-import { getMastodonStatusById } from 'wildebeest/mastodon/status'
-import type { Env } from 'wildebeest/types/env'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import { getFollowers } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { getMastodonStatusById } from 'wildebeest/backend/src/mastodon/status'
+import type { Env } from 'wildebeest/backend/src/types/env'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env, data }) => {
 	return handleRequest(env.DATABASE, params.id as string)

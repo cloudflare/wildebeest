@@ -1,13 +1,13 @@
-import { parseHandle } from 'wildebeest/utils/parse'
-import { deliverToActor } from 'wildebeest/activitypub/deliver'
-import { getSigningKey } from 'wildebeest/mastodon/account'
-import type { Person } from 'wildebeest/activitypub/actors'
-import * as webfinger from 'wildebeest/webfinger/'
-import type { ContextData } from 'wildebeest/types/context'
-import type { Env } from 'wildebeest/types/env'
-import * as unfollow from 'wildebeest/activitypub/activities/unfollow'
-import type { Relationship } from 'wildebeest/types/account'
-import { removeFollowing } from 'wildebeest/activitypub/actors/follow'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
+import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import * as webfinger from 'wildebeest/backend/src/webfinger'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import * as unfollow from 'wildebeest/backend/src/activitypub/activities/unfollow'
+import type { Relationship } from 'wildebeest/backend/src/types/account'
+import { removeFollowing } from 'wildebeest/backend/src/activitypub/actors/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
 	return handleRequest(request, env.DATABASE, params.id as string, data.connectedActor, env.userKEK)

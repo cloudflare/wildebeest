@@ -1,7 +1,7 @@
 // https://docs.joinmastodon.org/methods/accounts/#verify_credentials
 
-import type { Env } from 'wildebeest/types/env'
-import type { ContextData } from 'wildebeest/types/context'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data }) => {
 	if (!data.connectedUser) {

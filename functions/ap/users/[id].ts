@@ -1,7 +1,7 @@
-import { parseHandle } from 'wildebeest/utils/parse'
-import { actorURL } from 'wildebeest/activitypub/actors'
-import type { Env } from 'wildebeest/types/env'
-import * as actors from 'wildebeest/activitypub/actors'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { instanceConfig } from 'wildebeest/config/instance'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {

@@ -1,11 +1,11 @@
 // https://docs.joinmastodon.org/methods/accounts/#relationships
 
 import type { PluginData } from '@cloudflare/pages-plugin-cloudflare-access'
-import type { Person } from 'wildebeest/activitypub/actors'
-import type { Env } from 'wildebeest/types/env'
-import type { ContextData } from 'wildebeest/types/context'
-import type { MastodonAccount } from 'wildebeest/types/account'
-import { getFollowingAcct } from 'wildebeest/activitypub/actors/follow'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import type { MastodonAccount } from 'wildebeest/backend/src/types/account'
+import { getFollowingAcct } from 'wildebeest/backend/src/activitypub/actors/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
 	return handleRequest(request, env.DATABASE, data.connectedActor)

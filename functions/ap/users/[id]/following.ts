@@ -1,8 +1,8 @@
-import { parseHandle } from 'wildebeest/utils/parse'
-import type { Env } from 'wildebeest/types/env'
-import * as actors from 'wildebeest/activitypub/actors'
-import { actorURL } from 'wildebeest/activitypub/actors/'
-import { getFollowingId } from 'wildebeest/activitypub/actors/follow'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
+import { getFollowingId } from 'wildebeest/backend/src/activitypub/actors/follow'
 
 const headers = {
 	'content-type': 'application/json; charset=utf-8',

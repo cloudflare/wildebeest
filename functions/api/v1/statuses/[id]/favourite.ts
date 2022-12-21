@@ -1,16 +1,16 @@
 // https://docs.joinmastodon.org/methods/statuses/#favourite
 
-import type { Env } from 'wildebeest/types/env'
-import { parseHandle } from 'wildebeest/utils/parse'
-import { getSigningKey } from 'wildebeest/mastodon/account'
-import { deliverToActor } from 'wildebeest/activitypub/deliver'
-import type { Person } from 'wildebeest/activitypub/actors'
-import * as actors from 'wildebeest/activitypub/actors/'
-import * as like from 'wildebeest/activitypub/activities/like'
-import { getObjectById } from 'wildebeest/activitypub/objects'
-import type { ContextData } from 'wildebeest/types/context'
-import { queryAcct } from 'wildebeest/webfinger/'
-import { toMastodonStatusFromObject } from 'wildebeest/mastodon/status'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
+import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import * as like from 'wildebeest/backend/src/activitypub/activities/like'
+import { getObjectById } from 'wildebeest/backend/src/activitypub/objects'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import { queryAcct } from 'wildebeest/backend/src/webfinger'
+import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data, params }) => {
 	return handleRequest(env.DATABASE, params.id as string, data.connectedActor, env.userKEK)

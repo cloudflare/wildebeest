@@ -1,16 +1,16 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
 
-import { createPublicNote } from 'wildebeest/activitypub/objects/note'
-import { getMentions } from 'wildebeest/mastodon/status'
-import * as activities from 'wildebeest/activitypub/activities/create'
-import type { Env } from 'wildebeest/types/env'
-import type { ContextData } from 'wildebeest/types/context'
-import type { MastodonAccount } from 'wildebeest/types/account'
-import { queryAcct } from 'wildebeest/webfinger/'
-import { deliverFollowers, deliverToActor } from 'wildebeest/activitypub/deliver'
-import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
-import type { Person } from 'wildebeest/activitypub/actors'
-import { getSigningKey } from 'wildebeest/mastodon/account'
+import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { getMentions } from 'wildebeest/backend/src/mastodon/status'
+import * as activities from 'wildebeest/backend/src/activitypub/activities/create'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import type { MastodonAccount } from 'wildebeest/backend/src/types/account'
+import { queryAcct } from 'wildebeest/backend/src/webfinger'
+import { deliverFollowers, deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
+import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 
 type StatusCreate = {
 	status: string

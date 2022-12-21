@@ -1,10 +1,10 @@
 // https://www.rfc-editor.org/rfc/rfc7033
 
-import { parseHandle } from '../../utils/parse'
-import { getPersonById, actorURL } from 'wildebeest/activitypub/actors'
+import { parseHandle } from '../../backend/src/utils/parse'
+import { getPersonById, actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import { instanceConfig } from '../../config/instance'
-import type { Env } from '../../types/env'
-import type { WebFingerResponse } from '../../webfinger/'
+import type { Env } from '../../backend/src/types/env'
+import type { WebFingerResponse } from '../../backend/src/webfinger'
 
 export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
 	return handleRequest(request, env.DATABASE)

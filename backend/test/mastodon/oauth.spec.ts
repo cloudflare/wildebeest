@@ -1,5 +1,5 @@
 import { accessConfig } from 'wildebeest/config/access'
-import { getSigningKey } from 'wildebeest/mastodon/account'
+import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import * as oauth_authorize from 'wildebeest/functions/oauth/authorize'
 import * as oauth_token from 'wildebeest/functions/oauth/token'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'

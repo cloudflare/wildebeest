@@ -1,14 +1,14 @@
 // https://docs.joinmastodon.org/methods/notifications/#get
 
-import { urlToHandle } from 'wildebeest/utils/handle'
-import type { Env } from 'wildebeest/types/env'
-import * as objects from 'wildebeest/activitypub/objects/'
-import type { Person } from 'wildebeest/activitypub/actors'
-import type { ContextData } from 'wildebeest/types/context'
-import type { Notification } from 'wildebeest/types/notification'
-import type { MastodonStatus } from 'wildebeest/types/'
-import { getPersonById } from 'wildebeest/activitypub/actors/'
-import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import type { Env } from 'wildebeest/backend/src/types/env'
+import * as objects from 'wildebeest/backend/src/activitypub/objects'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import type { ContextData } from 'wildebeest/backend/src/types/context'
+import type { Notification } from 'wildebeest/backend/src/types/notification'
+import type { MastodonStatus } from 'wildebeest/backend/src/types'
+import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
 	return handleRequest(env.DATABASE, data.connectedActor)

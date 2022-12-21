@@ -1,13 +1,13 @@
 import { strict as assert } from 'node:assert/strict'
 
-import { parseHandle } from '../../utils/parse'
-import { urlToHandle } from '../../utils/handle'
+import { parseHandle } from '../src/utils/parse'
+import { urlToHandle } from '../src/utils/handle'
 
-import { generateUserKey, unwrapPrivateKey, importPublicKey } from 'wildebeest/utils/key-ops'
-import { signRequest } from 'wildebeest/utils/http-signing'
-import { generateDigestHeader } from 'wildebeest/utils/http-signing-cavage'
-import { parseRequest } from 'wildebeest/utils/httpsigjs/parser'
-import { fetchKey, verifySignature } from 'wildebeest/utils/httpsigjs/verifier'
+import { generateUserKey, unwrapPrivateKey, importPublicKey } from 'wildebeest/backend/src/utils/key-ops'
+import { signRequest } from 'wildebeest/backend/src/utils/http-signing'
+import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
+import { parseRequest } from 'wildebeest/backend/src/utils/httpsigjs/parser'
+import { fetchKey, verifySignature } from 'wildebeest/backend/src/utils/httpsigjs/verifier'
 
 describe('utils', () => {
 	test('user key lifecycle', async () => {

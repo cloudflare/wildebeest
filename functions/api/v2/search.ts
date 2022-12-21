@@ -1,8 +1,8 @@
 // https://docs.joinmastodon.org/methods/search/#v2
-import { queryAcct } from 'wildebeest/webfinger/'
-import { MastodonAccount } from 'wildebeest/types/account'
-import { parseHandle } from 'wildebeest/utils/parse'
-import { loadExternalMastodonAccount } from 'wildebeest/mastodon/account'
+import { queryAcct } from 'wildebeest/backend/src/webfinger'
+import { MastodonAccount } from 'wildebeest/backend/src/types/account'
+import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
 const headers = {
 	'content-type': 'application/json; charset=utf-8',

@@ -1,1 +1,1 @@
-export { onRequest } from '../../utils/auth'
+export { onRequest } from '../../backend/src/utils/auth'
