@@ -17,8 +17,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, 
 
 export async function handleRequest(db: D1Database, id: string, connectedActor: Person): Promise<Response> {
 	const handle = parseHandle(id)
-	if (handle.domain !== null || handle.domain === instanceConfig.uri) {
-		// TODO: implement for remote user
+	if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
 		return new Response('', { status: 403 })
 	}
 
