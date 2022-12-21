@@ -1,6 +1,11 @@
-import { component$ } from '@builder.io/qwik'
+import { component$, Resource, useResource$, useStyles$ } from '@builder.io/qwik'
 import { useLocation } from '@builder.io/qwik-city'
+import { Sparkline } from '~/components/Sparkline'
+import TagDetailsCard from '~/components/TagDetailsCard'
+import { tags } from '~/dummyData'
+import { TagDetails } from '~/types'
 import { MastodonLogo } from './MastodonLogo'
+import styles from './RightColumn.scss?inline'
 
 type LinkConfig = {
 	iconName: string
@@ -9,7 +14,12 @@ type LinkConfig = {
 }
 
 export const RightColumn = component$(() => {
+	useStyles$(styles)
 	const location = useLocation()
+
+	const resource = useResource$<TagDetails[]>(async () => {
+		return tags
+	})
 
 	const renderNavLink = ({ iconName, linkText, linkTarget }: LinkConfig) => {
 		let classList = 'p4 block no-decoration text-semi'
@@ -34,14 +44,37 @@ export const RightColumn = component$(() => {
 	]
 
 	return (
-		<div>
-			<div class="p4">
-				<a href="https://mastodon.social">
-					<MastodonLogo />
-				</a>
+		<div class="flex flex-column justify-between container text-slate-400">
+			<div>
+				<div class="p4">
+					<a href="https://mastodon.social">
+						<MastodonLogo />
+					</a>
+				</div>
+				<hr class="border-t border-slate-700 my-3" />
+				{links.map((link) => renderNavLink(link))}
 			</div>
-			<hr class="border-t border-slate-700 my-3" />
-			{links.map((link) => renderNavLink(link))}
+			<Resource
+				value={resource}
+				onPending={() => <></>}
+				onRejected={() => <div>failed</div>}
+				onResolved={(tags) => {
+					const top3 = tags.slice(0, 3)
+					return (
+						<div class="mb-4">
+							<div class="px-4 text-uppercase text-sm text-bold">Trending Now</div>
+							<hr class="border-t border-slate-600 my-4" />
+							<div class="px-4">
+								{top3.map((tagDetails) => (
+									<div class="mb-4">
+										<TagDetailsCard tagDetails={tagDetails} />
+									</div>
+								))}
+							</div>
+						</div>
+					)
+				}}
+			/>
 		</div>
 	)
 })

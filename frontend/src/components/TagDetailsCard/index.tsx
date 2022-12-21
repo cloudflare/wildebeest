@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik'
 import { TagDetails } from '~/types'
-import { Sparkline } from '../sparkline'
-// import { Sparkline } from '~/components/sparkline'
+import { Sparkline } from '~/components/Sparkline'
+import { formatRoundedNumber } from '~/utils/numbers'
 
 type Props = {
 	tagDetails: TagDetails
@@ -11,7 +11,7 @@ export default component$((props: Props) => {
 	const secondsToDays = (ms: number) => Math.round(ms / 60 / 60 / 24)
 
 	const history = props.tagDetails.history
-	const data = history
+	const data = [...history]
 		.sort((r) => parseInt(r.day))
 		.reverse()
 		.map((r) => parseInt(r.uses))
@@ -30,7 +30,7 @@ export default component$((props: Props) => {
 			<div class="">
 				<div class="text-sm text-bold text-slate-400">#{props.tagDetails.name}</div>
 				<div class="text-xs text-slate-500">
-					<span class="text-bold">{totalUsers} </span>
+					<span class="text-bold">{formatRoundedNumber(totalUsers)} </span>
 					people in the past {formattedRange} days
 				</div>
 			</div>
