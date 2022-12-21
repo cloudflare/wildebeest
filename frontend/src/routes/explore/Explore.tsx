@@ -1,13 +1,18 @@
-import { component$, Resource, useResource$ } from '@builder.io/qwik'
+import { component$, Resource } from '@builder.io/qwik'
 import { MastodonStatus } from '~/types'
-import { statuses } from '~/dummyData'
+import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
 import Status from '~/components/Status'
+import { RequestHandler, useEndpoint } from '@builder.io/qwik-city'
+
+export const onGet: RequestHandler<MastodonStatus[], { DATABASE: any }> = async ({ platform }) => {
+	const response = await timelines.handleRequest(platform.DATABASE)
+	const results = await response.text()
+	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
+	return JSON.parse(results)
+}
 
 export default component$(() => {
-	const resource = useResource$<MastodonStatus[]>(async () => {
-		return statuses
-	})
-
+	const resource = useEndpoint<MastodonStatus[]>()
 	return (
 		<Resource
 			value={resource}

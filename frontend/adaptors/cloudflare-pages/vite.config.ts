@@ -12,7 +12,8 @@ export default extendConfig(baseConfig, () => {
 		},
 		plugins: [
 			cloudflarePagesAdaptor({
-				staticGenerate: true,
+				// Do not SSG as the D1 database is not available at build time, I think.
+				// staticGenerate: true,
 			}),
 		],
 	}
