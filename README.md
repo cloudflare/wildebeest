@@ -10,13 +10,23 @@ yarn
 
 ## Running tests
 
+Run the API (backend) unit tests:
+
 ```sh
 yarn test
+```
+
+Run the UI (frontend) integration tests:
+
+```sh
+yarn database:create-mock # this initializes a local test database
+yarn test:ui
 ```
 
 ## Debugging locally
 
 ```sh
+yarn database:create-mock # this initializes a local test database
 yarn dev
 ```
 

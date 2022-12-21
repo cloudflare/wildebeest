@@ -13,6 +13,6 @@ bullseye:
       <<: *builddeps
     post-cache:
       - yarn install
-      - npm run pretty
-      - npm run test
-      - npm run test:ui
+      - yarn pretty
+      - yarn test
+      - yarn database:create-mock && yarn test:ui
