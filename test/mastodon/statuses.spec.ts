@@ -1,9 +1,12 @@
 import { strict as assert } from 'node:assert/strict'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { getMentions } from '../../mastodon/status'
+import { createPublicNote } from 'wildebeest/activitypub/objects/note'
 import * as statuses from '../../functions/api/v1/statuses'
+import * as statuses_get from '../../functions/api/v1/statuses/[id]'
 import * as statuses_favourite from '../../functions/api/v1/statuses/[id]/favourite'
 import { createPerson } from 'wildebeest/activitypub/actors'
+import { insertLike } from 'wildebeest/mastodon/like'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
 import * as note from 'wildebeest/activitypub/objects/note'
 
@@ -242,6 +245,23 @@ describe('Mastodon APIs', () => {
 				assert.equal(mentions[0].localPart, 'sven')
 				assert.equal(mentions[0].domain, null)
 			}
+		})
+
+		test('count likes', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const actor2: any = { id: await createPerson(db, userKEK, 'sven2@cloudflare.com') }
+			const actor3: any = { id: await createPerson(db, userKEK, 'sven3@cloudflare.com') }
+			const note = await createPublicNote(db, 'my first status', actor)
+
+			await insertLike(db, actor2, note)
+			await insertLike(db, actor3, note)
+
+			const res = await statuses_get.handleRequest(db, note.id)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.favourites_count, 2)
 		})
 	})
 })

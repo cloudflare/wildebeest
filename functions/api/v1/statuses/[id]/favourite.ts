@@ -28,7 +28,7 @@ export async function handleRequest(
 		return new Response('', { status: 404 })
 	}
 
-	const status = await toMastodonStatus(obj)
+	const status = await toMastodonStatus(db, obj)
 	if (status === null) {
 		return new Response('', { status: 404 })
 	}

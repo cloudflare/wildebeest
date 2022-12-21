@@ -529,5 +529,25 @@ describe('ActivityPub', () => {
 			assert.equal(entry.actor_id, actorA.id)
 			assert.equal(entry.from_actor_id, actorB.id)
 		})
+
+		test('records like in db', async () => {
+			const db = await makeDB()
+			const actorA: any = { id: await createPerson(db, userKEK, 'a@cloudflare.com') }
+			const actorB: any = { id: await createPerson(db, userKEK, 'b@cloudflare.com') }
+
+			const note = await createPublicNote(db, 'my first status', actorA)
+
+			const activity: any = {
+				type: 'Like',
+				actor: actorB.id,
+				object: note.id,
+			}
+			const res = await ap_inbox.handleRequest(db, 'a', activity, userKEK)
+			assert.equal(res.status, 200)
+
+			const entry = await db.prepare('SELECT * FROM actor_favourites').first()
+			assert.equal(entry.actor_id, actorB.id)
+			assert.equal(entry.object_id, note.id)
+		})
 	})
 })

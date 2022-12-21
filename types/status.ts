@@ -16,4 +16,5 @@ export type MastodonStatus = {
 	media_attachments: Array<any>
 	mentions: Array<any>
 	tags: Array<any>
+	favourites_count?: number
 }

@@ -7,6 +7,7 @@ import * as objects from 'wildebeest/activitypub/objects/'
 import type { MastodonAccount, MastodonStatus } from 'wildebeest/types/'
 import { parseHandle } from '../utils/parse'
 import { urlToHandle } from '../utils/handle'
+import { getLikes } from './like'
 
 export function getMentions(input: string): Array<Handle> {
 	const mentions: Array<Handle> = []
@@ -28,7 +29,7 @@ export function getMentions(input: string): Array<Handle> {
 	return mentions
 }
 
-export async function toMastodonStatus(obj: Object): Promise<MastodonStatus | null> {
+export async function toMastodonStatus(db: D1Database, obj: Object): Promise<MastodonStatus | null> {
 	if (obj.originalActorId === undefined) {
 		console.warn('missing `obj.originalActorId`')
 		return null
@@ -39,6 +40,8 @@ export async function toMastodonStatus(obj: Object): Promise<MastodonStatus | nu
 
 	const acct = urlToHandle(actorId)
 	const account = loadExternalMastodonAccount(acct, actor)
+
+	const favourites = await getLikes(db, obj)
 
 	return {
 		// Default values
@@ -56,5 +59,7 @@ export async function toMastodonStatus(obj: Object): Promise<MastodonStatus | nu
 		uri: obj.url,
 		created_at: obj.published || '',
 		account,
+
+		favourites_count: favourites.length,
 	}
 }

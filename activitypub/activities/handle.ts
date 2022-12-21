@@ -13,6 +13,7 @@ import type { Note } from 'wildebeest/activitypub/objects/note'
 import { acceptFollowing, addFollowing } from 'wildebeest/activitypub/actors/follow'
 import { deliverToActor } from 'wildebeest/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/mastodon/account'
+import { insertLike } from 'wildebeest/mastodon/like'
 import type { Activity } from 'wildebeest/activitypub/activities/'
 
 function extractID(s: string): string {
@@ -188,7 +189,10 @@ export async function handle(
 				break
 			}
 
+			// Notify the user
 			await insertNotification(db, 'favourite', targetActor, fromActor, obj)
+			// Store the like for counting
+			await insertLike(db, fromActor, obj)
 			break
 		}
 
