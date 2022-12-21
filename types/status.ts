@@ -18,4 +18,6 @@ export type MastodonStatus = {
 	tags: Array<any>
 	favourites_count?: number
 	reblogs_count?: number
+	reblog?: MastodonStatus
+	edited_at?: string
 }

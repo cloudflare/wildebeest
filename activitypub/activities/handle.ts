@@ -175,7 +175,7 @@ export async function handle(
 				obj = localObject
 			}
 
-			const fromActor = await actors.getAndCache(new URL(getActorAsId()), db)
+			const fromActor = await actors.getAndCache(actorId, db)
 			// Add the object in the originating actor's outbox, allowing other
 			// actors on this instance to see the note in their timelines.
 			await addObjectInOutbox(db, fromActor, obj)

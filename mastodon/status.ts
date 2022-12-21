@@ -70,13 +70,12 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Object): P
 }
 
 export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise<MastodonStatus | null> {
-	if (row.original_actor_id === undefined) {
-		console.warn('missing `row.original_actor_id`')
+	if (row.publisher_actor_id === undefined) {
+		console.warn('missing `row.publisher_actor_id`')
 		return null
 	}
 	const properties = JSON.parse(row.properties)
-
-	const actorId = new URL(row.original_actor_id)
+	const actorId = new URL(row.publisher_actor_id)
 
 	const author = await getPersonById(db, actorId)
 	if (author === null) {
@@ -95,12 +94,11 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 	const favourites = await getLikes(db, obj)
 	const reblogs = await getReblogs(db, obj)
 
-	return {
+	const status: MastodonStatus = {
 		// Default values
 		id: row.id,
 		uri: objects.uri(row.id),
 		created_at: new Date(row.cdate).toISOString(),
-		content: properties.content,
 		emojis: [],
 		media_attachments: [],
 		tags: [],
@@ -111,11 +109,33 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 		visibility: 'public',
 		spoiler_text: '',
 
-		...properties,
-
+		content: properties.content,
 		favourites_count: favourites.length,
 		reblogs_count: reblogs.length,
 	}
+
+	if (properties.updated) {
+		status.edited_at = new Date(properties.updated).toISOString()
+	}
+
+    // FIXME: add unit tests for reblog
+	if (properties.attributedTo && properties.attributedTo !== row.publisher_actor_id) {
+		// The actor that introduced the Object in the instance isn't the same
+		// as the object has been attributed to. Likely means it's a reblog.
+
+		const actorId = new URL(properties.attributedTo)
+		const acct = urlToHandle(actorId)
+		const author = await actors.getAndCache(actorId, db)
+		const account = loadExternalMastodonAccount(acct, author)
+
+		// Restore reblogged status
+		status.reblog = {
+			...status,
+			account,
+		}
+	}
+
+	return status
 }
 
 export async function getMastodonStatusById(db: D1Database, id: string): Promise<MastodonStatus | null> {
