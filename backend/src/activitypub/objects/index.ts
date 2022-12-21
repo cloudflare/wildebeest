@@ -75,13 +75,17 @@ export async function cacheObject(
 		.bind(id, properties.type, JSON.stringify(properties), originalActorId.toString(), originalObjectId.toString())
 		.first()
 
-	return {
-		...properties,
-		id,
-		url: id,
-		published: new Date(row.cdate).toISOString(),
-		originalActorId: row.original_actor_id,
-		originalObjectId: row.original_object_id,
+	{
+		const properties = JSON.parse(row.properties)
+
+		return {
+			...properties,
+			id: row.id,
+			url: row.id,
+			published: new Date(row.cdate).toISOString(),
+			originalActorId: row.original_actor_id,
+			originalObjectId: row.original_object_id,
+		}
 	}
 }
 
