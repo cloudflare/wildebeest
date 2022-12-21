@@ -118,7 +118,7 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 		status.edited_at = new Date(properties.updated).toISOString()
 	}
 
-    // FIXME: add unit tests for reblog
+	// FIXME: add unit tests for reblog
 	if (properties.attributedTo && properties.attributedTo !== row.publisher_actor_id) {
 		// The actor that introduced the Object in the instance isn't the same
 		// as the object has been attributed to. Likely means it's a reblog.

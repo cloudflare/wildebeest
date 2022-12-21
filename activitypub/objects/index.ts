@@ -70,7 +70,7 @@ export async function cacheObject(
 
 	const row: any = await db
 		.prepare(
-			'INSERT INTO objects(id, type, properties, original_actor_id, original_object_id) VALUES(?, ?, ?, ?, ?) RETURNING *'
+			'INSERT OR REPLACE INTO objects(id, type, properties, original_actor_id, original_object_id) VALUES(?, ?, ?, ?, ?) RETURNING *'
 		)
 		.bind(id, properties.type, JSON.stringify(properties), originalActorId.toString(), originalObjectId.toString())
 		.first()

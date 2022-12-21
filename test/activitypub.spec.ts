@@ -6,6 +6,7 @@ import { instanceConfig } from 'wildebeest/config/instance'
 import { createPublicNote } from 'wildebeest/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
+import { cacheObject } from 'wildebeest/activitypub/objects/'
 
 import * as ap_users from '../functions/ap/users/[id]'
 import * as ap_inbox from '../functions/ap/users/[id]/inbox'
@@ -548,6 +549,49 @@ describe('ActivityPub', () => {
 			assert.equal(entry.type, 'favourite')
 			assert.equal(entry.actor_id, actorA.id)
 			assert.equal(entry.from_actor_id, actorB.id)
+		})
+
+		test('records like in db', async () => {
+			const db = await makeDB()
+			const actorA: any = { id: await createPerson(db, userKEK, 'a@cloudflare.com') }
+			const actorB: any = { id: await createPerson(db, userKEK, 'b@cloudflare.com') }
+
+			const note = await createPublicNote(db, 'my first status', actorA)
+
+			const activity: any = {
+				type: 'Like',
+				actor: actorB.id,
+				object: note.id,
+			}
+			const res = await ap_inbox.handleRequest(db, 'a', activity, userKEK)
+			assert.equal(res.status, 200)
+
+			const entry = await db.prepare('SELECT * FROM actor_favourites').first()
+			assert.equal(entry.actor_id, actorB.id)
+			assert.equal(entry.object_id, note.id)
+		})
+	})
+
+	describe('Objects', () => {
+		test('cacheObject deduplicates object', async () => {
+			const db = await makeDB()
+			const properties = { type: 'Note', a: 1, b: 2 }
+			const actorId = new URL(await createPerson(db, userKEK, 'a@cloudflare.com'))
+			const originalObjectId = new URL('https://example.com/object1')
+
+			let result: any
+
+			// Cache object once adds it to the database
+			await cacheObject(db, properties, actorId, originalObjectId)
+
+			result = await db.prepare('SELECT count(*) as count from objects').first()
+			assert.equal(result.count, 1)
+
+			// Cache object second time is ignored
+			await cacheObject(db, properties, actorId, originalObjectId)
+
+			result = await db.prepare('SELECT count(*) as count from objects').first()
+			assert.equal(result.count, 1)
 		})
 
 		test('records like in db', async () => {
