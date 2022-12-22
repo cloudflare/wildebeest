@@ -36,6 +36,16 @@ describe('Mastodon APIs', () => {
 			assertJSON(res)
 			assertCache(res, 180)
 		})
+
+		test('adds a short_description if missing', async () => {
+			assert(!instanceConfig.short_description)
+
+			const res = await v1_instance.onRequest()
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(typeof data.short_description, 'string')
+		})
 	})
 
 	describe('apps', () => {

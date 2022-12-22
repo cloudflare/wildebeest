@@ -15,8 +15,8 @@ export const onRequest = () => {
 		version: INSTANCE_VERSION,
 	}
 
-	if (instanceConfig.short_description === undefined) {
-		instanceConfig.short_description = instanceConfig.description
+	if (res.short_description === undefined) {
+		res.short_description = instanceConfig.description
 	}
 
 	return new Response(JSON.stringify(res), { headers })
