@@ -5,7 +5,7 @@ import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { MastodonAccount } from 'wildebeest/backend/src/types/account'
-import { getFollowingAcct } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { getFollowingAcct } from 'wildebeest/backend/src/mastodon/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
 	return handleRequest(request, env.DATABASE, data.connectedActor)

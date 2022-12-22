@@ -2,7 +2,7 @@ import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
-import { getFollowingId } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { getFollowingId } from 'wildebeest/backend/src/mastodon/follow'
 
 const headers = {
 	'content-type': 'application/json; charset=utf-8',

@@ -14,7 +14,7 @@ import * as accounts_get from 'wildebeest/functions/api/v1/accounts/[id]'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
 import * as accounts_verify_creds from 'wildebeest/functions/api/v1/accounts/verify_credentials'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
 

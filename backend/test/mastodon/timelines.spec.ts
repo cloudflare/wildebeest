@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
-import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'

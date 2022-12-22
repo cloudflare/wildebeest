@@ -1,5 +1,5 @@
 import { makeDB, assertCache, isUrlValid } from './utils'
-import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import { instanceConfig } from 'wildebeest/config/instance'

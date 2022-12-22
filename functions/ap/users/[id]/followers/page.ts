@@ -1,5 +1,5 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
-import { getFollowers } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { getFollowers } from 'wildebeest/backend/src/mastodon/follow'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'

@@ -6,7 +6,7 @@ import type { Activity } from './activities'
 import type { Actor } from './actors'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
 import { signRequest } from 'wildebeest/backend/src/utils/http-signing'
-import { getFollowers } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { getFollowers } from 'wildebeest/backend/src/mastodon/follow'
 
 const headers = {
 	'content-type': 'application/activity+json',

@@ -8,7 +8,7 @@ import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import { getFollowingId } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { getFollowingId } from 'wildebeest/backend/src/mastodon/follow'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { domainNotAuthorized } from 'wildebeest/backend/src/errors'
 

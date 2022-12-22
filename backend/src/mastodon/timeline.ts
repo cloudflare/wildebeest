@@ -1,5 +1,5 @@
 import type { MastodonStatus } from 'wildebeest/backend/src/types/status'
-import { getFollowingId } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { getFollowingId } from 'wildebeest/backend/src/mastodon/follow'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
 import { toMastodonStatusFromRow } from './status'
 
