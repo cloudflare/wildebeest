@@ -219,7 +219,7 @@ describe('Mastodon APIs', () => {
 
 			const connectedActor: any = actor
 
-			const res = await statuses_favourite.handleRequest(db, 'object1', connectedActor, userKEK)
+			const res = await statuses_favourite.handleRequest(db, btoa('object1'), connectedActor, userKEK)
 			assert.equal(res.status, 200)
 
 			assert(deliveredActivity)
@@ -272,7 +272,7 @@ describe('Mastodon APIs', () => {
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
 
-			const res = await statuses_get.handleRequest(db, note.id)
+			const res = await statuses_get.handleRequest(db, btoa(note.id))
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -289,7 +289,7 @@ describe('Mastodon APIs', () => {
 			await insertReblog(db, actor2, note)
 			await insertReblog(db, actor3, note)
 
-			const res = await statuses_get.handleRequest(db, note.id)
+			const res = await statuses_get.handleRequest(db, btoa(note.id))
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()

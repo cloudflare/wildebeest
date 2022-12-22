@@ -12,7 +12,8 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, 
 	return handleRequest(env.DATABASE, params.id as string)
 }
 
-export async function handleRequest(db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(db: D1Database, encodedId: string): Promise<Response> {
+	const id = atob(decodeURIComponent(encodedId))
 	const status = await getMastodonStatusById(db, id)
 	if (status === null) {
 		return new Response('', { status: 404 })

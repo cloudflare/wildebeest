@@ -58,7 +58,9 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Object): P
 		spoiler_text: '',
 
 		content: obj.content || '',
-		id: obj.id,
+		// Base64 encode the id because it's an URL and Mastodon will misuse it
+		// to construct like/reblog/etc URLs
+		id: btoa(obj.id),
 		uri: obj.url,
 		created_at: obj.published || '',
 		account,
@@ -93,8 +95,9 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 	}
 
 	const status: MastodonStatus = {
-		// Default values
-		id: row.id,
+		// Base64 encode the id because it's an URL and Mastodon will misuse it
+		// to construct like/reblog/etc URLs
+		id: btoa(row.id),
 		uri: objects.uri(row.id),
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],

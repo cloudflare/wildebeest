@@ -18,10 +18,11 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 
 export async function handleRequest(
 	db: D1Database,
-	id: string,
+	encodedId: string,
 	connectedActor: Person,
 	userKEK: string
 ): Promise<Response> {
+	const id = atob(decodeURIComponent(encodedId))
 	const obj = await getObjectById(db, id)
 	if (obj === null || obj.originalActorId === undefined || obj.originalObjectId === undefined) {
 		return new Response('', { status: 404 })
