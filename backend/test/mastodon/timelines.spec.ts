@@ -59,6 +59,26 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[1].reblogs_count, 1)
 		})
 
+		test('home returns Notes from ourself', async () => {
+			const db = await makeDB()
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+
+			// Actor is posting
+			await addObjectInOutbox(db, actor, await createPublicNote(db, 'status from myself', actor))
+
+			// Actor should only see posts from actor2 in the timeline
+			const connectedActor: any = actor
+			const res = await timelines_home.handleRequest(db, connectedActor)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.length, 1)
+			assert.equal(data[0].content, 'status from myself')
+			assert.equal(data[0].account.username, 'sven')
+		})
+
 		test('public returns Notes', async () => {
 			const db = await makeDB()
 			const actor: any = {
