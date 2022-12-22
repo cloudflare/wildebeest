@@ -93,12 +93,83 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('get remote actor by id', async () => {
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === 'https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com') {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: 'https://social.com/someone',
+								},
+							],
+						})
+					)
+				}
+
+				if (input.toString() === 'https://social.com/someone') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://social.com/someone',
+							type: 'Person',
+							preferredUsername: 'sven',
+							outbox: 'https://social.com/someone/outbox',
+							following: 'https://social.com/someone/following',
+							followers: 'https://social.com/someone/followers',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://social.com/someone/following') {
+					return new Response(
+						JSON.stringify({
+							'@context': 'https://www.w3.org/ns/activitystreams',
+							id: 'https://social.com/someone/following',
+							type: 'OrderedCollection',
+							totalItems: 123,
+							first: 'https://social.com/someone/following/page',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://social.com/someone/followers') {
+					return new Response(
+						JSON.stringify({
+							'@context': 'https://www.w3.org/ns/activitystreams',
+							id: 'https://social.com/someone/followers',
+							type: 'OrderedCollection',
+							totalItems: 321,
+							first: 'https://social.com/someone/followers/page',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://social.com/someone/outbox') {
+					return new Response(
+						JSON.stringify({
+							'@context': 'https://www.w3.org/ns/activitystreams',
+							id: 'https://social.com/someone/outbox',
+							type: 'OrderedCollection',
+							totalItems: 890,
+							first: 'https://social.com/someone/outbox/page',
+						})
+					)
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
 			const db = await makeDB()
 			const res = await accounts_get.handleRequest('sven@remote.com', db)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
 			assert.equal(data.username, 'sven')
+
+			assert.equal(data.followers_count, 321)
+			assert.equal(data.following_count, 123)
+			assert.equal(data.statuses_count, 890)
 		})
 
 		test('get unknown local actor by id', async () => {

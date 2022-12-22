@@ -18,13 +18,17 @@ const headers = {
 	accept: 'application/activity+json',
 }
 
-export async function get(actor: Actor): Promise<OrderedCollection<Activity>> {
+export async function getMetadata(actor: Actor): Promise<OrderedCollection<unknown>> {
 	const res = await fetch(actor.outbox, { headers })
 	if (!res.ok) {
 		throw new Error(`${actor.outbox} returned ${res.status}`)
 	}
 
-	const collection = await res.json<OrderedCollection<Activity>>()
+	return res.json<OrderedCollection<unknown>>()
+}
+
+export async function get(actor: Actor): Promise<OrderedCollection<Activity>> {
+	const collection = await getMetadata(actor)
 	collection.items = await loadItems(collection, 20)
 
 	return collection

@@ -40,7 +40,7 @@ export async function handleRequest(request: Request): Promise<Response> {
 		const acct = `${query.localPart}@${query.domain}`
 		const res = await queryAcct(query.domain, acct)
 		if (res !== null) {
-			results.accounts.push(loadExternalMastodonAccount(acct, res))
+			results.accounts.push(await loadExternalMastodonAccount(acct, res))
 		}
 	}
 

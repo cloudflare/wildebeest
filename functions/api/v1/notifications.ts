@@ -57,7 +57,7 @@ export async function handleRequest(db: D1Database, connectedActor: Person): Pro
 		}
 
 		const acct = urlToHandle(from_actor_id)
-		const fromAccount = loadExternalMastodonAccount(acct, fromActor)
+		const fromAccount = await loadExternalMastodonAccount(acct, fromActor)
 
 		const notif: Notification = {
 			id: result.notif_id,

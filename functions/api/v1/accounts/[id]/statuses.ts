@@ -71,7 +71,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 			const result: any = results[i]
 
 			const acct = `${actor.preferredUsername}@${instanceConfig.uri}`
-			const account = loadExternalMastodonAccount(acct, actor)
+			const account = await loadExternalMastodonAccount(acct, actor)
 
 			out.push({
 				id: result.id,
@@ -149,7 +149,7 @@ LIMIT ?
 			}
 
 			const acct = `${author.preferredUsername}@${instanceConfig.uri}`
-			const account = loadExternalMastodonAccount(acct, author)
+			const account = await loadExternalMastodonAccount(acct, author)
 
 			out.push({
 				id: result.id,

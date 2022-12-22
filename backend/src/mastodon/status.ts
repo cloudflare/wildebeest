@@ -42,7 +42,7 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Object): P
 	const actor = await actors.get(actorId)
 
 	const acct = urlToHandle(actorId)
-	const account = loadExternalMastodonAccount(acct, actor)
+	const account = await loadExternalMastodonAccount(acct, actor)
 
 	const favourites = await getLikes(db, obj)
 	const reblogs = await getReblogs(db, obj)
@@ -84,7 +84,7 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 	}
 
 	const acct = urlToHandle(actorId)
-	const account = loadExternalMastodonAccount(acct, author)
+	const account = await loadExternalMastodonAccount(acct, author)
 
 	const obj: any = {
 		// likes and reblogs can be retrieve only with the object id, we don't
@@ -126,7 +126,7 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 		const actorId = new URL(properties.attributedTo)
 		const acct = urlToHandle(actorId)
 		const author = await actors.getAndCache(actorId, db)
-		const account = loadExternalMastodonAccount(acct, author)
+		const account = await loadExternalMastodonAccount(acct, author)
 
 		// Restore reblogged status
 		status.reblog = {

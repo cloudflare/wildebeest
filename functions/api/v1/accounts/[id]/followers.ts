@@ -30,7 +30,7 @@ export async function handleRequest(db: D1Database, id: string, connectedActor: 
 
 		const acct = urlToHandle(id)
 		const actor = await actors.get(id)
-		out.push(loadExternalMastodonAccount(acct, actor))
+		out.push(await loadExternalMastodonAccount(acct, actor))
 	}
 
 	const headers = {

@@ -46,7 +46,7 @@ async function getRemoteAccount(handle: Handle, acct: string): Promise<Response>
 		return new Response('', { status: 404 })
 	}
 
-	const res = loadExternalMastodonAccount(acct, actor)
+	const res = await loadExternalMastodonAccount(acct, actor, true)
 	return new Response(JSON.stringify(res), { headers })
 }
 

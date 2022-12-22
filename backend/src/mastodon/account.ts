@@ -2,7 +2,9 @@ import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { unwrapPrivateKey } from 'wildebeest/backend/src/utils/key-ops'
 import type { Actor } from '../activitypub/actors'
 import { defaultImages } from 'wildebeest/config/accounts'
-import { getFollowingAcct, getFollowers } from 'wildebeest/backend/src/activitypub/actors/follow'
+import { getFollowingAcct, getFollowers } from 'wildebeest/backend/src/mastodon/follow'
+import * as apOutbox from 'wildebeest/backend/src/activitypub/actors/outbox'
+import * as apFollow from 'wildebeest/backend/src/activitypub/actors/follow'
 
 async function getStatusesCount(db: D1Database, actorId: URL): Promise<number> {
 	const query = `
@@ -53,10 +55,22 @@ function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
 	}
 }
 
-export function loadExternalMastodonAccount(acct: string, res: Actor): MastodonAccount {
-	return toMastodonAccount(acct, res)
+// Load an external user, using ActivityPub queries, and return it as a MastodonAccount
+export async function loadExternalMastodonAccount(
+	acct: string,
+	res: Actor,
+	loadStats: boolean = false
+): Promise<MastodonAccount> {
+	const account = toMastodonAccount(acct, res)
+	if (loadStats === true) {
+		account.statuses_count = (await apOutbox.getMetadata(res)).totalItems
+		account.followers_count = (await apFollow.getFollowersMetadata(res)).totalItems
+		account.following_count = (await apFollow.getFollowingMetadata(res)).totalItems
+	}
+	return account
 }
 
+// Load a local user and return it as a MastodonAccount
 export async function loadLocalMastodonAccount(db: D1Database, acct: string, res: Actor): Promise<MastodonAccount> {
 	const account = toMastodonAccount(acct, res)
 	account.statuses_count = await getStatusesCount(db, new URL(res.id))

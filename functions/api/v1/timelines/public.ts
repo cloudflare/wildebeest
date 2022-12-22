@@ -46,7 +46,7 @@ LIMIT ?
 			}
 
 			const acct = urlToHandle(actorId)
-			const account = loadExternalMastodonAccount(acct, author)
+			const account = await loadExternalMastodonAccount(acct, author)
 
 			out.push({
 				id: result.id,
