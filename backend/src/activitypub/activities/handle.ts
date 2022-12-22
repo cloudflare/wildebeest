@@ -165,14 +165,19 @@ export async function handle(
 
 			const localObject = await objects.getObjectById(db, objectId)
 			if (localObject === null) {
-				// Object doesn't exists locally, we'll need to download it.
-				const remoteObject = await objects.get<Note>(objectId)
+				try {
+					// Object doesn't exists locally, we'll need to download it.
+					const remoteObject = await objects.get<Note>(objectId)
 
-				obj = await createObject(remoteObject, db, actorId, objectId)
-				if (obj === null) {
+					obj = await createObject(remoteObject, db, actorId, objectId)
+					if (obj === null) {
+						break
+					}
+					createdObjects.push(obj)
+				} catch (err: any) {
+					console.warn(`failed to retrieve object ${objectId}: ${err.message}`)
 					break
 				}
-				createdObjects.push(obj)
 			} else {
 				// Object already exists locally, we can just use it.
 				obj = localObject
@@ -228,10 +233,7 @@ async function createObject(
 ): Promise<Object | null> {
 	switch (obj.type) {
 		case 'Note': {
-			// FIXME: ensure that the object isn't there yet
-			// use the ID in properties
 			return objects.cacheObject(db, obj, originalActorId, originalObjectId)
-			break
 		}
 
 		default: {

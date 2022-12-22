@@ -298,6 +298,13 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('get remote actor statuses', async () => {
+			const db = await makeDB()
+
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+			const localNote = await createPublicNote(db, 'my localnote status', actor)
+
 			globalThis.fetch = async (input: RequestInfo) => {
 				if (input.toString() === 'https://social.com/.well-known/webfinger?resource=acct%3Asomeone%40social.com') {
 					return new Response(
@@ -356,6 +363,13 @@ describe('Mastodon APIs', () => {
 										content: '<p>p</p>',
 									},
 								},
+								{
+									id: 'https://mastodon.social/users/c/statuses/d/activity',
+									type: 'Announce',
+									actor: 'https://mastodon.social/users/someone',
+									published: '2022-12-10T23:48:38Z',
+									object: localNote.id,
+								},
 							],
 						})
 					)
@@ -363,8 +377,6 @@ describe('Mastodon APIs', () => {
 
 				throw new Error('unexpected request to ' + input)
 			}
-
-			const db = await makeDB()
 
 			const req = new Request('https://example.com')
 			const res = await accounts_statuses.handleRequest(req, db, 'someone@social.com', userKEK)
@@ -375,9 +387,83 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[0].content, '<p>p</p>')
 			assert.equal(data[0].account.username, 'someone')
 
-			// Statuses were imported locally
+			// Statuses were imported locally and once was a reblog of an already
+			// existing local object.
 			const row = await db.prepare(`SELECT count(*) as count FROM objects`).first()
-			assert.equal(row.count, 1)
+			assert.equal(row.count, 2)
+		})
+
+		test('get remote actor statuses ignoring object that fail to download', async () => {
+			const db = await makeDB()
+
+			const actor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+			}
+			const localNote = await createPublicNote(db, 'my localnote status', actor)
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === 'https://social.com/.well-known/webfinger?resource=acct%3Asomeone%40social.com') {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: 'https://social.com/someone',
+								},
+							],
+						})
+					)
+				}
+
+				if (input.toString() === 'https://social.com/someone') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://social.com/someone',
+							type: 'Person',
+							preferredUsername: 'someone',
+							outbox: 'https://social.com/outbox',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://social.com/outbox') {
+					return new Response(
+						JSON.stringify({
+							first: 'https://social.com/outbox/page1',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://nonexistingobject.com/') {
+					return new Response('', { status: 400 })
+				}
+
+				if (input.toString() === 'https://social.com/outbox/page1') {
+					return new Response(
+						JSON.stringify({
+							orderedItems: [
+								{
+									id: 'https://mastodon.social/users/c/statuses/d/activity',
+									type: 'Announce',
+									actor: 'https://mastodon.social/users/someone',
+									published: '2022-12-10T23:48:38Z',
+									object: 'https://nonexistingobject.com',
+								},
+							],
+						})
+					)
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
+			const req = new Request('https://example.com')
+			const res = await accounts_statuses.handleRequest(req, db, 'someone@social.com', userKEK)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<Array<any>>()
+			assert.equal(data.length, 0)
 		})
 
 		test('get remote actor followers', async () => {
