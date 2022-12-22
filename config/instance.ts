@@ -45,7 +45,7 @@ export const instanceConfig: InstanceConfig = {
 	email: 'admin@social.eng.chat',
 
 	// A short, plain-text description defined by the admin.
-	description: 'A general Mastodon server for all languages (expect PHP).',
+	description: 'A general Mastodon server (powered by Cloudflare).',
 	// short_description: "...",
 
 	rules,
