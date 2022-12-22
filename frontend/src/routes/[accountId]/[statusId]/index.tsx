@@ -6,9 +6,11 @@ import styles from './index.scss?inline'
 import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
+import { useNavigate } from '@builder.io/qwik-city'
 
 export default component$(() => {
 	useStyles$(styles)
+	const nav = useNavigate()
 	// We'll need these when we wire up the API
 	// const location = useLocation()
 	// const statusId = location.params.statusId;
@@ -33,7 +35,7 @@ export default component$(() => {
 					<>
 						{/* Header */}
 						<div class="flex justify-between items-center rounded-t header bg-slate-700">
-							<button class="text-semi back-button p4">
+							<button class="text-semi back-button p4" onClick$={() => (nav.path = '/explore')}>
 								<i class="fa fa-chevron-left mr-2" />
 								<span class="back-button-text">Back</span>
 							</button>

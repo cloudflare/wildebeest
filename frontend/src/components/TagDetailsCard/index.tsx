@@ -31,7 +31,7 @@ export default component$((props: Props) => {
 				<div class="text-sm text-bold text-slate-400">#{props.tagDetails.name}</div>
 				<div class="text-xs text-slate-500">
 					<span class="text-bold">{formatRoundedNumber(totalUsers)} </span>
-					people in the past {formattedRange} days
+					people in the past {formattedRange}
 				</div>
 			</div>
 			<Sparkline data={data} />

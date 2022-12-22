@@ -1,0 +1,17 @@
+// .header-wrapper {
+  // position: sticky;
+  // top: 0;
+  // margin-top: -10px;
+  // background-color: var(--wb-slate-900);
+// }
+
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  min-height: calc(100vh - 20px);
+}
+
+.content-container {
+  flex: 1 1 auto;
+}

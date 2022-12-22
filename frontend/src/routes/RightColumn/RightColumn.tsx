@@ -1,6 +1,5 @@
-import { component$, Resource, useResource$, useStyles$ } from '@builder.io/qwik'
+import { component$, Resource, useResource$, useStylesScoped$ } from '@builder.io/qwik'
 import { useLocation } from '@builder.io/qwik-city'
-import { Sparkline } from '~/components/Sparkline'
 import TagDetailsCard from '~/components/TagDetailsCard'
 import { tags } from '~/dummyData'
 import { TagDetails } from '~/types'
@@ -14,7 +13,7 @@ type LinkConfig = {
 }
 
 export const RightColumn = component$(() => {
-	useStyles$(styles)
+	useStylesScoped$(styles)
 	const location = useLocation()
 
 	const resource = useResource$<TagDetails[]>(async () => {

@@ -1,9 +1,14 @@
-import { component$ } from '@builder.io/qwik'
-import { DocumentHead } from '@builder.io/qwik-city'
-import Explore from './explore/Explore'
+import { component$, useClientEffect$ } from '@builder.io/qwik'
+import { DocumentHead, useNavigate } from '@builder.io/qwik-city'
 
 export default component$(() => {
-	return <Explore />
+	const nav = useNavigate()
+
+	useClientEffect$(() => {
+		nav.path = '/explore'
+	})
+
+	return <></>
 })
 
 export const head: DocumentHead = {
