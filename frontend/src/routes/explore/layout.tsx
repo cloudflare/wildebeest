@@ -14,8 +14,8 @@ export default component$(() => {
 	const renderNavLink = ({ linkText, linkTarget }: LinkConfig) => {
 		let classList = 'no-decoration text-bold text-slate-200 py-4'
 
-		// Color the active link indigo. Qwik pathnames always include a trailing `/`
-		if (new RegExp(`${linkTarget}/?`).test(location.pathname)) {
+		// Color the active link indigo, stripping any trailing slash.
+		if (location.pathname.replace(/\/$/, '') === linkTarget) {
 			classList += ' active'
 		}
 
