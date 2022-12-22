@@ -531,6 +531,28 @@ describe('Mastodon APIs', () => {
 				assert.equal(data.length, 1)
 				assert.equal(data[0].following, true)
 			})
+
+			test('relationships following request', async () => {
+				const db = await makeDB()
+				const actor: any = {
+					id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+				}
+				const actor2: any = {
+					id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+				}
+				await addFollowing(db, actor, actor2, 'sven2@' + instanceConfig.uri)
+
+				const req = new Request(
+					'https://mastodon.example/api/v1/accounts/relationships?id[]=sven2@' + instanceConfig.uri
+				)
+				const res = await accounts_relationships.handleRequest(req, db, actor)
+				assert.equal(res.status, 200)
+
+				const data = await res.json<Array<any>>()
+				assert.equal(data.length, 1)
+				assert.equal(data[0].requested, true)
+				assert.equal(data[0].following, false)
+			})
 		})
 
 		test('follow local account', async () => {

@@ -61,6 +61,23 @@ export async function getFollowingAcct(db: D1Database, actor: Actor): Promise<Ar
 	}
 }
 
+export async function getFollowingRequestedAcct(db: D1Database, actor: Actor): Promise<Array<string>> {
+	const query = `
+        SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
+    `
+
+	const out: any = await db.prepare(query).bind(actor.id, STATE_PENDING).all()
+	if (!out.success) {
+		throw new Error('SQL error: ' + out.error)
+	}
+
+	if (out.results !== null) {
+		return out.results.map((x: any) => x.target_actor_acct)
+	} else {
+		return []
+	}
+}
+
 export async function getFollowingId(db: D1Database, actor: Actor): Promise<Array<string>> {
 	const query = `
         SELECT target_actor_id FROM actor_following WHERE actor_id=? AND state=?
