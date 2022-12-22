@@ -6,7 +6,7 @@ import { instanceConfig } from 'wildebeest/config/instance'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
-import type { MastodonAccount, MastodonStatus } from 'wildebeest/backend/src/types'
+import type { MastodonStatus } from 'wildebeest/backend/src/types'
 import { parseHandle } from '../utils/parse'
 import { urlToHandle } from '../utils/handle'
 import { getLikes } from './like'
@@ -17,12 +17,11 @@ export function getMentions(input: string): Array<Handle> {
 
 	for (let i = 0, len = input.length; i < len; i++) {
 		if (input[i] === '@') {
+			i++
 			let buffer = ''
-			for (; ; i++) {
-				if (input[i] === ' ') {
-					break
-				}
+			while (i < len && /[^\s<]/.test(input[i])) {
 				buffer += input[i]
+				i++
 			}
 
 			mentions.push(parseHandle(buffer))

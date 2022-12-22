@@ -246,6 +246,20 @@ describe('Mastodon APIs', () => {
 				assert.equal(mentions[0].localPart, 'sven')
 				assert.equal(mentions[0].domain, null)
 			}
+
+			{
+				const mentions = getMentions('@sven @james @pete')
+				assert.deepEqual(mentions, [
+					{ localPart: 'sven', domain: null },
+					{ localPart: 'james', domain: null },
+					{ localPart: 'pete', domain: null },
+				])
+			}
+
+			{
+				const mentions = getMentions('<p>@sven</p>')
+				assert.deepEqual(mentions, [{ localPart: 'sven', domain: null }])
+			}
 		})
 
 		test('count likes', async () => {
