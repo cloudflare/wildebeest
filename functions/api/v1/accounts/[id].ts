@@ -24,13 +24,12 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ env, par
 export async function handleRequest(id: string, db: D1Database): Promise<Response> {
 	const handle = parseHandle(id)
 
-	const acct = `${handle.localPart}@${handle.domain}`
-
 	if (handle.domain === null || (handle.domain !== null && handle.domain === instanceConfig.uri)) {
 		// Retrieve the statuses from a local user
-		return getLocalAccount(db, handle, acct)
+		return getLocalAccount(db, handle)
 	} else if (handle.domain !== null) {
 		// Retrieve the statuses of a remote actor
+		const acct = `${handle.localPart}@${handle.domain}`
 		return getRemoteAccount(handle, acct)
 	} else {
 		return new Response('', { status: 403 })
@@ -50,7 +49,7 @@ async function getRemoteAccount(handle: Handle, acct: string): Promise<Response>
 	return new Response(JSON.stringify(res), { headers })
 }
 
-async function getLocalAccount(db: D1Database, handle: Handle, acct: string): Promise<Response> {
+async function getLocalAccount(db: D1Database, handle: Handle): Promise<Response> {
 	const actorId = actorURL(handle.localPart)
 
 	const actor = await getPersonById(db, actorId)
@@ -58,6 +57,6 @@ async function getLocalAccount(db: D1Database, handle: Handle, acct: string): Pr
 		return new Response('', { status: 404 })
 	}
 
-	const res = await loadLocalMastodonAccount(db, acct, actor)
+	const res = await loadLocalMastodonAccount(db, actor)
 	return new Response(JSON.stringify(res), { headers })
 }

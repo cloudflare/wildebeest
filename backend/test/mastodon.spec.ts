@@ -145,7 +145,7 @@ describe('Mastodon APIs', () => {
 
 			const res = await middleware.main(ctx)
 			assert.equal(res.status, 200)
-			assert.equal(data.connectedUser.id, 'username@' + instanceConfig.uri)
+			assert.equal(data.connectedUser.id, 'username')
 			assert(isUrlValid(data.connectedActor.id))
 		})
 	})
@@ -337,29 +337,6 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[2].type, 'follow')
 			assert.equal(data[2].account.username, 'from')
 			assert.equal(data[2].status, undefined)
-		})
-	})
-
-	describe('loadLocalMastodonAccount', () => {
-		test('ensure correct statuses_count', async () => {
-			const db = await makeDB()
-			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
-			await db
-				.prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
-				.bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
-				.run()
-			await db
-				.prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
-				.bind('outbox1', actorId, 'object1')
-				.run()
-
-			const acct = 'doesntmatter@instance.com'
-			const actor: any = {
-				id: actorId,
-			}
-			const account = await loadLocalMastodonAccount(db, acct, actor)
-
-			assert.equal(account.statuses_count, 1)
 		})
 	})
 })

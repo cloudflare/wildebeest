@@ -71,7 +71,9 @@ export async function loadExternalMastodonAccount(
 }
 
 // Load a local user and return it as a MastodonAccount
-export async function loadLocalMastodonAccount(db: D1Database, acct: string, res: Actor): Promise<MastodonAccount> {
+export async function loadLocalMastodonAccount(db: D1Database, res: Actor): Promise<MastodonAccount> {
+	// For local user the acct is only the local part of the email address.
+	const acct = res.preferredUsername || 'unknown'
 	const account = toMastodonAccount(acct, res)
 	account.statuses_count = await getStatusesCount(db, new URL(res.id))
 	account.followers_count = (await getFollowers(db, res)).length

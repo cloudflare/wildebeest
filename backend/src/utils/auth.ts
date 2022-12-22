@@ -70,8 +70,7 @@ export async function main(context: EventContext<Env, any, any>) {
 			}
 
 			context.data.connectedActor = person
-			const acct = `${person.preferredUsername}@${instanceConfig.uri}`
-			context.data.connectedUser = await loadLocalMastodonAccount(context.env.DATABASE, acct, person)
+			context.data.connectedUser = await loadLocalMastodonAccount(context.env.DATABASE, person)
 
 			return context.next()
 		} catch (err: any) {

@@ -166,6 +166,7 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.username, 'sven')
+			assert.equal(data.acct, 'sven@remote.com')
 
 			assert.equal(data.followers_count, 321)
 			assert.equal(data.following_count, 123)
@@ -204,6 +205,7 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.username, 'sven')
+			assert.equal(data.acct, 'sven')
 			assert.equal(data.followers_count, 1)
 			assert.equal(data.following_count, 2)
 			assert.equal(data.statuses_count, 1)
