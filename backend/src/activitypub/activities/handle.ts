@@ -6,7 +6,7 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import * as accept from 'wildebeest/backend/src/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/backend/src/activitypub/actors/inbox'
 import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import { type Object, updateObject } from 'wildebeest/backend/src/activitypub/objects'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { instanceConfig } from 'wildebeest/config/instance'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
@@ -65,6 +65,28 @@ export async function handle(
 
 	console.log(activity)
 	switch (activity.type) {
+		case 'Update': {
+			requireComplexObject()
+			const actorId = new URL(getActorAsId())
+			const objectId = new URL(getObjectAsId())
+
+			// check current object
+			const object = await objects.getObjectBy(db, 'original_object_id', objectId.toString())
+			if (object === null) {
+				throw new Error(`object ${objectId} does not exist`)
+			}
+
+			if (actorId.toString() !== object.originalActorId) {
+				throw new Error('actorid mismatch when updating object')
+			}
+
+			const updated = await updateObject(db, activity.object, object.id)
+			if (!updated) {
+				throw new Error('could not update object in database')
+			}
+			break
+		}
+
 		// https://www.w3.org/TR/activitypub/#create-activity-inbox
 		case 'Create': {
 			requireComplexObject()

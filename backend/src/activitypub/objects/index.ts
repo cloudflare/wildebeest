@@ -94,11 +94,22 @@ export async function cacheObject(
 	}
 }
 
+export async function updateObject(db: D1Database, properties: any, id: string): Promise<boolean> {
+	const res: any = await db
+		.prepare('UPDATE objects SET properties = ? WHERE id = ?')
+		.bind(JSON.stringify(properties), id)
+		.run()
+
+	// TODO: D1 doesn't return changes at the moment
+	// return res.changes === 1
+	return true
+}
+
 export async function getObjectById(db: D1Database, id: string | URL): Promise<Object | null> {
 	return getObjectBy(db, 'id', id.toString())
 }
 
-async function getObjectBy(db: D1Database, key: string, value: string): Promise<Object | null> {
+export async function getObjectBy(db: D1Database, key: string, value: string): Promise<Object | null> {
 	const query = `
 SELECT *
 FROM objects

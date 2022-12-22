@@ -6,7 +6,7 @@ import { instanceConfig } from 'wildebeest/config/instance'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
-import { cacheObject } from 'wildebeest/backend/src/activitypub/objects/'
+import { cacheObject, createObject } from 'wildebeest/backend/src/activitypub/objects/'
 
 import * as ap_users from 'wildebeest/functions/ap/users/[id]'
 import * as ap_outbox from 'wildebeest/functions/ap/users/[id]/outbox'
@@ -135,6 +135,98 @@ describe('ActivityPub', () => {
 			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
 				message: '`activity.object` must be of type object',
 			})
+		})
+	})
+
+	describe('Update', () => {
+		test('Object must be an object', async () => {
+			const db = await makeDB()
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Update',
+				actor: 'https://example.com/actor',
+				object: 'a',
+			}
+
+			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+				message: '`activity.object` must be of type object',
+			})
+		})
+
+		test('Object must exist', async () => {
+			const db = await makeDB()
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Update',
+				actor: 'https://example.com/actor',
+				object: {
+					id: 'https://example.com/note2',
+					type: 'Note',
+					content: 'test note',
+				},
+			}
+
+			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+				message: 'object https://example.com/note2 does not exist',
+			})
+		})
+
+		test('Object must have the same origin', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const object = {
+				id: 'https://example.com/note2',
+				type: 'Note',
+				content: 'test note',
+			}
+
+			const obj = await cacheObject(db, object, actor.id, new URL(object.id))
+			assert.notEqual(obj, null, 'could not create object')
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Update',
+				actor: 'https://example.com/actor',
+				object: object,
+			}
+
+			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+				message: 'actorid mismatch when updating object',
+			})
+		})
+
+		test('Object is updated', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const object = {
+				id: 'https://example.com/note2',
+				type: 'Note',
+				content: 'test note',
+			}
+
+			const obj = await cacheObject(db, object, actor.id, new URL(object.id))
+			assert.notEqual(obj, null, 'could not create object')
+
+			const newObject = {
+				id: 'https://example.com/note2',
+				type: 'Note',
+				content: 'new test note',
+			}
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Update',
+				actor: actor.id,
+				object: newObject,
+			}
+
+			await activityHandler.handle(activity, db, userKEK, 'inbox')
+
+			const updatedObject = await db.prepare('SELECT * FROM objects WHERE original_object_id=?').bind(object.id).first()
+			assert(updatedObject)
+			assert.equal(JSON.parse(updatedObject.properties).content, newObject.content)
 		})
 	})
 
