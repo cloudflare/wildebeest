@@ -139,7 +139,7 @@ export async function getPersonById(db: D1Database, id: URL): Promise<Person | n
 	return personFromRow(row)
 }
 
-function personFromRow(row: any): Person {
+export function personFromRow(row: any): Person {
 	const icon: Object = {
 		type: 'Image',
 		mediaType: 'image/jpeg',

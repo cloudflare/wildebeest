@@ -81,11 +81,11 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 	const properties = JSON.parse(row.properties)
 	const actorId = new URL(row.publisher_actor_id)
 
-	const author = await getPersonById(db, actorId)
-	if (author === null) {
-		console.error('note author is unknown')
-		return null
-	}
+	const author = actors.personFromRow({
+		id: row.actor_id,
+		cdate: row.actor_cdate,
+		properties: row.actor_properties,
+	})
 
 	const acct = urlToHandle(actorId)
 	const account = await loadExternalMastodonAccount(acct, author)

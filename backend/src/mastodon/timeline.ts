@@ -10,11 +10,15 @@ export async function getHomeTimeline(db: D1Database, actor: Actor): Promise<Arr
 
 	const QUERY = `
 SELECT objects.*,
+       actors.id as actor_id,
+       actors.cdate as actor_cdate,
+       actors.properties as actor_properties,
        outbox_objects.actor_id as publisher_actor_id,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
        (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
+INNER JOIN actors ON actors.id = outbox_objects.actor_id
 WHERE objects.type = 'Note' AND outbox_objects.actor_id IN (SELECT value FROM json_each(?))
 ORDER by outbox_objects.cdate DESC
 LIMIT ?
@@ -44,11 +48,15 @@ LIMIT ?
 export async function getPublicTimeline(db: D1Database): Promise<Array<MastodonStatus>> {
 	const QUERY = `
 SELECT objects.*,
+       actors.id as actor_id,
+       actors.cdate as actor_cdate,
+       actors.properties as actor_properties,
        outbox_objects.actor_id as publisher_actor_id,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
        (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
+INNER JOIN actors ON actors.id = outbox_objects.actor_id
 WHERE objects.type = 'Note'
 ORDER by outbox_objects.cdate DESC
 LIMIT ?
