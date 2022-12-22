@@ -5,6 +5,7 @@ import Status from '~/components/Status'
 import { RequestHandler, useEndpoint } from '@builder.io/qwik-city'
 
 export const onGet: RequestHandler<MastodonStatus[], { DATABASE: any }> = async ({ platform }) => {
+	// TODO: use the "trending" API endpoint here.
 	const response = await timelines.handleRequest(platform.DATABASE)
 	const results = await response.text()
 	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
