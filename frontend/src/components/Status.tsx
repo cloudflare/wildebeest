@@ -15,7 +15,7 @@ export default component$((props: Props) => {
 	const status = props.status
 
 	const accountUrl = `/@${status.account.username}`
-	const statusUrl = `${accountUrl}/${status.account.id}`
+	const statusUrl = `${accountUrl}/${status.id}`
 
 	const handleContentClick = $(() => {
 		nav.path = statusUrl

@@ -15,7 +15,7 @@ export default component$(() => {
 		let classList = 'no-decoration text-bold text-slate-200 py-4'
 
 		// Color the active link indigo. Qwik pathnames always include a trailing `/`
-		if (location.pathname === `${linkTarget}/`) {
+		if (new RegExp(`${linkTarget}/?`).test(location.pathname)) {
 			classList += ' active'
 		}
 

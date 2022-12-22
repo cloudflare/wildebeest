@@ -41,15 +41,20 @@ export interface Person extends Actor {
 }
 
 export async function get(url: string | URL): Promise<Actor> {
-	const headers = {
-		accept: 'application/activity+json',
-	}
-	const res = await fetch(url, { headers })
-	if (!res.ok) {
-		throw new Error(`${url} returned: ${res.status}`)
-	}
+	try {
+		const headers = {
+			accept: 'application/activity+json',
+		}
+		const res = await fetch(url.toString(), { headers })
+		if (!res.ok) {
+			throw new Error(`${url} returned: ${res.status}`)
+		}
 
-	return res.json<Actor>()
+		return res.json<Actor>()
+	} catch (e) {
+		console.error(e)
+		return {} as Actor
+	}
 }
 
 export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {

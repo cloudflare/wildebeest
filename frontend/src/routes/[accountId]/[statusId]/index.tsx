@@ -1,27 +1,28 @@
-import { component$, Resource, useResource$, useStyles$ } from '@builder.io/qwik'
+import { component$, Resource, useStyles$ } from '@builder.io/qwik'
 // import { useLocation } from '@builder.io/qwik-city'
 import { MastodonStatus, StatusContext } from '~/types'
-import { statusContext, statusById } from '~/dummyData'
 import styles from './index.scss?inline'
 import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
-import { useNavigate } from '@builder.io/qwik-city'
+import { RequestHandler, useEndpoint } from '@builder.io/qwik-city'
+import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
+
+export const onGet: RequestHandler<{ status: MastodonStatus; context: StatusContext }, { DATABASE: any }> = async ({
+	platform,
+	params,
+}) => {
+	const response = await statusAPI.handleRequest(platform.DATABASE, params.statusId)
+	const results = await response.text()
+	console.log(results)
+	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
+	return { status: JSON.parse(results), context: { ancestors: [], descendants: [] } }
+}
 
 export default component$(() => {
 	useStyles$(styles)
-	const nav = useNavigate()
-	// We'll need these when we wire up the API
-	// const location = useLocation()
-	// const statusId = location.params.statusId;
-	// const accountId = location.params.accountId;
 
-	const resource = useResource$<{ status: MastodonStatus; context: StatusContext }>(async () => {
-		return {
-			context: statusContext,
-			status: statusById,
-		}
-	})
+	const resource = useEndpoint<{ status: MastodonStatus; context: StatusContext }>()
 
 	return (
 		<Resource
@@ -35,10 +36,10 @@ export default component$(() => {
 					<>
 						{/* Header */}
 						<div class="flex justify-between items-center rounded-t header bg-slate-700">
-							<button class="text-semi back-button p4" onClick$={() => (nav.path = '/explore')}>
+							<a class="text-semi back-button p4" href="/explore">
 								<i class="fa fa-chevron-left mr-2" />
 								<span class="back-button-text">Back</span>
-							</button>
+							</a>
 							<i class="fa fa-eye mr-4 text-slate-400" />
 						</div>
 						<div class="bg-slate-700 p4">
