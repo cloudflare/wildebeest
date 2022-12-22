@@ -7,7 +7,7 @@ export const LeftColumn = component$(() => {
 
 	return (
 		<>
-			<input class="search" type="text" placeholder="search" />
+			{/* <input class="search" type="text" placeholder="search" /> */}
 			<InstanceDetails />
 		</>
 	)
