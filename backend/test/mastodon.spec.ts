@@ -50,10 +50,49 @@ describe('Mastodon APIs', () => {
 
 	describe('apps', () => {
 		test('return the app infos', async () => {
-			const res = await apps.onRequest()
+			const request = new Request('https://example.com', {
+				method: 'POST',
+				body: '{"redirect_uris":"mastodon://joinmastodon.org/oauth","website":"https://app.joinmastodon.org/ios","client_name":"Mastodon for iOS","scopes":"read write follow push"}',
+			})
+			const ctx: any = {
+				next: () => new Response(),
+				data: null,
+				env: {},
+				request,
+			}
+
+			const res = await apps.onRequest(ctx)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
+
+			const { name, website, redirect_uri, client_id, client_secret, vapid_key, ...rest } = await res.json<
+				Record<string, string>
+			>()
+
+			assert.equal(name, 'Mastodon for iOS')
+			assert.equal(website, 'https://app.joinmastodon.org/ios')
+			assert.equal(redirect_uri, 'mastodon://joinmastodon.org/oauth')
+			assert.equal(client_id, 'TWhM-tNSuncnqN7DBJmoyeLnk6K3iJJ71KKXxgL1hPM')
+			assert.equal(client_secret, 'ZEaFUFmF0umgBX1qKJDjaU99Q31lDkOU8NutzTOoliw')
+			assert.equal(
+				vapid_key,
+				'BCk-QqERU0q-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M='
+			)
+			assert.deepEqual(rest, {})
+		})
+
+		test('returns 404 for GET request', async () => {
+			const request = new Request('https://example.com')
+			const ctx: any = {
+				next: () => new Response(),
+				data: null,
+				env: {},
+				request,
+			}
+
+			const res = await apps.onRequest(ctx)
+			assert.equal(res.status, 400)
 		})
 	})
 

@@ -1,8 +1,25 @@
-export const onRequest = () => {
+import { ContextData } from 'wildebeest/backend/src/types/context'
+import { Env } from 'wildebeest/backend/src/types/env'
+
+type AppsPost = {
+	redirect_uris: string
+	website: string
+	client_name: string
+	scopes: string
+}
+
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
+	if (request.method !== 'POST') {
+		return new Response('', { status: 400 })
+	}
+
+	const body = await request.json<AppsPost>()
+	console.log(body)
+
 	const res = {
-		name: 'test app',
-		website: 'example.com',
-		redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+		name: body.client_name,
+		website: body.website,
+		redirect_uri: body.redirect_uris,
 		client_id: 'TWhM-tNSuncnqN7DBJmoyeLnk6K3iJJ71KKXxgL1hPM',
 		client_secret: 'ZEaFUFmF0umgBX1qKJDjaU99Q31lDkOU8NutzTOoliw',
 		vapid_key: 'BCk-QqERU0q-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M=',
