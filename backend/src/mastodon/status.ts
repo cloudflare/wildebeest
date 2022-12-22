@@ -68,6 +68,9 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Object): P
 	}
 }
 
+// toMastodonStatusFromRow makes assumption about what field are available on
+// the `row` object. This funciton is only used for timelines, which is optimized
+// SQL. Otherwise don't use this function.
 export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise<MastodonStatus | null> {
 	if (row.publisher_actor_id === undefined) {
 		console.warn('missing `row.publisher_actor_id`')
@@ -85,13 +88,9 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 	const acct = urlToHandle(actorId)
 	const account = await loadExternalMastodonAccount(acct, author)
 
-	const obj: any = {
-		// likes and reblogs can be retrieve only with the object id, we don't
-		// need to load the full object.
-		id: row.id,
+	if (row.favourites_count === undefined || row.reblogs_count === undefined) {
+		throw new Error('logic error; missing fields.')
 	}
-	const favourites = await getLikes(db, obj)
-	const reblogs = await getReblogs(db, obj)
 
 	const status: MastodonStatus = {
 		// Default values
@@ -109,8 +108,8 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 		spoiler_text: '',
 
 		content: properties.content,
-		favourites_count: favourites.length,
-		reblogs_count: reblogs.length,
+		favourites_count: row.favourites_count,
+		reblogs_count: row.reblogs_count,
 	}
 
 	if (properties.updated) {
