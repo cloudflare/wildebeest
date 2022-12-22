@@ -238,21 +238,22 @@ describe('ActivityPub', () => {
 			const originalObjectId = new URL('https://example.com/object1')
 
 			let result: any
-			let obj: any
 
 			// Cache object once adds it to the database
-			obj = await cacheObject(db, properties, actorId, originalObjectId)
-			assert.equal(obj.a, 1)
-			assert.equal(obj.b, 2)
+			const obj1: any = await cacheObject(db, properties, actorId, originalObjectId)
+			assert.equal(obj1.a, 1)
+			assert.equal(obj1.b, 2)
 
 			result = await db.prepare('SELECT count(*) as count from objects').first()
 			assert.equal(result.count, 1)
 
 			// Cache object second time updates the first one
 			properties.a = 3
-			obj = await cacheObject(db, properties, actorId, originalObjectId)
-			assert.equal(obj.a, 3)
-			assert.equal(obj.b, 2)
+			const obj2: any = await cacheObject(db, properties, actorId, originalObjectId)
+			// The creation date and properties don't change
+			assert.equal(obj1.a, obj2.a)
+			assert.equal(obj1.b, obj2.b)
+			assert.equal(obj1.published, obj2.published)
 
 			result = await db.prepare('SELECT count(*) as count from objects').first()
 			assert.equal(result.count, 1)

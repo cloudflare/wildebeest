@@ -66,11 +66,16 @@ export async function cacheObject(
 	originalActorId: URL,
 	originalObjectId: URL
 ): Promise<Object> {
+	const cachedObject = await getObjectBy(db, 'original_object_id', originalObjectId.toString())
+	if (cachedObject !== null) {
+		return cachedObject
+	}
+
 	const id = uri(crypto.randomUUID()).toString()
 
 	const row: any = await db
 		.prepare(
-			'INSERT OR REPLACE INTO objects(id, type, properties, original_actor_id, original_object_id) VALUES(?, ?, ?, ?, ?) RETURNING *'
+			'INSERT INTO objects(id, type, properties, original_actor_id, original_object_id) VALUES(?, ?, ?, ?, ?) RETURNING *'
 		)
 		.bind(id, properties.type, JSON.stringify(properties), originalActorId.toString(), originalObjectId.toString())
 		.first()
@@ -79,10 +84,10 @@ export async function cacheObject(
 		const properties = JSON.parse(row.properties)
 
 		return {
+			published: new Date(row.cdate).toISOString(),
 			...properties,
 			id: row.id,
 			url: row.id,
-			published: new Date(row.cdate).toISOString(),
 			originalActorId: row.original_actor_id,
 			originalObjectId: row.original_object_id,
 		}
@@ -90,12 +95,16 @@ export async function cacheObject(
 }
 
 export async function getObjectById(db: D1Database, id: string | URL): Promise<Object | null> {
+	return getObjectBy(db, 'id', id.toString())
+}
+
+async function getObjectBy(db: D1Database, key: string, value: string): Promise<Object | null> {
 	const query = `
-SELECT id, properties, type, original_actor_id, original_object_id
+SELECT *
 FROM objects
-WHERE objects.id=?
+WHERE objects.${key}=?
   `
-	const { results, success, error } = await db.prepare(query).bind(id.toString()).all()
+	const { results, success, error } = await db.prepare(query).bind(value).all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}
@@ -108,11 +117,12 @@ WHERE objects.id=?
 	const properties = JSON.parse(result.properties)
 
 	return {
+		published: new Date(result.cdate).toISOString(),
 		...properties,
 
 		id: result.id,
 		type: result.type,
-		url: id,
+		url: result.id,
 		originalActorId: result.original_actor_id,
 		originalObjectId: result.original_object_id,
 	}
