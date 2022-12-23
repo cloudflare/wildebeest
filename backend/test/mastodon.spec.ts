@@ -15,7 +15,7 @@ import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/accoun
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { Actor, createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
-import { createClient } from '../src/mastodon/client'
+import { createClient, getClientById } from '../src/mastodon/client'
 import { createSubscription } from '../src/mastodon/subscription'
 
 const userKEK = 'test_kek'
@@ -403,6 +403,11 @@ describe('Mastodon APIs', () => {
 				'https://website.com',
 				'list create'
 			)
+
+			const fetchedClient = await getClientById(db, client.id)
+			assert(fetchedClient)
+			assert.equal(client.secret, fetchedClient.secret)
+
 			await createSubscription(db, actor, client, {
 				endpoint: 'https://endpoint',
 				key_p256dh: 'base64key',

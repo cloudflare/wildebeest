@@ -35,3 +35,21 @@ export async function createClient(
 		cdate: row.cdate,
 	}
 }
+
+export async function getClientById(db: D1Database, id: string): Promise<Client | null> {
+	const stmt = db.prepare('SELECT * FROM clients WHERE id=?').bind(id)
+	const { results } = await stmt.all()
+	if (!results || results.length === 0) {
+		return null
+	}
+	const row: any = results[0]
+	return {
+		id: id,
+		secret: row.secret,
+		name: row.name,
+		redirect_uris: row.redirect_uris,
+		website: row.website,
+		scopes: row.scopes,
+		cdate: row.cdate,
+	}
+}

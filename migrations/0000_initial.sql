@@ -99,7 +99,14 @@ CREATE TABLE IF NOT EXISTS clients (
   cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW'))
 );
 
+
+INSERT INTO CLIENTS (id, secret, name, redirect_uris, website, scopes)
+  VALUES (
+    'TWhM-tNSuncnqN7DBJmoyeLnk6K3iJJ71KKXxgL1hPM', 'ZEaFUFmF0umgBX1qKJDjaU99Q31lDkOU8NutzTOoliw', 'A NAME', 'redirect', 'website', 'scopes'
+  ); -- TODO: dummy hardcoded client until we correctly handle clients during authentication and can distinguish between them via oauth
+
 CREATE TABLE IF NOT EXISTS subscriptions (
+  id INTEGER PRIMARY KEY,
   actor_id TEXT NOT NULL,
   client_id TEXT NOT NULL,
   endpoint TEXT NULL,
@@ -118,7 +125,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   policy TEXT,
   cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
 
-  PRIMARY KEY (actor_id, client_id)
+  UNIQUE(actor_id, client_id)
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
   FOREIGN KEY(client_id) REFERENCES clients(id)
 );
