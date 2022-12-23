@@ -1,0 +1,13 @@
+@use '../../../styles/theme.scss' as theme;
+
+.container {
+  &:hover {
+    background-color: theme.$slate700;
+  }
+}
+
+.thumbnail {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}

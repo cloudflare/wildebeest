@@ -1,8 +1,9 @@
+@use '../../styles/theme.scss' as theme;
+
 // .header-wrapper {
   // position: sticky;
   // top: 0;
   // margin-top: -10px;
-  // background-color: var(--wb-slate-900);
 // }
 
 .container {
@@ -17,7 +18,7 @@
 }
 
 .active {
-  color: var(--wb-slate-200);
+  color: theme.$slate200;
   position: relative;
 
   &::before,

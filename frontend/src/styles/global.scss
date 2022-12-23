@@ -1,6 +1,8 @@
+@use './theme.scss' as theme;
+
 body {
-	background-color: var(--wb-base-background-color);
-	color: var(--wb-base-font-color);
+	background-color: theme.$backgroundBaseColor;
+	color: theme.$fontBaseColor;
 	font-family: ui-sans-serif, sans-serif, ui-sans-serif;
 	line-height: 1.25rem;
 	text-rendering: optimizelegibility;
@@ -18,19 +20,19 @@ button {
 
 * {
 	// border defaults
-	border: 0 solid var(--wb-slate-100);
+	border: 0 solid theme.$slate100;
 }
 
 .avatar {
 	width: 46px;
 	height: 46px;
-	border-radius: var(--wb-radius-medium);
+	border-radius: theme.$radius-medium;
 }
 
 .avatar-sm {
 	width: 36px;
 	height: 36px;
-	border-radius: var(--wb-radius-medium);
+	border-radius: theme.$radius-medium;
 }
 
 .pointer {

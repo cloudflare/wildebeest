@@ -1,3 +1,5 @@
+@use './theme.scss' as theme;
+
 .border {
 	border-width: 1px;
 }
@@ -23,32 +25,32 @@
 }
 
 .border-slate-50 {
-	border-color: var(--wb-slate-50);
+	border-color: theme.$slate50;
 }
 .border-slate-100 {
-	border-color: var(--wb-slate-100);
+	border-color: theme.$slate100;
 }
 .border-slate-200 {
-	border-color: var(--wb-slate-200);
+	border-color: theme.$slate200;
 }
 .border-slate-300 {
-	border-color: var(--wb-slate-300);
+	border-color: theme.$slate300;
 }
 .border-slate-400 {
-	border-color: var(--wb-slate-400);
+	border-color: theme.$slate400;
 }
 .border-slate-500 {
-	border-color: var(--wb-slate-500);
+	border-color: theme.$slate500;
 }
 .border-slate-600 {
-	border-color: var(--wb-slate-600);
+	border-color: theme.$slate600;
 }
 .border-slate-700 {
-	border-color: var(--wb-slate-700);
+	border-color: theme.$slate700;
 }
 .border-slate-800 {
-	border-color: var(--wb-slate-800);
+	border-color: theme.$slate800;
 }
 .border-slate-900 {
-	border-color: var(--wb-slate-900);
+	border-color: theme.$slate900;
 }

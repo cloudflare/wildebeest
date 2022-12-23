@@ -1,58 +1,60 @@
+@use './theme.scss' as theme;
+
 // Color
 .secondary {
-	color: var(--wb-gray-5);
+	color: theme.$slate400;
 }
 
 .text-slate-50 {
-	color: var(--wb-slate-50);
+	color: theme.$slate50;
 }
 .text-slate-100 {
-	color: var(--wb-slate-100);
+	color: theme.$slate100;
 }
 .text-slate-200 {
-	color: var(--wb-slate-200);
+	color: theme.$slate200;
 }
 .text-slate-300 {
-	color: var(--wb-slate-300);
+	color: theme.$slate300;
 }
 .text-slate-400 {
-	color: var(--wb-slate-400);
+	color: theme.$slate400;
 }
 .text-slate-500 {
-	color: var(--wb-slate-500);
+	color: theme.$slate500;
 }
 .text-slate-600 {
-	color: var(--wb-slate-600);
+	color: theme.$slate600;
 }
 .text-slate-700 {
-	color: var(--wb-slate-700);
+	color: theme.$slate700;
 }
 .text-slate-800 {
-	color: var(--wb-slate-800);
+	color: theme.$slate800;
 }
 .text-slate-900 {
-	color: var(--wb-slate-900);
+	color: theme.$slate900;
 }
 
 .text-indigo-400 {
-	color: var(--wb-indigo-400);
+	color: theme.$indigo400;
 }
 
 // Size
 .text-xs {
-	font-size: var(--wb-font-xsmall);
+	font-size: theme.$font-xsmall;
 }
 .text-sm {
-	font-size: var(--wb-font-small);
+	font-size: theme.$font-small;
 }
 .text-md {
-	font-size: var(--wb-font-medium);
+	font-size: theme.$font-medium;
 }
 .text-lg {
-	font-size: var(--wb-font-large);
+	font-size: theme.$font-large;
 }
 .text-xl {
-	font-size: var(--wb-font-xlarge);
+	font-size: theme.$font-xlarge;
 }
 
 // Weight

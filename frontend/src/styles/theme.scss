@@ -1,46 +1,38 @@
-:root {
-	--wb-black: #000;
-	--wb-white: #fff;
-	--wb-green: #79bd9a;
-	--wb-red: #df405a;
-	--wb-gold: #ca8f04;
+$sp0: 0px;
+$sp1: 0.125rem;
+$sp2: 0.25rem;
+$sp3: 0.5rem;
+$sp4: 1rem;
+$sp5: 1.5rem;
+$sp6: 2rem;
+$space_scale: $sp0, $sp1, $sp2, $sp3, $sp4, $sp5, $sp6; 
 
-	--wb-base-background-color: #191b22;
-	--wb-base-font-color: var(--wb-white);
-	--wb-secondary-color: #d9e1e8;
-	--wb-highlight-color: #6364ff;
+$font-xsmall: 0.75rem;
+$font-small: 0.875rem;
+$font-medium: 1rem;
+$font-large: 1.125rem;
+$font-xlarge: 1.5rem;
 
-	--wb-gray-1: #282c37;
-	--wb-gray-2: #313543;
-	--wb-gray-3: #393f4f;
-	--wb-gray-5: #9baec8;
+$radius-small: 0.125rem;
+$radius-medium: 0.25rem;
+$radius-large: 0.5rem;
 
-	--wb-indigo-400: #8c8dff;
+$black: #000;
+$white: #fff;
 
-	--wb-slate-50: #f8fafc;
-	--wb-slate-100: #eff6ff;
-	--wb-slate-200: #dbeafe;
-	--wb-slate-400: #9baec8;
-	--wb-slate-500: #64748b;
-	--wb-slate-600: #393f4f;
-	--wb-slate-700: #313543;
-	--wb-slate-800: #282c37;
-	--wb-slate-900: #1f232b;
+$slate50: #f8fafc;
+$slate100: #eff6ff;
+$slate200: #dbeafe;
+$slate300: #7a899f;
+$slate400: #9baec8;
+$slate500: #64748b;
+$slate600: #393f4f;
+$slate700: #313543;
+$slate800: #282c37;
+$slate900: #1f232b;
 
-	--wb-font-xsmall: 0.75rem;
-	--wb-font-small: 0.875rem;
-	--wb-font-medium: 1rem;
-	--wb-font-large: 1.125rem;
-	--wb-font-xlarge: 1.5rem;
+$indigo400: #8c8dff;
 
-	--wb-radius-small: 0.125rem;
-	--wb-radius-medium: 0.25rem;
-	--wb-radius-large: 0.5rem;
-
-	--wb-sp-0: 0px;
-	--wb-sp-1: 0.125rem;
-	--wb-sp-2: 0.25rem;
-	--wb-sp-3: 0.5rem;
-	--wb-sp-4: 1rem;
-	--wb-sp-5: 1.5rem;
-}
+// $backgroundBaseColor: $slate900;
+$backgroundBaseColor: #191b22;
+$fontBaseColor: $white;

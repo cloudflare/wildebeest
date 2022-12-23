@@ -1,3 +1,5 @@
+@use '../../styles/theme.scss';
+
 .search {
 	outline: 0;
 	box-sizing: border-box;
@@ -5,11 +7,11 @@
 	border: 0;
 	box-shadow: none;
 	font-family: inherit;
-	background: var(--wb-gray-1);
-	color: var(--wb-gray-5);
-	border-radius: var(--wb-radius-medium);
+	background: theme.$slate800;
+	color: theme.$slate400;
+	border-radius: theme.$radius-medium;
 	margin: 0;
 	display: block;
-	padding: var(--wb-sp-4);
+	padding: theme.$sp4;
 	line-height: 18px;
 }

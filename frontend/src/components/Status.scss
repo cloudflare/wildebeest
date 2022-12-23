@@ -1,13 +1,15 @@
+@use '../styles/theme.scss' as theme;
+
 .status-content {
   a {
     text-decoration: none;
-    color: var(--wb-indigo-400);
+    color: theme.$indigo400;
   }
   a.mention {
-    color: var(--wb-slate-200);
+    color: theme.$slate200;
   }
   a.hashtag {
-    color: var(--wb-slate-200);
+    color: theme.$slate200;
   }
 }
 
@@ -38,6 +40,6 @@
 }
 
 .status-link {
-	color: var(--wb-slate-200);
+  color: theme.$slate200;
 	text-decoration: none;
 }
