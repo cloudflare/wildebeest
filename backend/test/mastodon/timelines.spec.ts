@@ -109,6 +109,14 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[1].account.username, 'sven')
 			assert.equal(data[1].favourites_count, 1)
 			assert.equal(data[1].reblogs_count, 1)
+
+			// if we request only remote objects nothing should be returned
+			const remoteRes = await timelines_public.handleRequest(db, { local: false, remote: true, only_media: false })
+			assert.equal(remoteRes.status, 200)
+			assertJSON(remoteRes)
+			assertCORS(remoteRes)
+			const remoteData = await remoteRes.json<any>()
+			assert.equal(remoteData.length, 0)
 		})
 	})
 })

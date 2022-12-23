@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS objects (
   cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
   original_actor_id TEXT,
   original_object_id TEXT UNIQUE,
-  properties TEXT NOT NULL DEFAULT (json_object())
+  properties TEXT NOT NULL DEFAULT (json_object()),
+  local INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS inbox_objects (

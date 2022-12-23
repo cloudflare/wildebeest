@@ -192,7 +192,7 @@ describe('Mastodon APIs', () => {
 			await acceptFollowing(db, actor3, actor)
 
 			await db
-				.prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+				.prepare('INSERT INTO objects (id, type, properties, local) VALUES (?, ?, ?, 1)')
 				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
 				.run()
 			await db
@@ -258,11 +258,11 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
 			await db
-				.prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+				.prepare('INSERT INTO objects (id, type, properties, local) VALUES (?, ?, ?, 1)')
 				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
 				.run()
 			await db
-				.prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+				.prepare('INSERT INTO objects (id, type, properties, local) VALUES (?, ?, ?, 1)')
 				.bind('object2', 'Note', JSON.stringify({ content: 'my second status' }))
 				.run()
 			await db

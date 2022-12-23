@@ -348,7 +348,7 @@ describe('Mastodon APIs', () => {
 			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
 			const fromActorId = await createPerson(db, userKEK, 'from@cloudflare.com')
 			await db
-				.prepare('INSERT INTO objects (id, type, properties) VALUES (?, ?, ?)')
+				.prepare('INSERT INTO objects (id, type, properties, local) VALUES (?, ?, ?, 1)')
 				.bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
 				.run()
 

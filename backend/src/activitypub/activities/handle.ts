@@ -255,7 +255,7 @@ async function createObject(
 ): Promise<Object | null> {
 	switch (obj.type) {
 		case 'Note': {
-			return objects.cacheObject(db, obj, originalActorId, originalObjectId)
+			return objects.cacheObject(db, obj, originalActorId, originalObjectId, false)
 		}
 
 		default: {

@@ -1,6 +1,6 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import { getPublicTimeline } from 'wildebeest/backend/src/mastodon/timeline'
+import { getPublicTimeline, LocalPreference } from 'wildebeest/backend/src/mastodon/timeline'
 
 const headers = {
 	'Access-Control-Allow-Origin': '*',
@@ -20,7 +20,14 @@ export async function handleRequest(
 	db: D1Database,
 	{ local = false, remote = false, only_media = false } = {}
 ): Promise<Response> {
-	// TODO - use the options in the query
-	const statuses = await getPublicTimeline(db)
+	let localParam = LocalPreference.NotSet
+	if (local) {
+		localParam = LocalPreference.OnlyLocal
+	} else if (remote) {
+		localParam = LocalPreference.OnlyRemote
+	}
+
+	// TODO - use only media option
+	const statuses = await getPublicTimeline(db, localParam)
 	return new Response(JSON.stringify(statuses), { headers })
 }

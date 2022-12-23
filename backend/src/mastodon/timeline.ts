@@ -45,7 +45,27 @@ LIMIT ?
 	return out
 }
 
-export async function getPublicTimeline(db: D1Database): Promise<Array<MastodonStatus>> {
+export enum LocalPreference {
+	NotSet,
+	OnlyLocal,
+	OnlyRemote,
+}
+
+function localPreferenceQuery(preference: LocalPreference): string {
+	switch (preference) {
+		case LocalPreference.NotSet:
+			return ''
+		case LocalPreference.OnlyLocal:
+			return 'AND objects.local = 1'
+		case LocalPreference.OnlyRemote:
+			return 'AND objects.local = 0'
+	}
+}
+
+export async function getPublicTimeline(
+	db: D1Database,
+	localPreference: LocalPreference
+): Promise<Array<MastodonStatus>> {
 	const QUERY = `
 SELECT objects.*,
        actors.id as actor_id,
@@ -58,6 +78,7 @@ FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
 INNER JOIN actors ON actors.id = outbox_objects.actor_id
 WHERE objects.type = 'Note'
+${localPreferenceQuery(localPreference)}
 ORDER by outbox_objects.cdate DESC
 LIMIT ?
 `

@@ -29,13 +29,14 @@ export async function createObject(
 	db: D1Database,
 	type: string,
 	properties: any,
-	originalActorId: URL
+	originalActorId: URL,
+	local: boolean
 ): Promise<Object> {
 	const id = uri(crypto.randomUUID()).toString()
 
 	const row: any = await db
-		.prepare('INSERT INTO objects(id, type, properties, original_actor_id) VALUES(?, ?, ?, ?) RETURNING *')
-		.bind(id, type, JSON.stringify(properties), originalActorId.toString())
+		.prepare('INSERT INTO objects(id, type, properties, original_actor_id, local) VALUES(?, ?, ?, ?, ?) RETURNING *')
+		.bind(id, type, JSON.stringify(properties), originalActorId.toString(), local ? 1 : 0)
 		.first()
 
 	return {
@@ -64,7 +65,8 @@ export async function cacheObject(
 	db: D1Database,
 	properties: any,
 	originalActorId: URL,
-	originalObjectId: URL
+	originalObjectId: URL,
+	local: boolean
 ): Promise<Object> {
 	const cachedObject = await getObjectBy(db, 'original_object_id', originalObjectId.toString())
 	if (cachedObject !== null) {
@@ -75,9 +77,16 @@ export async function cacheObject(
 
 	const row: any = await db
 		.prepare(
-			'INSERT INTO objects(id, type, properties, original_actor_id, original_object_id) VALUES(?, ?, ?, ?, ?) RETURNING *'
+			'INSERT INTO objects(id, type, properties, original_actor_id, original_object_id, local) VALUES(?, ?, ?, ?, ?, ?) RETURNING *'
 		)
-		.bind(id, properties.type, JSON.stringify(properties), originalActorId.toString(), originalObjectId.toString())
+		.bind(
+			id,
+			properties.type,
+			JSON.stringify(properties),
+			originalActorId.toString(),
+			originalObjectId.toString(),
+			local ? 1 : 0
+		)
 		.first()
 
 	{

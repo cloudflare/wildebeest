@@ -182,7 +182,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			}
 
-			const obj = await cacheObject(db, object, actor.id, new URL(object.id))
+			const obj = await cacheObject(db, object, actor.id, new URL(object.id), false)
 			assert.notEqual(obj, null, 'could not create object')
 
 			const activity = {
@@ -206,7 +206,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			}
 
-			const obj = await cacheObject(db, object, actor.id, new URL(object.id))
+			const obj = await cacheObject(db, object, actor.id, new URL(object.id), false)
 			assert.notEqual(obj, null, 'could not create object')
 
 			const newObject = {
@@ -332,7 +332,7 @@ describe('ActivityPub', () => {
 			let result: any
 
 			// Cache object once adds it to the database
-			const obj1: any = await cacheObject(db, properties, actorId, originalObjectId)
+			const obj1: any = await cacheObject(db, properties, actorId, originalObjectId, false)
 			assert.equal(obj1.a, 1)
 			assert.equal(obj1.b, 2)
 
@@ -341,7 +341,7 @@ describe('ActivityPub', () => {
 
 			// Cache object second time updates the first one
 			properties.a = 3
-			const obj2: any = await cacheObject(db, properties, actorId, originalObjectId)
+			const obj2: any = await cacheObject(db, properties, actorId, originalObjectId, false)
 			// The creation date and properties don't change
 			assert.equal(obj1.a, obj2.a)
 			assert.equal(obj1.b, obj2.b)

@@ -45,5 +45,5 @@ export async function createPublicNote(db: D1Database, content: string, actor: A
 		attachment: [],
 	}
 
-	return (await objects.createObject(db, NOTE, properties, actorId)) as Note
+	return (await objects.createObject(db, NOTE, properties, actorId, true)) as Note
 }

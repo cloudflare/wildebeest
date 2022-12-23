@@ -193,7 +193,7 @@ describe('Mastodon APIs', () => {
 
 			await db
 				.prepare(
-					'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id) VALUES (?, ?, ?, ?, ?)'
+					'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local) VALUES (?, ?, ?, ?, ?, 1)'
 				)
 				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }), actor.id, originalObjectId)
 				.run()
