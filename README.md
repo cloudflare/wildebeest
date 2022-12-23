@@ -77,6 +77,13 @@ wildebeest->Settings->Functions->D1 database bindings->Add binding
 
 Enter `DATABASE` for the variable name and select the `wildebeest` database from the dropdown.
 
+### Environment variables
+
+wildebeest expectes the Pages project to inject the following environment variables:
+- `USER_KEY`
+- `CF_ACCOUNT_ID`
+- `CF_API_TOKEN`
+
 ### Deployment
 
 Run the following command to deploy the current working directory to Cloudflare Pages:

@@ -142,6 +142,16 @@ export async function createPerson(db: D1Database, userKEK: string, email: strin
 	return new URL(id)
 }
 
+export async function updateActorProperty(db: D1Database, actorId: URL, key: string, value: string) {
+	const { success, error } = await db
+		.prepare(`UPDATE actors SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
+		.bind(value, actorId.toString())
+		.run()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+}
+
 export async function getPersonById(db: D1Database, id: URL): Promise<Person | null> {
 	const stmt = db.prepare('SELECT * FROM actors WHERE id=? AND type=?').bind(id.toString(), PERSON)
 	const { results } = await stmt.all()

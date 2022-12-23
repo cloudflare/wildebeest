@@ -13,7 +13,8 @@ import * as accounts_statuses from 'wildebeest/functions/api/v1/accounts/[id]/st
 import * as accounts_get from 'wildebeest/functions/api/v1/accounts/[id]'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
 import * as accounts_verify_creds from 'wildebeest/functions/api/v1/accounts/verify_credentials'
-import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
+import * as accounts_update_creds from 'wildebeest/functions/api/v1/accounts/update_credentials'
+import { createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
@@ -90,6 +91,88 @@ describe('Mastodon APIs', () => {
 			// it to construct an URL. ActivityPub uses URL as ObjectId so we
 			// make sure we don't return the URL.
 			assert(!isUrlValid(data.id))
+		})
+
+		test('update credentials', async () => {
+			const db = await makeDB()
+			const connectedActor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const connectedUser: any = {
+				display_name: 'sven',
+			}
+
+			const updates = new FormData()
+			updates.set('display_name', 'newsven')
+			updates.set('note', 'hein')
+
+			const req = new Request('https://example.com', {
+				method: 'PATCH',
+				body: updates,
+			})
+			const res = await accounts_update_creds.handleRequest(
+				db,
+				req,
+				connectedUser,
+				connectedActor,
+				'CF_ACCOUNT_ID',
+				'CF_API_TOKEN'
+			)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.display_name, 'newsven')
+			assert.equal(data.note, 'hein')
+
+			const updatedActor: any = await getPersonById(db, connectedActor.id)
+			assert(updatedActor)
+			assert.equal(updatedActor.name, 'newsven')
+			assert.equal(updatedActor.summary, 'hein')
+		})
+
+		test('update credentials avatar and header', async () => {
+			globalThis.fetch = async (input: RequestInfo, data: any) => {
+				if (input === 'https://api.cloudflare.com/client/v4/accounts/CF_ACCOUNT_ID/images/v1') {
+					assert.equal(data.method, 'POST')
+					const file: any = data.body.get('file')
+					return new Response(
+						JSON.stringify({
+							success: true,
+							result: {
+								variants: ['https://example.com/' + file.name],
+							},
+						})
+					)
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
+			const db = await makeDB()
+			const connectedActor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const connectedUser: any = {
+				display_name: 'sven',
+			}
+
+			const updates = new FormData()
+			updates.set('avatar', new File(['bytes'], 'selfie.jpg', { type: 'image/jpeg' }))
+			updates.set('header', new File(['bytes2'], 'mountain.jpg', { type: 'image/jpeg' }))
+
+			const req = new Request('https://example.com', {
+				method: 'PATCH',
+				body: updates,
+			})
+			const res = await accounts_update_creds.handleRequest(
+				db,
+				req,
+				connectedUser,
+				connectedActor,
+				'CF_ACCOUNT_ID',
+				'CF_API_TOKEN'
+			)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.avatar, 'https://example.com/selfie.jpg')
+			assert.equal(data.header, 'https://example.com/mountain.jpg')
 		})
 
 		test('get remote actor by id', async () => {
