@@ -1,7 +1,10 @@
 // https://docs.joinmastodon.org/methods/accounts/#update_credentials
 
 import * as errors from 'wildebeest/backend/src/errors'
+import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
+import * as activities from 'wildebeest/backend/src/activitypub/activities/update'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { deliverFollowers } from 'wildebeest/backend/src/activitypub/deliver'
 import * as images from 'wildebeest/backend/src/images'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
@@ -23,7 +26,8 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 		data.connectedUser,
 		data.connectedActor,
 		env.CF_ACCOUNT_ID,
-		env.CF_API_TOKEN
+		env.CF_API_TOKEN,
+		env.userKEK
 	)
 }
 
@@ -34,7 +38,9 @@ export async function handleRequest(
 	connectedActor: Actor,
 
 	accountId: string,
-	apiToken: string
+	apiToken: string,
+
+	userKEK: string
 ): Promise<Response> {
 	if (!connectedUser) {
 		return new Response('', { status: 401 })
@@ -104,6 +110,11 @@ export async function handleRequest(
 				updated_at: '2022-09-08T22:48:07.983Z',
 			},
 		}
+
+		// send updates
+		const activity = activities.create(connectedActor, actor)
+		const signingKey = await getSigningKey(userKEK, db, connectedActor)
+		await deliverFollowers(db, signingKey, connectedActor, activity)
 
 		return new Response(JSON.stringify(res), { headers })
 	}

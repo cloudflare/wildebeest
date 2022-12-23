@@ -114,7 +114,8 @@ describe('Mastodon APIs', () => {
 				connectedUser,
 				connectedActor,
 				'CF_ACCOUNT_ID',
-				'CF_API_TOKEN'
+				'CF_API_TOKEN',
+				userKEK
 			)
 			assert.equal(res.status, 200)
 
@@ -126,6 +127,53 @@ describe('Mastodon APIs', () => {
 			assert(updatedActor)
 			assert.equal(updatedActor.name, 'newsven')
 			assert.equal(updatedActor.summary, 'hein')
+		})
+
+		test('update credentials sends update', async () => {
+			const db = await makeDB()
+			const connectedActor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const actor2: any = { id: await createPerson(db, userKEK, 'sven2@cloudflare.com') }
+			await addFollowing(db, actor2, connectedActor, 'sven2@' + instanceConfig.uri)
+			await acceptFollowing(db, actor2, connectedActor)
+
+			let receivedActivity: any = null
+
+			globalThis.fetch = async (input: any) => {
+				if (input.url.toString() === `https://${instanceConfig.uri}/ap/users/sven2/inbox`) {
+					assert.equal(input.method, 'POST')
+					receivedActivity = await input.json()
+					return new Response('')
+				}
+
+				throw new Error('unexpected request to ' + input.url)
+			}
+
+			const connectedUser: any = {
+				display_name: 'sven',
+			}
+
+			const updates = new FormData()
+			updates.set('display_name', 'newsven')
+
+			const req = new Request('https://example.com', {
+				method: 'PATCH',
+				body: updates,
+			})
+			const res = await accounts_update_creds.handleRequest(
+				db,
+				req,
+				connectedUser,
+				connectedActor,
+				'CF_ACCOUNT_ID',
+				'CF_API_TOKEN',
+				userKEK
+			)
+			assert.equal(res.status, 200)
+
+			assert(receivedActivity)
+			assert.equal(receivedActivity.type, 'Update')
+			assert.equal(receivedActivity.object.id.toString(), connectedActor.id.toString())
+			assert.equal(receivedActivity.object.name, 'newsven')
 		})
 
 		test('update credentials avatar and header', async () => {
@@ -166,7 +214,8 @@ describe('Mastodon APIs', () => {
 				connectedUser,
 				connectedActor,
 				'CF_ACCOUNT_ID',
-				'CF_API_TOKEN'
+				'CF_API_TOKEN',
+				userKEK
 			)
 			assert.equal(res.status, 200)
 
