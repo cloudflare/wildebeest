@@ -51,6 +51,7 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.length, 2)
+			assert(data[0].id)
 			assert.equal(data[0].content, 'second status from actor2')
 			assert.equal(data[0].account.username, 'sven2')
 			assert.equal(data[1].content, 'first status from actor2')
@@ -75,6 +76,7 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.length, 1)
+			assert(data[0].id)
 			assert.equal(data[0].content, 'status from myself')
 			assert.equal(data[0].account.username, 'sven')
 		})
@@ -103,6 +105,7 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.length, 2)
+			assert(data[0].id)
 			assert.equal(data[0].content, 'status from actor2')
 			assert.equal(data[0].account.username, 'sven2')
 			assert.equal(data[1].content, 'status from actor')

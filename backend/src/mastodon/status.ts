@@ -94,7 +94,7 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 	}
 
 	const status: MastodonStatus = {
-		id: row.mastodonId,
+		id: row.mastodon_id,
 		uri: objects.uri(row.id),
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
