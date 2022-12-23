@@ -22,9 +22,13 @@ export async function makeDB(): Promise<any> {
 
 		const stmts = initial.split(';')
 		for (let i = 1, len = stmts.length; i < len; i++) {
+			const stmt = stmts[i].replace(/(\r\n|\n|\r)/gm, '')
 			try {
-				await db.exec(stmts[i].replace(/(\r\n|\n|\r)/gm, ''))
-			} catch (err) {}
+				await db.exec(stmt)
+			} catch (err) {
+				console.log('could not run statement: ', stmt)
+				throw err
+			}
 		}
 	}
 

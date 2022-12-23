@@ -88,3 +88,37 @@ CREATE TABLE IF NOT EXISTS actor_reblogs (
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
   FOREIGN KEY(object_id) REFERENCES objects(id)
 );
+
+CREATE TABLE IF NOT EXISTS clients (
+  id TEXT PRIMARY KEY,
+  secret TEXT NOT NULL,
+  name TEXT UNIQUE NOT NULL,
+  redirect_uris TEXT NOT NULL,
+  website TEXT,
+  scopes TEXT,
+  cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW'))
+);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  actor_id TEXT NOT NULL,
+  client_id TEXT NOT NULL,
+  endpoint TEXT NULL,
+  key_p256dh TEXT NOT NULL,
+  key_auth TEXT NOT NULL,
+  alert_mention INTEGER NOT NULL,
+  alert_status INTEGER NOT NULL,
+  alert_reblog INTEGER NOT NULL,
+  alert_follow INTEGER NOT NULL,
+  alert_follow_request INTEGER NOT NULL,
+  alert_favourite INTEGER NOT NULL,
+  alert_poll INTEGER NOT NULL,
+  alert_update INTEGER NOT NULL,
+  alert_admin_sign_up INTEGER NOT NULL,
+  alert_admin_report INTEGER NOT NULL,
+  policy TEXT,
+  cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
+
+  PRIMARY KEY (actor_id, client_id)
+  FOREIGN KEY(actor_id)  REFERENCES actors(id),
+  FOREIGN KEY(client_id) REFERENCES clients(id)
+);

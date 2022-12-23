@@ -13,8 +13,10 @@ import { accessConfig } from 'wildebeest/config/access'
 import * as middleware from 'wildebeest/backend/src/utils/auth'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
-import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
+import { Actor, createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
+import { createClient } from '../src/mastodon/client'
+import { createSubscription } from '../src/mastodon/subscription'
 
 const userKEK = 'test_kek'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -386,6 +388,37 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[2].type, 'follow')
 			assert.equal(data[2].account.username, 'from')
 			assert.equal(data[2].status, undefined)
+		})
+	})
+
+	describe('subscriptions', () => {
+		test('basic creation', async () => {
+			const db = await makeDB()
+			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+			const actor = (await getPersonById(db, actorId)) as Actor
+			const client = await createClient(
+				db,
+				'client_name',
+				'https://redirect.com/',
+				'https://website.com',
+				'list create'
+			)
+			await createSubscription(db, actor, client, {
+				endpoint: 'https://endpoint',
+				key_p256dh: 'base64key',
+				key_auth: 'base64auth',
+				alert_mention: true,
+				alert_status: true,
+				alert_reblog: true,
+				alert_follow: true,
+				alert_follow_request: true,
+				alert_favourite: true,
+				alert_poll: true,
+				alert_update: true,
+				alert_admin_sign_up: true,
+				alert_admin_report: true,
+				policy: 'all',
+			})
 		})
 	})
 })
