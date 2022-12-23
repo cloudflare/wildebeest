@@ -1,10 +1,11 @@
 import { instanceConfig } from 'wildebeest/config/instance'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import type { UUID } from 'wildebeest/backend/src/types'
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
 export interface Object {
 	type: string
-	id: string // FIXME: switch to entirely to URL
+	id: URL
 	url: URL
 	published?: string
 	icon?: Object
@@ -19,6 +20,7 @@ export interface Object {
 	// Internal
 	originalActorId?: string
 	originalObjectId?: string
+	mastodonId?: UUID
 }
 
 export function uri(id: string): URL {
@@ -32,18 +34,22 @@ export async function createObject(
 	originalActorId: URL,
 	local: boolean
 ): Promise<Object> {
-	const id = uri(crypto.randomUUID()).toString()
+	const uuid = crypto.randomUUID()
+	const apId = uri(uuid).toString()
 
 	const row: any = await db
-		.prepare('INSERT INTO objects(id, type, properties, original_actor_id, local) VALUES(?, ?, ?, ?, ?) RETURNING *')
-		.bind(id, type, JSON.stringify(properties), originalActorId.toString(), local ? 1 : 0)
+		.prepare(
+			'INSERT INTO objects(id, type, properties, original_actor_id, local, mastodon_id) VALUES(?, ?, ?, ?, ?, ?) RETURNING *'
+		)
+		.bind(apId, type, JSON.stringify(properties), originalActorId.toString(), local ? 1 : 0, uuid)
 		.first()
 
 	return {
 		...properties,
+
 		type,
-		id,
-		url: id,
+		id: new URL(row.id),
+		mastodonId: row.mastodon_id,
 		published: new Date(row.cdate).toISOString(),
 		originalActorId: row.original_actor_id,
 	}
@@ -73,19 +79,21 @@ export async function cacheObject(
 		return cachedObject
 	}
 
-	const id = uri(crypto.randomUUID()).toString()
+	const uuid = crypto.randomUUID()
+	const apId = uri(uuid).toString()
 
 	const row: any = await db
 		.prepare(
-			'INSERT INTO objects(id, type, properties, original_actor_id, original_object_id, local) VALUES(?, ?, ?, ?, ?, ?) RETURNING *'
+			'INSERT INTO objects(id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES(?, ?, ?, ?, ?, ?, ?) RETURNING *'
 		)
 		.bind(
-			id,
+			apId,
 			properties.type,
 			JSON.stringify(properties),
 			originalActorId.toString(),
 			originalObjectId.toString(),
-			local ? 1 : 0
+			local ? 1 : 0,
+			uuid
 		)
 		.first()
 
@@ -95,18 +103,20 @@ export async function cacheObject(
 		return {
 			published: new Date(row.cdate).toISOString(),
 			...properties,
-			id: row.id,
-			url: row.id,
+
+			type: row.type,
+			id: new URL(row.id),
+			mastodonId: row.mastodon_id,
 			originalActorId: row.original_actor_id,
 			originalObjectId: row.original_object_id,
 		}
 	}
 }
 
-export async function updateObject(db: D1Database, properties: any, id: string): Promise<boolean> {
+export async function updateObject(db: D1Database, properties: any, id: URL): Promise<boolean> {
 	const res: any = await db
 		.prepare('UPDATE objects SET properties = ? WHERE id = ?')
-		.bind(JSON.stringify(properties), id)
+		.bind(JSON.stringify(properties), id.toString())
 		.run()
 
 	// TODO: D1 doesn't return changes at the moment
@@ -116,6 +126,10 @@ export async function updateObject(db: D1Database, properties: any, id: string):
 
 export async function getObjectById(db: D1Database, id: string | URL): Promise<Object | null> {
 	return getObjectBy(db, 'id', id.toString())
+}
+
+export async function getObjectByMastodonId(db: D1Database, id: UUID): Promise<Object | null> {
+	return getObjectBy(db, 'mastodon_id', id)
 }
 
 export async function getObjectBy(db: D1Database, key: string, value: string): Promise<Object | null> {
@@ -140,9 +154,9 @@ WHERE objects.${key}=?
 		published: new Date(result.cdate).toISOString(),
 		...properties,
 
-		id: result.id,
 		type: result.type,
-		url: result.id,
+		id: new URL(result.id),
+		mastodonId: result.mastodon_id,
 		originalActorId: result.original_actor_id,
 		originalObjectId: result.original_object_id,
 	}

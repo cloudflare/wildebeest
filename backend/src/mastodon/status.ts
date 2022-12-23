@@ -1,6 +1,7 @@
 import type { Handle } from '../utils/parse'
+import type { UUID } from 'wildebeest/backend/src/types'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
-import { getObjectById } from 'wildebeest/backend/src/activitypub/objects'
+import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
@@ -38,7 +39,7 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Object): P
 	}
 
 	const actorId = new URL(obj.originalActorId)
-	const actor = await actors.get(actorId)
+	const actor = await actors.getAndCache(actorId, db)
 
 	const acct = urlToHandle(actorId)
 	const account = await loadExternalMastodonAccount(acct, actor)
@@ -58,9 +59,7 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Object): P
 		spoiler_text: '',
 
 		content: obj.content || '',
-		// Base64 encode the id because it's an URL and Mastodon will misuse it
-		// to construct like/reblog/etc URLs
-		id: btoa(obj.id),
+		id: obj.mastodonId || '',
 		uri: obj.url,
 		created_at: obj.published || '',
 		account,
@@ -95,9 +94,7 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 	}
 
 	const status: MastodonStatus = {
-		// Base64 encode the id because it's an URL and Mastodon will misuse it
-		// to construct like/reblog/etc URLs
-		id: btoa(row.id),
+		id: row.mastodonId,
 		uri: objects.uri(row.id),
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
@@ -139,8 +136,8 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 	return status
 }
 
-export async function getMastodonStatusById(db: D1Database, id: string): Promise<MastodonStatus | null> {
-	const obj = await getObjectById(db, id)
+export async function getMastodonStatusById(db: D1Database, id: UUID): Promise<MastodonStatus | null> {
+	const obj = await getObjectByMastodonId(db, id)
 	if (obj === null) {
 		return null
 	}

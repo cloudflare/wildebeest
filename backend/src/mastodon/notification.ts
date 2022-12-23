@@ -15,7 +15,10 @@ export async function insertNotification(
           INSERT INTO actor_notifications (id, type, actor_id, from_actor_id, object_id)
           VALUES (?, ?, ?, ?, ?)
 `
-	const out = await db.prepare(query).bind(id, type, actor.id, fromActor.id, obj.id).run()
+	const out = await db
+		.prepare(query)
+		.bind(id, type, actor.id.toString(), fromActor.id.toString(), obj.id.toString())
+		.run()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
@@ -29,7 +32,7 @@ export async function insertFollowNotification(db: D1Database, actor: Actor, fro
           INSERT INTO actor_notifications (id, type, actor_id, from_actor_id)
           VALUES (?, ?, ?, ?)
 `
-	const out = await db.prepare(query).bind(id, type, actor.id, fromActor.id).run()
+	const out = await db.prepare(query).bind(id, type, actor.id.toString(), fromActor.id.toString()).run()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}

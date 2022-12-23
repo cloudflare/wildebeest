@@ -74,10 +74,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 			const account = await loadExternalMastodonAccount(acct, actor)
 
 			out.push({
-				// Base64 encode the id because it's an URL and Mastodon will misuse it
-				// to construct like/reblog/etc URLs
-				id: btoa(result.id),
-
+				id: result.mastodonId,
 				uri: objects.uri(result.id),
 				created_at: result.published,
 				content: result.content,

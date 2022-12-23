@@ -236,7 +236,7 @@ describe('Mastodon APIs', () => {
 				if (input.toString() === 'https://social.com/sven') {
 					return new Response(
 						JSON.stringify({
-							id: 'sven@remote.com',
+							id: 'https://social.com/sven',
 							type: 'Person',
 							preferredUsername: 'sven',
 							name: 'sven ssss',
@@ -250,7 +250,7 @@ describe('Mastodon APIs', () => {
 				if (input.toString() === 'https://social.com/default-avatar-and-header') {
 					return new Response(
 						JSON.stringify({
-							id: '1234',
+							id: 'https://social.com/default-avatar-and-header',
 							type: 'Person',
 							preferredUsername: 'sven',
 							name: 'sven ssss',
@@ -348,7 +348,7 @@ describe('Mastodon APIs', () => {
 			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
 			const fromActorId = await createPerson(db, userKEK, 'from@cloudflare.com')
 			await db
-				.prepare('INSERT INTO objects (id, type, properties, local) VALUES (?, ?, ?, 1)')
+				.prepare("INSERT INTO objects (id, type, properties, local, mastodon_id) VALUES (?, ?, ?, 1, 'mastodon_id')")
 				.bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
 				.run()
 
@@ -377,11 +377,11 @@ describe('Mastodon APIs', () => {
 
 			assert.equal(data[0].type, 'mention')
 			assert.equal(data[0].account.username, 'from')
-			assert.equal(data[0].status.id, 'object1')
+			assert.equal(data[0].status.id, 'mastodon_id')
 
 			assert.equal(data[1].type, 'favourite')
 			assert.equal(data[1].account.username, 'from')
-			assert.equal(data[1].status.id, 'object1')
+			assert.equal(data[1].status.id, 'mastodon_id')
 
 			assert.equal(data[2].type, 'follow')
 			assert.equal(data[2].account.username, 'from')

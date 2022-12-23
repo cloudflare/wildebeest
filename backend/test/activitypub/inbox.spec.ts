@@ -98,8 +98,8 @@ describe('ActivityPub', () => {
 
 		const entry = await db.prepare('SELECT * FROM actor_notifications').first()
 		assert.equal(entry.type, 'mention')
-		assert.equal(entry.actor_id, actorA)
-		assert.equal(entry.from_actor_id, actorB)
+		assert.equal(entry.actor_id.toString(), actorA.toString())
+		assert.equal(entry.from_actor_id.toString(), actorB.toString())
 	})
 
 	test('remote actor sends Note with mention create notification and download actor', async () => {
@@ -155,8 +155,8 @@ describe('ActivityPub', () => {
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_reblogs').first()
-		assert.equal(entry.actor_id, actorB.id)
-		assert.equal(entry.object_id, note.id)
+		assert.equal(entry.actor_id.toString(), actorB.id.toString())
+		assert.equal(entry.object_id.toString(), note.id.toString())
 	})
 
 	test('records like in db', async () => {
@@ -175,8 +175,8 @@ describe('ActivityPub', () => {
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_favourites').first()
-		assert.equal(entry.actor_id, actorB.id)
-		assert.equal(entry.object_id, note.id)
+		assert.equal(entry.actor_id.toString(), actorB.id.toString())
+		assert.equal(entry.object_id.toString(), note.id.toString())
 	})
 
 	describe('Like', () => {
@@ -197,8 +197,8 @@ describe('ActivityPub', () => {
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
 			assert.equal(entry.type, 'favourite')
-			assert.equal(entry.actor_id, actorA.id)
-			assert.equal(entry.from_actor_id, actorB.id)
+			assert.equal(entry.actor_id.toString(), actorA.id.toString())
+			assert.equal(entry.from_actor_id.toString(), actorB.id.toString())
 		})
 
 		test('records like in db', async () => {
@@ -217,8 +217,8 @@ describe('ActivityPub', () => {
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_favourites').first()
-			assert.equal(entry.actor_id, actorB.id)
-			assert.equal(entry.object_id, note.id)
+			assert.equal(entry.actor_id.toString(), actorB.id.toString())
+			assert.equal(entry.object_id.toString(), note.id.toString())
 		})
 	})
 })

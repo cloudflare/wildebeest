@@ -75,7 +75,7 @@ describe('Mastodon APIs', () => {
 				.bind(data.id)
 				.first()
 			assert.equal(row.content, 'my status')
-			assert.equal(row.original_actor_id, actorId)
+			assert.equal(row.original_actor_id.toString(), actorId.toString())
 			assert.equal(row.original_object_id, null)
 		})
 
@@ -132,6 +132,7 @@ describe('Mastodon APIs', () => {
 				if (input.toString() === 'https://social.com/sven') {
 					return new Response(
 						JSON.stringify({
+							id: 'https://social.com/sven',
 							inbox: 'https://social.com/sven/inbox',
 						})
 					)
@@ -193,15 +194,23 @@ describe('Mastodon APIs', () => {
 
 			await db
 				.prepare(
-					'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local) VALUES (?, ?, ?, ?, ?, 1)'
+					'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
 				)
-				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }), actor.id, originalObjectId)
+				.bind(
+					'https://example.com/object1',
+					'Note',
+					JSON.stringify({ content: 'my first status' }),
+					actor.id.toString(),
+					originalObjectId,
+					'mastodonid1'
+				)
 				.run()
 
 			globalThis.fetch = async (input: any, data: any) => {
-				if (input.toString() === actor.id) {
+				if (input === actor.id.toString()) {
 					return new Response(
 						JSON.stringify({
+							id: actor.id,
 							inbox: 'https://social.com/sven/inbox',
 						})
 					)
@@ -214,12 +223,12 @@ describe('Mastodon APIs', () => {
 					return new Response()
 				}
 
-				throw new Error('unexpected request to ' + input.url)
+				throw new Error('unexpected request to ' + JSON.stringify(input))
 			}
 
 			const connectedActor: any = actor
 
-			const res = await statuses_favourite.handleRequest(db, btoa('object1'), connectedActor, userKEK)
+			const res = await statuses_favourite.handleRequest(db, 'mastodonid1', connectedActor, userKEK)
 			assert.equal(res.status, 200)
 
 			assert(deliveredActivity)
@@ -272,7 +281,7 @@ describe('Mastodon APIs', () => {
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
 
-			const res = await statuses_get.handleRequest(db, btoa(note.id))
+			const res = await statuses_get.handleRequest(db, note.mastodonId!)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -289,7 +298,7 @@ describe('Mastodon APIs', () => {
 			await insertReblog(db, actor2, note)
 			await insertReblog(db, actor3, note)
 
-			const res = await statuses_get.handleRequest(db, btoa(note.id))
+			const res = await statuses_get.handleRequest(db, note.mastodonId!)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()

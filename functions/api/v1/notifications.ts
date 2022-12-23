@@ -34,7 +34,7 @@ export async function handleRequest(db: D1Database, connectedActor: Person): Pro
     ORDER BY actor_notifications.cdate DESC
   `
 
-	const stmt = db.prepare(query).bind(connectedActor.id)
+	const stmt = db.prepare(query).bind(connectedActor.id.toString())
 	const { results, success, error } = await stmt.all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
@@ -68,7 +68,7 @@ export async function handleRequest(db: D1Database, connectedActor: Person): Pro
 
 		if (result.type === 'mention' || result.type === 'favourite') {
 			notif.status = {
-				id: result.id,
+				id: result.mastodon_id,
 				content: properties.content,
 				uri: objects.uri(result.id),
 				created_at: new Date(result.cdate).toISOString(),

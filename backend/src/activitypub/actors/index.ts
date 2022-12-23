@@ -41,20 +41,35 @@ export interface Person extends Actor {
 }
 
 export async function get(url: string | URL): Promise<Actor> {
-	try {
-		const headers = {
-			accept: 'application/activity+json',
-		}
-		const res = await fetch(url.toString(), { headers })
-		if (!res.ok) {
-			throw new Error(`${url} returned: ${res.status}`)
-		}
-
-		return res.json<Actor>()
-	} catch (e) {
-		console.error(e)
-		return {} as Actor
+	const headers = {
+		accept: 'application/activity+json',
 	}
+	const res = await fetch(url.toString(), { headers })
+	if (!res.ok) {
+		throw new Error(`${url} returned: ${res.status}`)
+	}
+
+	const data = await res.json<any>()
+	const actor: Actor = { ...data }
+	actor.id = new URL(data.id)
+
+	// This is mostly for testing where for convenience not all values
+	// are provided.
+	// TODO: eventually clean that to better match production.
+	if (data.inbox !== undefined) {
+		actor.inbox = new URL(data.inbox)
+	}
+	if (data.following !== undefined) {
+		actor.following = new URL(data.following)
+	}
+	if (data.followers !== undefined) {
+		actor.followers = new URL(data.followers)
+	}
+	if (data.outbox !== undefined) {
+		actor.outbox = new URL(data.outbox)
+	}
+
+	return actor
 }
 
 export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
@@ -75,7 +90,10 @@ export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
   VALUES (?, ?, ?)
   `
 
-	const { success, error } = await db.prepare(sql).bind(actor.id, actor.type, JSON.stringify(properties)).run()
+	const { success, error } = await db
+		.prepare(sql)
+		.bind(actor.id.toString(), actor.type, JSON.stringify(properties))
+		.run()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}
@@ -92,12 +110,7 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
 	return personFromRow(row)
 }
 
-export async function createPerson(
-	db: D1Database,
-	userKEK: string,
-	email: string,
-	properties: any = {}
-): Promise<string> {
+export async function createPerson(db: D1Database, userKEK: string, email: string, properties: any = {}): Promise<URL> {
 	const parts = email.split('@')
 	const id = actorURL(parts[0]).toString()
 	const userKeyPair = await generateUserKey(userKEK)
@@ -126,7 +139,7 @@ export async function createPerson(
 		throw new Error('SQL error: ' + error)
 	}
 
-	return id
+	return new URL(id)
 }
 
 export async function getPersonById(db: D1Database, id: URL): Promise<Person | null> {
@@ -144,13 +157,13 @@ export function personFromRow(row: any): Person {
 		type: 'Image',
 		mediaType: 'image/jpeg',
 		url: new URL(defaultImages.avatar),
-		id: row.id + '#icon',
+		id: new URL(row.id + '#icon'),
 	}
 	const image: Object = {
 		type: 'Image',
 		mediaType: 'image/jpeg',
 		url: new URL(defaultImages.header),
-		id: row.id + '#image',
+		id: new URL(row.id + '#image'),
 	}
 
 	let publicKey = null

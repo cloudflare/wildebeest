@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS actor_following (
 
 CREATE TABLE IF NOT EXISTS objects (
   id TEXT PRIMARY KEY,
+  mastodon_id TEXT UNIQUE NOT NULL,
   type TEXT NOT NULL,
   cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
   original_actor_id TEXT,

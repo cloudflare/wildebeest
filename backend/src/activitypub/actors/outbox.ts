@@ -7,7 +7,7 @@ export async function addObjectInOutbox(db: D1Database, actor: Actor, obj: Objec
 	const id = crypto.randomUUID()
 	const out = await db
 		.prepare('INSERT INTO outbox_objects(id, actor_id, object_id) VALUES(?, ?, ?)')
-		.bind(id, actor.id, obj.id.toString())
+		.bind(id, actor.id.toString(), obj.id.toString())
 		.run()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)

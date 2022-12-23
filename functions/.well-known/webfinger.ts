@@ -41,7 +41,7 @@ export async function handleRequest(request: Request, db: D1Database): Promise<R
 		return new Response('', { status: 404 })
 	}
 
-	const jsonLink = person.id
+	const jsonLink = person.id.toString()
 
 	const res: WebFingerResponse = {
 		subject: `acct:${handle.localPart}@${handle.domain}`,

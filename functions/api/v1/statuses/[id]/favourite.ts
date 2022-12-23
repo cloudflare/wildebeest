@@ -7,7 +7,7 @@ import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import * as like from 'wildebeest/backend/src/activitypub/activities/like'
-import { getObjectById } from 'wildebeest/backend/src/activitypub/objects'
+import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
@@ -18,12 +18,11 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 
 export async function handleRequest(
 	db: D1Database,
-	encodedId: string,
+	id: string,
 	connectedActor: Person,
 	userKEK: string
 ): Promise<Response> {
-	const id = atob(decodeURIComponent(encodedId))
-	const obj = await getObjectById(db, id)
+	const obj = await getObjectByMastodonId(db, id)
 	if (obj === null || obj.originalActorId === undefined || obj.originalObjectId === undefined) {
 		return new Response('', { status: 404 })
 	}

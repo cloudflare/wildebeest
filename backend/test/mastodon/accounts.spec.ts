@@ -192,12 +192,12 @@ describe('Mastodon APIs', () => {
 			await acceptFollowing(db, actor3, actor)
 
 			await db
-				.prepare('INSERT INTO objects (id, type, properties, local) VALUES (?, ?, ?, 1)')
+				.prepare("INSERT INTO objects (id, type, properties, local, mastodon_id) VALUES (?, ?, ?, 1, 'mastodon_id')")
 				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
 				.run()
 			await db
 				.prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
-				.bind('outbox1', actor.id, 'object1')
+				.bind('outbox1', actor.id.toString(), 'object1')
 				.run()
 
 			const res = await accounts_get.handleRequest('sven', db)
@@ -258,20 +258,20 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
 			await db
-				.prepare('INSERT INTO objects (id, type, properties, local) VALUES (?, ?, ?, 1)')
+				.prepare("INSERT INTO objects (id, type, properties, local, mastodon_id) VALUES (?, ?, ?, 1, 'mastodon_id')")
 				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
 				.run()
 			await db
-				.prepare('INSERT INTO objects (id, type, properties, local) VALUES (?, ?, ?, 1)')
+				.prepare("INSERT INTO objects (id, type, properties, local, mastodon_id) VALUES (?, ?, ?, 1, 'mastodon_id2')")
 				.bind('object2', 'Note', JSON.stringify({ content: 'my second status' }))
 				.run()
 			await db
 				.prepare('INSERT INTO outbox_objects (id, actor_id, object_id, cdate) VALUES (?, ?, ?, ?)')
-				.bind('outbox1', actorId, 'object1', '2022-12-16 08:14:48')
+				.bind('outbox1', actorId.toString(), 'object1', '2022-12-16 08:14:48')
 				.run()
 			await db
 				.prepare('INSERT INTO outbox_objects (id, actor_id, object_id, cdate) VALUES (?, ?, ?, ?)')
-				.bind('outbox2', actorId, 'object2', '2022-12-16 10:14:48')
+				.bind('outbox2', actorId.toString(), 'object2', '2022-12-16 10:14:48')
 				.run()
 
 			{
@@ -478,7 +478,7 @@ describe('Mastodon APIs', () => {
 				if (input.toString() === 'https://social.eng.chat/ap/users/sven2') {
 					return new Response(
 						JSON.stringify({
-							id: 'actor',
+							id: 'https://example.com/actor',
 							type: 'Person',
 						})
 					)
@@ -715,7 +715,7 @@ describe('Mastodon APIs', () => {
 
 				const row = await db
 					.prepare(`SELECT target_actor_acct, target_actor_id, state FROM actor_following WHERE actor_id=?`)
-					.bind(actorId)
+					.bind(actorId.toString())
 					.first()
 				assert(row)
 				assert.equal(row.target_actor_acct, 'actor@' + instanceConfig.uri)
@@ -753,7 +753,7 @@ describe('Mastodon APIs', () => {
 
 				const row = await db
 					.prepare(`SELECT count(*) as count FROM actor_following WHERE actor_id=?`)
-					.bind(actor.id)
+					.bind(actor.id.toString())
 					.first()
 				assert(row)
 				assert.equal(row.count, 0)

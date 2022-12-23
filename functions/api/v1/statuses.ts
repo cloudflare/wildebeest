@@ -62,7 +62,7 @@ export async function handleRequest(
 			console.warn(`actor ${acct} not found`)
 			continue
 		}
-		note.to.push(targetActor.id)
+		note.to.push(targetActor.id.toString())
 		const activity = activities.create(connectedActor, note)
 		const signingKey = await getSigningKey(userKEK, db, connectedActor)
 		await deliverToActor(signingKey, connectedActor, targetActor, activity)

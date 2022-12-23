@@ -33,7 +33,7 @@ function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
 		acct,
 
 		id: acct,
-		username: res.preferredUsername || res.id,
+		username: res.preferredUsername || res.name || 'unnamed',
 		url: res.url ? res.url.toString() : '',
 		display_name: res.name || res.preferredUsername || '',
 		note: res.summary || '',
@@ -82,8 +82,8 @@ export async function loadLocalMastodonAccount(db: D1Database, res: Actor): Prom
 	return account
 }
 
-export async function getSigningKey(instanceKey: string, db: D1Database, user: Actor): Promise<CryptoKey> {
-	const stmt = db.prepare('SELECT privkey, privkey_salt FROM actors WHERE id=?').bind(user.id)
+export async function getSigningKey(instanceKey: string, db: D1Database, actor: Actor): Promise<CryptoKey> {
+	const stmt = db.prepare('SELECT privkey, privkey_salt FROM actors WHERE id=?').bind(actor.id.toString())
 	const { privkey, privkey_salt } = (await stmt.first()) as any
 	return unwrapPrivateKey(instanceKey, new Uint8Array(privkey), new Uint8Array(privkey_salt))
 }

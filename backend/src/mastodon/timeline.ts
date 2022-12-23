@@ -6,7 +6,7 @@ import { toMastodonStatusFromRow } from './status'
 export async function getHomeTimeline(db: D1Database, actor: Actor): Promise<Array<MastodonStatus>> {
 	const following = await getFollowingId(db, actor)
 	// follow ourself to see our statuses in the our home timeline
-	following.push(actor.id)
+	following.push(actor.id.toString())
 
 	const QUERY = `
 SELECT objects.*,

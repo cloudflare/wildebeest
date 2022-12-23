@@ -1,11 +1,12 @@
 // https://docs.joinmastodon.org/entities/Status/
 // https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Status.java
 import type { MastodonAccount } from './account'
+import type { UUID } from 'wildebeest/backend/src/types'
 
 type Visibility = 'public' | 'unlisted' | 'private' | 'direct'
 
 export type MastodonStatus = {
-	id: string
+	id: UUID
 	uri: URL
 	created_at: string
 	account: MastodonAccount

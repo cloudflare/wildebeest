@@ -43,23 +43,23 @@ describe('ActivityPub', () => {
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',
 				type: 'Follow',
-				actor: actor2.id,
-				object: actor.id,
+				actor: actor2.id.toString(),
+				object: actor.id.toString(),
 			}
 
 			await activityHandler.handle(activity, db, userKEK, 'inbox')
 
 			const row = await db
 				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
-				.bind(actor2.id)
+				.bind(actor2.id.toString())
 				.first()
 			assert(row)
-			assert.equal(row.target_actor_id, actor.id)
+			assert.equal(row.target_actor_id.toString(), actor.id.toString())
 			assert.equal(row.state, 'accepted')
 
 			assert(receivedActivity)
 			assert.equal(receivedActivity.type, 'Accept')
-			assert.equal(receivedActivity.actor, actor.id)
+			assert.equal(receivedActivity.actor.toString(), actor.id.toString())
 			assert.equal(receivedActivity.object.actor, activity.actor)
 			assert.equal(receivedActivity.object.type, activity.type)
 		})
@@ -171,8 +171,8 @@ describe('ActivityPub', () => {
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
 			assert.equal(entry.type, 'follow')
-			assert.equal(entry.actor_id, actor.id)
-			assert.equal(entry.from_actor_id, actor2.id)
+			assert.equal(entry.actor_id.toString(), actor.id.toString())
+			assert.equal(entry.from_actor_id.toString(), actor2.id.toString())
 		})
 	})
 })

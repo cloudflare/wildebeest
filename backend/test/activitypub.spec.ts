@@ -96,7 +96,7 @@ describe('ActivityPub', () => {
 
 			const row = await db
 				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
-				.bind(actor.id)
+				.bind(actor.id.toString())
 				.first()
 			assert(row)
 			assert.equal(row.target_actor_id, 'https://social.eng.chat/ap/users/sven2')

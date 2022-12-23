@@ -17,8 +17,8 @@ import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 
-function extractID(s: string): string {
-	return s.replace(`https://${instanceConfig.uri}/ap/users/`, '')
+function extractID(s: string | URL): string {
+	return s.toString().replace(`https://${instanceConfig.uri}/ap/users/`, '')
 }
 
 export type HandleResponse = {
@@ -44,31 +44,59 @@ export async function handle(
 	}
 
 	const getObjectAsId = () => {
+		let url: any = null
 		if (activity.object.id !== undefined) {
-			return activity.object.id
+			url = activity.object.id
 		}
 		if (typeof activity.object === 'string') {
+			url = activity.object
+		}
+		if (activity.object instanceof URL) {
+			// This is used for testing only.
 			return activity.object
 		}
-		throw new Error('unknown value')
+		if (url === null) {
+			throw new Error('unknown value: ' + JSON.stringify(activity.object))
+		}
+
+		try {
+			return new URL(url)
+		} catch (err) {
+			console.warn('invalid URL: ' + url)
+			throw err
+		}
 	}
 
 	const getActorAsId = () => {
+		let url: any = null
 		if (activity.actor.id !== undefined) {
-			return activity.actor.id
+			url = activity.actor.id
 		}
 		if (typeof activity.actor === 'string') {
+			url = activity.actor
+		}
+		if (activity.actor instanceof URL) {
+			// This is used for testing only.
 			return activity.actor
 		}
-		throw new Error('unknown value')
+		if (url === null) {
+			throw new Error('unknown value: ' + JSON.stringify(activity.actor))
+		}
+
+		try {
+			return new URL(url)
+		} catch (err) {
+			console.warn('invalid URL: ' + url)
+			throw err
+		}
 	}
 
 	console.log(activity)
 	switch (activity.type) {
 		case 'Update': {
 			requireComplexObject()
-			const actorId = new URL(getActorAsId())
-			const objectId = new URL(getObjectAsId())
+			const actorId = getActorAsId()
+			const objectId = getObjectAsId()
 
 			// check current object
 			const object = await objects.getObjectBy(db, 'original_object_id', objectId.toString())
@@ -90,7 +118,7 @@ export async function handle(
 		// https://www.w3.org/TR/activitypub/#create-activity-inbox
 		case 'Create': {
 			requireComplexObject()
-			const actorId = new URL(getActorAsId())
+			const actorId = getActorAsId()
 
 			let recipients: Array<string> = []
 
@@ -101,14 +129,14 @@ export async function handle(
 				recipients = [...recipients, ...activity.cc]
 			}
 
-			const objectId = new URL(getObjectAsId())
+			const objectId = getObjectAsId()
 			const obj = await createObject(activity.object, db, actorId, objectId)
 			if (obj === null) {
 				break
 			}
 			createdObjects.push(obj)
 
-			const fromActor = await actors.getAndCache(new URL(getActorAsId()), db)
+			const fromActor = await actors.getAndCache(getActorAsId(), db)
 			// Add the object in the originating actor's outbox, allowing other
 			// actors on this instance to see the note in their timelines.
 			await addObjectInOutbox(db, fromActor, obj)
@@ -180,8 +208,8 @@ export async function handle(
 
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-announce
 		case 'Announce': {
-			const actorId = new URL(getActorAsId())
-			const objectId = new URL(getObjectAsId())
+			const actorId = getActorAsId()
+			const objectId = getObjectAsId()
 
 			let obj: any = null
 
@@ -217,8 +245,8 @@ export async function handle(
 
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-like
 		case 'Like': {
-			const actorId = new URL(getActorAsId())
-			const objectId = new URL(getObjectAsId())
+			const actorId = getActorAsId()
+			const objectId = getObjectAsId()
 
 			const obj = await objects.getObjectById(db, objectId)
 			if (obj === null || !obj.originalActorId) {

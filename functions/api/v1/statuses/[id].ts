@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#get
 
+import type { UUID } from 'wildebeest/backend/src/types'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
@@ -9,11 +10,10 @@ import { getMastodonStatusById } from 'wildebeest/backend/src/mastodon/status'
 import type { Env } from 'wildebeest/backend/src/types/env'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env, data }) => {
-	return handleRequest(env.DATABASE, params.id as string)
+	return handleRequest(env.DATABASE, params.id as UUID)
 }
 
-export async function handleRequest(db: D1Database, encodedId: string): Promise<Response> {
-	const id = atob(decodeURIComponent(encodedId))
+export async function handleRequest(db: D1Database, id: UUID): Promise<Response> {
 	const status = await getMastodonStatusById(db, id)
 	if (status === null) {
 		return new Response('', { status: 404 })

@@ -12,7 +12,10 @@ export async function addFollowing(db: D1Database, actor: Actor, target: Actor, 
         VALUES (?, ?, ?, ?, ?)
     `
 
-	const out = await db.prepare(query).bind(id, actor.id, target.id, STATE_PENDING, targetAcct).run()
+	const out = await db
+		.prepare(query)
+		.bind(id, actor.id.toString(), target.id.toString(), STATE_PENDING, targetAcct)
+		.run()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
@@ -27,7 +30,10 @@ export async function acceptFollowing(db: D1Database, actor: Actor, target: Acto
         UPDATE actor_following SET state=? WHERE actor_id=? AND target_actor_id=? AND state=?
     `
 
-	const out = await db.prepare(query).bind(STATE_ACCEPTED, actor.id, target.id, STATE_PENDING).run()
+	const out = await db
+		.prepare(query)
+		.bind(STATE_ACCEPTED, actor.id.toString(), target.id.toString(), STATE_PENDING)
+		.run()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
@@ -38,7 +44,7 @@ export async function removeFollowing(db: D1Database, actor: Actor, target: Acto
         DELETE FROM actor_following WHERE actor_id=? AND target_actor_id=?
     `
 
-	const out = await db.prepare(query).bind(actor.id, target.id).run()
+	const out = await db.prepare(query).bind(actor.id.toString(), target.id.toString()).run()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
@@ -49,7 +55,7 @@ export async function getFollowingAcct(db: D1Database, actor: Actor): Promise<Ar
         SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
     `
 
-	const out: any = await db.prepare(query).bind(actor.id, STATE_ACCEPTED).all()
+	const out: any = await db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED).all()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
@@ -66,7 +72,7 @@ export async function getFollowingRequestedAcct(db: D1Database, actor: Actor): P
         SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
     `
 
-	const out: any = await db.prepare(query).bind(actor.id, STATE_PENDING).all()
+	const out: any = await db.prepare(query).bind(actor.id.toString(), STATE_PENDING).all()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
@@ -83,7 +89,7 @@ export async function getFollowingId(db: D1Database, actor: Actor): Promise<Arra
         SELECT target_actor_id FROM actor_following WHERE actor_id=? AND state=?
     `
 
-	const out: any = await db.prepare(query).bind(actor.id, STATE_ACCEPTED).all()
+	const out: any = await db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED).all()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
@@ -100,7 +106,7 @@ export async function getFollowers(db: D1Database, actor: Actor): Promise<Array<
         SELECT actor_id FROM actor_following WHERE target_actor_id=? AND state=?
     `
 
-	const out: any = await db.prepare(query).bind(actor.id, STATE_ACCEPTED).all()
+	const out: any = await db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED).all()
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
