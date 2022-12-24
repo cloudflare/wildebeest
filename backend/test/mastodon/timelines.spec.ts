@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
+import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
@@ -120,6 +121,25 @@ describe('Mastodon APIs', () => {
 			assertCORS(remoteRes)
 			const remoteData = await remoteRes.json<any>()
 			assert.equal(remoteData.length, 0)
+		})
+
+		test('public includes attachment', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+
+			const properties = { url: 'https://example.com/image.jpg' }
+			const mediaAttachments = [await createImage(db, actor, properties)]
+			const note = await createPublicNote(db, 'status from actor', actor, mediaAttachments)
+			await addObjectInOutbox(db, actor, note)
+
+			const res = await timelines_public.handleRequest(db)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.length, 1)
+			assert.equal(data[0].media_attachments.length, 1)
+			assert.equal(data[0].media_attachments[0].type, 'image')
+			assert.equal(data[0].media_attachments[0].url, properties.url)
 		})
 	})
 })

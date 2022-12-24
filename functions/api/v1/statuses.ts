@@ -1,11 +1,15 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
 
+import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import type { Document } from 'wildebeest/backend/src/activitypub/objects'
+import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import { getMentions } from 'wildebeest/backend/src/mastodon/status'
 import * as activities from 'wildebeest/backend/src/activitypub/activities/create'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { MastodonAccount } from 'wildebeest/backend/src/types/account'
+import type { MastodonStatus } from 'wildebeest/backend/src/types/status'
 import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import { deliverFollowers, deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
@@ -16,6 +20,7 @@ type StatusCreate = {
 	status: string
 	visibility: string
 	sensitive: boolean
+	media_ids?: Array<string>
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
@@ -42,12 +47,21 @@ export async function handleRequest(
 		return new Response('', { status: 400 })
 	}
 
-	const note = await createPublicNote(db, body.status, connectedActor)
-	await addObjectInOutbox(db, connectedActor, note)
+	let mediaAttachments: Array<Document> = []
+	if (body.media_ids && body.media_ids.length > 0) {
+		for (let i = 0, len = body.media_ids.length; i < len; i++) {
+			const id = body.media_ids[i]
+			const document = await getObjectByMastodonId(db, id)
+			if (document === null) {
+				console.warn('object attachement not found: ' + id)
+				continue
+			}
+			mediaAttachments.push(document)
+		}
+	}
 
-	const activity = activities.create(connectedActor, note)
-	const signingKey = await getSigningKey(userKEK, db, connectedActor)
-	await deliverFollowers(db, signingKey, connectedActor, activity)
+	const note = await createPublicNote(db, body.status, connectedActor, mediaAttachments)
+	await addObjectInOutbox(db, connectedActor, note)
 
 	// If the status is mentioning other persons, we need to delivery it to them.
 	const mentions = getMentions(body.status)
@@ -68,8 +82,12 @@ export async function handleRequest(
 		await deliverToActor(signingKey, connectedActor, targetActor, activity)
 	}
 
+	const activity = activities.create(connectedActor, note)
+	const signingKey = await getSigningKey(userKEK, db, connectedActor)
+	await deliverFollowers(db, signingKey, connectedActor, activity)
+
 	const res: any = {
-		id: note.id,
+		id: note.mastodonId,
 		uri: note.url,
 		created_at: note.published,
 		account: connectedUser,

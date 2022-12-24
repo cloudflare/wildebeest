@@ -1,6 +1,7 @@
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
 
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { followersURL } from 'wildebeest/backend/src/activitypub/actors'
 import * as objects from '.'
 import { instanceConfig } from 'wildebeest/config/instance'
@@ -19,13 +20,19 @@ export interface Note extends objects.Object {
 	conversation?: string
 	replies?: string
 	to: Array<string>
-	attachment: Array<string>
+	attachment: Array<Document>
 	cc?: Array<string>
 	tag?: Array<string>
 }
 
-export async function createPublicNote(db: D1Database, content: string, actor: Actor): Promise<Note> {
+export async function createPublicNote(
+	db: D1Database,
+	content: string,
+	actor: Actor,
+	attachment: Array<Document> = []
+): Promise<Note> {
 	const actorId = new URL(actor.id)
+
 	const properties = {
 		attributedTo: actorId,
 		content,
@@ -42,7 +49,7 @@ export async function createPublicNote(db: D1Database, content: string, actor: A
 		sensitive: false,
 		summary: null,
 		tag: [],
-		attachment: [],
+		attachment,
 	}
 
 	return (await objects.createObject(db, NOTE, properties, actorId, true)) as Note

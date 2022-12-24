@@ -2,6 +2,7 @@ import { strict as assert } from 'node:assert/strict'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { getMentions } from 'wildebeest/backend/src/mastodon/status'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as statuses from 'wildebeest/functions/api/v1/statuses'
 import * as statuses_get from 'wildebeest/functions/api/v1/statuses/[id]'
 import * as statuses_favourite from 'wildebeest/functions/api/v1/statuses/[id]/favourite'
@@ -51,7 +52,6 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			// Required fields from https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Status.java
-			assert(data.id !== undefined)
 			assert(data.uri !== undefined)
 			assert(data.created_at !== undefined)
 			assert(data.account !== undefined)
@@ -61,6 +61,7 @@ describe('Mastodon APIs', () => {
 			assert(data.mentions !== undefined)
 			assert(data.tags !== undefined)
 			assert(data.emojis !== undefined)
+			assert(!isUrlValid(data.id))
 
 			const row = await db
 				.prepare(
@@ -69,10 +70,9 @@ describe('Mastodon APIs', () => {
               json_extract(properties, '$.content') as content,
               original_actor_id,
               original_object_id
-          FROM objects WHERE id = ?
+          FROM objects
         `
 				)
-				.bind(data.id)
 				.first()
 			assert.equal(row.content, 'my status')
 			assert.equal(row.original_actor_id.toString(), actorId.toString())
@@ -98,16 +98,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
-			const row = await db
-				.prepare(
-					`
-          SELECT
-              count(*) as count
-          FROM outbox_objects WHERE object_id = ?
-        `
-				)
-				.bind(data.id)
-				.first()
+			const row = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first()
 			assert.equal(row.count, 1)
 		})
 
@@ -183,6 +174,32 @@ describe('Mastodon APIs', () => {
 			assert.equal(deliveredNote.object.type, 'Note')
 			assert(deliveredNote.object.to.includes(note.PUBLIC))
 			assert.equal(deliveredNote.object.cc.length, 1)
+		})
+
+		test('create new status with image', async () => {
+			const db = await makeDB()
+			const connectedActor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+
+			const properties = { url: 'foo' }
+			const image = await createImage(db, connectedActor, properties)
+
+			const body = {
+				status: 'my status',
+				media_ids: [image.mastodonId],
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				body: JSON.stringify(body),
+			})
+
+			const connectedUser: any = {}
+			const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+
+			assert(!isUrlValid(data.id))
 		})
 
 		test('favourite status sends Like activity', async () => {
@@ -271,7 +288,7 @@ describe('Mastodon APIs', () => {
 			}
 		})
 
-		test('count likes', async () => {
+		test('get status count likes', async () => {
 			const db = await makeDB()
 			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
 			const actor2: any = { id: await createPerson(db, userKEK, 'sven2@cloudflare.com') }
@@ -288,7 +305,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.favourites_count, 2)
 		})
 
-		test('count reblogs', async () => {
+		test('get status count reblogs', async () => {
 			const db = await makeDB()
 			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
 			const actor2: any = { id: await createPerson(db, userKEK, 'sven2@cloudflare.com') }
@@ -303,6 +320,24 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.reblogs_count, 2)
+		})
+
+		test('get status with image', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+
+			const properties = { url: 'https://example.com/image.jpg' }
+			const mediaAttachments = [await createImage(db, actor, properties)]
+			const note = await createPublicNote(db, 'my first status', actor, mediaAttachments)
+
+			const res = await statuses_get.handleRequest(db, note.mastodonId!)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.media_attachments.length, 1)
+			assert.equal(data.media_attachments[0].url, properties.url)
+			assert.equal(data.media_attachments[0].preview_url, properties.url)
+			assert.equal(data.media_attachments[0].type, 'image')
 		})
 	})
 })

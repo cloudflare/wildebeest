@@ -1,12 +1,15 @@
 import type { Handle } from '../utils/parse'
+import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { UUID } from 'wildebeest/backend/src/types'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
-import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
+import { getObjectByMastodonId, getObjectById } from 'wildebeest/backend/src/activitypub/objects'
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { instanceConfig } from 'wildebeest/config/instance'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
+import * as media from 'wildebeest/backend/src/media/'
 import type { MastodonStatus } from 'wildebeest/backend/src/types'
 import { parseHandle } from '../utils/parse'
 import { urlToHandle } from '../utils/handle'
@@ -32,7 +35,7 @@ export function getMentions(input: string): Array<Handle> {
 	return mentions
 }
 
-export async function toMastodonStatusFromObject(db: D1Database, obj: Object): Promise<MastodonStatus | null> {
+export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Promise<MastodonStatus | null> {
 	if (obj.originalActorId === undefined) {
 		console.warn('missing `obj.originalActorId`')
 		return null
@@ -47,10 +50,23 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Object): P
 	const favourites = await getLikes(db, obj)
 	const reblogs = await getReblogs(db, obj)
 
+	const mediaAttachments: Array<MediaAttachment> = []
+
+	if (Array.isArray(obj.attachment)) {
+		for (let i = 0, len = obj.attachment.length; i < len; i++) {
+			const document = await getObjectById(db, obj.attachment[i].id)
+			if (document === null) {
+				console.warn('missing attachment object: ' + obj.attachment[i].id)
+				continue
+			}
+
+			mediaAttachments.push(media.fromObject(document))
+		}
+	}
+
 	return {
 		// Default values
 		emojis: [],
-		media_attachments: [],
 		tags: [],
 		mentions: [],
 
@@ -58,6 +74,7 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Object): P
 		visibility: 'public',
 		spoiler_text: '',
 
+		media_attachments: mediaAttachments,
 		content: obj.content || '',
 		id: obj.mastodonId || '',
 		uri: obj.url,
@@ -93,12 +110,21 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 		throw new Error('logic error; missing fields.')
 	}
 
+	const mediaAttachments: Array<MediaAttachment> = []
+
+	if (Array.isArray(properties.attachment)) {
+		for (let i = 0, len = properties.attachment.length; i < len; i++) {
+			const document = properties.attachment[i]
+			mediaAttachments.push(media.fromObject(document))
+		}
+	}
+
 	const status: MastodonStatus = {
 		id: row.mastodon_id,
 		uri: objects.uri(row.id),
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
-		media_attachments: [],
+		media_attachments: mediaAttachments,
 		tags: [],
 		mentions: [],
 		account,
@@ -141,5 +167,5 @@ export async function getMastodonStatusById(db: D1Database, id: UUID): Promise<M
 	if (obj === null) {
 		return null
 	}
-	return toMastodonStatusFromObject(db, obj)
+	return toMastodonStatusFromObject(db, obj as Note)
 }

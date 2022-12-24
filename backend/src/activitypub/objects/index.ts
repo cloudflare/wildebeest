@@ -23,6 +23,9 @@ export interface Object {
 	mastodonId?: UUID
 }
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-document
+export interface Document extends Object {}
+
 export function uri(id: string): URL {
 	return new URL('/ap/o/' + id, 'https://' + instanceConfig.uri)
 }

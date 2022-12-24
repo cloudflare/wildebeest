@@ -8,6 +8,7 @@ import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import * as like from 'wildebeest/backend/src/activitypub/activities/like'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
+import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
@@ -27,7 +28,7 @@ export async function handleRequest(
 		return new Response('', { status: 404 })
 	}
 
-	const status = await toMastodonStatusFromObject(db, obj)
+	const status = await toMastodonStatusFromObject(db, obj as Note)
 	if (status === null) {
 		return new Response('', { status: 404 })
 	}

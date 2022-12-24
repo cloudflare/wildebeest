@@ -1,3 +1,5 @@
+import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
+
 export type Config = {
 	accountId: string
 	apiToken: string
@@ -38,7 +40,6 @@ export async function uploadImage(file: File, config: Config): Promise<URL> {
 	}
 
 	const data = await res.json<APIResult<UploadResult>>()
-
 	if (!data.success) {
 		const body = await res.text()
 		throw new Error(`Cloudflare Images returned ${res.status}: ${body}`)

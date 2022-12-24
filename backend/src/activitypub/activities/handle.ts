@@ -120,6 +120,8 @@ export async function handle(
 			requireComplexObject()
 			const actorId = getActorAsId()
 
+			// FIXME: download any attachment Objects
+
 			let recipients: Array<string> = []
 
 			if (Array.isArray(activity.to)) {
