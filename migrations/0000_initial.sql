@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS clients (
 INSERT INTO CLIENTS (id, secret, name, redirect_uris, website, scopes)
   VALUES (
     'TWhM-tNSuncnqN7DBJmoyeLnk6K3iJJ71KKXxgL1hPM', 'ZEaFUFmF0umgBX1qKJDjaU99Q31lDkOU8NutzTOoliw', 'A NAME', 'redirect', 'website', 'scopes'
-  ); -- TODO: dummy hardcoded client until we correctly handle clients during authentication and can distinguish between them via oauth
+  ); /* TODO: dummy hardcoded client until we correctly handle clients during authentication and can distinguish between them via oauth */
 
 CREATE TABLE IF NOT EXISTS subscriptions (
   id INTEGER PRIMARY KEY,
