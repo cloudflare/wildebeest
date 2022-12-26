@@ -2,21 +2,8 @@ import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { unwrapPrivateKey } from 'wildebeest/backend/src/utils/key-ops'
 import type { Actor } from '../activitypub/actors'
 import { defaultImages } from 'wildebeest/config/accounts'
-import { getFollowingAcct, getFollowers } from 'wildebeest/backend/src/mastodon/follow'
 import * as apOutbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as apFollow from 'wildebeest/backend/src/activitypub/actors/follow'
-
-async function getStatusesCount(db: D1Database, actorId: URL): Promise<number> {
-	const query = `
-SELECT count(*) as count
-FROM outbox_objects
-INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE outbox_objects.actor_id=? AND objects.type = 'Note'
-  `
-
-	const row: any = await db.prepare(query).bind(actorId.toString()).first()
-	return row.count
-}
 
 function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
 	let avatar = defaultImages.avatar
@@ -72,12 +59,31 @@ export async function loadExternalMastodonAccount(
 
 // Load a local user and return it as a MastodonAccount
 export async function loadLocalMastodonAccount(db: D1Database, res: Actor): Promise<MastodonAccount> {
+	const query = `
+SELECT
+  (SELECT count(*)
+   FROM outbox_objects
+   INNER JOIN objects ON objects.id = outbox_objects.object_id
+   WHERE outbox_objects.actor_id=?
+     AND objects.type = 'Note') AS statuses_count,
+
+  (SELECT count(*)
+   FROM actor_following
+   WHERE actor_following.actor_id=?) AS following_count,
+
+  (SELECT count(*)
+   FROM actor_following
+   WHERE actor_following.target_actor_id=?) AS followers_count
+  `
+
 	// For local user the acct is only the local part of the email address.
 	const acct = res.preferredUsername || 'unknown'
 	const account = toMastodonAccount(acct, res)
-	account.statuses_count = await getStatusesCount(db, new URL(res.id))
-	account.followers_count = (await getFollowers(db, res)).length
-	account.following_count = (await getFollowingAcct(db, res)).length
+
+	const row: any = await db.prepare(query).bind(res.id.toString(), res.id.toString(), res.id.toString()).first()
+	account.statuses_count = row.statuses_count
+	account.followers_count = row.followers_count
+	account.following_count = row.following_count
 
 	return account
 }
