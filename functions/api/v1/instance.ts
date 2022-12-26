@@ -12,6 +12,10 @@ export const onRequest = () => {
 
 	const res = {
 		...instanceConfig,
+		// Registration is disabled because unsupported by Wildebeest. Users
+		// should go through the login flow and authenticate with Access.
+		// The documentation is incorrect and registrations is a boolean.
+		registrations: false,
 		version: INSTANCE_VERSION,
 	}
 
