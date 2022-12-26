@@ -2,6 +2,16 @@ import type { MastodonStatus } from 'wildebeest/backend/src/types/status'
 import { getFollowingId } from 'wildebeest/backend/src/mastodon/follow'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
 import { toMastodonStatusFromRow } from './status'
+import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors/'
+
+export async function pregenerateTimelines(db: D1Database, cache: KVNamespace, actor: Actor) {
+	{
+		const actorEmail = actor[emailSymbol]
+		console.log({ actorEmail })
+		const timeline = await getHomeTimeline(db, actor)
+		await cache.put(actorEmail + '/timeline/home', JSON.stringify(timeline))
+	}
+}
 
 export async function getHomeTimeline(db: D1Database, actor: Actor): Promise<Array<MastodonStatus>> {
 	const following = await getFollowingId(db, actor)

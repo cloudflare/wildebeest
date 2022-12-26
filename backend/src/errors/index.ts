@@ -36,3 +36,10 @@ export function userConflict(): Response {
 	}
 	return new Response(JSON.stringify(res), { headers, status: 403 })
 }
+
+export function timelineMissing(): Response {
+	const res: ErrorResponse = {
+		error: `The timeline is invalid or being regenerated. ${HELP}`,
+	}
+	return new Response(JSON.stringify(res), { headers, status: 404 })
+}

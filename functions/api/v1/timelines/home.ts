@@ -6,6 +6,7 @@ import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { getHomeTimeline } from 'wildebeest/backend/src/mastodon/timeline'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import type { MastodonAccount, MastodonStatus } from 'wildebeest/backend/src/types/'
+import * as errors from 'wildebeest/backend/src/errors'
 
 const headers = {
 	'Access-Control-Allow-Origin': '*',
@@ -14,10 +15,13 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
-	return handleRequest(env.DATABASE, data.connectedActor)
+	return handleRequest(env.KV_CACHE, data.identity.email)
 }
 
-export async function handleRequest(db: D1Database, connectedActor: Actor): Promise<Response> {
-	const statuses = await getHomeTimeline(db, connectedActor)
-	return new Response(JSON.stringify(statuses), { headers })
+export async function handleRequest(cache: KVNamespace, email: string): Promise<Response> {
+	const timeline = await cache.get(email + '/timeline/home')
+	if (timeline === null) {
+		return errors.timelineMissing()
+	}
+	return new Response(timeline, { headers })
 }

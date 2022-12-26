@@ -9,6 +9,7 @@ import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import { parseRequest } from 'wildebeest/backend/src/utils/httpsigjs/parser'
 import { fetchKey, verifySignature } from 'wildebeest/backend/src/utils/httpsigjs/verifier'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
+import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
 	const parsedSignature = parseRequest(request)
@@ -28,11 +29,12 @@ export const onRequest: PagesFunction<Env, any> = async ({ params, request, env 
 	}
 
 	const activity: Activity = JSON.parse(body)
-	return handleRequest(env.DATABASE, params.id as string, activity, env.userKEK)
+	return handleRequest(env.DATABASE, env.KV_CACHE, params.id as string, activity, env.userKEK)
 }
 
 export async function handleRequest(
 	db: D1Database,
+	cache: KVNamespace,
 	id: string,
 	activity: Activity,
 	userKEK: string
@@ -44,12 +46,15 @@ export async function handleRequest(
 	}
 
 	const actorId = actorURL(handle.localPart)
-	const person = await actors.getPersonById(db, actorId)
-	if (person === null) {
+	const actor = await actors.getPersonById(db, actorId)
+	if (actor === null) {
 		return new Response('', { status: 404 })
 	}
 
 	await activityHandler.handle(activity, db, userKEK, 'inbox')
+
+	// Assuming we received new posts, pregenerate the user's timelines
+	await timeline.pregenerateTimelines(db, cache, actor)
 
 	return new Response('', { status: 200 })
 }

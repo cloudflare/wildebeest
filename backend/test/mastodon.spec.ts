@@ -156,6 +156,7 @@ describe('Mastodon APIs', () => {
 			const request = new Request('https://example.com', { headers })
 			const ctx: any = {
 				env: { DATABASE: db },
+				data: {},
 				request,
 			}
 

@@ -67,14 +67,17 @@ export async function main(context: EventContext<Env, any, any>) {
 			if (!identity) {
 				return errors.notAuthorized('failed to load identity')
 			}
+			context.data.identity = identity
 
-			const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email)
-			if (person === null) {
-				return errors.notAuthorized('user not found')
+			if (url.pathname !== '/api/v1/timelines/home') {
+				const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email)
+				if (person === null) {
+					return errors.notAuthorized('user not found')
+				}
+
+				context.data.connectedActor = person
+				context.data.connectedUser = await loadLocalMastodonAccount(context.env.DATABASE, person)
 			}
-
-			context.data.connectedActor = person
-			context.data.connectedUser = await loadLocalMastodonAccount(context.env.DATABASE, person)
 
 			return context.next()
 		} catch (err: any) {

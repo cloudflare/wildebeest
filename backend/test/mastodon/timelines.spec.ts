@@ -7,6 +7,7 @@ import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
 import * as timelines_home from 'wildebeest/functions/api/v1/timelines/home'
 import * as timelines_public from 'wildebeest/functions/api/v1/timelines/public'
+import * as timelines from 'wildebeest/backend/src/mastodon/timeline'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
 
@@ -45,12 +46,7 @@ describe('Mastodon APIs', () => {
 
 			// Actor should only see posts from actor2 in the timeline
 			const connectedActor: any = actor
-			const res = await timelines_home.handleRequest(db, connectedActor)
-			assert.equal(res.status, 200)
-			assertJSON(res)
-			assertCORS(res)
-
-			const data = await res.json<any>()
+			const data = await timelines.getHomeTimeline(db, connectedActor)
 			assert.equal(data.length, 2)
 			assert(data[0].id)
 			assert.equal(data[0].content, 'second status from actor2')
@@ -72,14 +68,23 @@ describe('Mastodon APIs', () => {
 
 			// Actor should only see posts from actor2 in the timeline
 			const connectedActor: any = actor
-			const res = await timelines_home.handleRequest(db, connectedActor)
-			assert.equal(res.status, 200)
-
-			const data = await res.json<any>()
+			const data = await timelines.getHomeTimeline(db, connectedActor)
 			assert.equal(data.length, 1)
 			assert(data[0].id)
 			assert.equal(data[0].content, 'status from myself')
 			assert.equal(data[0].account.username, 'sven')
+		})
+
+		test('home returns cache', async () => {
+			const email = 'email@cloudflare.com'
+			const kv_cache: any = {
+				async get(key: string) {
+					assert.equal(key, 'email@cloudflare.com/timeline/home')
+					return 'cached data'
+				},
+			}
+			const data = await timelines_home.handleRequest(kv_cache, email)
+			assert.equal(await data.text(), 'cached data')
 		})
 
 		test('public returns Notes', async () => {

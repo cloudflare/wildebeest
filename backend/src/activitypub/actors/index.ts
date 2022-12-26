@@ -6,6 +6,7 @@ import type { Object } from '../objects'
 
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
+export const emailSymbol = Symbol()
 
 export function actorURL(id: string): URL {
 	return new URL(`/ap/users/${id}`, 'https://' + instanceConfig.uri)
@@ -33,6 +34,8 @@ export interface Actor extends Object {
 	outbox: URL
 	following: URL
 	followers: URL
+
+	[emailSymbol]: string
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
@@ -189,6 +192,9 @@ export function personFromRow(row: any): Person {
 	}
 
 	return {
+		// Hidden values
+		[emailSymbol]: row.email,
+
 		// Default values, likely being overrided by the properties.
 		name: row.preferredUsername,
 		icon,
