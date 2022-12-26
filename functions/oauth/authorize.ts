@@ -53,18 +53,11 @@ export async function handleRequest(request: Request, db: D1Database, userKEK: s
 
 	const person = await getPersonByEmail(db, identity.email)
 	if (person === null) {
-		const properties: any = {}
-
-		if (identity.name !== undefined) {
-			properties.name = identity.name
-		}
-
-		await createPerson(db, userKEK, identity.email, properties)
+		url.pathname = '/first-login'
+		url.searchParams.set('email', identity.email)
+		url.searchParams.set('redirect_uri', encodeURIComponent(redirect_uri + '?code=' + jwt))
+		return Response.redirect(url.toString(), 302)
 	}
 
-	if (redirect_uri === 'urn:ietf:wg:oauth:2.0:oob') {
-		return new Response(jwt)
-	} else {
-		return Response.redirect(redirect_uri + '?code=' + jwt, 302)
-	}
+	return Response.redirect(redirect_uri + '?code=' + jwt, 302)
 }

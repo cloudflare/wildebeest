@@ -1,6 +1,7 @@
 import { accessConfig } from 'wildebeest/config/access'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import * as oauth_authorize from 'wildebeest/functions/oauth/authorize'
+import * as first_login from 'wildebeest/functions/first-login'
 import * as oauth_token from 'wildebeest/functions/oauth/token'
 import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
 import { TEST_JWT, ACCESS_CERTS } from '../test-data'
@@ -54,11 +55,11 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 400)
 		})
 
-		test('authorize redirects with code on success and creates user', async () => {
+		test('authorize redirects with code on success and show first login', async () => {
 			const db = await makeDB()
 
 			const params = new URLSearchParams({
-				redirect_uri: 'https://example.com',
+				redirect_uri: 'https://example.com/a',
 				response_type: 'code',
 				client_id: 'client_id',
 			})
@@ -73,36 +74,48 @@ describe('Mastodon APIs', () => {
 			const res = await oauth_authorize.handleRequest(req, db, userKEK)
 			assert.equal(res.status, 302)
 
-			const location = res.headers.get('location')
-			assert.equal(location, 'https://example.com/?code=' + TEST_JWT)
+			const location = new URL(res.headers.get('location') || '')
+			assert.equal(
+				location.searchParams.get('redirect_uri'),
+				encodeURIComponent('https://example.com/a?code=' + TEST_JWT)
+			)
 
-			const actor = await db.prepare('SELECT * FROM actors').first()
-			assert.equal(actor.email, 'some@cloudflare.com')
-			assert(isUrlValid(actor.id))
-			// ensure that we generate a correct key pairs for the user
-			assert((await getSigningKey(userKEK, db, actor)) instanceof CryptoKey)
+			// actor isn't created yet
+			const { count } = await db.prepare('SELECT count(*) as count FROM actors').first()
+			assert.equal(count, 0)
 		})
 
-		test('authorize with redirect_uri urn:ietf:wg:oauth:2.0:oob', async () => {
+		test('first login creates the user and redirects', async () => {
 			const db = await makeDB()
 
 			const params = new URLSearchParams({
-				redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
-				response_type: 'code',
-				client_id: 'client_id',
+				redirect_uri: 'https://redirect.com/a',
+				email: 'a@cloudflare.com',
 			})
 
-			const headers = {
-				'Cf-Access-Jwt-Assertion': TEST_JWT,
-			}
+			const formData = new FormData()
+			formData.set('username', 'username')
+			formData.set('name', 'name')
 
-			const req = new Request('https://example.com/oauth/authorize?' + params, {
-				headers,
+			const req = new Request('https://example.com/first-login?' + params, {
+				method: 'POST',
+				body: formData,
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK)
-			assert.equal(res.status, 200)
+			const res = await first_login.handlePostRequest(req, db, userKEK)
+			assert.equal(res.status, 302)
 
-			assert.equal(await res.text(), TEST_JWT)
+			const location = res.headers.get('location')
+			assert.equal(location, 'https://redirect.com/a')
+
+			const actor = await db.prepare('SELECT * FROM actors').first()
+			const properties = JSON.parse(actor.properties)
+
+			assert.equal(actor.email, 'a@cloudflare.com')
+			assert.equal(properties.preferredUsername, 'username')
+			assert.equal(properties.name, 'name')
+			assert(isUrlValid(actor.id))
+			// ensure that we generate a correct key pairs for the user
+			assert((await getSigningKey(userKEK, db, actor)) instanceof CryptoKey)
 		})
 
 		test('token returns auth infos', async () => {

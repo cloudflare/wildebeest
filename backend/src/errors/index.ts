@@ -29,3 +29,10 @@ export function domainNotAuthorized(): Response {
 	}
 	return new Response(JSON.stringify(res), { headers, status: 403 })
 }
+
+export function userConflict(): Response {
+	const res: ErrorResponse = {
+		error: `User already exists or conflicts. ${HELP}`,
+	}
+	return new Response(JSON.stringify(res), { headers, status: 403 })
+}

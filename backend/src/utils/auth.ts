@@ -17,9 +17,13 @@ async function errorHandling(context: EventContext<unknown, any, any>) {
 
 async function logger(context: EventContext<unknown, any, any>) {
 	const { method, url } = context.request
-	console.log(`-> ${method} ${url}`)
+	console.log(`-> ${method} ${url} `)
 	const res = await context.next()
-	console.log(`<- ${res.status}`)
+	if (context.data.connectedActor) {
+		console.log(`<- ${res.status} (${context.data.connectedActor.id}`)
+	} else {
+		console.log(`<- ${res.status}`)
+	}
 
 	return res
 }

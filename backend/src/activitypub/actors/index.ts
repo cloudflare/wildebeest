@@ -111,8 +111,6 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
 }
 
 export async function createPerson(db: D1Database, userKEK: string, email: string, properties: any = {}): Promise<URL> {
-	const parts = email.split('@')
-	const id = actorURL(parts[0]).toString()
 	const userKeyPair = await generateUserKey(userKEK)
 
 	let privkey, salt
@@ -127,7 +125,12 @@ export async function createPerson(db: D1Database, userKEK: string, email: strin
 		salt = [...new Uint8Array(userKeyPair.salt)]
 	}
 
-	properties.preferredUsername = parts[0]
+	if (properties.preferredUsername === undefined) {
+		const parts = email.split('@')
+		properties.preferredUsername = parts[0]
+	}
+
+	const id = actorURL(properties.preferredUsername).toString()
 
 	const { success, error } = await db
 		.prepare(
