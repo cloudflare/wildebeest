@@ -141,7 +141,7 @@ export async function handle(
 			const fromActor = await actors.getAndCache(getActorAsId(), db)
 			// Add the object in the originating actor's outbox, allowing other
 			// actors on this instance to see the note in their timelines.
-			await addObjectInOutbox(db, fromActor, obj)
+			await addObjectInOutbox(db, fromActor, obj, activity.published)
 
 			if (mode === 'inbox') {
 				for (let i = 0, len = recipients.length; i < len; i++) {
@@ -238,7 +238,7 @@ export async function handle(
 			const fromActor = await actors.getAndCache(actorId, db)
 			// Add the object in the originating actor's outbox, allowing other
 			// actors on this instance to see the note in their timelines.
-			await addObjectInOutbox(db, fromActor, obj)
+			await addObjectInOutbox(db, fromActor, obj, activity.published)
 
 			// Store the reblog for counting
 			await insertReblog(db, fromActor, obj)

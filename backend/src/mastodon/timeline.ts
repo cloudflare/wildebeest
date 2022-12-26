@@ -20,7 +20,7 @@ FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
 INNER JOIN actors ON actors.id = outbox_objects.actor_id
 WHERE objects.type = 'Note' AND outbox_objects.actor_id IN (SELECT value FROM json_each(?))
-ORDER by outbox_objects.cdate DESC
+ORDER by outbox_objects.published_date DESC
 LIMIT ?
 `
 	const DEFAULT_LIMIT = 20
@@ -79,7 +79,7 @@ INNER JOIN objects ON objects.id = outbox_objects.object_id
 INNER JOIN actors ON actors.id = outbox_objects.actor_id
 WHERE objects.type = 'Note'
 ${localPreferenceQuery(localPreference)}
-ORDER by outbox_objects.cdate DESC
+ORDER by outbox_objects.published_date DESC
 LIMIT ?
 `
 	const DEFAULT_LIMIT = 20

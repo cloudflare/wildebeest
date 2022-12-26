@@ -141,5 +141,25 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[0].media_attachments[0].type, 'image')
 			assert.equal(data[0].media_attachments[0].url, properties.url)
 		})
+
+		test('public timeline uses published_date', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+
+			const note1 = await createPublicNote(db, 'note1', actor)
+			const note2 = await createPublicNote(db, 'note2', actor)
+			const note3 = await createPublicNote(db, 'note3', actor)
+			await addObjectInOutbox(db, actor, note1, '2022-12-10T23:48:38Z')
+			await addObjectInOutbox(db, actor, note2, '2000-12-10T23:48:38Z')
+			await addObjectInOutbox(db, actor, note3, '2048-12-10T23:48:38Z')
+
+			const res = await timelines_public.handleRequest(db)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data[0].content, 'note3')
+			assert.equal(data[1].content, 'note1')
+			assert.equal(data[2].content, 'note2')
+		})
 	})
 })

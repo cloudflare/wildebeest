@@ -3,12 +3,21 @@ import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { OrderedCollection, OrderedCollectionPage } from 'wildebeest/backend/src/activitypub/core'
 
-export async function addObjectInOutbox(db: D1Database, actor: Actor, obj: Object) {
+export async function addObjectInOutbox(db: D1Database, actor: Actor, obj: Object, published_date?: string) {
 	const id = crypto.randomUUID()
-	const out = await db
-		.prepare('INSERT INTO outbox_objects(id, actor_id, object_id) VALUES(?, ?, ?)')
-		.bind(id, actor.id.toString(), obj.id.toString())
-		.run()
+	let out: any = null
+
+	if (published_date !== undefined) {
+		out = await db
+			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, published_date) VALUES(?, ?, ?, ?)')
+			.bind(id, actor.id.toString(), obj.id.toString(), published_date)
+			.run()
+	} else {
+		out = await db
+			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id) VALUES(?, ?, ?)')
+			.bind(id, actor.id.toString(), obj.id.toString())
+			.run()
+	}
 	if (!out.success) {
 		throw new Error('SQL error: ' + out.error)
 	}
