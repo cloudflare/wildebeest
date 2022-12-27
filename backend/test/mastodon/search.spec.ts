@@ -154,15 +154,18 @@ describe('Mastodon APIs', () => {
 
 				const data = await res.json<any>()
 				assert.equal(data.accounts.length, 1)
+				assert.equal(data.accounts[0].display_name, 'foo')
 			}
 
 			{
-				const req = new Request('https://example.com/api/v2/search?q=username&resolve=false')
+				const req = new Request('https://example.com/api/v2/search?q=user&resolve=false')
 				const res = await search.handleRequest(db, req)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
 				assert.equal(data.accounts.length, 2)
+				assert.equal(data.accounts[0].display_name, 'foo')
+				assert.equal(data.accounts[1].display_name, 'bar')
 			}
 		})
 	})

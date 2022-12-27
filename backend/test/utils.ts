@@ -1,6 +1,6 @@
-import { BetaDatabase } from '@miniflare/d1'
 import { strict as assert } from 'node:assert/strict'
 import { promises as fs } from 'fs'
+import { BetaDatabase } from '@miniflare/d1'
 import * as Database from 'better-sqlite3'
 
 export function isUrlValid(s: string) {
@@ -14,25 +14,14 @@ export function isUrlValid(s: string) {
 }
 
 export async function makeDB(): Promise<any> {
-	const db = new BetaDatabase(new Database(':memory:'))!
+	const db = new Database(':memory:')
+	const db2 = new BetaDatabase(db)!
 
 	// Manually run our migrations since @miniflare/d1 doesn't support it (yet).
-	{
-		const initial = await fs.readFile('./migrations/0000_initial.sql', 'utf-8')
+	const initial = await fs.readFile('./migrations/0000_initial.sql', 'utf-8')
+	await db.exec(initial)
 
-		const stmts = initial.split(';')
-		for (let i = 1, len = stmts.length; i < len; i++) {
-			const stmt = stmts[i].replace(/(\r\n|\n|\r)/gm, '')
-			try {
-				await db.exec(stmt)
-			} catch (err) {
-				console.log('could not run statement: ', stmt)
-				throw err
-			}
-		}
-	}
-
-	return db
+	return db2
 }
 
 export function assertCORS(response: Response) {

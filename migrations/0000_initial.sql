@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS actors (
   properties TEXT NOT NULL DEFAULT (json_object())
 );
 
+CREATE INDEX IF NOT EXISTS actors_email ON actors(email);
+
 CREATE TABLE IF NOT EXISTS actor_following (
   id TEXT PRIMARY KEY,
   actor_id TEXT NOT NULL,
@@ -100,11 +102,6 @@ CREATE TABLE IF NOT EXISTS clients (
   cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW'))
 );
 
-INSERT INTO CLIENTS (id, secret, name, redirect_uris, website, scopes)
-  VALUES (
-    'TWhM-tNSuncnqN7DBJmoyeLnk6K3iJJ71KKXxgL1hPM', 'ZEaFUFmF0umgBX1qKJDjaU99Q31lDkOU8NutzTOoliw', 'A NAME', 'redirect', 'website', 'scopes'
-  ); /* TODO: dummy hardcoded client until we correctly handle clients during authentication and can distinguish between them via oauth */
-
 CREATE TABLE IF NOT EXISTS subscriptions (
   id INTEGER PRIMARY KEY,
   actor_id TEXT NOT NULL,
@@ -134,3 +131,34 @@ CREATE TABLE IF NOT EXISTS instance_config (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+
+CREATE VIRTUAL TABLE IF NOT EXISTS search_fts USING fts5 (
+    type,
+    name,
+    preferredUsername,
+    status
+);
+
+CREATE TRIGGER IF NOT EXISTS actors_search_fts_insert AFTER INSERT ON actors
+BEGIN
+    INSERT INTO search_fts (rowid, type, name, preferredUsername)
+    VALUES (new.rowid,
+            new.type,
+            json_extract(new.properties, '$.name'),
+            json_extract(new.properties, '$.preferredUsername'));
+END;
+
+CREATE TRIGGER IF NOT EXISTS actors_search_fts_delete AFTER DELETE ON actors
+BEGIN
+    DELETE FROM search_fts WHERE rowid=old.rowid;
+END;
+
+CREATE TRIGGER IF NOT EXISTS actors_search_fts_update AFTER UPDATE ON actors
+BEGIN
+    DELETE FROM search_fts WHERE rowid=old.rowid;
+    INSERT INTO search_fts (rowid, type, name, preferredUsername)
+    VALUES (new.rowid,
+            new.type,
+            json_extract(new.properties, '$.name'),
+            json_extract(new.properties, '$.preferredUsername'));
+END;

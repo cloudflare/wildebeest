@@ -5,6 +5,7 @@ import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
+import { personFromRow } from 'wildebeest/backend/src/activitypub/actors'
 
 const headers = {
 	'content-type': 'application/json; charset=utf-8',
@@ -48,13 +49,15 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 
 	if (query.domain === null) {
 		const sql = `
-          SELECT * FROM actors
-          WHERE
-            json_extract(actors.properties, '$.name') LIKE ?
-            OR json_extract(actors.properties, '$.preferredUsername') LIKE ?
-          LIMIT 10
+          SELECT actors.* FROM actors
+          WHERE rowid IN (SELECT rowid FROM search_fts WHERE (preferredUsername MATCH ? OR name MATCH ?) AND type='Person' ORDER BY rank LIMIT 10) OR 0
         `
-		const { results, success, error } = await db.prepare(sql).bind(`%${query.localPart}%`, `%${query.localPart}%`).all()
+		// `OR 0` makes the statement not throw when the rowid set is empty.
+
+		const { results, success, error } = await db
+			.prepare(sql)
+			.bind(query.localPart + '*', query.localPart + '*')
+			.all()
 		if (!success) {
 			throw new Error('SQL error: ' + error)
 		}
@@ -62,8 +65,9 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 		if (results !== undefined) {
 			for (let i = 0, len = results.length; i < len; i++) {
 				const row: any = results[i]
+				const actor = personFromRow(row)
 				const acct = urlToHandle(new URL(row.id))
-				out.accounts.push(await loadExternalMastodonAccount(acct, row))
+				out.accounts.push(await loadExternalMastodonAccount(acct, actor))
 			}
 		}
 	}
