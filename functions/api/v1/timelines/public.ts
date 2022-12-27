@@ -13,10 +13,12 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	const local = Boolean(searchParams.get('local') ?? 'false')
 	const remote = Boolean(searchParams.get('remote') ?? 'false')
 	const only_media = Boolean(searchParams.get('only_media') ?? 'false')
-	return handleRequest(env.DATABASE, { local, remote, only_media })
+	const domain = new URL(request.url).hostname
+	return handleRequest(domain, env.DATABASE, { local, remote, only_media })
 }
 
 export async function handleRequest(
+	domain: string,
 	db: D1Database,
 	{ local = false, remote = false, only_media = false } = {}
 ): Promise<Response> {
@@ -28,6 +30,6 @@ export async function handleRequest(
 	}
 
 	// TODO - use only media option
-	const statuses = await getPublicTimeline(db, localParam)
+	const statuses = await getPublicTimeline(domain, db, localParam)
 	return new Response(JSON.stringify(statuses), { headers })
 }

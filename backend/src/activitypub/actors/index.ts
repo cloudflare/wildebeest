@@ -1,6 +1,5 @@
 import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { defaultImages } from 'wildebeest/config/accounts'
-import { instanceConfig } from 'wildebeest/config/instance'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
 import type { Object } from '../objects'
 
@@ -8,8 +7,8 @@ const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
 export const emailSymbol = Symbol()
 
-export function actorURL(id: string): URL {
-	return new URL(`/ap/users/${id}`, 'https://' + instanceConfig.uri)
+export function actorURL(domain: string, id: string): URL {
+	return new URL(`/ap/users/${id}`, 'https://' + domain)
 }
 
 function inboxURL(id: URL): URL {
@@ -113,7 +112,13 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
 	return personFromRow(row)
 }
 
-export async function createPerson(db: D1Database, userKEK: string, email: string, properties: any = {}): Promise<URL> {
+export async function createPerson(
+	domain: string,
+	db: D1Database,
+	userKEK: string,
+	email: string,
+	properties: any = {}
+): Promise<URL> {
 	const userKeyPair = await generateUserKey(userKEK)
 
 	let privkey, salt
@@ -133,7 +138,7 @@ export async function createPerson(db: D1Database, userKEK: string, email: strin
 		properties.preferredUsername = parts[0]
 	}
 
-	const id = actorURL(properties.preferredUsername).toString()
+	const id = actorURL(domain, properties.preferredUsername).toString()
 
 	const { success, error } = await db
 		.prepare(

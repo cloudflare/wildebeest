@@ -1,5 +1,4 @@
 import { strict as assert } from 'node:assert/strict'
-import { instanceConfig } from 'wildebeest/config/instance'
 import { getMentions } from 'wildebeest/backend/src/mastodon/status'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
@@ -13,6 +12,7 @@ import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayB
 import * as note from 'wildebeest/backend/src/activitypub/objects/note'
 
 const userKEK = 'test_kek4'
+const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
 	describe('statuses', () => {
@@ -32,7 +32,7 @@ describe('Mastodon APIs', () => {
 
 		test('create new status creates Note', async () => {
 			const db = await makeDB()
-			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const body = {
 				status: 'my status',
@@ -79,7 +79,7 @@ describe('Mastodon APIs', () => {
 
 		test("create new status adds to Actor's outbox", async () => {
 			const db = await makeDB()
-			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const body = {
 				status: 'my status',
@@ -148,7 +148,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			const db = await makeDB()
-			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const body = {
 				status: '@sven@remote.com my status',
@@ -165,8 +165,8 @@ describe('Mastodon APIs', () => {
 
 			assert(deliveredNote)
 			assert.equal(deliveredNote.type, 'Create')
-			assert.equal(deliveredNote.actor, `https://${instanceConfig.uri}/ap/users/sven`)
-			assert.equal(deliveredNote.object.attributedTo, `https://${instanceConfig.uri}/ap/users/sven`)
+			assert.equal(deliveredNote.actor, `https://${domain}/ap/users/sven`)
+			assert.equal(deliveredNote.object.attributedTo, `https://${domain}/ap/users/sven`)
 			assert.equal(deliveredNote.object.type, 'Note')
 			assert(deliveredNote.object.to.includes(note.PUBLIC))
 			assert.equal(deliveredNote.object.cc.length, 1)
@@ -174,10 +174,10 @@ describe('Mastodon APIs', () => {
 
 		test('create new status with image', async () => {
 			const db = await makeDB()
-			const connectedActor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
 
 			const properties = { url: 'foo' }
-			const image = await createImage(db, connectedActor, properties)
+			const image = await createImage(domain, db, connectedActor, properties)
 
 			const body = {
 				status: 'my status',
@@ -201,7 +201,7 @@ describe('Mastodon APIs', () => {
 			let deliveredActivity: any = null
 
 			const db = await makeDB()
-			const actor = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const actor = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
 			const originalObjectId = 'https://example.com/note123'
 
 			await db
@@ -285,10 +285,10 @@ describe('Mastodon APIs', () => {
 
 		test('get status count likes', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
-			const actor2: any = { id: await createPerson(db, userKEK, 'sven2@cloudflare.com') }
-			const actor3: any = { id: await createPerson(db, userKEK, 'sven3@cloudflare.com') }
-			const note = await createPublicNote(db, 'my first status', actor)
+			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor2: any = { id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com') }
+			const actor3: any = { id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com') }
+			const note = await createPublicNote(domain, db, 'my first status', actor)
 
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
@@ -302,10 +302,10 @@ describe('Mastodon APIs', () => {
 
 		test('get status count reblogs', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
-			const actor2: any = { id: await createPerson(db, userKEK, 'sven2@cloudflare.com') }
-			const actor3: any = { id: await createPerson(db, userKEK, 'sven3@cloudflare.com') }
-			const note = await createPublicNote(db, 'my first status', actor)
+			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor2: any = { id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com') }
+			const actor3: any = { id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com') }
+			const note = await createPublicNote(domain, db, 'my first status', actor)
 
 			await insertReblog(db, actor2, note)
 			await insertReblog(db, actor3, note)
@@ -319,11 +319,11 @@ describe('Mastodon APIs', () => {
 
 		test('get status with image', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
 
 			const properties = { url: 'https://example.com/image.jpg' }
-			const mediaAttachments = [await createImage(db, actor, properties)]
-			const note = await createPublicNote(db, 'my first status', actor, mediaAttachments)
+			const mediaAttachments = [await createImage(domain, db, actor, properties)]
+			const note = await createPublicNote(domain, db, 'my first status', actor, mediaAttachments)
 
 			const res = await statuses_get.handleRequest(db, note.mastodonId!)
 			assert.equal(res.status, 200)

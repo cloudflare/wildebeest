@@ -2,10 +2,10 @@ import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
-import { instanceConfig } from 'wildebeest/config/instance'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
-	return handleRequest(env.DATABASE, params.id as string)
+	const domain = new URL(request.url).hostname
+	return handleRequest(domain, env.DATABASE, params.id as string)
 }
 
 const headers = {
@@ -15,14 +15,14 @@ const headers = {
 	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
-export async function handleRequest(db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 
-	if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
+	if (handle.domain !== null && handle.domain !== domain) {
 		return new Response('', { status: 403 })
 	}
 
-	const person = await actors.getPersonById(db, actorURL(handle.localPart))
+	const person = await actors.getPersonById(db, actorURL(domain, handle.localPart))
 	if (person === null) {
 		return new Response('', { status: 404 })
 	}

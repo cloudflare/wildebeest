@@ -4,8 +4,8 @@ import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
 import Status from '~/components/Status'
 import { RequestHandler, useEndpoint } from '@builder.io/qwik-city'
 
-export const onGet: RequestHandler<MastodonStatus[], { DATABASE: any }> = async ({ platform }) => {
-	const response = await timelines.handleRequest(platform.DATABASE, { local: true })
+export const onGet: RequestHandler<MastodonStatus[], { DATABASE: any, domain: string }> = async ({ platform }) => {
+	const response = await timelines.handleRequest(platform.domain, platform.DATABASE, { local: true })
 	const results = await response.text()
 	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
 	return JSON.parse(results)

@@ -11,7 +11,8 @@ import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(env.DATABASE, data.connectedActor)
+	const domain = new URL(request.url).hostname
+	return handleRequest(domain, env.DATABASE, data.connectedActor)
 }
 
 const headers = {
@@ -20,7 +21,7 @@ const headers = {
 	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
-export async function handleRequest(db: D1Database, connectedActor: Person): Promise<Response> {
+export async function handleRequest(domain: string, db: D1Database, connectedActor: Person): Promise<Response> {
 	const query = `
     SELECT
         objects.*,
@@ -70,7 +71,7 @@ export async function handleRequest(db: D1Database, connectedActor: Person): Pro
 			notif.status = {
 				id: result.mastodon_id,
 				content: properties.content,
-				uri: objects.uri(result.id),
+				uri: objects.uri(domain, result.id),
 				created_at: new Date(result.cdate).toISOString(),
 
 				emojis: [],

@@ -1,5 +1,3 @@
-import { instanceConfig } from 'wildebeest/config/instance'
-
 type ErrorResponse = {
 	error: string
 	error_description?: string
@@ -11,7 +9,7 @@ const headers = {
 	'content-type': 'application/json',
 }
 
-const HELP = `If the problem persists please contact your instance administrator: ${instanceConfig.email}.`
+const HELP = 'If the problem persists please contact your instance administrator.'
 
 export function notAuthorized(error: string, descr?: string): Response {
 	const res: ErrorResponse = {

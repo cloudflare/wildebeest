@@ -5,10 +5,10 @@ import * as activity from '.'
 
 const UPDATE = 'Update'
 
-export function create(actor: Actor, object: Object): Activity {
+export function create(domain: string, actor: Actor, object: Object): Activity {
 	return {
 		'@context': ['https://www.w3.org/ns/activitystreams'],
-		id: activity.uri(),
+		id: activity.uri(domain),
 		type: UPDATE,
 		actor: actor.id,
 		object,

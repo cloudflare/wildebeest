@@ -7,6 +7,7 @@ import * as objects from 'wildebeest/backend/src/activitypub/objects'
 const userKEK = 'test_kek10'
 const CF_ACCOUNT_ID = 'testaccountid'
 const CF_API_TOKEN = 'testtoken'
+const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
 	describe('media', () => {
@@ -27,7 +28,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			const db = await makeDB()
-			const connectedActor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
+			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
 
 			const file = new File(['abc'], 'image.jpeg', { type: 'image/jpeg' })
 

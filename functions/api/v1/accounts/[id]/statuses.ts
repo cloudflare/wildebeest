@@ -3,7 +3,6 @@ import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/acc
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
-import { instanceConfig } from 'wildebeest/config/instance'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Handle } from 'wildebeest/backend/src/utils/parse'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
@@ -26,8 +25,9 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 
 export async function handleRequest(request: Request, db: D1Database, id: string, userKEK: string): Promise<Response> {
 	const handle = parseHandle(id)
+	const domain = new URL(request.url).hostname
 
-	if (handle.domain === null || (handle.domain !== null && handle.domain === instanceConfig.uri)) {
+	if (handle.domain === null || (handle.domain !== null && handle.domain === domain)) {
 		// Retrieve the statuses from a local user
 		return getLocalStatuses(request, db, handle)
 	} else if (handle.domain !== null) {
@@ -42,6 +42,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 	const out: Array<MastodonStatus> = []
 
 	const url = new URL(request.url)
+	const domain = url.hostname
 	const isPinned = url.searchParams.get('pinned') === 'true'
 	if (isPinned) {
 		// TODO: pinned statuses are not implemented yet. Stub the endpoint
@@ -62,20 +63,19 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 
 	for (let i = 0, len = activities.items.length; i < len; i++) {
 		const activity = activities.items[i]
-		const { createdObjects } = await activityHandler.handle(activity, db, userKEK, 'caching')
+		const { createdObjects } = await activityHandler.handle(domain, activity, db, userKEK, 'caching')
 		results = [...results, ...createdObjects]
 	}
+
+	const account = await loadExternalMastodonAccount(acct, actor)
 
 	if (results && results.length > 0) {
 		for (let i = 0, len = results.length; i < len; i++) {
 			const result: any = results[i]
 
-			const acct = `${actor.preferredUsername}@${instanceConfig.uri}`
-			const account = await loadExternalMastodonAccount(acct, actor)
-
 			out.push({
 				id: result.mastodonId,
-				uri: objects.uri(result.id),
+				uri: objects.uri(domain, result.id),
 				created_at: result.published,
 				content: result.content,
 				emojis: [],
@@ -95,7 +95,8 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 }
 
 async function getLocalStatuses(request: Request, db: D1Database, handle: Handle): Promise<Response> {
-	const actorId = actorURL(handle.localPart)
+	const domain = new URL(request.url).hostname
+	const actorId = actorURL(domain, handle.localPart)
 
 	const QUERY = `
 SELECT objects.*,
@@ -148,12 +149,12 @@ LIMIT ?
 				continue
 			}
 
-			const acct = `${author.preferredUsername}@${instanceConfig.uri}`
+			const acct = `${author.preferredUsername}@${domain}`
 			const account = await loadExternalMastodonAccount(acct, author)
 
 			out.push({
 				id: result.id,
-				uri: objects.uri(result.id),
+				uri: objects.uri(domain, result.id),
 				created_at: new Date(result.cdate).toISOString(),
 				content: properties.content,
 				emojis: [],

@@ -1,7 +1,6 @@
 // https://www.w3.org/TR/activitypub/#delivery
 
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
-import { instanceConfig } from 'wildebeest/config/instance'
 import type { Activity } from './activities'
 import type { Actor } from './actors'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'

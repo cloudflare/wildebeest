@@ -9,8 +9,9 @@ interface Env {
  */
 const handler: ExportedHandler<Env> = {
 	async fetch(req, { DATABASE }) {
+		const domain = new URL(req.url).hostname
 		try {
-			await init(DATABASE)
+			await init(domain, DATABASE)
 			console.log('Database initialized.')
 		} catch (e) {
 			if (isD1ConstraintError(e)) {

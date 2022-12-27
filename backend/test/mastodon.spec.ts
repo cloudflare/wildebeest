@@ -16,6 +16,7 @@ import * as startInstance from 'wildebeest/functions/start-instance'
 
 const userKEK = 'test_kek'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
 	describe('instance', () => {
@@ -33,7 +34,7 @@ describe('Mastodon APIs', () => {
 			})
 			await startInstance.handlePostRequest(req, db)
 
-			const res = await v1_instance.handleRequest(db)
+			const res = await v1_instance.handleRequest(domain, db)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
@@ -41,6 +42,7 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.rules.length, 0)
+			assert.equal(data.uri, domain)
 		})
 
 		test('return the instance infos v2', async () => {
@@ -57,7 +59,7 @@ describe('Mastodon APIs', () => {
 			})
 			await startInstance.handlePostRequest(req, db)
 
-			const res = await v2_instance.handleRequest(db)
+			const res = await v2_instance.handleRequest(domain, db)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
@@ -78,7 +80,7 @@ describe('Mastodon APIs', () => {
 			})
 			await startInstance.handlePostRequest(req, db)
 
-			const res = await v1_instance.handleRequest(db)
+			const res = await v1_instance.handleRequest(domain, db)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -150,8 +152,8 @@ describe('Mastodon APIs', () => {
 	describe('notifications', () => {
 		test('returns notifications stored in db', async () => {
 			const db = await makeDB()
-			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
-			const fromActorId = await createPerson(db, userKEK, 'from@cloudflare.com')
+			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const fromActorId = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
 			await db
 				.prepare("INSERT INTO objects (id, type, properties, local, mastodon_id) VALUES (?, ?, ?, 1, 'mastodon_id')")
 				.bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
@@ -172,7 +174,7 @@ describe('Mastodon APIs', () => {
 			await sleep(10)
 			await insertNotification(db, 'mention', connectedActor, fromActor, obj)
 
-			const res = await notifications.handleRequest(db, connectedActor)
+			const res = await notifications.handleRequest(domain, db, connectedActor)
 			assert.equal(res.status, 200)
 			assertJSON(res)
 			assertCORS(res)
@@ -197,7 +199,7 @@ describe('Mastodon APIs', () => {
 	describe('subscriptions', () => {
 		test('basic creation', async () => {
 			const db = await makeDB()
-			const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const actor = (await getPersonById(db, actorId)) as Actor
 			const client = await createClient(
 				db,

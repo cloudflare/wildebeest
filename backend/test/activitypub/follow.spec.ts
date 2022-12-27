@@ -1,5 +1,4 @@
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
-import { configure } from 'wildebeest/backend/src/config'
 import * as ap_followers_page from 'wildebeest/functions/ap/users/[id]/followers/page'
 import * as ap_following_page from 'wildebeest/functions/ap/users/[id]/following/page'
 import * as ap_followers from 'wildebeest/functions/ap/users/[id]/followers'
@@ -10,6 +9,7 @@ import { makeDB, assertCache, isUrlValid } from '../utils'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 
 const userKEK = 'test_kek10'
+const domain = 'cloudflare.com'
 
 describe('ActivityPub', () => {
 	describe('Follow', () => {
@@ -19,7 +19,7 @@ describe('ActivityPub', () => {
 			receivedActivity = null
 
 			globalThis.fetch = async (input: any) => {
-				if (input.url === 'https://social.eng.chat/ap/users/sven2/inbox') {
+				if (input.url === `https://${domain}/ap/users/sven2/inbox`) {
 					assert.equal(input.method, 'POST')
 					const data = await input.json()
 					receivedActivity = data
@@ -34,10 +34,10 @@ describe('ActivityPub', () => {
 		test('Receive follow with Accept reply', async () => {
 			const db = await makeDB()
 			const actor: any = {
-				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
 			}
 			const actor2: any = {
-				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
 			}
 
 			const activity = {
@@ -47,7 +47,7 @@ describe('ActivityPub', () => {
 				object: actor.id.toString(),
 			}
 
-			await activityHandler.handle(activity, db, userKEK, 'inbox')
+			await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
 
 			const row = await db
 				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
@@ -67,20 +67,20 @@ describe('ActivityPub', () => {
 		test('list actor following', async () => {
 			const db = await makeDB()
 			const actor: any = {
-				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
 			}
 			const actor2: any = {
-				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
 			}
 			const actor3: any = {
-				id: await createPerson(db, userKEK, 'sven3@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com'),
 			}
 			await addFollowing(db, actor, actor2, 'not needed')
 			await acceptFollowing(db, actor, actor2)
 			await addFollowing(db, actor, actor3, 'not needed')
 			await acceptFollowing(db, actor, actor3)
 
-			const res = await ap_following.handleRequest(db, 'sven')
+			const res = await ap_following.handleRequest(domain, db, 'sven')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -90,42 +90,41 @@ describe('ActivityPub', () => {
 
 		test('list actor following page', async () => {
 			const db = await makeDB()
-			await configure(db, { uri: 'domain.com' } as any)
 			const actor: any = {
-				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
 			}
 			const actor2: any = {
-				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
 			}
 			const actor3: any = {
-				id: await createPerson(db, userKEK, 'sven3@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com'),
 			}
 			await addFollowing(db, actor, actor2, 'not needed')
 			await acceptFollowing(db, actor, actor2)
 			await addFollowing(db, actor, actor3, 'not needed')
 			await acceptFollowing(db, actor, actor3)
 
-			const res = await ap_following_page.handleRequest(db, 'sven')
+			const res = await ap_following_page.handleRequest(domain, db, 'sven')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
 			assert.equal(data.type, 'OrderedCollectionPage')
-			assert.equal(data.orderedItems[0], `https://domain.com/ap/users/sven2`)
-			assert.equal(data.orderedItems[1], `https://domain.com/ap/users/sven3`)
+			assert.equal(data.orderedItems[0], `https://${domain}/ap/users/sven2`)
+			assert.equal(data.orderedItems[1], `https://${domain}/ap/users/sven3`)
 		})
 
 		test('list actor follower', async () => {
 			const db = await makeDB()
 			const actor: any = {
-				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
 			}
 			const actor2: any = {
-				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
 			}
 			await addFollowing(db, actor2, actor, 'not needed')
 			await acceptFollowing(db, actor2, actor)
 
-			const res = await ap_followers.handleRequest(db, 'sven')
+			const res = await ap_followers.handleRequest(domain, db, 'sven')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -135,31 +134,30 @@ describe('ActivityPub', () => {
 
 		test('list actor follower page', async () => {
 			const db = await makeDB()
-			await configure(db, { uri: 'domain.com' } as any)
 			const actor: any = {
-				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
 			}
 			const actor2: any = {
-				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
 			}
 			await addFollowing(db, actor2, actor, 'not needed')
 			await acceptFollowing(db, actor2, actor)
 
-			const res = await ap_followers_page.handleRequest(db, 'sven')
+			const res = await ap_followers_page.handleRequest(domain, db, 'sven')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
 			assert.equal(data.type, 'OrderedCollectionPage')
-			assert.equal(data.orderedItems[0], `https://domain.com/ap/users/sven2`)
+			assert.equal(data.orderedItems[0], `https://${domain}/ap/users/sven2`)
 		})
 
 		test('creates a notification', async () => {
 			const db = await makeDB()
 			const actor: any = {
-				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
 			}
 			const actor2: any = {
-				id: await createPerson(db, userKEK, 'sven2@cloudflare.com'),
+				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
 			}
 
 			const activity = {
@@ -169,7 +167,7 @@ describe('ActivityPub', () => {
 				object: actor.id,
 			}
 
-			await activityHandler.handle(activity, db, userKEK, 'inbox')
+			await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
 			assert.equal(entry.type, 'follow')

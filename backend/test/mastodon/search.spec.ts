@@ -5,6 +5,7 @@ import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache } from '../util
 import { strict as assert } from 'node:assert/strict'
 
 const userKEK = 'test_kek11'
+const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
 	describe('search', () => {
@@ -143,8 +144,8 @@ describe('Mastodon APIs', () => {
 
 		test('search local actors', async () => {
 			const db = await makeDB()
-			await createPerson(db, userKEK, 'username@cloudflare.com', { name: 'foo' })
-			await createPerson(db, userKEK, 'username2@cloudflare.com', { name: 'bar' })
+			await createPerson(domain, db, userKEK, 'username@cloudflare.com', { name: 'foo' })
+			await createPerson(domain, db, userKEK, 'username2@cloudflare.com', { name: 'bar' })
 
 			{
 				const req = new Request('https://example.com/api/v2/search?q=foo&resolve=false')

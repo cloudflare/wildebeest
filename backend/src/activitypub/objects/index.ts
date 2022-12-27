@@ -1,4 +1,3 @@
-import { instanceConfig } from 'wildebeest/config/instance'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { UUID } from 'wildebeest/backend/src/types'
 
@@ -26,11 +25,12 @@ export interface Object {
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-document
 export interface Document extends Object {}
 
-export function uri(id: string): URL {
-	return new URL('/ap/o/' + id, 'https://' + instanceConfig.uri)
+export function uri(domain: string, id: string): URL {
+	return new URL('/ap/o/' + id, 'https://' + domain)
 }
 
 export async function createObject(
+	domain: string,
 	db: D1Database,
 	type: string,
 	properties: any,
@@ -38,7 +38,7 @@ export async function createObject(
 	local: boolean
 ): Promise<Object> {
 	const uuid = crypto.randomUUID()
-	const apId = uri(uuid).toString()
+	const apId = uri(domain, uuid).toString()
 
 	const row: any = await db
 		.prepare(
@@ -71,6 +71,7 @@ export async function get<T>(url: URL): Promise<T> {
 }
 
 export async function cacheObject(
+	domain: string,
 	db: D1Database,
 	properties: any,
 	originalActorId: URL,
@@ -83,7 +84,7 @@ export async function cacheObject(
 	}
 
 	const uuid = crypto.randomUUID()
-	const apId = uri(uuid).toString()
+	const apId = uri(domain, uuid).toString()
 
 	const row: any = await db
 		.prepare(

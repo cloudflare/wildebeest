@@ -6,6 +6,7 @@ import { accessConfig } from 'wildebeest/config/access'
 import * as middleware_auth from 'wildebeest/backend/src/middleware/auth'
 
 const userKEK = 'test_kek12'
+const domain = 'cloudflare.com'
 
 describe('middleware', () => {
 	test('CORS on OPTIONS', async () => {
@@ -91,7 +92,7 @@ describe('middleware', () => {
 		}
 
 		const db = await makeDB()
-		await createPerson(db, userKEK, 'username@cloudflare.com')
+		await createPerson(domain, db, userKEK, 'username@cloudflare.com')
 
 		const data: any = {}
 

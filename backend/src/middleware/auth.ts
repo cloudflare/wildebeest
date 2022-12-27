@@ -1,5 +1,4 @@
 import * as access from 'wildebeest/backend/src/access'
-import { instanceConfig } from 'wildebeest/config/instance'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { accessConfig } from 'wildebeest/config/access'
 import type { Env } from 'wildebeest/backend/src/types/env'

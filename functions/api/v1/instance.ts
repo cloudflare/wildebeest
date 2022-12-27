@@ -2,11 +2,12 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 
 const INSTANCE_VERSION = '4.0.2'
 
-export const onRequest: PagesFunction<Env, any> = async ({ env }) => {
-	return handleRequest(env.DATABASE)
+export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
+	const domain = new URL(request.url).hostname
+	return handleRequest(domain, env.DATABASE)
 }
 
-export async function handleRequest(db: D1Database) {
+export async function handleRequest(domain: string, db: D1Database) {
 	const headers = {
 		'Access-Control-Allow-Origin': '*',
 		'Access-Control-Allow-Headers': 'content-type, authorization',
@@ -36,6 +37,7 @@ export async function handleRequest(db: D1Database) {
 	res.registrations = false
 	res.version = INSTANCE_VERSION
 	res.rules = []
+	res.uri = domain
 
 	if (res.short_description === undefined) {
 		res.short_description = res.description

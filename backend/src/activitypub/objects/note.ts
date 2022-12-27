@@ -25,6 +25,7 @@ export interface Note extends objects.Object {
 }
 
 export async function createPublicNote(
+	domain: string,
 	db: D1Database,
 	content: string,
 	actor: Actor,
@@ -51,5 +52,5 @@ export async function createPublicNote(
 		attachment,
 	}
 
-	return (await objects.createObject(db, NOTE, properties, actorId, true)) as Note
+	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
 }

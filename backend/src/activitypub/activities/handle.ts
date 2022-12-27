@@ -8,7 +8,6 @@ import { addObjectInInbox } from 'wildebeest/backend/src/activitypub/actors/inbo
 import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { type Object, updateObject } from 'wildebeest/backend/src/activitypub/objects'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
-import { instanceConfig } from 'wildebeest/config/instance'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
@@ -17,8 +16,8 @@ import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 
-function extractID(s: string | URL): string {
-	return s.toString().replace(`https://${instanceConfig.uri}/ap/users/`, '')
+function extractID(domain: string, s: string | URL): string {
+	return s.toString().replace(`https://${domain}/ap/users/`, '')
 }
 
 export type HandleResponse = {
@@ -28,6 +27,7 @@ export type HandleResponse = {
 export type HandleMode = 'caching' | 'inbox'
 
 export async function handle(
+	domain: string,
 	activity: Activity,
 	db: D1Database,
 	userKEK: string,
@@ -132,7 +132,7 @@ export async function handle(
 			}
 
 			const objectId = getObjectAsId()
-			const obj = await createObject(activity.object, db, actorId, objectId)
+			const obj = await createObject(domain, activity.object, db, actorId, objectId)
 			if (obj === null) {
 				break
 			}
@@ -145,13 +145,13 @@ export async function handle(
 
 			if (mode === 'inbox') {
 				for (let i = 0, len = recipients.length; i < len; i++) {
-					const handle = parseHandle(extractID(recipients[i]))
-					if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
+					const handle = parseHandle(extractID(domain, recipients[i]))
+					if (handle.domain !== null && handle.domain !== domain) {
 						console.warn('activity not for current instance')
 						continue
 					}
 
-					const person = await actors.getPersonById(db, actorURL(handle.localPart))
+					const person = await actors.getPersonById(db, actorURL(domain, handle.localPart))
 					if (person === null) {
 						console.warn(`person ${recipients[i]} not found`)
 						continue
@@ -190,7 +190,7 @@ export async function handle(
 			const receiver = await actors.getPersonById(db, objectId)
 			if (receiver !== null) {
 				const originalActor = await actors.getAndCache(new URL(actorId), db)
-				const receiverAcct = `${receiver.preferredUsername}@${instanceConfig.uri}`
+				const receiverAcct = `${receiver.preferredUsername}@${domain}`
 				await addFollowing(db, originalActor, receiver, receiverAcct)
 				await acceptFollowing(db, originalActor, receiver)
 
@@ -221,7 +221,7 @@ export async function handle(
 					// Object doesn't exists locally, we'll need to download it.
 					const remoteObject = await objects.get<Note>(objectId)
 
-					obj = await createObject(remoteObject, db, actorId, objectId)
+					obj = await createObject(domain, remoteObject, db, actorId, objectId)
 					if (obj === null) {
 						break
 					}
@@ -278,6 +278,7 @@ export async function handle(
 }
 
 async function createObject(
+	domain: string,
 	obj: Object,
 	db: D1Database,
 	originalActorId: URL,
@@ -285,7 +286,7 @@ async function createObject(
 ): Promise<Object | null> {
 	switch (obj.type) {
 		case 'Note': {
-			return objects.cacheObject(db, obj, originalActorId, originalObjectId, false)
+			return objects.cacheObject(domain, db, obj, originalActorId, originalObjectId, false)
 		}
 
 		default: {

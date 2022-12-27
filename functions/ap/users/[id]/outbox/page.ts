@@ -9,7 +9,8 @@ import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as activityCreate from 'wildebeest/backend/src/activitypub/activities/create'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
-	return handleRequest(env.DATABASE, params.id as string, env.userKEK)
+	const domain = new URL(request.url).hostname
+	return handleRequest(domain, env.DATABASE, params.id as string, env.userKEK)
 }
 
 const headers = {
@@ -20,14 +21,14 @@ const headers = {
 
 const DEFAULT_LIMIT = 20
 
-export async function handleRequest(db: D1Database, id: string, userKEK: string): Promise<Response> {
+export async function handleRequest(domain: string, db: D1Database, id: string, userKEK: string): Promise<Response> {
 	const handle = parseHandle(id)
 
 	if (handle.domain !== null) {
 		return new Response('', { status: 403 })
 	}
 
-	const actorId = actorURL(handle.localPart)
+	const actorId = actorURL(domain, handle.localPart)
 	const actor = await getPersonById(db, actorId)
 	if (actor === null) {
 		return new Response('', { status: 404 })
@@ -56,8 +57,8 @@ LIMIT ?
 			const properties = JSON.parse(result.properties)
 
 			const note: Note = {
-				id: new URL(objects.uri(result.id)),
-				atomUri: new URL(objects.uri(result.id)),
+				id: new URL(objects.uri(domain, result.id)),
+				atomUri: new URL(objects.uri(domain, result.id)),
 				type: 'Note',
 				published: new Date(result.cdate).toISOString(),
 
@@ -78,7 +79,7 @@ LIMIT ?
 
 				...properties,
 			}
-			const activity = activityCreate.create(actor, note)
+			const activity = activityCreate.create(domain, actor, note)
 			delete activity['@context']
 			activity.id = note.id + '/activity'
 			activity.published = new Date(result.cdate).toISOString()

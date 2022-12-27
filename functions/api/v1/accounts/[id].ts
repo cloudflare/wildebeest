@@ -1,6 +1,5 @@
 // https://docs.joinmastodon.org/methods/accounts/#get
 
-import { instanceConfig } from 'wildebeest/config/instance'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
@@ -17,16 +16,17 @@ const headers = {
 	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ env, params }) => {
-	return handleRequest(params.id as string, env.DATABASE)
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
+	const domain = new URL(request.url).hostname
+	return handleRequest(domain, params.id as string, env.DATABASE)
 }
 
-export async function handleRequest(id: string, db: D1Database): Promise<Response> {
+export async function handleRequest(domain: string, id: string, db: D1Database): Promise<Response> {
 	const handle = parseHandle(id)
 
-	if (handle.domain === null || (handle.domain !== null && handle.domain === instanceConfig.uri)) {
+	if (handle.domain === null || (handle.domain !== null && handle.domain === domain)) {
 		// Retrieve the statuses from a local user
-		return getLocalAccount(db, handle)
+		return getLocalAccount(domain, db, handle)
 	} else if (handle.domain !== null) {
 		// Retrieve the statuses of a remote actor
 		const acct = `${handle.localPart}@${handle.domain}`
@@ -49,8 +49,8 @@ async function getRemoteAccount(handle: Handle, acct: string): Promise<Response>
 	return new Response(JSON.stringify(res), { headers })
 }
 
-async function getLocalAccount(db: D1Database, handle: Handle): Promise<Response> {
-	const actorId = actorURL(handle.localPart)
+async function getLocalAccount(domain: string, db: D1Database, handle: Handle): Promise<Response> {
+	const actorId = actorURL(domain, handle.localPart)
 
 	const actor = await getPersonById(db, actorId)
 	if (actor === null) {

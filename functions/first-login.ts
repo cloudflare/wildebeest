@@ -28,8 +28,9 @@ export async function handlePostRequest(request: Request, db: D1Database, userKE
 	// TODO: email is in the JWT, should be parsed, verified and passed in the
 	// request context.
 	const email = url.searchParams.get('email') || ''
+	const domain = url.hostname
 
-	await createPerson(db, userKEK, email, properties)
+	await createPerson(domain, db, userKEK, email, properties)
 
 	if (!url.searchParams.has('redirect_uri')) {
 		return new Response('', { status: 400 })

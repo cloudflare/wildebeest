@@ -2,7 +2,6 @@ import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
-import { instanceConfig } from 'wildebeest/config/instance'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import * as activities from 'wildebeest/backend/src/activitypub/activities'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
@@ -29,10 +28,12 @@ export const onRequest: PagesFunction<Env, any> = async ({ params, request, env 
 	}
 
 	const activity: Activity = JSON.parse(body)
-	return handleRequest(env.DATABASE, env.KV_CACHE, params.id as string, activity, env.userKEK)
+	const domain = new URL(request.url).hostname
+	return handleRequest(domain, env.DATABASE, env.KV_CACHE, params.id as string, activity, env.userKEK)
 }
 
 export async function handleRequest(
+	domain: string,
 	db: D1Database,
 	cache: KVNamespace,
 	id: string,
@@ -41,20 +42,20 @@ export async function handleRequest(
 ): Promise<Response> {
 	const handle = parseHandle(id)
 
-	if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
+	if (handle.domain !== null && handle.domain !== domain) {
 		return new Response('', { status: 403 })
 	}
 
-	const actorId = actorURL(handle.localPart)
+	const actorId = actorURL(domain, handle.localPart)
 	const actor = await actors.getPersonById(db, actorId)
 	if (actor === null) {
 		return new Response('', { status: 404 })
 	}
 
-	await activityHandler.handle(activity, db, userKEK, 'inbox')
+	await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
 
 	// Assuming we received new posts, pregenerate the user's timelines
-	await timeline.pregenerateTimelines(db, cache, actor)
+	await timeline.pregenerateTimelines(domain, db, cache, actor)
 
 	return new Response('', { status: 200 })
 }

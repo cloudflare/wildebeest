@@ -5,6 +5,7 @@ import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { strict as assert } from 'node:assert/strict'
 
 const userKEK = 'test_kek9'
+const domain = 'cloudflare.com'
 
 const kv_cache: any = {
 	async put() {},
@@ -15,13 +16,13 @@ describe('ActivityPub', () => {
 		const db = await makeDB()
 
 		const activity: any = {}
-		const res = await ap_inbox.handleRequest(db, kv_cache, 'sven', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
 		assert.equal(res.status, 404)
 	})
 
 	test('send Note to inbox stores in DB', async () => {
 		const db = await makeDB()
-		const actorId = await createPerson(db, userKEK, 'sven@cloudflare.com')
+		const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 		const activity: any = {
 			type: 'Create',
@@ -34,7 +35,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(db, kv_cache, 'sven', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
 		assert.equal(res.status, 200)
 
 		const entry = await db
@@ -61,7 +62,7 @@ describe('ActivityPub', () => {
 		}
 
 		const db = await makeDB()
-		await createPerson(db, userKEK, 'sven@cloudflare.com')
+		await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 		const activity: any = {
 			type: 'Create',
@@ -74,7 +75,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(db, kv_cache, 'sven', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM outbox_objects WHERE actor_id=?').bind(remoteActorId).first()
@@ -83,8 +84,8 @@ describe('ActivityPub', () => {
 
 	test('local actor sends Note with mention create notification', async () => {
 		const db = await makeDB()
-		const actorA = await createPerson(db, userKEK, 'a@cloudflare.com')
-		const actorB = await createPerson(db, userKEK, 'b@cloudflare.com')
+		const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+		const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
 		const activity: any = {
 			type: 'Create',
@@ -97,7 +98,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(db, kv_cache, 'a', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_notifications').first()
@@ -123,7 +124,7 @@ describe('ActivityPub', () => {
 		}
 
 		const db = await makeDB()
-		const actorA = await createPerson(db, userKEK, 'a@cloudflare.com')
+		const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 
 		const activity: any = {
 			type: 'Create',
@@ -136,7 +137,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(db, kv_cache, 'a', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actors WHERE id=?').bind(actorB).first()
@@ -145,17 +146,17 @@ describe('ActivityPub', () => {
 
 	test('records reblog in db', async () => {
 		const db = await makeDB()
-		const actorA: any = { id: await createPerson(db, userKEK, 'a@cloudflare.com') }
-		const actorB: any = { id: await createPerson(db, userKEK, 'b@cloudflare.com') }
+		const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
+		const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
 
-		const note = await createPublicNote(db, 'my first status', actorA)
+		const note = await createPublicNote(domain, db, 'my first status', actorA)
 
 		const activity: any = {
 			type: 'Announce',
 			actor: actorB.id,
 			object: note.id,
 		}
-		const res = await ap_inbox.handleRequest(db, kv_cache, 'a', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_reblogs').first()
@@ -165,17 +166,17 @@ describe('ActivityPub', () => {
 
 	test('records like in db', async () => {
 		const db = await makeDB()
-		const actorA: any = { id: await createPerson(db, userKEK, 'a@cloudflare.com') }
-		const actorB: any = { id: await createPerson(db, userKEK, 'b@cloudflare.com') }
+		const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
+		const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
 
-		const note = await createPublicNote(db, 'my first status', actorA)
+		const note = await createPublicNote(domain, db, 'my first status', actorA)
 
 		const activity: any = {
 			type: 'Like',
 			actor: actorB.id,
 			object: note.id,
 		}
-		const res = await ap_inbox.handleRequest(db, kv_cache, 'a', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_favourites').first()
@@ -186,17 +187,17 @@ describe('ActivityPub', () => {
 	describe('Like', () => {
 		test('creates notification', async () => {
 			const db = await makeDB()
-			const actorA: any = { id: await createPerson(db, userKEK, 'a@cloudflare.com') }
-			const actorB: any = { id: await createPerson(db, userKEK, 'b@cloudflare.com') }
+			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
+			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
 
-			const note = await createPublicNote(db, 'my first status', actorA)
+			const note = await createPublicNote(domain, db, 'my first status', actorA)
 
 			const activity: any = {
 				type: 'Like',
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(db, kv_cache, 'a', activity, userKEK)
+			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
@@ -207,17 +208,17 @@ describe('ActivityPub', () => {
 
 		test('records like in db', async () => {
 			const db = await makeDB()
-			const actorA: any = { id: await createPerson(db, userKEK, 'a@cloudflare.com') }
-			const actorB: any = { id: await createPerson(db, userKEK, 'b@cloudflare.com') }
+			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
+			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
 
-			const note = await createPublicNote(db, 'my first status', actorA)
+			const note = await createPublicNote(domain, db, 'my first status', actorA)
 
 			const activity: any = {
 				type: 'Like',
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(db, kv_cache, 'a', activity, userKEK)
+			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_favourites').first()

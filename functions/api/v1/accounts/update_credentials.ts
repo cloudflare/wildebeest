@@ -41,6 +41,8 @@ export async function handleRequest(
 		return new Response('', { headers, status: 400 })
 	}
 
+	const domain = new URL(request.url).hostname
+
 	// update actor
 	{
 		const formData = await request.formData()
@@ -103,7 +105,7 @@ export async function handleRequest(
 		}
 
 		// send updates
-		const activity = activities.create(connectedActor, actor)
+		const activity = activities.create(domain, connectedActor, actor)
 		const signingKey = await getSigningKey(userKEK, db, connectedActor)
 		await deliverFollowers(db, signingKey, connectedActor, activity)
 

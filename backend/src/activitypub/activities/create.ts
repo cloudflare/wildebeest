@@ -5,7 +5,7 @@ import * as activity from '.'
 
 const CREATE = 'Create'
 
-export function create(actor: Actor, object: Note): Activity {
+export function create(domain: string, actor: Actor, object: Note): Activity {
 	const a: Activity = {
 		'@context': [
 			'https://www.w3.org/ns/activitystreams',
@@ -19,7 +19,7 @@ export function create(actor: Actor, object: Note): Activity {
 				votersCount: 'toot:votersCount',
 			},
 		],
-		id: activity.uri(),
+		id: activity.uri(domain),
 		type: CREATE,
 		actor: actor.id,
 		object,

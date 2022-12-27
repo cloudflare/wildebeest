@@ -87,7 +87,11 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Pro
 // toMastodonStatusFromRow makes assumption about what field are available on
 // the `row` object. This funciton is only used for timelines, which is optimized
 // SQL. Otherwise don't use this function.
-export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise<MastodonStatus | null> {
+export async function toMastodonStatusFromRow(
+	domain: string,
+	db: D1Database,
+	row: any
+): Promise<MastodonStatus | null> {
 	if (row.publisher_actor_id === undefined) {
 		console.warn('missing `row.publisher_actor_id`')
 		return null
@@ -119,7 +123,7 @@ export async function toMastodonStatusFromRow(db: D1Database, row: any): Promise
 
 	const status: MastodonStatus = {
 		id: row.mastodon_id,
-		uri: objects.uri(row.id),
+		uri: objects.uri(domain, row.id),
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
 		media_attachments: mediaAttachments,

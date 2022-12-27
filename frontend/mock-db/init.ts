@@ -8,9 +8,9 @@ const kek = 'test-kek'
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
  */
-export async function init(db: D1Database) {
+export async function init(domain: string, db: D1Database) {
 	for (const status of statuses as MastodonStatus[]) {
-		const actor = await getOrCreatePerson(db, status.account.username)
+		const actor = await getOrCreatePerson(domain, db, status.account.username)
 		await createStatus(db, actor, status.content)
 	}
 }
@@ -30,10 +30,10 @@ async function createStatus(db: D1Database, actor: Person, status: string, visib
 	await statusesAPI.handleRequest(req, db, actor, kek)
 }
 
-async function getOrCreatePerson(db: D1Database, username: string): Promise<Person> {
+async function getOrCreatePerson(domain: string, db: D1Database, username: string): Promise<Person> {
 	const person = await getPersonByEmail(db, username)
 	if (person) return person
-	await createPerson(db, kek, username)
+	await createPerson(domain, db, kek, username)
 	const newPerson = await getPersonByEmail(db, username)
 	if (!newPerson) {
 		throw new Error('Could not create Actor ' + username)

@@ -1,7 +1,6 @@
 // https://docs.joinmastodon.org/methods/accounts/#following
 
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
-import { instanceConfig } from 'wildebeest/config/instance'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
@@ -13,12 +12,18 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import { domainNotAuthorized } from 'wildebeest/backend/src/errors'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env, data }) => {
-	return handleRequest(env.DATABASE, params.id as string, data.connectedActor)
+	return handleRequest(request, env.DATABASE, params.id as string, data.connectedActor)
 }
 
-export async function handleRequest(db: D1Database, id: string, connectedActor: Person): Promise<Response> {
+export async function handleRequest(
+	request: Request,
+	db: D1Database,
+	id: string,
+	connectedActor: Person
+): Promise<Response> {
 	const handle = parseHandle(id)
-	if (handle.domain !== null && handle.domain !== instanceConfig.uri) {
+	const domain = new URL(request.url).hostname
+	if (handle.domain !== null && handle.domain !== domain) {
 		return domainNotAuthorized()
 	}
 

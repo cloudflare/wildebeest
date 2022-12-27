@@ -2,7 +2,6 @@
 
 import { parseHandle } from '../../backend/src/utils/parse'
 import { getPersonById, actorURL } from 'wildebeest/backend/src/activitypub/actors'
-import { instanceConfig } from '../../config/instance'
 import type { Env } from '../../backend/src/types/env'
 import type { WebFingerResponse } from '../../backend/src/webfinger'
 
@@ -17,6 +16,7 @@ const headers = {
 
 export async function handleRequest(request: Request, db: D1Database): Promise<Response> {
 	const url = new URL(request.url)
+	const domain = url.hostname
 	const resource = url.searchParams.get('resource')
 	if (!resource) {
 		return new Response('', { status: 400 })
@@ -32,11 +32,11 @@ export async function handleRequest(request: Request, db: D1Database): Promise<R
 		return new Response('', { status: 400 })
 	}
 
-	if (handle.domain !== instanceConfig.uri) {
+	if (handle.domain !== domain) {
 		return new Response('', { status: 403 })
 	}
 
-	const person = await getPersonById(db, actorURL(handle.localPart))
+	const person = await getPersonById(db, actorURL(domain, handle.localPart))
 	if (person === null) {
 		return new Response('', { status: 404 })
 	}

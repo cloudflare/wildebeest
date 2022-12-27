@@ -4,14 +4,14 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
 import { toMastodonStatusFromRow } from './status'
 import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors/'
 
-export async function pregenerateTimelines(db: D1Database, cache: KVNamespace, actor: Actor) {
+export async function pregenerateTimelines(domain: string, db: D1Database, cache: KVNamespace, actor: Actor) {
 	{
-		const timeline = await getHomeTimeline(db, actor)
+		const timeline = await getHomeTimeline(domain, db, actor)
 		await cache.put(actor.id + '/timeline/home', JSON.stringify(timeline))
 	}
 }
 
-export async function getHomeTimeline(db: D1Database, actor: Actor): Promise<Array<MastodonStatus>> {
+export async function getHomeTimeline(domain: string, db: D1Database, actor: Actor): Promise<Array<MastodonStatus>> {
 	const following = await getFollowingId(db, actor)
 	// follow ourself to see our statuses in the our home timeline
 	following.push(actor.id.toString())
@@ -44,7 +44,7 @@ LIMIT ?
 	const out: Array<MastodonStatus> = []
 
 	for (let i = 0, len = results.length; i < len; i++) {
-		const status = await toMastodonStatusFromRow(db, results[i])
+		const status = await toMastodonStatusFromRow(domain, db, results[i])
 		if (status !== null) {
 			out.push(status)
 		}
@@ -71,6 +71,7 @@ function localPreferenceQuery(preference: LocalPreference): string {
 }
 
 export async function getPublicTimeline(
+	domain: string,
 	db: D1Database,
 	localPreference: LocalPreference
 ): Promise<Array<MastodonStatus>> {
@@ -103,7 +104,7 @@ LIMIT ?
 	const out: Array<MastodonStatus> = []
 
 	for (let i = 0, len = results.length; i < len; i++) {
-		const status = await toMastodonStatusFromRow(db, results[i])
+		const status = await toMastodonStatusFromRow(domain, db, results[i])
 		if (status !== null) {
 			out.push(status)
 		}

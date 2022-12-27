@@ -9,17 +9,18 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
-	return handleRequest(env.DATABASE, params.id as string)
+	const domain = new URL(request.url).hostname
+	return handleRequest(domain, env.DATABASE, params.id as string)
 }
 
-export async function handleRequest(db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 
 	if (handle.domain !== null) {
 		return new Response('', { status: 403 })
 	}
 
-	const actorId = actorURL(handle.localPart)
+	const actorId = actorURL(domain, handle.localPart)
 	const actor = await actors.getPersonById(db, actorId)
 	if (actor === null) {
 		return new Response('', { status: 404 })

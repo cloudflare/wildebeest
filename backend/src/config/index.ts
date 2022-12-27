@@ -19,11 +19,3 @@ export async function configure(db: D1Database, data: InstanceConfig) {
 		throw new Error('SQL error: ' + error)
 	}
 }
-
-export async function get(db: D1Database, key: string): Promise<string> {
-	const sql = `
-        SELECT value FROM instance_config WHERE key=?
-    `
-	const res: any = await db.prepare(sql).bind(key).first()
-	return res.value
-}

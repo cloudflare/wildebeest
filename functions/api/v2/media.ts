@@ -18,6 +18,7 @@ export async function handleRequest(
 	apiToken: string
 ): Promise<Response> {
 	const formData = await request.formData()
+	const domain = new URL(request.url).hostname
 
 	if (!formData.has('file')) {
 		return new Response('', { status: 400 })
@@ -31,7 +32,7 @@ export async function handleRequest(
 	const properties = {
 		url,
 	}
-	const image = await createImage(db, connectedActor, properties)
+	const image = await createImage(domain, db, connectedActor, properties)
 	console.log({ image })
 
 	const res: MediaAttachment = {

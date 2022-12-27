@@ -60,7 +60,8 @@ export async function handleRequest(
 		}
 	}
 
-	const note = await createPublicNote(db, body.status, connectedActor, mediaAttachments)
+	const domain = new URL(request.url).hostname
+	const note = await createPublicNote(domain, db, body.status, connectedActor, mediaAttachments)
 	await addObjectInOutbox(db, connectedActor, note)
 
 	// If the status is mentioning other persons, we need to delivery it to them.
@@ -77,12 +78,12 @@ export async function handleRequest(
 			continue
 		}
 		note.to.push(targetActor.id.toString())
-		const activity = activities.create(connectedActor, note)
+		const activity = activities.create(domain, connectedActor, note)
 		const signingKey = await getSigningKey(userKEK, db, connectedActor)
 		await deliverToActor(signingKey, connectedActor, targetActor, activity)
 	}
 
-	const activity = activities.create(connectedActor, note)
+	const activity = activities.create(domain, connectedActor, note)
 	const signingKey = await getSigningKey(userKEK, db, connectedActor)
 	await deliverFollowers(db, signingKey, connectedActor, activity)
 
