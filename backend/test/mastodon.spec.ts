@@ -1,5 +1,4 @@
 import { strict as assert } from 'node:assert/strict'
-import { instanceConfig } from 'wildebeest/config/instance'
 import * as v1_instance from 'wildebeest/functions/api/v1/instance'
 import * as v2_instance from 'wildebeest/functions/api/v2/instance'
 import * as apps from 'wildebeest/functions/api/v1/apps'
@@ -13,6 +12,7 @@ import { Actor, createPerson, getPersonById } from 'wildebeest/backend/src/activ
 import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createClient, getClientById } from '../src/mastodon/client'
 import { createSubscription } from '../src/mastodon/subscription'
+import * as startInstance from 'wildebeest/functions/start-instance'
 
 const userKEK = 'test_kek'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -20,15 +20,44 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 describe('Mastodon APIs', () => {
 	describe('instance', () => {
 		test('return the instance infos v1', async () => {
-			const res = await v1_instance.onRequest()
+			const db = await makeDB()
+			const body = JSON.stringify({
+				title: 'title',
+				uri: 'uri',
+				email: 'email',
+				description: 'description',
+			})
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				body,
+			})
+			await startInstance.handlePostRequest(req, db)
+
+			const res = await v1_instance.handleRequest(db)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
 			assertCache(res, 180)
+
+			const data = await res.json<any>()
+			assert.equal(data.rules.length, 0)
 		})
 
 		test('return the instance infos v2', async () => {
-			const res = await v2_instance.onRequest()
+			const db = await makeDB()
+			const body = JSON.stringify({
+				title: 'title',
+				uri: 'uri',
+				email: 'email',
+				description: 'description',
+			})
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				body,
+			})
+			await startInstance.handlePostRequest(req, db)
+
+			const res = await v2_instance.handleRequest(db)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
@@ -36,13 +65,24 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('adds a short_description if missing', async () => {
-			assert(!instanceConfig.short_description)
+			const db = await makeDB()
+			const body = JSON.stringify({
+				title: 'title',
+				uri: 'uri',
+				email: 'email',
+				description: 'description',
+			})
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				body,
+			})
+			await startInstance.handlePostRequest(req, db)
 
-			const res = await v1_instance.onRequest()
+			const res = await v1_instance.handleRequest(db)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
-			assert.equal(typeof data.short_description, 'string')
+			assert.equal(data.short_description, 'description')
 		})
 	})
 

@@ -1,4 +1,5 @@
 import { MastodonAccount } from '../types/account'
+import * as config from 'wildebeest/backend/src/config'
 import * as actors from '../activitypub/actors'
 import type { Actor } from '../activitypub/actors'
 

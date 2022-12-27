@@ -1,8 +1,12 @@
-import { instanceConfig } from 'wildebeest/config/instance'
+import type { Env } from 'wildebeest/backend/src/types/env'
 
 const INSTANCE_VERSION = '4.0.2'
 
-export const onRequest = () => {
+export const onRequest: PagesFunction<Env, any> = async ({ env }) => {
+	return handleRequest(env.DATABASE)
+}
+
+export async function handleRequest(db: D1Database) {
 	const headers = {
 		'Access-Control-Allow-Origin': '*',
 		'Access-Control-Allow-Headers': 'content-type, authorization',
@@ -10,17 +14,31 @@ export const onRequest = () => {
 		'cache-control': 'max-age=180, public',
 	}
 
-	const res = {
-		...instanceConfig,
-		// Registration is disabled because unsupported by Wildebeest. Users
-		// should go through the login flow and authenticate with Access.
-		// The documentation is incorrect and registrations is a boolean.
-		registrations: false,
-		version: INSTANCE_VERSION,
+	const query = `
+        SELECT * FROM instance_config
+    `
+	const { results, error, success } = await db.prepare(query).all()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
 	}
 
+	const res: any = {}
+	if (results) {
+		for (let i = 0, len = results.length; i < len; i++) {
+			const row: any = results[i]
+			res[row.key] = row.value
+		}
+	}
+
+	// Registration is disabled because unsupported by Wildebeest. Users
+	// should go through the login flow and authenticate with Access.
+	// The documentation is incorrect and registrations is a boolean.
+	res.registrations = false
+	res.version = INSTANCE_VERSION
+	res.rules = []
+
 	if (res.short_description === undefined) {
-		res.short_description = instanceConfig.description
+		res.short_description = res.description
 	}
 
 	return new Response(JSON.stringify(res), { headers })

@@ -1,8 +1,8 @@
 import { makeDB, assertCache, isUrlValid } from './utils'
+import { configure } from 'wildebeest/backend/src/config'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
-import { instanceConfig } from 'wildebeest/config/instance'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
@@ -25,18 +25,13 @@ describe('ActivityPub', () => {
 
 	test('fetch user by id', async () => {
 		const db = await makeDB()
+		await configure(db, { uri: 'domain.com' } as any)
 		const properties = { summary: 'test summary' }
 		const pubKey =
 			'-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApnI8FHJQXqqAdM87YwVseRUqbNLiw8nQ0zHBUyLylzaORhI4LfW4ozguiw8cWYgMbCufXMoITVmdyeTMGbQ3Q1sfQEcEjOZZXEeCCocmnYjK6MFSspjFyNw6GP0a5A/tt1tAcSlgALv8sg1RqMhSE5Kv+6lSblAYXcIzff7T2jh9EASnimaoAAJMaRH37+HqSNrouCxEArcOFhmFETadXsv+bHZMozEFmwYSTugadr4WD3tZd+ONNeimX7XZ3+QinMzFGOW19ioVHyjt3yCDU1cPvZIDR17dyEjByNvx/4N4Zly7puwBn6Ixy/GkIh5BWtL5VOFDJm/S+zcf1G1WsOAXMwKL4Nc5UWKfTB7Wd6voId7vF7nI1QYcOnoyh0GqXWhTPMQrzie4nVnUrBedxW0s/0vRXeR63vTnh5JrTVu06JGiU2pq2kvwqoui5VU6rtdImITybJ8xRkAQ2jo4FbbkS6t49PORIuivxjS9wPl7vWYazZtDVa5g/5eL7PnxOG3HsdIJWbGEh1CsG83TU9burHIepxXuQ+JqaSiKdCVc8CUiO++acUqKp7lmbYR9E/wRmvxXDFkxCZzA0UL2mRoLLLOe4aHvRSTsqiHC5Wwxyew5bb+eseJz3wovid9ZSt/tfeMAkCDmaCxEK+LGEbJ9Ik8ihis8Esm21N0A54sCAwEAAQ==-----END PUBLIC KEY-----'
 		await db
 			.prepare('INSERT INTO actors (id, email, type, properties, pubkey) VALUES (?, ?, ?, ?, ?)')
-			.bind(
-				'https://' + instanceConfig.uri + '/ap/users/sven',
-				'sven@cloudflare.com',
-				'Person',
-				JSON.stringify(properties),
-				pubKey
-			)
+			.bind('https://domain.com/ap/users/sven', 'sven@cloudflare.com', 'Person', JSON.stringify(properties), pubKey)
 			.run()
 
 		const res = await ap_users.handleRequest(db, 'sven')
@@ -73,6 +68,7 @@ describe('ActivityPub', () => {
 
 		test('Accept follow request stores in db', async () => {
 			const db = await makeDB()
+			await configure(db, { uri: 'domain.com' } as any)
 			const actor: any = {
 				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
 			}
@@ -84,11 +80,11 @@ describe('ActivityPub', () => {
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',
 				type: 'Accept',
-				actor: { id: `https://${instanceConfig.uri}/ap/users/sven2` },
+				actor: { id: 'https://domain.com/ap/users/sven2' },
 				object: {
 					type: 'Follow',
 					actor: actor.id,
-					object: `https://${instanceConfig.uri}/ap/users/sven2`,
+					object: 'https://domain.com/ap/users/sven2',
 				},
 			}
 

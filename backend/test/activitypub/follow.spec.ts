@@ -1,5 +1,5 @@
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
-import { instanceConfig } from 'wildebeest/config/instance'
+import { configure } from 'wildebeest/backend/src/config'
 import * as ap_followers_page from 'wildebeest/functions/ap/users/[id]/followers/page'
 import * as ap_following_page from 'wildebeest/functions/ap/users/[id]/following/page'
 import * as ap_followers from 'wildebeest/functions/ap/users/[id]/followers'
@@ -90,6 +90,7 @@ describe('ActivityPub', () => {
 
 		test('list actor following page', async () => {
 			const db = await makeDB()
+			await configure(db, { uri: 'domain.com' } as any)
 			const actor: any = {
 				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
 			}
@@ -109,8 +110,8 @@ describe('ActivityPub', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.type, 'OrderedCollectionPage')
-			assert.equal(data.orderedItems[0], `https://${instanceConfig.uri}/ap/users/sven2`)
-			assert.equal(data.orderedItems[1], `https://${instanceConfig.uri}/ap/users/sven3`)
+			assert.equal(data.orderedItems[0], `https://domain.com/ap/users/sven2`)
+			assert.equal(data.orderedItems[1], `https://domain.com/ap/users/sven3`)
 		})
 
 		test('list actor follower', async () => {
@@ -134,6 +135,7 @@ describe('ActivityPub', () => {
 
 		test('list actor follower page', async () => {
 			const db = await makeDB()
+			await configure(db, { uri: 'domain.com' } as any)
 			const actor: any = {
 				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
 			}
@@ -148,7 +150,7 @@ describe('ActivityPub', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.type, 'OrderedCollectionPage')
-			assert.equal(data.orderedItems[0], `https://${instanceConfig.uri}/ap/users/sven2`)
+			assert.equal(data.orderedItems[0], `https://domain.com/ap/users/sven2`)
 		})
 
 		test('creates a notification', async () => {

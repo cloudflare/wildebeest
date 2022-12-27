@@ -100,7 +100,6 @@ CREATE TABLE IF NOT EXISTS clients (
   cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW'))
 );
 
-
 INSERT INTO CLIENTS (id, secret, name, redirect_uris, website, scopes)
   VALUES (
     'TWhM-tNSuncnqN7DBJmoyeLnk6K3iJJ71KKXxgL1hPM', 'ZEaFUFmF0umgBX1qKJDjaU99Q31lDkOU8NutzTOoliw', 'A NAME', 'redirect', 'website', 'scopes'
@@ -129,4 +128,9 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   UNIQUE(actor_id, client_id)
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
   FOREIGN KEY(client_id) REFERENCES clients(id)
+);
+
+CREATE TABLE IF NOT EXISTS instance_config (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
 );

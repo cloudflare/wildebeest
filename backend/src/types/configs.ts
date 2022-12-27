@@ -2,7 +2,6 @@
 export type InstanceConfig = {
 	uri: string
 	title: string
-	thumbnail: string
 	languages: Array<string>
 	email: string
 	description: string
