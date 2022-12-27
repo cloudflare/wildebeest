@@ -20,7 +20,7 @@ async function logger(context: EventContext<unknown, any, any>) {
 	console.log(`-> ${method} ${url} `)
 	const res = await context.next()
 	if (context.data.connectedActor) {
-		console.log(`<- ${res.status} (${context.data.connectedActor.id}`)
+		console.log(`<- ${res.status} (${context.data.connectedActor.id})`)
 	} else {
 		console.log(`<- ${res.status}`)
 	}
@@ -69,15 +69,12 @@ export async function main(context: EventContext<Env, any, any>) {
 			}
 			context.data.identity = identity
 
-			if (url.pathname !== '/api/v1/timelines/home') {
-				const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email)
-				if (person === null) {
-					return errors.notAuthorized('user not found')
-				}
-
-				context.data.connectedActor = person
-				context.data.connectedUser = await loadLocalMastodonAccount(context.env.DATABASE, person)
+			const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email)
+			if (person === null) {
+				return errors.notAuthorized('user not found')
 			}
+
+			context.data.connectedActor = person
 
 			return context.next()
 		} catch (err: any) {

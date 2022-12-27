@@ -27,8 +27,7 @@ async function createStatus(db: D1Database, actor: Person, status: string, visib
 		method: 'POST',
 		body: JSON.stringify(body),
 	})
-	const connectedUser = {} as unknown as MastodonAccount
-	await statusesAPI.handleRequest(req, db, actor, connectedUser, kek)
+	await statusesAPI.handleRequest(req, db, actor, kek)
 }
 
 async function getOrCreatePerson(db: D1Database, username: string): Promise<Person> {

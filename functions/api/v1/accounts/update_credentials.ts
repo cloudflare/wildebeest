@@ -20,21 +20,12 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, data, env }) => {
-	return handleRequest(
-		env.DATABASE,
-		request,
-		data.connectedUser,
-		data.connectedActor,
-		env.CF_ACCOUNT_ID,
-		env.CF_API_TOKEN,
-		env.userKEK
-	)
+	return handleRequest(env.DATABASE, request, data.connectedActor, env.CF_ACCOUNT_ID, env.CF_API_TOKEN, env.userKEK)
 }
 
 export async function handleRequest(
 	db: D1Database,
 	request: Request,
-	connectedUser: MastodonAccount,
 	connectedActor: Actor,
 
 	accountId: string,
@@ -42,7 +33,7 @@ export async function handleRequest(
 
 	userKEK: string
 ): Promise<Response> {
-	if (!connectedUser) {
+	if (!connectedActor) {
 		return new Response('', { status: 401 })
 	}
 
@@ -81,19 +72,19 @@ export async function handleRequest(
 		}
 	}
 
-	// reload the connectedUser and sent back updated infos
+	// reload the current user and sent back updated infos
 	{
 		const actor = await actors.getPersonById(db, connectedActor.id)
 		if (actor === null) {
 			return errors.notAuthorized('user not found')
 		}
-		const connectedUser = await loadLocalMastodonAccount(db, actor)
+		const user = await loadLocalMastodonAccount(db, actor)
 
 		const res: CredentialAccount = {
-			...connectedUser,
+			...user,
 			source: {
-				note: connectedUser.note,
-				fields: connectedUser.fields,
+				note: user.note,
+				fields: user.fields,
 				privacy: 'public',
 				sensitive: false,
 				language: 'en',

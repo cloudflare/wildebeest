@@ -75,18 +75,20 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('verify the credentials', async () => {
-			const connectedUser = {
-				display_name: 'sven',
+			const db = await makeDB()
+			const connectedActor: any = {
+				id: await createPerson(db, userKEK, 'sven@cloudflare.com'),
+				name: 'foo',
 			}
 
-			const context: any = { data: { connectedUser } }
+			const context: any = { data: { connectedActor }, env: { DATABASE: db } }
 			const res = await accounts_verify_creds.onRequest(context)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
 
 			const data = await res.json<any>()
-			assert.equal(data.display_name, 'sven')
+			assert.equal(data.display_name, 'foo')
 			// Mastodon app expects the id to be a number (as string), it uses
 			// it to construct an URL. ActivityPub uses URL as ObjectId so we
 			// make sure we don't return the URL.
@@ -96,9 +98,6 @@ describe('Mastodon APIs', () => {
 		test('update credentials', async () => {
 			const db = await makeDB()
 			const connectedActor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
-			const connectedUser: any = {
-				display_name: 'sven',
-			}
 
 			const updates = new FormData()
 			updates.set('display_name', 'newsven')
@@ -111,7 +110,6 @@ describe('Mastodon APIs', () => {
 			const res = await accounts_update_creds.handleRequest(
 				db,
 				req,
-				connectedUser,
 				connectedActor,
 				'CF_ACCOUNT_ID',
 				'CF_API_TOKEN',
@@ -148,10 +146,6 @@ describe('Mastodon APIs', () => {
 				throw new Error('unexpected request to ' + input.url)
 			}
 
-			const connectedUser: any = {
-				display_name: 'sven',
-			}
-
 			const updates = new FormData()
 			updates.set('display_name', 'newsven')
 
@@ -162,7 +156,6 @@ describe('Mastodon APIs', () => {
 			const res = await accounts_update_creds.handleRequest(
 				db,
 				req,
-				connectedUser,
 				connectedActor,
 				'CF_ACCOUNT_ID',
 				'CF_API_TOKEN',
@@ -196,9 +189,6 @@ describe('Mastodon APIs', () => {
 
 			const db = await makeDB()
 			const connectedActor: any = { id: await createPerson(db, userKEK, 'sven@cloudflare.com') }
-			const connectedUser: any = {
-				display_name: 'sven',
-			}
 
 			const updates = new FormData()
 			updates.set('avatar', new File(['bytes'], 'selfie.jpg', { type: 'image/jpeg' }))
@@ -211,7 +201,6 @@ describe('Mastodon APIs', () => {
 			const res = await accounts_update_creds.handleRequest(
 				db,
 				req,
-				connectedUser,
 				connectedActor,
 				'CF_ACCOUNT_ID',
 				'CF_API_TOKEN',

@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
 
+import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
@@ -24,7 +25,7 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, env.DATABASE, data.connectedActor, data.connectedUser, env.userKEK)
+	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK)
 }
 
 // FIXME: add tests for delivery to followers and mentions to a specific Actor.
@@ -32,7 +33,6 @@ export async function handleRequest(
 	request: Request,
 	db: D1Database,
 	connectedActor: Person,
-	connectedUser: MastodonAccount,
 	userKEK: string
 ): Promise<Response> {
 	// TODO: implement Idempotency-Key
@@ -86,11 +86,13 @@ export async function handleRequest(
 	const signingKey = await getSigningKey(userKEK, db, connectedActor)
 	await deliverFollowers(db, signingKey, connectedActor, activity)
 
+	const account = await loadLocalMastodonAccount(db, connectedActor)
+
 	const res: any = {
 		id: note.mastodonId,
 		uri: note.url,
 		created_at: note.published,
-		account: connectedUser,
+		account,
 		content: body.status,
 		visibility: body.visibility ? body.visibility : 'public',
 		emojis: [],

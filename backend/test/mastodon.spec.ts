@@ -196,7 +196,7 @@ describe('Mastodon APIs', () => {
 
 			const res = await middleware.main(ctx)
 			assert.equal(res.status, 200)
-			assert.equal(data.connectedUser.id, 'username')
+			assert(!data.connectedUser)
 			assert(isUrlValid(data.connectedActor.id))
 		})
 	})

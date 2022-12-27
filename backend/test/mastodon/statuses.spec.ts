@@ -26,8 +26,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor: any = {}
-			const connectedUser: any = {}
-			const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK)
 			assert.equal(res.status, 400)
 		})
 
@@ -45,8 +44,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor: any = { id: actorId }
-			const connectedUser: any = {}
-			const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK)
 			assert.equal(res.status, 200)
 			assertJSON(res)
 
@@ -93,8 +91,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor: any = { id: actorId }
-			const connectedUser: any = {}
-			const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -163,8 +160,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor: any = { id: actorId, type: 'Person' }
-			const connectedUser: any = {}
-			const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK)
 			assert.equal(res.status, 200)
 
 			assert(deliveredNote)
@@ -193,8 +189,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const connectedUser: any = {}
-			const res = await statuses.handleRequest(req, db, connectedActor, connectedUser, userKEK)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()

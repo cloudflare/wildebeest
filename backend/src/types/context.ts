@@ -6,8 +6,6 @@ type Identity = {
 }
 
 export type ContextData = {
-	// MastodonAccount object of the logged in user
-	connectedUser: MastodonAccount
 	// ActivityPub Person object of the logged in user
 	connectedActor: Person
 

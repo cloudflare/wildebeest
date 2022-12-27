@@ -152,8 +152,6 @@ describe('Mastodon APIs', () => {
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
-				console.log({ data })
-
 				assert.equal(data.accounts.length, 1)
 			}
 
@@ -163,8 +161,6 @@ describe('Mastodon APIs', () => {
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
-				console.log({ data })
-
 				assert.equal(data.accounts.length, 2)
 			}
 		})

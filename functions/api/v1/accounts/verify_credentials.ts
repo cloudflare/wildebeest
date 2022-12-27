@@ -1,19 +1,21 @@
 // https://docs.joinmastodon.org/methods/accounts/#verify_credentials
 
+import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { CredentialAccount } from 'wildebeest/backend/src/types/account'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data }) => {
-	if (!data.connectedUser) {
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, env }) => {
+	if (!data.connectedActor) {
 		return new Response('', { status: 401 })
 	}
+	const user = await loadLocalMastodonAccount(env.DATABASE, data.connectedActor)
 
 	const res: CredentialAccount = {
-		...data.connectedUser,
+		...user,
 		source: {
-			note: data.connectedUser.note,
-			fields: data.connectedUser.fields,
+			note: user.note,
+			fields: user.fields,
 			privacy: 'public',
 			sensitive: false,
 			language: 'en',
