@@ -6,29 +6,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
-async function errorHandling(context: EventContext<unknown, any, any>) {
-	try {
-		return await context.next()
-	} catch (err: any) {
-		console.log(err.stack)
-		return new Response(`${err.message}\n${err.stack}`, { status: 500 })
-	}
-}
-
-async function logger(context: EventContext<unknown, any, any>) {
-	const { method, url } = context.request
-	console.log(`-> ${method} ${url} `)
-	const res = await context.next()
-	if (context.data.connectedActor) {
-		console.log(`<- ${res.status} (${context.data.connectedActor.id})`)
-	} else {
-		console.log(`<- ${res.status}`)
-	}
-
-	return res
-}
-
-export async function main(context: EventContext<Env, any, any>) {
+export async function auth(context: EventContext<Env, any, any>) {
 	if (context.request.method === 'OPTIONS') {
 		const headers = {
 			'Access-Control-Allow-Origin': '*',
@@ -94,5 +72,3 @@ export async function main(context: EventContext<Env, any, any>) {
 		})
 	}
 }
-
-export const onRequest = [logger, errorHandling, main]

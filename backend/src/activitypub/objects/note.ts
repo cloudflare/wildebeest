@@ -4,7 +4,6 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { followersURL } from 'wildebeest/backend/src/activitypub/actors'
 import * as objects from '.'
-import { instanceConfig } from 'wildebeest/config/instance'
 
 const NOTE = 'Note'
 export const PUBLIC = 'https://www.w3.org/ns/activitystreams#Public'

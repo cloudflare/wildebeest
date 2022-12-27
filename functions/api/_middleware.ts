@@ -1,1 +1,3 @@
-export { onRequest } from '../../backend/src/utils/auth'
+import { auth } from 'wildebeest/backend/src/middleware/auth'
+
+export const onRequest = [auth]

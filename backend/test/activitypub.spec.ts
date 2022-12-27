@@ -114,7 +114,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -132,7 +132,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -149,7 +149,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -168,7 +168,7 @@ describe('ActivityPub', () => {
 				},
 			}
 
-			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
 				message: 'object https://example.com/note2 does not exist',
 			})
 		})
@@ -192,7 +192,7 @@ describe('ActivityPub', () => {
 				object: object,
 			}
 
-			assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(activity, db, userKEK, 'inbox'), {
 				message: 'actorid mismatch when updating object',
 			})
 		})
