@@ -7,7 +7,7 @@ export function fromObject(obj: Object): MediaAttachment {
 	if (obj.type === IMAGE) {
 		return fromObjectImage(obj)
 	} else if (obj.type === 'Document') {
-		if (obj.mediaType === 'image/jpeg') {
+		if (obj.mediaType === 'image/jpeg' || obj.mediaType === 'image/png') {
 			return fromObjectImage(obj)
 		} else if (obj.mediaType === 'video/mp4') {
 			return {
