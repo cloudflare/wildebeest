@@ -76,14 +76,14 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('home returns cache', async () => {
-			const email = 'email@cloudflare.com'
+			const connectedActor: any = { id: 'id' }
 			const kv_cache: any = {
 				async get(key: string) {
-					assert.equal(key, 'email@cloudflare.com/timeline/home')
+					assert.equal(key, 'id/timeline/home')
 					return 'cached data'
 				},
 			}
-			const data = await timelines_home.handleRequest(kv_cache, email)
+			const data = await timelines_home.handleRequest(kv_cache, connectedActor)
 			assert.equal(await data.text(), 'cached data')
 		})
 

@@ -6,9 +6,8 @@ import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors/'
 
 export async function pregenerateTimelines(db: D1Database, cache: KVNamespace, actor: Actor) {
 	{
-		const actorEmail = actor[emailSymbol]
 		const timeline = await getHomeTimeline(db, actor)
-		await cache.put(actorEmail + '/timeline/home', JSON.stringify(timeline))
+		await cache.put(actor.id + '/timeline/home', JSON.stringify(timeline))
 	}
 }
 

@@ -15,11 +15,11 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
-	return handleRequest(env.KV_CACHE, data.identity.email)
+	return handleRequest(env.KV_CACHE, data.connectedActor)
 }
 
-export async function handleRequest(cache: KVNamespace, email: string): Promise<Response> {
-	const timeline = await cache.get(email + '/timeline/home')
+export async function handleRequest(cache: KVNamespace, actor: Actor): Promise<Response> {
+	const timeline = await cache.get(actor.id + '/timeline/home')
 	if (timeline === null) {
 		return errors.timelineMissing()
 	}
