@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS actor_following (
   FOREIGN KEY(target_actor_id)  REFERENCES actors(id)
 );
 
+CREATE INDEX IF NOT EXISTS actor_following_actor_id ON actor_following(actor_id);
+CREATE INDEX IF NOT EXISTS actor_following_target_actor_id ON actor_following(target_actor_id);
+
 CREATE TABLE IF NOT EXISTS objects (
   id TEXT PRIMARY KEY,
   mastodon_id TEXT UNIQUE NOT NULL,
