@@ -24,7 +24,9 @@ SELECT objects.*,
        outbox_objects.actor_id as publisher_actor_id,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
        (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count,
-       (SELECT count(*) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count
+       (SELECT count(*) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count,
+       (SELECT count(*) > 0 FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id AND actor_reblogs.actor_id=?) as reblogged,
+       (SELECT count(*) > 0 FROM actor_favourites WHERE actor_favourites.object_id=objects.id AND actor_favourites.actor_id=?) as favourited
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
 INNER JOIN actors ON actors.id = outbox_objects.actor_id
@@ -37,7 +39,10 @@ LIMIT ?
 `
 	const DEFAULT_LIMIT = 20
 
-	const { success, error, results } = await db.prepare(QUERY).bind(JSON.stringify(following), DEFAULT_LIMIT).all()
+	const { success, error, results } = await db
+		.prepare(QUERY)
+		.bind(actor.id.toString(), actor.id.toString(), JSON.stringify(following), DEFAULT_LIMIT)
+		.all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}

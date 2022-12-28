@@ -139,6 +139,8 @@ export async function toMastodonStatusFromRow(
 		favourites_count: row.favourites_count,
 		reblogs_count: row.reblogs_count,
 		replies_count: row.replies_count,
+		reblogged: row.reblogged === 1,
+		favourited: row.favourited === 1,
 	}
 
 	if (properties.updated) {

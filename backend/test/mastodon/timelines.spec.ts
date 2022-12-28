@@ -204,5 +204,35 @@ describe('Mastodon APIs', () => {
 				assert.equal(data[0].replies_count, 1)
 			}
 		})
+
+		test('show status reblogged', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+
+			const note = await createPublicNote(domain, db, 'a post', actor)
+			await addObjectInOutbox(db, actor, note)
+			await insertReblog(db, actor, note)
+
+			const connectedActor: any = actor
+
+			const data = await timelines.getHomeTimeline(domain, db, connectedActor)
+			assert.equal(data.length, 1)
+			assert.equal(data[0].reblogged, true)
+		})
+
+		test('show status favourited', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+
+			const note = await createPublicNote(domain, db, 'a post', actor)
+			await addObjectInOutbox(db, actor, note)
+			await insertLike(db, actor, note)
+
+			const connectedActor: any = actor
+
+			const data = await timelines.getHomeTimeline(domain, db, connectedActor)
+			assert.equal(data.length, 1)
+			assert.equal(data[0].favourited, true)
+		})
 	})
 })

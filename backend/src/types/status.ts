@@ -23,6 +23,8 @@ export type MastodonStatus = {
 	reblog?: MastodonStatus
 	edited_at?: string
 	replies_count?: number
+	reblogged?: boolean
+	favourited?: boolean
 }
 
 // https://docs.joinmastodon.org/entities/Context/
