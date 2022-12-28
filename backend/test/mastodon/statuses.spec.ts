@@ -7,6 +7,7 @@ import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as statuses from 'wildebeest/functions/api/v1/statuses'
 import * as statuses_get from 'wildebeest/functions/api/v1/statuses/[id]'
 import * as statuses_favourite from 'wildebeest/functions/api/v1/statuses/[id]/favourite'
+import * as statuses_reblog from 'wildebeest/functions/api/v1/statuses/[id]/reblog'
 import * as statuses_context from 'wildebeest/functions/api/v1/statuses/[id]/context'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
@@ -323,23 +324,6 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.favourites_count, 2)
 		})
 
-		test('get status count reblogs', async () => {
-			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
-			const actor2: any = { id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com') }
-			const actor3: any = { id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com') }
-			const note = await createPublicNote(domain, db, 'my first status', actor)
-
-			await insertReblog(db, actor2, note)
-			await insertReblog(db, actor3, note)
-
-			const res = await statuses_get.handleRequest(db, note.mastodonId!)
-			assert.equal(res.status, 200)
-
-			const data = await res.json<any>()
-			assert.equal(data.reblogs_count, 2)
-		})
-
 		test('get status with image', async () => {
 			const db = await makeDB()
 			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
@@ -380,6 +364,124 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.ancestors.length, 0)
 			assert.equal(data.descendants.length, 1)
 			assert.equal(data.descendants[0].content, 'a reply')
+		})
+
+		describe('reblog', () => {
+			test('get status count reblogs', async () => {
+				const db = await makeDB()
+				const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+				const actor2: any = { id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com') }
+				const actor3: any = { id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com') }
+				const note = await createPublicNote(domain, db, 'my first status', actor)
+
+				await insertReblog(db, actor2, note)
+				await insertReblog(db, actor3, note)
+
+				const res = await statuses_get.handleRequest(db, note.mastodonId!)
+				assert.equal(res.status, 200)
+
+				const data = await res.json<any>()
+				assert.equal(data.reblogs_count, 2)
+			})
+
+			test('reblog records in db', async () => {
+				const db = await makeDB()
+				const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+				const note = await createPublicNote(domain, db, 'my first status', actor)
+
+				const connectedActor: any = actor
+
+				const res = await statuses_reblog.handleRequest(db, note.mastodonId!, connectedActor, userKEK)
+				assert.equal(res.status, 200)
+
+				const data = await res.json<any>()
+				assert.equal(data.reblogged, true)
+
+				const row = await db.prepare(`SELECT * FROM actor_reblogs`).first()
+				assert.equal(row.actor_id, actor.id.toString())
+				assert.equal(row.object_id, note.id.toString())
+			})
+
+			test('reblog status adds in actor outbox', async () => {
+				const db = await makeDB()
+				const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+				const originalObjectId = 'https://example.com/note123'
+
+				await db
+					.prepare(
+						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, mastodon_id, local) VALUES (?, ?, ?, ?, ?, ?, 0)'
+					)
+					.bind(
+						'https://example.com/object1',
+						'Note',
+						JSON.stringify({ content: 'my first status' }),
+						actor.id.toString(),
+						originalObjectId,
+						'mastodonid1'
+					)
+					.run()
+
+				const connectedActor: any = actor
+
+				const res = await statuses_reblog.handleRequest(db, 'mastodonid1', connectedActor, userKEK)
+				assert.equal(res.status, 200)
+
+				const row = await db.prepare(`SELECT * FROM outbox_objects`).first()
+				assert.equal(row.actor_id, actor.id.toString())
+				assert.equal(row.object_id, 'https://example.com/object1')
+			})
+
+			test('reblog remote status status sends Announce activity to author', async () => {
+				let deliveredActivity: any = null
+
+				const db = await makeDB()
+				const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+				const originalObjectId = 'https://example.com/note123'
+
+				await db
+					.prepare(
+						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, mastodon_id, local) VALUES (?, ?, ?, ?, ?, ?, 0)'
+					)
+					.bind(
+						'https://example.com/object1',
+						'Note',
+						JSON.stringify({ content: 'my first status' }),
+						actor.id.toString(),
+						originalObjectId,
+						'mastodonid1'
+					)
+					.run()
+
+				globalThis.fetch = async (input: any, data: any) => {
+					if (input === actor.id.toString()) {
+						return new Response(
+							JSON.stringify({
+								id: actor.id,
+								inbox: 'https://social.com/sven/inbox',
+							})
+						)
+					}
+
+					if (input.url === 'https://social.com/sven/inbox') {
+						assert.equal(input.method, 'POST')
+						const body = await input.json()
+						deliveredActivity = body
+						return new Response()
+					}
+
+					throw new Error('unexpected request to ' + JSON.stringify(input))
+				}
+
+				const connectedActor: any = actor
+
+				const res = await statuses_reblog.handleRequest(db, 'mastodonid1', connectedActor, userKEK)
+				assert.equal(res.status, 200)
+
+				assert(deliveredActivity)
+				assert.equal(deliveredActivity.type, 'Announce')
+				assert.equal(deliveredActivity.actor, actor.id.toString())
+				assert.equal(deliveredActivity.object, originalObjectId)
+			})
 		})
 	})
 })
