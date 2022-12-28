@@ -2,6 +2,7 @@
 
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
@@ -24,7 +25,7 @@ export async function handleRequest(
 	userKEK: string
 ): Promise<Response> {
 	const obj = await getObjectByMastodonId(db, id)
-	if (obj === null || obj.originalActorId === undefined || obj.originalObjectId === undefined) {
+	if (obj === null) {
 		return new Response('', { status: 404 })
 	}
 
@@ -33,14 +34,20 @@ export async function handleRequest(
 		return new Response('', { status: 404 })
 	}
 
-	const targetActor = await actors.get(obj.originalActorId)
-	if (!targetActor) {
-		return new Response(`target Actor ${obj.originalActorId} not found`, { status: 404 })
+	if (obj.originalObjectId && obj.originalActorId) {
+		// Liking an external object delivers the like activity
+		const targetActor = await actors.get(obj.originalActorId)
+		if (!targetActor) {
+			return new Response(`target Actor ${obj.originalActorId} not found`, { status: 404 })
+		}
+
+		const activity = like.create(connectedActor, new URL(obj.originalObjectId))
+		const signingKey = await getSigningKey(userKEK, db, connectedActor)
+		await deliverToActor(signingKey, connectedActor, targetActor, activity)
 	}
 
-	const activity = like.create(connectedActor, new URL(obj.originalObjectId))
-	const signingKey = await getSigningKey(userKEK, db, connectedActor)
-	await deliverToActor(signingKey, connectedActor, targetActor, activity)
+	await insertLike(db, connectedActor, obj)
+	status.favourited = true
 
 	const headers = {
 		'content-type': 'application/json; charset=utf-8',

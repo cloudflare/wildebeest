@@ -253,6 +253,24 @@ describe('Mastodon APIs', () => {
 			assert.equal(deliveredActivity.object, originalObjectId)
 		})
 
+		test('favourite records in db', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const note = await createPublicNote(domain, db, 'my first status', actor)
+
+			const connectedActor: any = actor
+
+			const res = await statuses_favourite.handleRequest(db, note.mastodonId!, connectedActor, userKEK)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.favourited, true)
+
+			const row = await db.prepare(`SELECT * FROM actor_favourites`).first()
+			assert.equal(row.actor_id, actor.id.toString())
+			assert.equal(row.object_id, note.id.toString())
+		})
+
 		test('get mentions from status', () => {
 			{
 				const mentions = getMentions('test status')
