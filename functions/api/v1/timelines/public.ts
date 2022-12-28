@@ -10,9 +10,9 @@ const headers = {
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
 	const { searchParams } = new URL(request.url)
-	const local = Boolean(searchParams.get('local') ?? 'false')
-	const remote = Boolean(searchParams.get('remote') ?? 'false')
-	const only_media = Boolean(searchParams.get('only_media') ?? 'false')
+	const local = searchParams.get('local') === 'true'
+	const remote = searchParams.get('remote') === 'true'
+	const only_media = searchParams.get('only_media') === 'true'
 	const domain = new URL(request.url).hostname
 	return handleRequest(domain, env.DATABASE, { local, remote, only_media })
 }

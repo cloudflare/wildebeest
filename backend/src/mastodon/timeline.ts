@@ -62,11 +62,11 @@ export enum LocalPreference {
 function localPreferenceQuery(preference: LocalPreference): string {
 	switch (preference) {
 		case LocalPreference.NotSet:
-			return ''
+			return '1'
 		case LocalPreference.OnlyLocal:
-			return 'AND objects.local = 1'
+			return 'objects.local = 1'
 		case LocalPreference.OnlyRemote:
-			return 'AND objects.local = 0'
+			return 'objects.local = 0'
 	}
 }
 
@@ -84,10 +84,10 @@ SELECT objects.*,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
        (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count
 FROM outbox_objects
-INNER JOIN objects ON objects.id = outbox_objects.object_id
-INNER JOIN actors ON actors.id = outbox_objects.actor_id
-WHERE objects.type = 'Note'
-${localPreferenceQuery(localPreference)}
+INNER JOIN objects ON objects.id=outbox_objects.object_id
+INNER JOIN actors ON actors.id=outbox_objects.actor_id
+WHERE objects.type='Note'
+      AND ${localPreferenceQuery(localPreference)}
 ORDER by outbox_objects.published_date DESC
 LIMIT ?
 `
