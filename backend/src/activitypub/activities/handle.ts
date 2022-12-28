@@ -139,9 +139,11 @@ export async function handle(
 			}
 			createdObjects.push(obj)
 
+			const actor = await actors.getAndCache(actorId, db)
+
 			// This note is actually a reply to another one, record it in the replies
 			// table.
-			if (obj.type === 'Note' && obj.inReplyTo !== undefined) {
+			if (obj.type === 'Note' && obj.inReplyTo) {
 				const inReplyToObjectId = new URL(obj.inReplyTo)
 				let inReplyToObject = await objects.getObjectByOriginalId(db, inReplyToObjectId)
 
@@ -151,7 +153,7 @@ export async function handle(
 					createdObjects.push(inReplyToObject)
 				}
 
-				await insertReply(db, actorId, obj, inReplyToObject)
+				await insertReply(db, actor, obj, inReplyToObject)
 			}
 
 			const fromActor = await actors.getAndCache(getActorAsId(), db)

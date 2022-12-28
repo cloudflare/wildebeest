@@ -186,7 +186,7 @@ describe('Mastodon APIs', () => {
 			await addObjectInOutbox(db, actor, reply)
 			await sleep(10)
 
-			await insertReply(db, actor.id, reply, note)
+			await insertReply(db, actor, reply, note)
 
 			const connectedActor: any = actor
 
