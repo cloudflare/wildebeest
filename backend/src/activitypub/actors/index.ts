@@ -112,12 +112,14 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
 	return personFromRow(row)
 }
 
+type Properties = { [key: string]: Properties | string }
+
 export async function createPerson(
 	domain: string,
 	db: D1Database,
 	userKEK: string,
 	email: string,
-	properties: any = {}
+	properties: Properties = {}
 ): Promise<URL> {
 	const userKeyPair = await generateUserKey(userKEK)
 
@@ -136,6 +138,12 @@ export async function createPerson(
 	if (properties.preferredUsername === undefined) {
 		const parts = email.split('@')
 		properties.preferredUsername = parts[0]
+	}
+
+	if (properties.preferredUsername !== undefined && typeof properties.preferredUsername !== 'string') {
+		throw new Error(
+			`preferredUsername should be a string, received ${JSON.stringify(properties.preferredUsername)} instead`
+		)
 	}
 
 	const id = actorURL(domain, properties.preferredUsername).toString()

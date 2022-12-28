@@ -16,11 +16,18 @@
 }
 
 .main-content {
-	max-width: 600px;
 	width: 100%;
 }
 
+.main-content:where(:not(.full-main-content)) {
+	max-width: 30rem;
+}
+
+.content-wrapper:where(.full-content-wrapper) {
+	min-height: 100dvh;
+}
+
 // compensates for the 10px set w/ sticky on the columns
-.content-wrapper {
+.content-wrapper:where(:not(.full-content-wrapper)) {
 	margin-top: 10px;
 }

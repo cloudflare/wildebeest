@@ -1,4 +1,5 @@
 @use './theme.scss' as theme;
+@use './interactive-utilities.scss' as utils;
 
 .bg-slate-50 {
 	background-color: theme.$slate50;
@@ -29,4 +30,17 @@
 }
 .bg-slate-900 {
 	background-color: theme.$slate900;
+}
+.bg-black {
+	background-color: theme.$black-bg;
+}
+.bg-indigo-600 {
+	background-color: theme.$indigo600;
+}
+.bg-indigo-500 {
+	background-color: theme.$indigo500;
+}
+
+@include utils.hoverAndFocus('bg-indigo-500') {
+	background-color: theme.$indigo500;
 }

@@ -1,4 +1,5 @@
 @use './theme.scss' as theme;
+@use './interactive-utilities.scss' as utils;
 
 .border {
 	border-width: 1px;
@@ -53,4 +54,25 @@
 }
 .border-slate-900 {
 	border-color: theme.$slate900;
+}
+.border-black {
+	border-color: theme.$black-border;
+}
+.border-indigo-400 {
+	border-color: theme.$indigo400;
+}
+.border-indigo-600 {
+	border-color: theme.$indigo600;
+}
+
+@include utils.hoverAndFocus('border-indigo-400') {
+	border-color: theme.$indigo400;
+}
+
+@include utils.hoverAndFocus('border-indigo-500') {
+	border-color: theme.$indigo500;
+}
+
+@include utils.invalid('border-red-400') {
+    border-color: theme.$red400;
 }

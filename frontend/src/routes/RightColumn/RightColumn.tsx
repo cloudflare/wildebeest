@@ -3,7 +3,7 @@ import { useLocation } from '@builder.io/qwik-city'
 import TagDetailsCard from '~/components/TagDetailsCard'
 import { tags } from '~/dummyData'
 import { TagDetails } from '~/types'
-import { MastodonLogo } from './MastodonLogo'
+import { MastodonLogo } from '~/components/MastodonLogo'
 import styles from './RightColumn.scss?inline'
 
 type LinkConfig = {

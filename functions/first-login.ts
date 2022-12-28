@@ -12,8 +12,14 @@ export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ requ
 
 // FIXME: move this behind Cloudflare Access. We can find the JWT in the cookies
 export async function handlePostRequest(request: Request, db: D1Database, userKEK: string): Promise<Response> {
+	const url = new URL(request.url)
+	// TODO: email is in the JWT, should be parsed, verified and passed in the
+	// request context.
+	const email = url.searchParams.get('email') || ''
+	const domain = url.hostname
+
 	const formData = await request.formData()
-	const properties: any = {}
+	const properties: Record<string, string> = {}
 
 	if (formData.has('username')) {
 		properties.preferredUsername = formData.get('username') || ''
@@ -22,13 +28,6 @@ export async function handlePostRequest(request: Request, db: D1Database, userKE
 	if (formData.has('name')) {
 		properties.name = formData.get('name') || ''
 	}
-
-	const url = new URL(request.url)
-
-	// TODO: email is in the JWT, should be parsed, verified and passed in the
-	// request context.
-	const email = url.searchParams.get('email') || ''
-	const domain = url.hostname
 
 	await createPerson(domain, db, userKEK, email, properties)
 

@@ -1,12 +1,21 @@
 import { component$ } from '@builder.io/qwik'
 
-export const MastodonLogo = component$(() => {
+export const heightsMap = {
+	medium: '3rem',
+	medium_small: '2.65rem',
+} as const
+
+type Props = {
+	size?: keyof typeof heightsMap
+}
+
+export const MastodonLogo = component$<Props>(({ size = 'medium' }) => {
 	return (
 		<svg
 			class="logo"
 			viewBox="0 0 261 66"
 			fill="none"
-			style={{ width: 'auto', height: '30px' }}
+			style={{ width: 'auto', height: heightsMap[size] }}
 			xmlns="http://www.w3.org/2000/svg"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
 		>

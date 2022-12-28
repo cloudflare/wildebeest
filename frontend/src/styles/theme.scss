@@ -5,7 +5,10 @@ $sp3: 0.5rem;
 $sp4: 1rem;
 $sp5: 1.5rem;
 $sp6: 2rem;
-$space_scale: $sp0, $sp1, $sp2, $sp3, $sp4, $sp5, $sp6; 
+$sp7: 2.5rem;
+$sp8: 3.5rem;
+$sp9: 4.5rem;
+$space_scale: $sp0, $sp1, $sp2, $sp3, $sp4, $sp5, $sp6, $sp7, $sp8, $sp9;
 
 $font-xsmall: 0.75rem;
 $font-small: 0.875rem;
@@ -18,6 +21,8 @@ $radius-medium: 0.25rem;
 $radius-large: 0.5rem;
 
 $black: #000;
+$black-bg: #131419;
+$black-border: #0a0b0e;
 $white: #fff;
 
 $slate50: #f8fafc;
@@ -32,6 +37,10 @@ $slate800: #282c37;
 $slate900: #1f232b;
 
 $indigo400: #8c8dff;
+$indigo500: #6364ff;
+$indigo600: #595aff;
+
+$red400: #e87487;
 
 // $backgroundBaseColor: $slate900;
 $backgroundBaseColor: #191b22;
