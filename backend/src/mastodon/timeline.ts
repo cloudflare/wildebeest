@@ -73,7 +73,8 @@ function localPreferenceQuery(preference: LocalPreference): string {
 export async function getPublicTimeline(
 	domain: string,
 	db: D1Database,
-	localPreference: LocalPreference
+	localPreference: LocalPreference,
+	offset: number
 ): Promise<Array<MastodonStatus>> {
 	const QUERY = `
 SELECT objects.*,
@@ -89,11 +90,11 @@ INNER JOIN actors ON actors.id=outbox_objects.actor_id
 WHERE objects.type='Note'
       AND ${localPreferenceQuery(localPreference)}
 ORDER by outbox_objects.published_date DESC
-LIMIT ?
+LIMIT ?1 OFFSET ?2
 `
 	const DEFAULT_LIMIT = 20
 
-	const { success, error, results } = await db.prepare(QUERY).bind(DEFAULT_LIMIT).all()
+	const { success, error, results } = await db.prepare(QUERY).bind(DEFAULT_LIMIT, offset).all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}

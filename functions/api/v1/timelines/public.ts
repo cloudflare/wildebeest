@@ -13,14 +13,15 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	const local = searchParams.get('local') === 'true'
 	const remote = searchParams.get('remote') === 'true'
 	const only_media = searchParams.get('only_media') === 'true'
+	const offset = Number.parseInt(searchParams.get('offset') ?? '0')
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, { local, remote, only_media })
+	return handleRequest(domain, env.DATABASE, { local, remote, only_media, offset })
 }
 
 export async function handleRequest(
 	domain: string,
 	db: D1Database,
-	{ local = false, remote = false, only_media = false } = {}
+	{ local = false, remote = false, only_media = false, offset = 0 } = {}
 ): Promise<Response> {
 	let localParam = LocalPreference.NotSet
 	if (local) {
@@ -30,6 +31,6 @@ export async function handleRequest(
 	}
 
 	// TODO - use only media option
-	const statuses = await getPublicTimeline(domain, db, localParam)
+	const statuses = await getPublicTimeline(domain, db, localParam, offset)
 	return new Response(JSON.stringify(statuses), { headers })
 }
