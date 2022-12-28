@@ -123,7 +123,7 @@ export async function toMastodonStatusFromRow(
 
 	const status: MastodonStatus = {
 		id: row.mastodon_id,
-		uri: objects.uri(domain, row.id),
+		uri: row.id,
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
 		media_attachments: mediaAttachments,

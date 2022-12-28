@@ -1,10 +1,13 @@
 import { strict as assert } from 'node:assert/strict'
+import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import { getMentions } from 'wildebeest/backend/src/mastodon/status'
+import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as statuses from 'wildebeest/functions/api/v1/statuses'
 import * as statuses_get from 'wildebeest/functions/api/v1/statuses/[id]'
 import * as statuses_favourite from 'wildebeest/functions/api/v1/statuses/[id]/favourite'
+import * as statuses_context from 'wildebeest/functions/api/v1/statuses/[id]/context'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
@@ -12,6 +15,7 @@ import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayB
 import * as note from 'wildebeest/backend/src/activitypub/objects/note'
 
 const userKEK = 'test_kek4'
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
@@ -334,6 +338,30 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.media_attachments[0].url, properties.url)
 			assert.equal(data.media_attachments[0].preview_url, properties.url)
 			assert.equal(data.media_attachments[0].type, 'image')
+		})
+
+		test('status context shows descendants', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+
+			const note = await createPublicNote(domain, db, 'a post', actor)
+			await addObjectInOutbox(db, actor, note)
+			await sleep(10)
+
+			const inReplyTo = note.id
+			const reply = await createPublicNote(domain, db, 'a reply', actor, [], { inReplyTo })
+			await addObjectInOutbox(db, actor, reply)
+			await sleep(10)
+
+			await insertReply(db, actor, reply, note)
+
+			const res = await statuses_context.handleRequest(domain, db, note.mastodonId!)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.ancestors.length, 0)
+			assert.equal(data.descendants.length, 1)
+			assert.equal(data.descendants[0].content, 'a reply')
 		})
 	})
 })
