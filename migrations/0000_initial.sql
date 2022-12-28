@@ -72,6 +72,8 @@ CREATE TABLE IF NOT EXISTS actor_notifications (
   FOREIGN KEY(object_id) REFERENCES objects(id)
 );
 
+CREATE INDEX IF NOT EXISTS actor_notifications_actor_id ON actor_notifications(actor_id);
+
 CREATE TABLE IF NOT EXISTS actor_favourites (
   id TEXT PRIMARY KEY,
   actor_id TEXT NOT NULL,
