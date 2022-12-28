@@ -15,4 +15,5 @@ bullseye:
       - yarn install
       - yarn pretty
       - yarn test
-      - yarn database:create-mock && yarn test:ui
+      # Until https://github.com/cloudflare/wrangler2/issues/2463 is resolved.
+      # - yarn database:create-mock && yarn test:ui
