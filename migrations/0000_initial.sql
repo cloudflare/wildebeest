@@ -84,6 +84,9 @@ CREATE TABLE IF NOT EXISTS actor_favourites (
   FOREIGN KEY(object_id) REFERENCES objects(id)
 );
 
+CREATE INDEX IF NOT EXISTS actor_favourites_actor_id ON actor_favourites(actor_id);
+CREATE INDEX IF NOT EXISTS actor_favourites_object_id ON actor_favourites(object_id);
+
 CREATE TABLE IF NOT EXISTS actor_reblogs (
   id TEXT PRIMARY KEY,
   actor_id TEXT NOT NULL,
@@ -93,6 +96,9 @@ CREATE TABLE IF NOT EXISTS actor_reblogs (
   FOREIGN KEY(actor_id)  REFERENCES actors(id),
   FOREIGN KEY(object_id) REFERENCES objects(id)
 );
+
+CREATE INDEX IF NOT EXISTS actor_reblogs_actor_id ON actor_reblogs(actor_id);
+CREATE INDEX IF NOT EXISTS actor_reblogs_object_id ON actor_reblogs(object_id);
 
 CREATE TABLE IF NOT EXISTS clients (
   id TEXT PRIMARY KEY,
