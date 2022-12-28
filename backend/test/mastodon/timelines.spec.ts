@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
+import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
@@ -170,6 +171,38 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[0].content, 'note3')
 			assert.equal(data[1].content, 'note1')
 			assert.equal(data[2].content, 'note2')
+		})
+
+		test('timelines hides and counts replies', async () => {
+			const db = await makeDB()
+			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+
+			const note = await createPublicNote(domain, db, 'a post', actor)
+			await addObjectInOutbox(db, actor, note)
+			await sleep(10)
+
+			const inReplyTo = note.id
+			const reply = await createPublicNote(domain, db, 'a reply', actor, [], { inReplyTo })
+			await addObjectInOutbox(db, actor, reply)
+			await sleep(10)
+
+			await insertReply(db, actor.id, reply, note)
+
+			const connectedActor: any = actor
+
+			{
+				const data = await timelines.getHomeTimeline(domain, db, connectedActor)
+				assert.equal(data.length, 1)
+				assert.equal(data[0].content, 'a post')
+				assert.equal(data[0].replies_count, 1)
+			}
+
+			{
+				const data = await timelines.getPublicTimeline(domain, db, timelines.LocalPreference.NotSet)
+				assert.equal(data.length, 1)
+				assert.equal(data[0].content, 'a post')
+				assert.equal(data[0].replies_count, 1)
+			}
 		})
 	})
 })

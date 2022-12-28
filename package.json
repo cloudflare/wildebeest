@@ -6,6 +6,8 @@
 	"devDependencies": {
 		"@cloudflare/pages-plugin-cloudflare-access": "^1.0.2",
 		"@cloudflare/workers-types": "^4.20221111.1",
+		"@databases/split-sql-query": "1.0.3",
+		"@databases/sql": "3.2.0",
 		"@types/jest": "^29.2.4",
 		"@types/node": "^18.11.11",
 		"@typescript-eslint/eslint-plugin": "^5.46.1",

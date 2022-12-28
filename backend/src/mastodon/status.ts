@@ -108,7 +108,7 @@ export async function toMastodonStatusFromRow(
 	const acct = urlToHandle(actorId)
 	const account = await loadExternalMastodonAccount(acct, author)
 
-	if (row.favourites_count === undefined || row.reblogs_count === undefined) {
+	if (row.favourites_count === undefined || row.reblogs_count === undefined || row.replies_count === undefined) {
 		throw new Error('logic error; missing fields.')
 	}
 
@@ -138,6 +138,7 @@ export async function toMastodonStatusFromRow(
 		content: properties.content,
 		favourites_count: row.favourites_count,
 		reblogs_count: row.reblogs_count,
+		replies_count: row.replies_count,
 	}
 
 	if (properties.updated) {

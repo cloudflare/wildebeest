@@ -14,7 +14,6 @@ export interface Note extends objects.Object {
 	attributedTo?: string
 	summary?: string
 	inReplyTo?: string
-	inReplyToAtomUri?: string
 	replies?: string
 	to: Array<string>
 	attachment: Array<Document>
@@ -27,7 +26,8 @@ export async function createPublicNote(
 	db: D1Database,
 	content: string,
 	actor: Actor,
-	attachment: Array<Document> = []
+	attachment: Array<Document> = [],
+	extraProperties: any = {}
 ): Promise<Note> {
 	const actorId = new URL(actor.id)
 
@@ -39,12 +39,13 @@ export async function createPublicNote(
 
 		// FIXME: stub values
 		inReplyTo: null,
-		inReplyToAtomUri: null,
 		replies: null,
 		sensitive: false,
 		summary: null,
 		tag: [],
 		attachment,
+
+		...extraProperties,
 	}
 
 	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note

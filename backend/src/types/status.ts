@@ -22,4 +22,5 @@ export type MastodonStatus = {
 	reblogs_count?: number
 	reblog?: MastodonStatus
 	edited_at?: string
+	replies_count?: number
 }

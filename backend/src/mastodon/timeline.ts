@@ -23,11 +23,15 @@ SELECT objects.*,
        actors.properties as actor_properties,
        outbox_objects.actor_id as publisher_actor_id,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
-       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count
+       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count,
+       (SELECT count(*) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
 INNER JOIN actors ON actors.id = outbox_objects.actor_id
-WHERE objects.type = 'Note' AND outbox_objects.actor_id IN (SELECT value FROM json_each(?))
+WHERE
+     objects.type = 'Note'
+     AND outbox_objects.actor_id IN (SELECT value FROM json_each(?))
+     AND json_extract(objects.properties, '$.inReplyTo') IS NULL
 ORDER by outbox_objects.published_date DESC
 LIMIT ?
 `
@@ -74,7 +78,7 @@ export async function getPublicTimeline(
 	domain: string,
 	db: D1Database,
 	localPreference: LocalPreference,
-	offset: number
+	offset: number = 0
 ): Promise<Array<MastodonStatus>> {
 	const QUERY = `
 SELECT objects.*,
@@ -83,12 +87,14 @@ SELECT objects.*,
        actors.properties as actor_properties,
        outbox_objects.actor_id as publisher_actor_id,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
-       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count
+       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count,
+       (SELECT count(*) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count
 FROM outbox_objects
 INNER JOIN objects ON objects.id=outbox_objects.object_id
 INNER JOIN actors ON actors.id=outbox_objects.actor_id
 WHERE objects.type='Note'
       AND ${localPreferenceQuery(localPreference)}
+      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
 ORDER by outbox_objects.published_date DESC
 LIMIT ?1 OFFSET ?2
 `

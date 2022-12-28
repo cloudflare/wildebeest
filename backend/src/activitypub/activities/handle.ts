@@ -14,6 +14,7 @@ import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
+import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 
 function extractID(domain: string, s: string | URL): string {
@@ -137,6 +138,21 @@ export async function handle(
 				break
 			}
 			createdObjects.push(obj)
+
+			// This note is actually a reply to another one, record it in the replies
+			// table.
+			if (obj.type === 'Note' && obj.inReplyTo !== undefined) {
+				const inReplyToObjectId = new URL(obj.inReplyTo)
+				let inReplyToObject = await objects.getObjectByOriginalId(db, inReplyToObjectId)
+
+				if (inReplyToObject === null) {
+					const remoteObject = await objects.get(inReplyToObjectId)
+					inReplyToObject = await objects.cacheObject(domain, db, remoteObject, actorId, inReplyToObjectId, false)
+					createdObjects.push(inReplyToObject)
+				}
+
+				await insertReply(db, actorId, obj, inReplyToObject)
+			}
 
 			const fromActor = await actors.getAndCache(getActorAsId(), db)
 			// Add the object in the originating actor's outbox, allowing other

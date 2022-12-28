@@ -1,4 +1,5 @@
 import { makeDB, assertCache, isUrlValid } from '../utils'
+import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
@@ -142,6 +143,53 @@ describe('ActivityPub', () => {
 
 		const entry = await db.prepare('SELECT * FROM actors WHERE id=?').bind(actorB).first()
 		assert.equal(entry.id, actorB)
+	})
+
+	test('send Note records reply', async () => {
+		const db = await makeDB()
+		const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+		{
+			const activity: any = {
+				type: 'Create',
+				actor: actorId,
+				to: [actorId],
+				object: {
+					id: 'https://example.com/note1',
+					type: 'Note',
+					content: 'post',
+				},
+			}
+			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
+			assert.equal(res.status, 200)
+		}
+
+		{
+			const activity: any = {
+				type: 'Create',
+				actor: actorId,
+				to: [actorId],
+				object: {
+					inReplyTo: 'https://example.com/note1',
+					id: 'https://example.com/note2',
+					type: 'Note',
+					content: 'reply',
+				},
+			}
+			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
+			assert.equal(res.status, 200)
+		}
+
+		const entry = await db.prepare('SELECT * FROM actor_replies').first()
+		assert.equal(entry.actor_id, actorId.toString())
+
+		const obj: any = await objects.getObjectById(db, entry.object_id)
+		assert(obj)
+		assert.equal(obj.originalObjectId, 'https://example.com/note2')
+
+		const inReplyTo: any = await objects.getObjectById(db, entry.in_reply_to_object_id)
+		assert(inReplyTo)
+		assert.equal(inReplyTo.originalObjectId, 'https://example.com/note1')
 	})
 
 	test('records reblog in db', async () => {

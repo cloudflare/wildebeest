@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS objects (
   cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
   original_actor_id TEXT,
   original_object_id TEXT UNIQUE,
+  reply_to_object_id TEXT,
   properties TEXT NOT NULL DEFAULT (json_object()),
   local INTEGER NOT NULL
 );
@@ -173,3 +174,17 @@ BEGIN
             json_extract(new.properties, '$.name'),
             json_extract(new.properties, '$.preferredUsername'));
 END;
+
+CREATE TABLE IF NOT EXISTS actor_replies (
+  id TEXT PRIMARY KEY,
+  actor_id TEXT NOT NULL,
+  object_id TEXT NOT NULL,
+  in_reply_to_object_id TEXT NOT NULL,
+  cdate DATETIME NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
+
+  FOREIGN KEY(actor_id)  REFERENCES actors(id),
+  FOREIGN KEY(object_id) REFERENCES objects(id)
+  FOREIGN KEY(in_reply_to_object_id) REFERENCES objects(id)
+);
+
+CREATE INDEX IF NOT EXISTS actor_replies_in_reply_to_object_id ON actor_replies(in_reply_to_object_id);

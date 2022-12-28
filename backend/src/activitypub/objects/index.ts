@@ -13,6 +13,7 @@ export interface Object {
 	name?: string
 	mediaType?: string
 	content?: string
+	inReplyTo?: string
 
 	// Extension
 	preferredUsername?: string
@@ -130,6 +131,10 @@ export async function updateObject(db: D1Database, properties: any, id: URL): Pr
 
 export async function getObjectById(db: D1Database, id: string | URL): Promise<Object | null> {
 	return getObjectBy(db, 'id', id.toString())
+}
+
+export async function getObjectByOriginalId(db: D1Database, id: string | URL): Promise<Object | null> {
+	return getObjectBy(db, 'original_object_id', id.toString())
 }
 
 export async function getObjectByMastodonId(db: D1Database, id: UUID): Promise<Object | null> {
