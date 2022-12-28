@@ -49,8 +49,9 @@ describe('Mastodon APIs', () => {
 			assertJSON(res)
 
 			const data = await res.json<any>()
+			assert(data.uri.includes('example.com'))
+			assert(data.uri.includes(data.id))
 			// Required fields from https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Status.java
-			assert(data.uri !== undefined)
 			assert(data.created_at !== undefined)
 			assert(data.account !== undefined)
 			assert(data.visibility !== undefined)

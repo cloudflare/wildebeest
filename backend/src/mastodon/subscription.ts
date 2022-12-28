@@ -26,7 +26,7 @@ export async function createSubscription(db: D1Database, actor: Actor, client: C
 	const out = await db
 		.prepare(query)
 		.bind(
-			actor.id,
+			actor.id.toString(),
 			client.id,
 			req.endpoint,
 			req.key_p256dh,

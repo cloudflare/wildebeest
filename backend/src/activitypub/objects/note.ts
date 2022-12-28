@@ -14,9 +14,7 @@ export interface Note extends objects.Object {
 	attributedTo?: string
 	summary?: string
 	inReplyTo?: string
-	atomUri?: string
 	inReplyToAtomUri?: string
-	conversation?: string
 	replies?: string
 	to: Array<string>
 	attachment: Array<Document>
@@ -40,11 +38,8 @@ export async function createPublicNote(
 		cc: [followersURL(actorId)],
 
 		// FIXME: stub values
-		url: 'https://social.eng.chat/statuses/@todo',
 		inReplyTo: null,
 		inReplyToAtomUri: null,
-		atomUri: actorId + '/' + Date.now(),
-		conversation: actorId + '/' + Date.now(),
 		replies: null,
 		sensitive: false,
 		summary: null,

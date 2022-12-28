@@ -196,27 +196,34 @@ export function personFromRow(row: any): Person {
 		}
 	}
 
+	const id = new URL(row.id)
+
+	let domain = id.hostname
+	if (row.original_actor_id) {
+		domain = new URL(row.original_actor_id).hostname
+	}
+
 	return {
 		// Hidden values
 		[emailSymbol]: row.email,
 
-		// Default values, likely being overrided by the properties.
 		name: row.preferredUsername,
 		icon,
 		image,
 		discoverable: true,
 		publicKey,
 		type: PERSON,
-		id: row.id,
+		id,
 		published: new Date(row.cdate).toISOString(),
 		inbox: inboxURL(row.id),
 		outbox: outboxURL(row.id),
 		following: followingURL(row.id),
 		followers: followersURL(row.id),
 
-		// FIXME: stub
-		url: 'https://social.eng.chat/@todo',
+		url: new URL('@' + row.preferredUsername, 'https://' + domain),
 
+		// It's very possible that properties override the values set above.
+		// Almost guaranteed for remote user.
 		...JSON.parse(row.properties),
 	}
 }

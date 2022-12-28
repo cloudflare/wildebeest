@@ -215,7 +215,7 @@ describe('Mastodon APIs', () => {
 
 		test('get remote actor by id', async () => {
 			globalThis.fetch = async (input: RequestInfo) => {
-				if (input.toString() === 'https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com') {
+				if (input.toString() === 'https://social.com/.well-known/webfinger?resource=acct%3Asven%40social.com') {
 					return new Response(
 						JSON.stringify({
 							links: [
@@ -233,6 +233,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://social.com/someone',
+							url: 'https://social.com/@someone',
 							type: 'Person',
 							preferredUsername: 'sven',
 							outbox: 'https://social.com/someone/outbox',
@@ -282,12 +283,15 @@ describe('Mastodon APIs', () => {
 			}
 
 			const db = await makeDB()
-			const res = await accounts_get.handleRequest(domain, 'sven@remote.com', db)
+			const res = await accounts_get.handleRequest(domain, 'sven@social.com', db)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
 			assert.equal(data.username, 'sven')
-			assert.equal(data.acct, 'sven@remote.com')
+			assert.equal(data.acct, 'sven@social.com')
+
+			assert(isUrlValid(data.url))
+			assert(data.url, 'https://social.com/@someone')
 
 			assert.equal(data.followers_count, 321)
 			assert.equal(data.following_count, 123)
@@ -312,14 +316,8 @@ describe('Mastodon APIs', () => {
 			await addFollowing(db, actor3, actor, 'sven@' + domain)
 			await acceptFollowing(db, actor3, actor)
 
-			await db
-				.prepare("INSERT INTO objects (id, type, properties, local, mastodon_id) VALUES (?, ?, ?, 1, 'mastodon_id')")
-				.bind('object1', 'Note', JSON.stringify({ content: 'my first status' }))
-				.run()
-			await db
-				.prepare('INSERT INTO outbox_objects (id, actor_id, object_id) VALUES (?, ?, ?)')
-				.bind('outbox1', actor.id.toString(), 'object1')
-				.run()
+			const firstNote = await createPublicNote(domain, db, 'my first status', actor)
+			await addObjectInOutbox(db, actor, firstNote)
 
 			const res = await accounts_get.handleRequest(domain, 'sven', db)
 			assert.equal(res.status, 200)
@@ -330,6 +328,8 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.followers_count, 1)
 			assert.equal(data.following_count, 2)
 			assert.equal(data.statuses_count, 1)
+			assert(isUrlValid(data.url))
+			assert(data.url.includes(domain))
 		})
 
 		test('get local actor statuses', async () => {

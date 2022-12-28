@@ -91,7 +91,8 @@ export async function handleRequest(
 
 	const res: any = {
 		id: note.mastodonId,
-		uri: note.url,
+		uri: note.id,
+		url: new URL('/statuses/' + note.mastodonId, 'https://' + domain),
 		created_at: note.published,
 		account,
 		content: body.status,
