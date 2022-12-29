@@ -3,10 +3,7 @@
 
 // padding
 @for $i from 0 through 9 {
-	// TODO: this is the only padding without a dash in the class name
-	//       is is also inconsistent with tailwind: https://tailwindcss.com/docs/padding
-	//       update the following to .p-#{$i} and update paddings in the app accordingly
-	.p#{$i} {
+	.p-#{$i} {
 		padding: list.nth(theme.$space_scale, $i + 1);
 	}
 }
@@ -51,10 +48,7 @@
 
 // Margin
 @for $i from 0 through 9 {
-	// TODO: this is the only margin without a dash in the class name
-	//       is is also inconsistent with tailwind: https://tailwindcss.com/docs/margin
-	//       update the following to .m-#{$i} and update margins in the app accordingly
-	.m#{$i} {
+	.m-#{$i} {
 		margin: list.nth(theme.$space_scale, $i + 1);
 	}
 }

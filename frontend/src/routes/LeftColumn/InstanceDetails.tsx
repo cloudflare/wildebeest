@@ -47,7 +47,7 @@ export default component$(() => {
 								</div>
 							</div>
 							<a class="no-decoration block mt-4" href={`https://${instance.domain}/about`}>
-								<div class="text-md text-semi text-slate-400 border border-slate-400 text-center p3 rounded">
+								<div class="text-md text-semi text-slate-400 border border-slate-400 text-center p-3 rounded">
 									Learn More
 								</div>
 							</a>

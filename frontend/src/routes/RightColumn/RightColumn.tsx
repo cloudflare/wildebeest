@@ -21,7 +21,7 @@ export const RightColumn = component$(() => {
 	})
 
 	const renderNavLink = ({ iconName, linkText, linkTarget }: LinkConfig) => {
-		let classList = 'p4 block no-decoration text-semi'
+		let classList = 'p-4 block no-decoration text-semi'
 
 		// Color the active link indigo. Qwik pathnames always include a trailing `/`
 		if (location.pathname === `${linkTarget}/`) {
@@ -45,7 +45,7 @@ export const RightColumn = component$(() => {
 	return (
 		<div class="flex flex-column justify-between container text-slate-400">
 			<div>
-				<div class="p4">
+				<div class="p-4">
 					<a href="https://mastodon.social">
 						<MastodonLogo />
 					</a>

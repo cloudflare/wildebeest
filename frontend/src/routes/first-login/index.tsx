@@ -13,7 +13,7 @@ export default component$(() => {
 	const domain = useDomain()
 
 	return (
-		<div class="flex flex-column p5 items-center">
+		<div class="flex flex-column p-5 items-center">
 			<h1 class="text-center mt-7 mb-9">
 				<MastodonLogo size="medium_small" />
 			</h1>
@@ -27,7 +27,7 @@ export default component$(() => {
 							id="login-username"
 							name="username"
 							pattern="[^@]+"
-							class="bg-black text-white p3 rounded outline-none border border-black hover:border-indigo-400 focus:border-indigo-400 invalid:border-red-400 flex-1 w-full"
+							class="bg-black text-white p-3 rounded outline-none border border-black hover:border-indigo-400 focus:border-indigo-400 invalid:border-red-400 flex-1 w-full"
 						/>
 						<span>@{domain}</span>
 					</div>
@@ -39,12 +39,12 @@ export default component$(() => {
 					<input
 						id="login-name"
 						name="name"
-						class="bg-black text-white p3 rounded outline-none border border-black hover:border-indigo-400 focus:border-indigo-400"
+						class="bg-black text-white p-3 rounded outline-none border border-black hover:border-indigo-400 focus:border-indigo-400"
 					/>
 				</div>
 				<button
 					type="submit"
-					class="mb-9 bg-indigo-600 hover:bg-indigo-500 p3 text-white text-uppercase border-indigo-600 text-lg text-semi outline-none border rounded hover:border-indigo-500 focus:border-indigo-500"
+					class="mb-9 bg-indigo-600 hover:bg-indigo-500 p-3 text-white text-uppercase border-indigo-600 text-lg text-semi outline-none border rounded hover:border-indigo-500 focus:border-indigo-500"
 				>
 					Register
 				</button>

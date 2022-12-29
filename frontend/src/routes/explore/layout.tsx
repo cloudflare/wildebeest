@@ -44,7 +44,7 @@ export default component$(() => {
 	return (
 		<div class="container">
 			<div class="header-wrapper">
-				<h2 class="text-reg text-md m0 p4 bg-slate-700 rounded-t">
+				<h2 class="text-reg text-md m-0 p-4 bg-slate-700 rounded-t">
 					<i class="fa fa-hashtag fa-fw mr-3" />
 					<span>Explore</span>
 				</h2>

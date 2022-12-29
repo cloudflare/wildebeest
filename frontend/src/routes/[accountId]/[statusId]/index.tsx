@@ -36,21 +36,21 @@ export default component$(() => {
 					<>
 						{/* Header */}
 						<div class="flex justify-between items-center rounded-t header bg-slate-700">
-							<a class="text-semi back-button p4" href="/explore">
+							<a class="text-semi back-button p-4" href="/explore">
 								<i class="fa fa-chevron-left mr-2" />
 								<span class="back-button-text">Back</span>
 							</a>
 							<i class="fa fa-eye mr-4 text-slate-400" />
 						</div>
-						<div class="bg-slate-700 p4">
+						<div class="bg-slate-700 p-4">
 							{/* Account Card */}
 							<div class="flex">
 								<img class="avatar" src={status.account.avatar} />
 								<div class="flex flex-column">
-									<div class="p1">
+									<div class="p-1">
 										<a class="no-decoration">{status.account.display_name}</a>
 									</div>
-									<div class="p1 text-slate-400">@{status.account.acct}</div>
+									<div class="p-1 text-slate-400">@{status.account.acct}</div>
 								</div>
 							</div>
 							{/* Content */}

@@ -17,7 +17,7 @@ export default component$(() => {
 				return (
 					<div class="mb-4">
 						{tags.map((tagDetails) => (
-							<div key={tagDetails.name} class="p4 border-t border-slate-600">
+							<div key={tagDetails.name} class="p-4 border-t border-slate-600">
 								<TagDetailsCard tagDetails={tagDetails} />
 							</div>
 						))}

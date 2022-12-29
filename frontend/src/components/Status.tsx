@@ -22,15 +22,15 @@ export default component$((props: Props) => {
 	})
 
 	return (
-		<div class="p4 border-t border-slate-600 pointer" onClick$={handleContentClick}>
+		<div class="p-4 border-t border-slate-600 pointer" onClick$={handleContentClick}>
 			<div class="flex justify-between">
 				<div class="flex">
 					<img class="avatar" src={status.account.avatar} />
 					<div class="flex-column ml-3">
-						<div class="p1">
+						<div class="p-1">
 							<a class="no-decoration">{status.account.display_name}</a>
 						</div>
-						<div class="p1 text-slate-500">@{status.account.username}</div>
+						<div class="p-1 text-slate-500">@{status.account.username}</div>
 					</div>
 				</div>
 				<a class="no-decoration" href={statusUrl}>
@@ -46,7 +46,7 @@ export default component$((props: Props) => {
 				<a class="no-decoration" href={status.card.url}>
 					<div class="rounded flex border border-slate-600">
 						<img class="preview-image" src={status.card.image} />
-						<div class="p3 overflow-hidden">
+						<div class="p-3 overflow-hidden">
 							<div class="overflow-ellipsis text-sm text-bold text-slate-400">{status.card.title}</div>
 							<div class="overflow-ellipsis mt-2 text-sm text-slate-500">{status.card.provider_name}</div>
 						</div>
