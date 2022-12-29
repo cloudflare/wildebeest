@@ -1,4 +1,5 @@
 @use './theme.scss' as theme;
+@use './interactive-utilities.scss' as utils;
 
 // Color
 .secondary {
@@ -41,6 +42,10 @@
 }
 
 .text-white {
+	color: theme.$white;
+}
+
+@include utils.hoverAndFocus('text-white') {
 	color: theme.$white;
 }
 

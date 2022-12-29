@@ -21,11 +21,12 @@ export const RightColumn = component$(() => {
 	})
 
 	const renderNavLink = ({ iconName, linkText, linkTarget }: LinkConfig) => {
-		let classList = 'p-4 block no-decoration text-semi'
+		let classList = 'mx-4 my-5 block no-decoration text-semi max-w-max ' + location.pathname
 
-		// Color the active link indigo. Qwik pathnames always include a trailing `/`
-		if (location.pathname === `${linkTarget}/`) {
+		if (location.pathname.replace(/\/$/, '') === `${linkTarget}`) {
 			classList += ' text-indigo-400'
+		} else {
+			classList += ' hover:text-white focus:text-white'
 		}
 
 		return (
