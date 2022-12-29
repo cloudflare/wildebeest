@@ -48,7 +48,7 @@ export const RightColumn = component$(() => {
 			<div>
 				<div class="p-4">
 					<a href="https://mastodon.social">
-						<MastodonLogo />
+						<MastodonLogo size="small" />
 					</a>
 				</div>
 				<hr class="border-t border-slate-700 my-3" />

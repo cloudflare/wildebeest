@@ -15,7 +15,7 @@ export default component$(() => {
 	return (
 		<div class="flex flex-column p-5 items-center">
 			<h1 class="text-center mt-7 mb-9">
-				<MastodonLogo size="medium_small" />
+				<MastodonLogo size="medium" />
 			</h1>
 			<form method="post" class="flex flex-column w-full max-w-md">
 				<div class="flex flex-column mb-6">

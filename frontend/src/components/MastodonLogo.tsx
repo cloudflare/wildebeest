@@ -1,15 +1,15 @@
 import { component$ } from '@builder.io/qwik'
 
 export const heightsMap = {
-	medium: '3rem',
-	medium_small: '2.65rem',
+	small: '2rem',
+	medium: '2.65rem',
 } as const
 
 type Props = {
-	size?: keyof typeof heightsMap
+	size: keyof typeof heightsMap
 }
 
-export const MastodonLogo = component$<Props>(({ size = 'medium' }) => {
+export const MastodonLogo = component$<Props>(({ size }) => {
 	return (
 		<svg
 			class="logo"
