@@ -1,4 +1,6 @@
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
+import { b64ToUrlEncoded, exportPublicKeyPair } from 'wildebeest/backend/src/webpush/util'
 import { Client } from './client'
 
 export type PushSubscription = {
@@ -30,7 +32,7 @@ export interface CreateRequest {
 
 export type Subscription = {
 	id: string
-	endpoint: string
+	gateway: PushSubscription
 }
 
 export async function createSubscription(
@@ -71,7 +73,7 @@ export async function createSubscription(
 		throw new Error('SQL error: ' + out.error)
 	}
 
-	return { id, endpoint: req.subscription.endpoint }
+	return { id, gateway: req.subscription }
 }
 
 export async function getSubscription(db: D1Database, actor: Actor, client: Client): Promise<Subscription | null> {
@@ -89,8 +91,48 @@ export async function getSubscription(db: D1Database, actor: Actor, client: Clie
 	}
 
 	const row: any = results[0]
+	return subscriptionFromRow(row)
+}
+
+export async function getSubscriptionForAllClients(db: D1Database, actor: Actor): Promise<Array<Subscription>> {
+	const query = `
+        SELECT * FROM subscriptions WHERE actor_id=? ORDER BY cdate DESC LIMIT 5
+    `
+
+	const { success, error, results } = await db.prepare(query).bind(actor.id.toString()).all()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+
+	if (!results) {
+		return []
+	}
+
+	return results.map(subscriptionFromRow)
+}
+
+function subscriptionFromRow(row: any): Subscription {
 	return {
 		id: row.id,
-		endpoint: row.endpoint,
+		gateway: {
+			endpoint: row.endpoint,
+			keys: {
+				p256dh: row.key_p256dh,
+				auth: row.key_auth,
+			},
+		},
 	}
+}
+
+export async function getVAPIDKeys(db: D1Database): Promise<JWK> {
+	const row: any = await db.prepare("SELECT value FROM instance_config WHERE key = 'vapid_jwk'").first()
+	if (!row) {
+		throw new Error('missing VAPID keys')
+	}
+	const value = JSON.parse(row.value)
+	return value
+}
+
+export function VAPIDPublicKey(keys: JWK): string {
+	return b64ToUrlEncoded(exportPublicKeyPair(keys))
 }

@@ -49,3 +49,11 @@ export async function generateVAPIDKeys(db: D1Database) {
 		throw new Error('SQL error: ' + error)
 	}
 }
+
+export async function get(db: D1Database, name: string): Promise<string> {
+	const row: any = await db.prepare('SELECT value FROM instance_config WHERE key = ?').bind(name).first()
+	if (!row) {
+		throw new Error(`configuration not found: ${name}`)
+	}
+	return row.value
+}

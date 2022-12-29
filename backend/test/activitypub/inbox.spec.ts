@@ -1,4 +1,5 @@
 import { makeDB, assertCache, isUrlValid } from '../utils'
+import { configure } from 'wildebeest/backend/src/config'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
@@ -214,6 +215,7 @@ describe('ActivityPub', () => {
 
 	test('records like in db', async () => {
 		const db = await makeDB()
+		await configure(db, { title: 'title', description: 'a', email: 'email' })
 		const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
 		const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
 
@@ -235,6 +237,7 @@ describe('ActivityPub', () => {
 	describe('Like', () => {
 		test('creates notification', async () => {
 			const db = await makeDB()
+			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
 			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
 
@@ -256,6 +259,7 @@ describe('ActivityPub', () => {
 
 		test('records like in db', async () => {
 			const db = await makeDB()
+			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
 			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
 

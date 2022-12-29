@@ -152,3 +152,12 @@ export async function importPublicKey(exportedKey: string): Promise<CryptoKey> {
 		['verify']
 	)
 }
+
+const DEC = {
+	'-': '+',
+	_: '/',
+	'.': '=',
+}
+export function urlsafeBase64Decode(v: string) {
+	return atob(v.replace(/[-_.]/g, (m: string) => (DEC as any)[m]))
+}

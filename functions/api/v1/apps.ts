@@ -1,6 +1,9 @@
 import { ContextData } from 'wildebeest/backend/src/types/context'
+import { b64ToUrlEncoded, exportPublicKeyPair } from 'wildebeest/backend/src/webpush/util'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { Env } from 'wildebeest/backend/src/types/env'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
+import { getVAPIDKeys, VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 
 type AppsPost = {
 	redirect_uris: string
@@ -19,9 +22,9 @@ export async function handleRequest(db: D1Database, request: Request) {
 	}
 
 	const body = await request.json<AppsPost>()
-	console.log(body)
 
 	const client = await createClient(db, body.client_name, body.redirect_uris, body.website, body.scopes)
+	const vapidKey = VAPIDPublicKey(await getVAPIDKeys(db))
 
 	const res = {
 		name: body.client_name,
@@ -31,8 +34,7 @@ export async function handleRequest(db: D1Database, request: Request) {
 		client_id: client.id,
 		client_secret: client.secret,
 
-		// FIXME: stub value
-		vapid_key: 'TODO',
+		vapid_key: vapidKey,
 	}
 	const headers = {
 		'Access-Control-Allow-Origin': '*',

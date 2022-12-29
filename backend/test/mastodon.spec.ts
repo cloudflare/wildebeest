@@ -9,11 +9,10 @@ import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayB
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { Actor, createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
-import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createClient, getClientById } from '../src/mastodon/client'
 import { createSubscription } from '../src/mastodon/subscription'
 import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
-import { configure } from 'wildebeest/backend/src/config'
+import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
 
 const userKEK = 'test_kek'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -90,6 +89,7 @@ describe('Mastodon APIs', () => {
 	describe('apps', () => {
 		test('return the app infos', async () => {
 			const db = await makeDB()
+			await generateVAPIDKeys(db)
 			const request = new Request('https://example.com', {
 				method: 'POST',
 				body: '{"redirect_uris":"mastodon://joinmastodon.org/oauth","website":"https://app.joinmastodon.org/ios","client_name":"Mastodon for iOS","scopes":"read write follow push"}',
@@ -137,53 +137,6 @@ describe('Mastodon APIs', () => {
 		})
 	})
 
-	describe('notifications', () => {
-		test('returns notifications stored in db', async () => {
-			const db = await makeDB()
-			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const fromActorId = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
-			await db
-				.prepare("INSERT INTO objects (id, type, properties, local, mastodon_id) VALUES (?, ?, ?, 1, 'mastodon_id')")
-				.bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
-				.run()
-
-			const connectedActor: any = {
-				id: actorId,
-			}
-			const fromActor: any = {
-				id: fromActorId,
-			}
-			const obj: any = {
-				id: 'object1',
-			}
-			await insertFollowNotification(db, connectedActor, fromActor)
-			await sleep(10)
-			await insertNotification(db, 'favourite', connectedActor, fromActor, obj)
-			await sleep(10)
-			await insertNotification(db, 'mention', connectedActor, fromActor, obj)
-
-			const res = await notifications.handleRequest(domain, db, connectedActor)
-			assert.equal(res.status, 200)
-			assertJSON(res)
-			assertCORS(res)
-
-			const data = await res.json<Array<any>>()
-			assert.equal(data.length, 3)
-
-			assert.equal(data[0].type, 'mention')
-			assert.equal(data[0].account.username, 'from')
-			assert.equal(data[0].status.id, 'mastodon_id')
-
-			assert.equal(data[1].type, 'favourite')
-			assert.equal(data[1].account.username, 'from')
-			assert.equal(data[1].status.id, 'mastodon_id')
-
-			assert.equal(data[2].type, 'follow')
-			assert.equal(data[2].account.username, 'from')
-			assert.equal(data[2].status, undefined)
-		})
-	})
-
 	describe('subscriptions', () => {
 		test('get non existing subscription', async () => {
 			const db = await makeDB()
@@ -227,6 +180,7 @@ describe('Mastodon APIs', () => {
 		test('create subscription', async () => {
 			const db = await makeDB()
 			const client = await createTestClient(db)
+			await generateVAPIDKeys(db)
 			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
 
 			const data: any = {
@@ -259,6 +213,7 @@ describe('Mastodon APIs', () => {
 		test('create subscriptions only creates one', async () => {
 			const db = await makeDB()
 			const client = await createTestClient(db)
+			await generateVAPIDKeys(db)
 			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
 
 			const data: any = {

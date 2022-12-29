@@ -5,7 +5,11 @@ import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import * as accept from 'wildebeest/backend/src/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/backend/src/activitypub/actors/inbox'
-import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
+import {
+	sendLikeNotification,
+	insertNotification,
+	insertFollowNotification,
+} from 'wildebeest/backend/src/mastodon/notification'
 import { type Object, updateObject } from 'wildebeest/backend/src/activitypub/objects'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
@@ -254,12 +258,15 @@ export async function handle(
 			}
 
 			const fromActor = await actors.getAndCache(actorId, db)
-			// Add the object in the originating actor's outbox, allowing other
-			// actors on this instance to see the note in their timelines.
-			await addObjectInOutbox(db, fromActor, obj, activity.published)
 
-			// Store the reblog for counting
-			await insertReblog(db, fromActor, obj)
+			await Promise.all([
+				// Add the object in the originating actor's outbox, allowing other
+				// actors on this instance to see the note in their timelines.
+				addObjectInOutbox(db, fromActor, obj, activity.published),
+
+				// Store the reblog for counting
+				insertReblog(db, fromActor, obj),
+			])
 			break
 		}
 
@@ -281,10 +288,14 @@ export async function handle(
 				break
 			}
 
-			// Notify the user
-			await insertNotification(db, 'favourite', targetActor, fromActor, obj)
-			// Store the like for counting
-			await insertLike(db, fromActor, obj)
+			await Promise.all([
+				// Notify the user
+				insertNotification(db, 'favourite', targetActor, fromActor, obj),
+				// Store the like for counting
+				insertLike(db, fromActor, obj),
+
+				sendLikeNotification(db, fromActor, targetActor),
+			])
 			break
 		}
 

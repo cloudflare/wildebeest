@@ -52,15 +52,6 @@ describe('ActivityPub', () => {
 	describe('Accept', () => {
 		beforeEach(() => {
 			globalThis.fetch = async (input: RequestInfo) => {
-				if (input.toString() === `https://${domain}/user/foo`) {
-					return new Response(
-						JSON.stringify({
-							id: 'https://example.com/users/foo',
-							type: 'Person',
-						})
-					)
-				}
-
 				throw new Error('unexpected request to ' + input)
 			}
 		})

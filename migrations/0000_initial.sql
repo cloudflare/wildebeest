@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS outbox_objects (
 );
 
 CREATE TABLE IF NOT EXISTS actor_notifications (
-  id TEXT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   type TEXT NOT NULL,
   actor_id TEXT NOT NULL,
   from_actor_id TEXT NOT NULL,

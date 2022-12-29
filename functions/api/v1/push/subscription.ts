@@ -5,6 +5,11 @@ import type { CreateRequest } from 'wildebeest/backend/src/mastodon/subscription
 import { ContextData } from 'wildebeest/backend/src/types/context'
 import { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
+import type { WebPushInfos, WebPushMessage, WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
+import { b64ToUrlEncoded, exportPublicKeyPair } from 'wildebeest/backend/src/webpush/util'
+import { generateWebPushMessage } from 'wildebeest/backend/src/webpush'
+import { getVAPIDKeys, VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
 	return handleGetRequest(env.DATABASE, request, data.connectedActor, data.clientId)
@@ -34,7 +39,7 @@ export async function handleGetRequest(db: D1Database, request: Request, connect
 
 	const res = {
 		id: 4,
-		endpoint: subscription.endpoint,
+		endpoint: subscription.gateway.endpoint,
 		alerts: {
 			follow: true,
 			favourite: true,
@@ -60,9 +65,12 @@ export async function handlePostRequest(db: D1Database, request: Request, connec
 	const data = await request.json<CreateRequest>()
 
 	let subscription = await getSubscription(db, connectedActor, client)
+
 	if (subscription === null) {
 		subscription = await createSubscription(db, connectedActor, client, data)
 	}
+
+	const vapidKey = VAPIDPublicKey(await getVAPIDKeys(db))
 
 	const res = {
 		id: 4,
@@ -75,9 +83,8 @@ export async function handlePostRequest(db: D1Database, request: Request, connec
 			poll: true,
 		},
 		policy: 'all',
-
-		// FIXME: stub value
-		server_key: 'TODO',
+		server_key: vapidKey,
 	}
+
 	return new Response(JSON.stringify(res), { headers })
 }

@@ -61,9 +61,9 @@ export async function handleRequest(domain: string, db: D1Database, connectedAct
 		const fromAccount = await loadExternalMastodonAccount(acct, fromActor)
 
 		const notif: Notification = {
-			id: result.notif_id,
+			id: result.notif_id.toString(),
 			type: result.type,
-			created_at: result.created_at,
+			created_at: new Date(result.cdate).toISOString(),
 			account: fromAccount,
 		}
 
@@ -71,7 +71,7 @@ export async function handleRequest(domain: string, db: D1Database, connectedAct
 			notif.status = {
 				id: result.mastodon_id,
 				content: properties.content,
-				uri: objects.uri(domain, result.id),
+				uri: result.id,
 				created_at: new Date(result.cdate).toISOString(),
 
 				emojis: [],
