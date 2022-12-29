@@ -60,7 +60,7 @@ export const RightColumn = component$(() => {
 				onResolved={(tags) => {
 					const top3 = tags.slice(0, 3)
 					return (
-						<div class="mb-4">
+						<div class="mt-9 mb-4">
 							<div class="px-4 text-uppercase text-sm text-bold">Trending Now</div>
 							<hr class="border-t border-slate-600 my-4" />
 							<div class="px-4">
