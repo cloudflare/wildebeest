@@ -1,6 +1,5 @@
 .container {
 	height: 100%;
-	// margin-top: 10px;
 	display: flex;
 	justify-content: center;
 }
@@ -25,9 +24,4 @@
 
 .content-wrapper:where(.full-content-wrapper) {
 	min-height: 100dvh;
-}
-
-// compensates for the 10px set w/ sticky on the columns
-.content-wrapper:where(:not(.full-content-wrapper)) {
-	margin-top: 10px;
 }
