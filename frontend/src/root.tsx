@@ -2,7 +2,7 @@ import { component$, useStyles$ } from '@builder.io/qwik'
 import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city'
 import { RouterHead } from './components/router-head/router-head'
 
-import './styles/normalize.scss'
+import 'modern-normalize/modern-normalize.css'
 import './styles/theme.scss'
 import './styles/utility.scss'
 import globalStyles from './styles/global.scss?inline'
