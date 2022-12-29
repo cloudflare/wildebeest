@@ -1,4 +1,6 @@
-
+.w-full {
+    width: 100%;
+}
 .max-w-xs {
     max-width: 20rem;
 }
@@ -43,4 +45,12 @@
 }
 .max-w-fit {
     max-width: fit-content;
+}
+
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.min-h-dscreen {
+    min-height: 100dvh;
 }

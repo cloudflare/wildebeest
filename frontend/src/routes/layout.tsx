@@ -26,8 +26,8 @@ export default component$(() => {
 					</div>
 				</div>
 			)}
-			<div class={`main-content ${showColumns ? '' : 'full-main-content'}`}>
-				<div class={`content-wrapper bg-slate-800 ${showColumns ? 'rounded ' : 'full-content-wrapper'}`}>
+			<div class={`w-full ${showColumns ? 'max-w-lg' : ''}`}>
+				<div class={`bg-slate-800 ${showColumns ? 'rounded ' : 'min-h-dscreen'}`}>
 					<Slot />
 				</div>
 			</div>

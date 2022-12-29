@@ -13,15 +13,3 @@
 	position: sticky;
 	top: 10px;
 }
-
-.main-content {
-	width: 100%;
-}
-
-.main-content:where(:not(.full-main-content)) {
-	max-width: 30rem;
-}
-
-.content-wrapper:where(.full-content-wrapper) {
-	min-height: 100dvh;
-}
