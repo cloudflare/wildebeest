@@ -1,14 +1,5 @@
 @use '../../styles/theme.scss' as theme;
 
-.header-wrapper {
-  position: sticky;
-  top: 0;
-  // compensates for the 10px set w/ sticky on the columns
-  padding-top: 10px;
-  background: theme.$backgroundBaseColor;
-  z-index: 2;
-}
-
 .container {
   display: flex;
   flex-direction: column;

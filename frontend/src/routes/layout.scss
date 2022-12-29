@@ -1,3 +1,5 @@
+@use '../styles/theme.scss' as theme;
+
 .container {
 	height: 100%;
 	display: flex;
@@ -13,3 +15,12 @@
 	position: sticky;
 	top: 10px;
 }
+
+:global(.header-wrapper) {
+	position: sticky;
+	top: 0;
+	// compensates for the 10px set w/ sticky on the columns
+	padding-top: 10px;
+	background: theme.$backgroundBaseColor;
+	z-index: 2;
+  }
