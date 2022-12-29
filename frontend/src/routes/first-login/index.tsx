@@ -44,7 +44,7 @@ export default component$(() => {
 				</div>
 				<button
 					type="submit"
-					class="bg-indigo-600 hover:bg-indigo-500 p3 text-white text-uppercase border-indigo-600 text-lg text-semi outline-none border rounded hover:border-indigo-500 focus:border-indigo-500"
+					class="mb-9 bg-indigo-600 hover:bg-indigo-500 p3 text-white text-uppercase border-indigo-600 text-lg text-semi outline-none border rounded hover:border-indigo-500 focus:border-indigo-500"
 				>
 					Register
 				</button>
