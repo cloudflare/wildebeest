@@ -1,5 +1,6 @@
 import { ContextData } from 'wildebeest/backend/src/types/context'
 import { Env } from 'wildebeest/backend/src/types/env'
+import { createClient } from 'wildebeest/backend/src/mastodon/client'
 
 type AppsPost = {
 	redirect_uris: string
@@ -8,10 +9,11 @@ type AppsPost = {
 	scopes: string
 }
 
-export const HARDCODED_CLIENT_ID = 'TWhM-tNSuncnqN7DBJmoyeLnk6K3iJJ71KKXxgL1hPM'
-export const HARDCODED_CLIENT_SECRET = 'ZEaFUFmF0umgBX1qKJDjaU99Q31lDkOU8NutzTOoliw'
-
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
+	return handleRequest(env.DATABASE, request)
+}
+
+export async function handleRequest(db: D1Database, request: Request) {
 	if (request.method !== 'POST') {
 		return new Response('', { status: 400 })
 	}
@@ -19,13 +21,18 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	const body = await request.json<AppsPost>()
 	console.log(body)
 
+	const client = await createClient(db, body.client_name, body.redirect_uris, body.website, body.scopes)
+
 	const res = {
 		name: body.client_name,
 		website: body.website,
 		redirect_uri: body.redirect_uris,
-		client_id: HARDCODED_CLIENT_ID,
-		client_secret: HARDCODED_CLIENT_SECRET,
-		vapid_key: 'BCk-QqERU0q-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M=',
+
+		client_id: client.id,
+		client_secret: client.secret,
+
+		// FIXME: stub value
+		vapid_key: 'TODO',
 	}
 	const headers = {
 		'Access-Control-Allow-Origin': '*',

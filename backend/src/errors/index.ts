@@ -41,3 +41,10 @@ export function timelineMissing(): Response {
 	}
 	return new Response(JSON.stringify(res), { headers, status: 404 })
 }
+
+export function clientUnknown(): Response {
+	const res: ErrorResponse = {
+		error: `The client is unknown or invalid. ${HELP}`,
+	}
+	return new Response(JSON.stringify(res), { headers, status: 403 })
+}

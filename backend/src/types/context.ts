@@ -11,4 +11,7 @@ export type ContextData = {
 
 	// Object returned by Cloudflare Access' provider
 	identity: Identity
+
+	// Client or app identifier
+	clientId: string
 }

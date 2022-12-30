@@ -107,7 +107,7 @@ CREATE INDEX IF NOT EXISTS actor_reblogs_object_id ON actor_reblogs(object_id);
 CREATE TABLE IF NOT EXISTS clients (
   id TEXT PRIMARY KEY,
   secret TEXT NOT NULL,
-  name TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
   redirect_uris TEXT NOT NULL,
   website TEXT,
   scopes TEXT,
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS clients (
 );
 
 CREATE TABLE IF NOT EXISTS subscriptions (
-  id INTEGER PRIMARY KEY,
+  id TEXT PRIMARY KEY,
   actor_id TEXT NOT NULL,
   client_id TEXT NOT NULL,
   endpoint TEXT NULL,

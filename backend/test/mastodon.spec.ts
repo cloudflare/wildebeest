@@ -5,7 +5,7 @@ import * as apps from 'wildebeest/functions/api/v1/apps'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
 import * as notifications from 'wildebeest/functions/api/v1/notifications'
 import { defaultImages } from 'wildebeest/config/accounts'
-import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from './utils'
+import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer, createTestClient } from './utils'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { Actor, createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
@@ -13,6 +13,7 @@ import { insertNotification, insertFollowNotification } from 'wildebeest/backend
 import { createClient, getClientById } from '../src/mastodon/client'
 import { createSubscription } from '../src/mastodon/subscription'
 import * as startInstance from 'wildebeest/functions/start-instance'
+import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
 
 const userKEK = 'test_kek'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -90,18 +91,13 @@ describe('Mastodon APIs', () => {
 
 	describe('apps', () => {
 		test('return the app infos', async () => {
+			const db = await makeDB()
 			const request = new Request('https://example.com', {
 				method: 'POST',
 				body: '{"redirect_uris":"mastodon://joinmastodon.org/oauth","website":"https://app.joinmastodon.org/ios","client_name":"Mastodon for iOS","scopes":"read write follow push"}',
 			})
-			const ctx: any = {
-				next: () => new Response(),
-				data: null,
-				env: {},
-				request,
-			}
 
-			const res = await apps.onRequest(ctx)
+			const res = await apps.handleRequest(db, request)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
@@ -113,12 +109,6 @@ describe('Mastodon APIs', () => {
 			assert.equal(name, 'Mastodon for iOS')
 			assert.equal(website, 'https://app.joinmastodon.org/ios')
 			assert.equal(redirect_uri, 'mastodon://joinmastodon.org/oauth')
-			assert.equal(client_id, 'TWhM-tNSuncnqN7DBJmoyeLnk6K3iJJ71KKXxgL1hPM')
-			assert.equal(client_secret, 'ZEaFUFmF0umgBX1qKJDjaU99Q31lDkOU8NutzTOoliw')
-			assert.equal(
-				vapid_key,
-				'BCk-QqERU0q-CfYZjcuB6lnyyOYfJ2AifKqfeGIm7Z-HiTU5T9eTG5GxVA0_OH5mMlI4UkkDTpaZwozy0TzdZ2M='
-			)
 			assert.deepEqual(rest, {})
 		})
 
@@ -197,38 +187,107 @@ describe('Mastodon APIs', () => {
 	})
 
 	describe('subscriptions', () => {
-		test('basic creation', async () => {
+		test('get non existing subscription', async () => {
 			const db = await makeDB()
-			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const actor = (await getPersonById(db, actorId)) as Actor
-			const client = await createClient(
-				db,
-				'client_name',
-				'https://redirect.com/',
-				'https://website.com',
-				'list create'
-			)
+			const req = new Request('https://example.com')
+			const client = await createTestClient(db)
+			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
 
-			const fetchedClient = await getClientById(db, client.id)
-			assert(fetchedClient)
-			assert.equal(client.secret, fetchedClient.secret)
+			const res = await subscription.handleGetRequest(db, req, connectedActor, client.id)
+			assert.equal(res.status, 404)
+		})
 
-			await createSubscription(db, actor, client, {
-				endpoint: 'https://endpoint',
-				key_p256dh: 'base64key',
-				key_auth: 'base64auth',
-				alert_mention: true,
-				alert_status: true,
-				alert_reblog: true,
-				alert_follow: true,
-				alert_follow_request: true,
-				alert_favourite: true,
-				alert_poll: true,
-				alert_update: true,
-				alert_admin_sign_up: true,
-				alert_admin_report: true,
-				policy: 'all',
+		test('get existing subscription', async () => {
+			const db = await makeDB()
+			const req = new Request('https://example.com')
+			const client = await createTestClient(db)
+			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+
+			const data: any = {
+				subscription: {
+					endpoint: 'https://endpoint.com',
+					keys: {
+						p256dh: 'p256dh',
+						auth: 'auth',
+					},
+				},
+				data: {
+					alerts: {},
+					policy: 'all',
+				},
+			}
+			await createSubscription(db, connectedActor, client, data)
+
+			const res = await subscription.handleGetRequest(db, req, connectedActor, client.id)
+			assert.equal(res.status, 200)
+
+			const out = await res.json<any>()
+			assert.equal(typeof out.id, 'number')
+			assert.equal(out.endpoint, data.subscription.endpoint)
+		})
+
+		test('create subscription', async () => {
+			const db = await makeDB()
+			const client = await createTestClient(db)
+			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+
+			const data: any = {
+				subscription: {
+					endpoint: 'https://endpoint.com',
+					keys: {
+						p256dh: 'p256dh',
+						auth: 'auth',
+					},
+				},
+				data: {
+					alerts: {},
+					policy: 'all',
+				},
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				body: JSON.stringify(data),
 			})
+
+			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id)
+			assert.equal(res.status, 200)
+
+			const row: any = await db.prepare('SELECT * FROM subscriptions').first()
+			assert.equal(row.actor_id, connectedActor.id.toString())
+			assert.equal(row.client_id, client.id)
+			assert.equal(row.endpoint, data.subscription.endpoint)
+		})
+
+		test('create subscriptions only creates one', async () => {
+			const db = await makeDB()
+			const client = await createTestClient(db)
+			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+
+			const data: any = {
+				subscription: {
+					endpoint: 'https://endpoint.com',
+					keys: {
+						p256dh: 'p256dh',
+						auth: 'auth',
+					},
+				},
+				data: {
+					alerts: {},
+					policy: 'all',
+				},
+			}
+			await createSubscription(db, connectedActor, client, data)
+
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				body: JSON.stringify(data),
+			})
+
+			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id)
+			assert.equal(res.status, 200)
+
+			const { count } = await db.prepare('SELECT count(*) as count FROM subscriptions').first()
+			assert.equal(count, 1)
 		})
 	})
 })

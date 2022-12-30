@@ -33,9 +33,10 @@ describe('middleware', () => {
 			throw new Error('unexpected request to ' + input)
 		}
 
-		const headers = { authorization: 'Bearer ' + TEST_JWT }
+		const headers = { authorization: 'Bearer APPID.' + TEST_JWT }
 		const request = new Request('https://example.com', { headers })
 		const ctx: any = {
+			data: {},
 			request,
 		}
 
@@ -62,7 +63,7 @@ describe('middleware', () => {
 
 		const db = await makeDB()
 
-		const headers = { authorization: 'Bearer ' + TEST_JWT }
+		const headers = { authorization: 'Bearer APPID.' + TEST_JWT }
 		const request = new Request('https://example.com', { headers })
 		const ctx: any = {
 			env: { DATABASE: db },
@@ -96,7 +97,7 @@ describe('middleware', () => {
 
 		const data: any = {}
 
-		const headers = { authorization: 'Bearer ' + TEST_JWT }
+		const headers = { authorization: 'Bearer APPID.' + TEST_JWT }
 		const request = new Request('https://example.com', { headers })
 		const ctx: any = {
 			next: () => new Response(),

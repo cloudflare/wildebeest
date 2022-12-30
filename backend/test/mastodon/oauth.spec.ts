@@ -3,7 +3,15 @@ import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import * as oauth_authorize from 'wildebeest/functions/oauth/authorize'
 import * as first_login from 'wildebeest/functions/first-login'
 import * as oauth_token from 'wildebeest/functions/oauth/token'
-import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
+import {
+	isUrlValid,
+	makeDB,
+	assertCORS,
+	assertJSON,
+	assertCache,
+	streamToArrayBuffer,
+	createTestClient,
+} from '../utils'
 import { TEST_JWT, ACCESS_CERTS } from '../test-data'
 import { strict as assert } from 'node:assert/strict'
 
@@ -55,18 +63,36 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 400)
 		})
 
-		test('authorize redirects with code on success and show first login', async () => {
+		test("authorize redirect_uri doesn't match client redirect_uris", async () => {
 			const db = await makeDB()
+			const client = await createTestClient(db, 'https://redirect.com')
 
 			const params = new URLSearchParams({
 				redirect_uri: 'https://example.com/a',
 				response_type: 'code',
-				client_id: 'client_id',
+				client_id: client.id,
 			})
 
-			const headers = {
-				'Cf-Access-Jwt-Assertion': TEST_JWT,
-			}
+			const headers = { 'Cf-Access-Jwt-Assertion': TEST_JWT }
+
+			const req = new Request('https://example.com/oauth/authorize?' + params, {
+				headers,
+			})
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
+			assert.equal(res.status, 403)
+		})
+
+		test('authorize redirects with code on success and show first login', async () => {
+			const db = await makeDB()
+			const client = await createTestClient(db)
+
+			const params = new URLSearchParams({
+				redirect_uri: client.redirect_uris,
+				response_type: 'code',
+				client_id: client.id,
+			})
+
+			const headers = { 'Cf-Access-Jwt-Assertion': TEST_JWT }
 
 			const req = new Request('https://example.com/oauth/authorize?' + params, {
 				headers,
@@ -77,7 +103,7 @@ describe('Mastodon APIs', () => {
 			const location = new URL(res.headers.get('location') || '')
 			assert.equal(
 				location.searchParams.get('redirect_uri'),
-				encodeURIComponent('https://example.com/a?code=' + TEST_JWT)
+				encodeURIComponent(`${client.redirect_uris}?code=${client.id}.${TEST_JWT}`)
 			)
 
 			// actor isn't created yet
@@ -118,43 +144,59 @@ describe('Mastodon APIs', () => {
 			assert((await getSigningKey(userKEK, db, actor)) instanceof CryptoKey)
 		})
 
+		test('token error on unknown client', async () => {
+			const db = await makeDB()
+			const body = { code: 'some-code' }
+
+			const req = new Request('https://example.com/oauth/token', {
+				method: 'POST',
+				body: JSON.stringify(body),
+			})
+			const res = await oauth_token.handleRequest(db, req)
+			assert.equal(res.status, 403)
+		})
+
 		test('token returns auth infos', async () => {
+			const db = await makeDB()
+			const testScope = 'test abcd'
+			const client = await createTestClient(db, 'https://localhost', testScope)
+
 			const body = {
-				code: 'some-code',
+				code: client.id + '.some-code',
 			}
 
 			const req = new Request('https://example.com/oauth/token', {
 				method: 'POST',
 				body: JSON.stringify(body),
 			})
-			const res = await oauth_token.handleRequest(req)
+			const res = await oauth_token.handleRequest(db, req)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
 
 			const data = await res.json<any>()
-			assert.equal(data.access_token, 'some-code')
-			assert.equal(data.scope, 'read write follow push')
+			assert.equal(data.access_token, body.code)
+			assert.equal(data.scope, testScope)
 		})
 
 		test('token handles empty code', async () => {
-			const body = {
-				code: '',
-			}
+			const db = await makeDB()
+			const body = { code: '' }
 
 			const req = new Request('https://example.com/oauth/token', {
 				method: 'POST',
 				body: JSON.stringify(body),
 			})
-			const res = await oauth_token.handleRequest(req)
+			const res = await oauth_token.handleRequest(db, req)
 			assert.equal(res.status, 401)
 		})
 
 		test('token returns CORS', async () => {
+			const db = await makeDB()
 			const req = new Request('https://example.com/oauth/token', {
 				method: 'OPTIONS',
 			})
-			const res = await oauth_token.handleRequest(req)
+			const res = await oauth_token.handleRequest(db, req)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 		})

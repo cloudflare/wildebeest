@@ -1,3 +1,5 @@
+import { arrayBufferToBase64 } from 'wildebeest/backend/src/utils/key-ops'
+
 export interface Client {
 	id: string
 	secret: string
@@ -5,7 +7,6 @@ export interface Client {
 	redirect_uris: string
 	website: string
 	scopes: string
-	cdate: Date
 }
 
 export async function createClient(
@@ -16,14 +17,20 @@ export async function createClient(
 	scopes: string
 ): Promise<Client> {
 	const id = crypto.randomUUID()
-	const secret = crypto.randomUUID()
+
+	const secretBytes = new Uint8Array(64)
+	crypto.getRandomValues(secretBytes)
+
+	const secret = arrayBufferToBase64(secretBytes.buffer)
 
 	const query = `
           INSERT INTO clients (id, secret, name, redirect_uris, website, scopes)
           VALUES (?, ?, ?, ?, ?, ?)
-		  RETURNING cdate
-`
-	const row: any = await db.prepare(query).bind(id, secret, name, redirect_uris, website, scopes).first()
+    `
+	const { success, error } = await db.prepare(query).bind(id, secret, name, redirect_uris, website, scopes).run()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
 
 	return {
 		id: id,
@@ -32,7 +39,6 @@ export async function createClient(
 		redirect_uris: redirect_uris,
 		website: website,
 		scopes: scopes,
-		cdate: row.cdate,
 	}
 }
 
@@ -50,6 +56,5 @@ export async function getClientById(db: D1Database, id: string): Promise<Client 
 		redirect_uris: row.redirect_uris,
 		website: row.website,
 		scopes: row.scopes,
-		cdate: row.cdate,
 	}
 }

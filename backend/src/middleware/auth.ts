@@ -10,6 +10,7 @@ export async function auth(context: EventContext<Env, any, any>) {
 		const headers = {
 			'Access-Control-Allow-Origin': '*',
 			'Access-Control-Allow-Headers': 'content-type, authorization',
+			'Access-Control-Allow-Methods': 'GET, PUT, POST',
 			'content-type': 'application/json',
 		}
 		return new Response('', { headers })
@@ -31,11 +32,17 @@ export async function auth(context: EventContext<Env, any, any>) {
 	} else {
 		try {
 			const authorization = context.request.headers.get('Authorization') || ''
-			const jwt = authorization.replace('Bearer ', '')
+			const token = authorization.replace('Bearer ', '')
 
-			if (jwt === '') {
+			if (token === '') {
 				return errors.notAuthorized('missing authorization')
 			}
+
+			const parts = token.split('.')
+			const [clientId, ...jwtParts] = parts
+			context.data.clientId = clientId
+
+			const jwt = jwtParts.join('.')
 
 			const validator = access.generateValidator({ jwt, ...accessConfig })
 			const { payload } = await validator(context.request)

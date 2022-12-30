@@ -1,4 +1,6 @@
 import { strict as assert } from 'node:assert/strict'
+import { createClient } from 'wildebeest/backend/src/mastodon/client'
+import type { Client } from 'wildebeest/backend/src/mastodon/client'
 import { promises as fs } from 'fs'
 import { BetaDatabase } from '@miniflare/d1'
 import * as Database from 'better-sqlite3'
@@ -53,4 +55,12 @@ export async function streamToArrayBuffer(stream: ReadableStream) {
 		result = newResult
 	}
 	return result
+}
+
+export async function createTestClient(
+	db: D1Database,
+	redirectUri: string = 'https://localhost',
+	scopes: string = 'read follow'
+): Promise<Client> {
+	return createClient(db, 'test client', redirectUri, 'https://cloudflare.com', scopes)
 }
