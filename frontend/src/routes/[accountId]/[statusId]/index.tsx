@@ -5,7 +5,7 @@ import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
-import { loader$ } from '@builder.io/qwik-city'
+import { Link, loader$ } from '@builder.io/qwik-city'
 
 export const statusLoader = loader$<
 	{ DATABASE: any; domain: string },
@@ -28,10 +28,10 @@ export default component$(() => {
 		<>
 			{/* Header */}
 			<div class="flex justify-between items-center rounded-t header bg-slate-700">
-				<a class="text-semi back-button p-4" href="/explore">
+				<Link class="text-semi back-button p-4" href="/explore">
 					<i class="fa fa-chevron-left mr-2" />
 					<span class="back-button-text">Back</span>
-				</a>
+				</Link>
 				<i class="fa fa-eye mr-4 text-slate-400" />
 			</div>
 			<div class="bg-slate-700 p-4">
@@ -40,6 +40,7 @@ export default component$(() => {
 					<img class="avatar" src={status.account.avatar} />
 					<div class="flex flex-column">
 						<div class="p-1">
+							{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
 							<a class="no-decoration">{status.account.display_name}</a>
 						</div>
 						<div class="p-1 text-slate-400">@{status.account.acct}</div>

@@ -1,5 +1,5 @@
 import { component$, useStylesScoped$ } from '@builder.io/qwik'
-import { useLocation } from '@builder.io/qwik-city'
+import { Link, useLocation } from '@builder.io/qwik-city'
 import { MastodonLogo } from '~/components/MastodonLogo'
 import styles from './RightColumn.scss?inline'
 
@@ -24,10 +24,10 @@ export const RightColumn = component$(() => {
 		}
 
 		return (
-			<a href={linkTarget} class={classList}>
+			<Link href={linkTarget} class={classList}>
 				<i class={`fa ${iconName} fa-fw mr-3`} />
 				{linkText}
-			</a>
+			</Link>
 		)
 	}
 

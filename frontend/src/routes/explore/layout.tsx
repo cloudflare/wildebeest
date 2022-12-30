@@ -1,5 +1,5 @@
 import { component$, Slot, useStylesScoped$ } from '@builder.io/qwik'
-import { useLocation } from '@builder.io/qwik-city'
+import { Link, useLocation } from '@builder.io/qwik-city'
 import styles from './layout.scss?inline'
 
 type LinkConfig = {
@@ -12,17 +12,14 @@ export default component$(() => {
 	const location = useLocation()
 
 	const renderNavLink = ({ linkText, linkTarget }: LinkConfig) => {
-		let classList = 'no-decoration text-bold text-slate-200 py-4'
-
-		// Color the active link indigo, stripping any trailing slash.
-		if (location.pathname.replace(/\/$/, '') === linkTarget) {
-			classList += ' active'
-		}
+		const isActive = location.pathname.replace(/\/$/, '') === linkTarget
 
 		return (
-			<a href={linkTarget} class={classList}>
-				{linkText}
-			</a>
+			<div class={`py-4 ${isActive ? 'active' : ''}`}>
+				<Link href={linkTarget} class="no-decoration text-bold text-slate-200 py-4">
+					{linkText}
+				</Link>
+			</div>
 		)
 	}
 

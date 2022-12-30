@@ -1,4 +1,4 @@
-import { component$, Resource } from '@builder.io/qwik'
+import { component$ } from '@builder.io/qwik'
 import { MastodonStatus } from '~/types'
 import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
 import Status from '~/components/Status'
