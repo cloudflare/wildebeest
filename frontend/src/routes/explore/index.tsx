@@ -2,7 +2,7 @@ import { component$ } from '@builder.io/qwik'
 import { DocumentHead } from '@builder.io/qwik-city'
 import Explore from './Explore'
 
-export { onGet } from './Explore'
+export { statusesLoader } from './Explore'
 
 export default component$(() => {
 	return <Explore />
