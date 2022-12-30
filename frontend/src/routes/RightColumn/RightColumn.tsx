@@ -7,16 +7,17 @@ type LinkConfig = {
 	iconName: string
 	linkText: string
 	linkTarget: string
+	linkActiveRegex: RegExp
 }
 
 export const RightColumn = component$(() => {
 	useStylesScoped$(styles)
 	const location = useLocation()
 
-	const renderNavLink = ({ iconName, linkText, linkTarget }: LinkConfig) => {
+	const renderNavLink = ({ iconName, linkText, linkTarget, linkActiveRegex }: LinkConfig) => {
 		let classList = 'mx-4 my-5 block no-decoration text-semi max-w-max ' + location.pathname
 
-		if (location.pathname.replace(/\/$/, '') === `${linkTarget}`) {
+		if (linkActiveRegex.test(location.pathname)) {
 			classList += ' text-indigo-400'
 		} else {
 			classList += ' hover:text-white focus:text-white'
@@ -31,9 +32,9 @@ export const RightColumn = component$(() => {
 	}
 
 	const links = [
-		{ iconName: 'fa-hashtag', linkText: 'Explore', linkTarget: '/explore' },
-		{ iconName: 'fa-users', linkText: 'Local', linkTarget: '/public/local' },
-		{ iconName: 'fa-globe', linkText: 'Federated', linkTarget: '/public' },
+		{ iconName: 'fa-hashtag', linkText: 'Explore', linkTarget: '/explore', linkActiveRegex: /^\/explore/ },
+		{ iconName: 'fa-users', linkText: 'Local', linkTarget: '/public/local', linkActiveRegex: /^\/public\/local/ },
+		{ iconName: 'fa-globe', linkText: 'Federated', linkTarget: '/public', linkActiveRegex: /^\/public\/?$/ },
 	]
 
 	return (
