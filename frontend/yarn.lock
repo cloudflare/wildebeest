@@ -297,12 +297,12 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@builder.io/qwik-city@0.0.128":
-  version "0.0.128"
-  resolved "https://registry.yarnpkg.com/@builder.io/qwik-city/-/qwik-city-0.0.128.tgz#66f8e375d3e1213242a2d1c0e7f2f72ca1f78202"
-  integrity sha512-IgE2nZuoyRGRpsQ9HwbWV8IaaP9rWZGgi1hSzXJLCW2GrVfB49aNph3lQYDeoBOdvUSIucfGbUXFLn7215JOFA==
+"@builder.io/qwik-city@0.1.0-beta6":
+  version "0.1.0-beta6"
+  resolved "https://registry.yarnpkg.com/@builder.io/qwik-city/-/qwik-city-0.1.0-beta6.tgz#ca9655252cd4e2b4c06930ca866397d41cf049f2"
+  integrity sha512-RdfMd9bKP9p/aIWtdR16dodBU8eBz78Y4FPUWrcGYfeSFjSB+arNy+M+gKNFpoYNmYgW7qz4J+N17DzVPfgY3A==
   dependencies:
-    "@mdx-js/mdx" "2.1.5"
+    "@mdx-js/mdx" "2.2.1"
     "@types/mdx" "2.0.3"
     source-map "0.7.4"
     vfile "5.3.6"
@@ -736,10 +736,10 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@mdx-js/mdx@2.1.5":
-  version "2.1.5"
-  resolved "https://registry.yarnpkg.com/@mdx-js/mdx/-/mdx-2.1.5.tgz#577937349fd555154382c2f805f5f52834a64903"
-  integrity sha512-zEG0lt+Bl/r5U6e0TOS7qDbsXICtemfAPquxWFsMbdzrvlWaqMGemLl+sjVpqlyaaiCiGVQBSGdCk0t1qXjkQg==
+"@mdx-js/mdx@2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@mdx-js/mdx/-/mdx-2.2.1.tgz#611af1b68135c94eb467eb07e006fa1d8eebe029"
+  integrity sha512-hZ3ex7exYLJn6FfReq8yTvA6TE53uW9UHJQM9IlSauOuS55J9y8RtA7W+dzp6Yrzr00/U1sd7q+Wf61q6SfiTQ==
   dependencies:
     "@types/estree-jsx" "^1.0.0"
     "@types/mdx" "^2.0.0"
