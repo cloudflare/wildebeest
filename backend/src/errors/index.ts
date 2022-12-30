@@ -7,44 +7,32 @@ const headers = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Headers': 'content-type, authorization',
 	'content-type': 'application/json',
+} as const
+
+function generateErrorResponse(error: string, status: number, errorDescription?: string): Response {
+	const res: ErrorResponse = {
+		error: `${error}. ` + 'If the problem persists please contact your instance administrator.',
+		...(errorDescription ? { error_description: errorDescription } : {}),
+	}
+	return new Response(JSON.stringify(res), { headers, status })
 }
 
-const HELP = 'If the problem persists please contact your instance administrator.'
-
 export function notAuthorized(error: string, descr?: string): Response {
-	const res: ErrorResponse = {
-		error: `An error occurred (${error}). ${HELP}`,
-	}
-	if (descr !== undefined) {
-		res.error_description = descr
-	}
-	return new Response(JSON.stringify(res), { headers, status: 401 })
+	return generateErrorResponse(`An error occurred (${error})`, 401, descr)
 }
 
 export function domainNotAuthorized(): Response {
-	const res: ErrorResponse = {
-		error: `Domain is not authorizated. ${HELP}`,
-	}
-	return new Response(JSON.stringify(res), { headers, status: 403 })
+	return generateErrorResponse(`Domain is not authorizated`, 403)
 }
 
 export function userConflict(): Response {
-	const res: ErrorResponse = {
-		error: `User already exists or conflicts. ${HELP}`,
-	}
-	return new Response(JSON.stringify(res), { headers, status: 403 })
+	return generateErrorResponse(`User already exists or conflicts`, 403)
 }
 
 export function timelineMissing(): Response {
-	const res: ErrorResponse = {
-		error: `The timeline is invalid or being regenerated. ${HELP}`,
-	}
-	return new Response(JSON.stringify(res), { headers, status: 404 })
+	return generateErrorResponse(`The timeline is invalid or being regenerated`, 404)
 }
 
 export function clientUnknown(): Response {
-	const res: ErrorResponse = {
-		error: `The client is unknown or invalid. ${HELP}`,
-	}
-	return new Response(JSON.stringify(res), { headers, status: 403 })
+	return generateErrorResponse(`The client is unknown or invalid`, 403)
 }
