@@ -4,7 +4,7 @@ import styles from './layout.scss?inline'
 import { LeftColumn } from './LeftColumn/LeftColumn'
 import { RightColumn } from './RightColumn/RightColumn'
 
-const pathsWithoutColumns = ['/first-login']
+const pathsWithoutColumns = ['/first-login', '/start-instance']
 
 export const useShowColumns = () => {
 	const location = useLocation()

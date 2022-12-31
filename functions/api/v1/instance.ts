@@ -16,7 +16,7 @@ export async function handleRequest(domain: string, db: D1Database) {
 	}
 
 	const query = `
-        SELECT * FROM instance_config
+        SELECT * FROM instance_config WHERE key IN ('title', 'description', 'email', 'short_description')
     `
 	const { results, error, success } = await db.prepare(query).all()
 	if (!success) {
@@ -39,7 +39,7 @@ export async function handleRequest(domain: string, db: D1Database) {
 	res.rules = []
 	res.uri = domain
 
-	if (res.short_description === undefined) {
+	if (!res.short_description) {
 		res.short_description = res.description
 	}
 

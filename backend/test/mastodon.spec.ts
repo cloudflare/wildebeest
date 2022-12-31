@@ -14,6 +14,7 @@ import { createClient, getClientById } from '../src/mastodon/client'
 import { createSubscription } from '../src/mastodon/subscription'
 import * as startInstance from 'wildebeest/functions/start-instance'
 import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
+import { configure } from 'wildebeest/backend/src/config'
 
 const userKEK = 'test_kek'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -23,17 +24,15 @@ describe('Mastodon APIs', () => {
 	describe('instance', () => {
 		test('return the instance infos v1', async () => {
 			const db = await makeDB()
-			const body = JSON.stringify({
+			const data = {
 				title: 'title',
 				uri: 'uri',
 				email: 'email',
 				description: 'description',
-			})
-			const req = new Request('https://example.com', {
-				method: 'POST',
-				body,
-			})
-			await startInstance.handlePostRequest(req, db)
+				accessAud: '1',
+				accessDomain: 'foo',
+			}
+			await configure(db, data)
 
 			const res = await v1_instance.handleRequest(domain, db)
 			assert.equal(res.status, 200)
@@ -41,24 +40,24 @@ describe('Mastodon APIs', () => {
 			assertJSON(res)
 			assertCache(res, 180)
 
-			const data = await res.json<any>()
-			assert.equal(data.rules.length, 0)
-			assert.equal(data.uri, domain)
+			{
+				const data = await res.json<any>()
+				assert.equal(data.rules.length, 0)
+				assert.equal(data.uri, domain)
+			}
 		})
 
 		test('return the instance infos v2', async () => {
 			const db = await makeDB()
-			const body = JSON.stringify({
+			const data = {
 				title: 'title',
 				uri: 'uri',
 				email: 'email',
 				description: 'description',
-			})
-			const req = new Request('https://example.com', {
-				method: 'POST',
-				body,
-			})
-			await startInstance.handlePostRequest(req, db)
+				accessAud: '1',
+				accessDomain: 'foo',
+			}
+			await configure(db, data)
 
 			const res = await v2_instance.handleRequest(domain, db)
 			assert.equal(res.status, 200)
@@ -69,23 +68,23 @@ describe('Mastodon APIs', () => {
 
 		test('adds a short_description if missing', async () => {
 			const db = await makeDB()
-			const body = JSON.stringify({
+			const data = {
 				title: 'title',
 				uri: 'uri',
 				email: 'email',
 				description: 'description',
-			})
-			const req = new Request('https://example.com', {
-				method: 'POST',
-				body,
-			})
-			await startInstance.handlePostRequest(req, db)
+				accessAud: '1',
+				accessDomain: 'foo',
+			}
+			await configure(db, data)
 
 			const res = await v1_instance.handleRequest(domain, db)
 			assert.equal(res.status, 200)
 
-			const data = await res.json<any>()
-			assert.equal(data.short_description, 'description')
+			{
+				const data = await res.json<any>()
+				assert.equal(data.short_description, 'description')
+			}
 		})
 	})
 
