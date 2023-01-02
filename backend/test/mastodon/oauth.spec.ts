@@ -41,18 +41,20 @@ describe('Mastodon APIs', () => {
 
 		test('authorize missing params', async () => {
 			const db = await makeDB()
+			await configureAccess(db, accessDomain, accessAud)
 
 			let req = new Request('https://example.com/oauth/authorize')
-			let res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			let res = await oauth_authorize.handleRequest(req, db, userKEK)
 			assert.equal(res.status, 400)
 
 			req = new Request('https://example.com/oauth/authorize?scope=foobar')
-			res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			res = await oauth_authorize.handleRequest(req, db, userKEK)
 			assert.equal(res.status, 400)
 		})
 
 		test('authorize unsupported response_type', async () => {
 			const db = await makeDB()
+			await configureAccess(db, accessDomain, accessAud)
 
 			const params = new URLSearchParams({
 				redirect_uri: 'https://example.com',
@@ -61,13 +63,14 @@ describe('Mastodon APIs', () => {
 			})
 
 			const req = new Request('https://example.com/oauth/authorize?' + params)
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
 			assert.equal(res.status, 400)
 		})
 
 		test("authorize redirect_uri doesn't match client redirect_uris", async () => {
 			const db = await makeDB()
 			const client = await createTestClient(db, 'https://redirect.com')
+			await configureAccess(db, accessDomain, accessAud)
 
 			const params = new URLSearchParams({
 				redirect_uri: 'https://example.com/a',
@@ -80,7 +83,7 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize?' + params, {
 				headers,
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
 			assert.equal(res.status, 403)
 		})
 
@@ -100,7 +103,7 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize?' + params, {
 				headers,
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
 			assert.equal(res.status, 302)
 
 			const location = new URL(res.headers.get('location') || '')
@@ -209,7 +212,7 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize', {
 				method: 'OPTIONS',
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequest(req, db, userKEK)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 		})

@@ -11,16 +11,10 @@ import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
 const extractJWTFromRequest = (request: Request) => request.headers.get('Cf-Access-Jwt-Assertion') || ''
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, request, env }) => {
-	return handleRequest(request, env.DATABASE, env.userKEK, data.accessDomain, data.accessAud)
+	return handleRequest(request, env.DATABASE, env.userKEK)
 }
 
-export async function handleRequest(
-	request: Request,
-	db: D1Database,
-	userKEK: string,
-	accessDomain: string,
-	accessAud: string
-): Promise<Response> {
+export async function handleRequest(request: Request, db: D1Database, userKEK: string): Promise<Response> {
 	if (request.method === 'OPTIONS') {
 		const headers = {
 			'Access-Control-Allow-Origin': '*',
@@ -60,11 +54,18 @@ export async function handleRequest(
 
 	const scope = url.searchParams.get('scope') || ''
 
-	const jwt = extractJWTFromRequest(request)
-	const validator = access.generateValidator({ jwt, domain: accessDomain, aud: accessAud })
-	const { payload } = await validator(request)
+	const query = `
+        SELECT
+            (SELECT value FROM instance_config WHERE key='accessAud') as accessAud,
+            (SELECT value FROM instance_config WHERE key='accessDomain') as accessDomain
+    `
+	const config: any = await db.prepare(query).first()
 
-	const identity = await access.getIdentity({ jwt, domain: accessDomain })
+	const jwt = extractJWTFromRequest(request)
+	const validate = access.generateValidator({ jwt, domain: config.accessDomain, aud: config.accessAud })
+	await validate(request)
+
+	const identity = await access.getIdentity({ jwt, domain: config.accessDomain })
 	if (!identity) {
 		return new Response('', { status: 401 })
 	}
