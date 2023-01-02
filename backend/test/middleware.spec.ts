@@ -3,7 +3,7 @@ import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { TEST_JWT, ACCESS_CERTS } from './test-data'
 import { strict as assert } from 'node:assert/strict'
 import { accessConfig } from 'wildebeest/config/access'
-import * as middleware_auth from 'wildebeest/backend/src/middleware/auth'
+import * as middleware_main from 'wildebeest/backend/src/middleware/main'
 
 const userKEK = 'test_kek12'
 const domain = 'cloudflare.com'
@@ -15,7 +15,7 @@ describe('middleware', () => {
 			request,
 		}
 
-		const res = await middleware_auth.auth(ctx)
+		const res = await middleware_main.auth(ctx)
 		assert.equal(res.status, 200)
 		assertCORS(res)
 	})
@@ -40,7 +40,7 @@ describe('middleware', () => {
 			request,
 		}
 
-		const res = await middleware_auth.auth(ctx)
+		const res = await middleware_main.auth(ctx)
 		assert.equal(res.status, 401)
 	})
 
@@ -71,7 +71,7 @@ describe('middleware', () => {
 			request,
 		}
 
-		const res = await middleware_auth.auth(ctx)
+		const res = await middleware_main.auth(ctx)
 		assert.equal(res.status, 401)
 	})
 
@@ -106,7 +106,7 @@ describe('middleware', () => {
 			request,
 		}
 
-		const res = await middleware_auth.auth(ctx)
+		const res = await middleware_main.auth(ctx)
 		assert.equal(res.status, 200)
 		assert(!data.connectedUser)
 		assert(isUrlValid(data.connectedActor.id))
