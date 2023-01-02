@@ -1,9 +1,50 @@
 import * as access from 'wildebeest/backend/src/access'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
-import { accessConfig } from 'wildebeest/config/access'
 import type { Env } from 'wildebeest/backend/src/types/env'
+import type { Identity, ContextData } from 'wildebeest/backend/src/types/context'
 import * as errors from 'wildebeest/backend/src/errors'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
+
+async function loadContextData(db: D1Database, clientId: string, email: string): Promise<ContextData | null> {
+	const query = `
+        SELECT
+            actors.*,
+            (SELECT value FROM instance_config WHERE key='accessAud') as accessAud,
+            (SELECT value FROM instance_config WHERE key='accessDomain') as accessDomain
+        FROM actors
+        WHERE email=? AND type='Person'
+    `
+	const { results, success, error } = await db.prepare(query).bind(email).all()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+
+	if (!results || results.length === 0) {
+		console.warn('no results')
+		return null
+	}
+
+	const row: any = results[0]
+
+	if (!row.id) {
+		console.warn('person not found')
+		return null
+	}
+	if (!row.accessDomain || !row.accessAud) {
+		console.warn('access configuration not found')
+		return null
+	}
+
+	const person = actors.personFromRow(row)
+
+	return {
+		connectedActor: person,
+		identity: { email },
+		clientId,
+		accessDomain: row.accessDomain,
+		accessAud: row.accessAud,
+	}
+}
 
 export async function auth(context: EventContext<Env, any, any>) {
 	if (context.request.method === 'OPTIONS') {
@@ -46,37 +87,35 @@ export async function auth(context: EventContext<Env, any, any>) {
 
 			const jwt = jwtParts.join('.')
 
-			const validator = access.generateValidator({ jwt, ...accessConfig })
-			const { payload } = await validator(context.request)
+			const payload = access.getPayload(jwt)
+			if (!payload.email) {
+				return errors.notAuthorized('missing email')
+			}
 
-			const identity = await access.getIdentity({ jwt, domain: accessConfig.domain })
+			// Load the user associated with the email in the payload *before*
+			// verifying the JWT validity.
+			// This is because loading the context will also load the access
+			// configuration, which are used to verify the JWT.
+			const data = await loadContextData(context.env.DATABASE, clientId, payload.email)
+			if (data === null) {
+				return errors.notAuthorized('failed to load context data')
+			}
+
+			const validatate = access.generateValidator({ jwt, domain: data.accessDomain, aud: data.accessAud })
+			await validatate(context.request)
+
+			// Once we ensured the JWt is valid, we can use the data.
+			context.data = data
+
+			const identity = await access.getIdentity({ jwt, domain: data.accessDomain })
 			if (!identity) {
 				return errors.notAuthorized('failed to load identity')
 			}
-			context.data.identity = identity
-
-			const person = await actors.getPersonByEmail(context.env.DATABASE, identity.email)
-			if (person === null) {
-				return errors.notAuthorized('user not found')
-			}
-
-			context.data.connectedActor = person
 
 			return context.next()
 		} catch (err: any) {
 			console.warn(err.stack)
 			return errors.notAuthorized('unknown error occurred')
 		}
-
-		return new Response(null, {
-			status: 302,
-			headers: {
-				Location: access.generateLoginURL({
-					redirectURL: context.request.url,
-					domain: accessConfig.domain,
-					aud: accessConfig.aud,
-				}),
-			},
-		})
 	}
 }

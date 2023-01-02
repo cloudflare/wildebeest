@@ -4,6 +4,8 @@
 
 const isTesting = typeof jest !== 'undefined'
 
+const textDecoder = new TextDecoder('utf-8')
+
 export type Identity = {
 	id: string
 	name: string
@@ -46,15 +48,6 @@ export type PluginArgs = {
 	domain: string
 }
 
-export type PluginData = {
-	cloudflareAccess: {
-		JWT: {
-			payload: JWTPayload
-			getIdentity: () => Promise<undefined | Identity>
-		}
-	}
-}
-
 type CloudflareAccessPagesPluginFunction<
 	Env = unknown,
 	Params extends string = any,
@@ -78,6 +71,17 @@ const asciiToUint8Array = (s: string) => {
 	return new Uint8Array(chars)
 }
 
+export function getPayload(jwt: string): JWTPayload {
+	const parts = jwt.split('.')
+	if (parts.length !== 3) {
+		throw new Error('JWT does not have three parts.')
+	}
+	const [, payload] = parts
+
+	const payloadObj = JSON.parse(textDecoder.decode(base64URLDecode(payload)))
+	return payloadObj
+}
+
 export const generateValidator =
 	({ domain, aud, jwt }: { domain: string; aud: string; jwt: string }) =>
 	async (
@@ -91,13 +95,12 @@ export const generateValidator =
 		}
 		const [header, payload, signature] = parts
 
-		const textDecoder = new TextDecoder('utf-8')
 		const { kid, alg } = JSON.parse(textDecoder.decode(base64URLDecode(header)))
 		if (alg !== 'RS256') {
 			throw new Error('Unknown JWT type or algorithm.')
 		}
 
-		const certsURL = new URL('/cdn-cgi/access/certs', domain)
+		const certsURL = new URL('/cdn-cgi/access/certs', 'https://' + domain)
 		const certsResponse = await fetch(certsURL.toString())
 		const { keys } = (await certsResponse.json()) as {
 			keys: ({
@@ -158,7 +161,7 @@ export const generateValidator =
 	}
 
 export const getIdentity = async ({ jwt, domain }: { jwt: string; domain: string }): Promise<undefined | Identity> => {
-	const identityURL = new URL('/cdn-cgi/access/get-identity', domain)
+	const identityURL = new URL('/cdn-cgi/access/get-identity', 'https://' + domain)
 	const response = await fetch(identityURL.toString(), {
 		headers: { Cookie: `CF_Authorization=${jwt}` },
 	})
@@ -181,8 +184,8 @@ export const generateLoginURL = ({
 		kid: aud,
 		redirect_url: redirectURL.pathname + redirectURL.search,
 	})
-	return new URL(loginPathname + searchParams.toString(), domain).toString()
+	return new URL(loginPathname + searchParams.toString(), 'https://' + domain).toString()
 }
 
 export const generateLogoutURL = ({ domain }: { domain: string }) =>
-	new URL(`/cdn-cgi/access/logout`, domain).toString()
+	new URL(`/cdn-cgi/access/logout`, 'https://' + domain).toString()

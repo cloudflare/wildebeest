@@ -1,20 +1,26 @@
 // https://docs.joinmastodon.org/methods/oauth/#authorize
 
+import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import { getClientById } from 'wildebeest/backend/src/mastodon/client'
-import { accessConfig } from 'wildebeest/config/access'
 import * as access from 'wildebeest/backend/src/access'
 import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
 
 // Extract the JWT token sent by Access (running before us).
 const extractJWTFromRequest = (request: Request) => request.headers.get('Cf-Access-Jwt-Assertion') || ''
 
-export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
-	return handleRequest(request, env.DATABASE, env.userKEK)
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, request, env }) => {
+	return handleRequest(request, env.DATABASE, env.userKEK, data.accessDomain, data.accessAud)
 }
 
-export async function handleRequest(request: Request, db: D1Database, userKEK: string): Promise<Response> {
+export async function handleRequest(
+	request: Request,
+	db: D1Database,
+	userKEK: string,
+	accessDomain: string,
+	accessAud: string
+): Promise<Response> {
 	if (request.method === 'OPTIONS') {
 		const headers = {
 			'Access-Control-Allow-Origin': '*',
@@ -55,10 +61,10 @@ export async function handleRequest(request: Request, db: D1Database, userKEK: s
 	const scope = url.searchParams.get('scope') || ''
 
 	const jwt = extractJWTFromRequest(request)
-	const validator = access.generateValidator({ jwt, ...accessConfig })
+	const validator = access.generateValidator({ jwt, domain: accessDomain, aud: accessAud })
 	const { payload } = await validator(request)
 
-	const identity = await access.getIdentity({ jwt, domain: accessConfig.domain })
+	const identity = await access.getIdentity({ jwt, domain: accessDomain })
 	if (!identity) {
 		return new Response('', { status: 401 })
 	}
