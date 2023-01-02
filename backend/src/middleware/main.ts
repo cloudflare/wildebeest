@@ -5,7 +5,7 @@ import type { Identity, ContextData } from 'wildebeest/backend/src/types/context
 import * as errors from 'wildebeest/backend/src/errors'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
-async function loadContextData(db: D1Database, clientId: string, email: string): Promise<ContextData | null> {
+async function loadContextData(db: D1Database, clientId: string, email: string, ctx: any): Promise<boolean> {
 	const query = `
         SELECT
             actors.*,
@@ -21,29 +21,29 @@ async function loadContextData(db: D1Database, clientId: string, email: string):
 
 	if (!results || results.length === 0) {
 		console.warn('no results')
-		return null
+		return false
 	}
 
 	const row: any = results[0]
 
 	if (!row.id) {
 		console.warn('person not found')
-		return null
+		return false
 	}
 	if (!row.accessDomain || !row.accessAud) {
 		console.warn('access configuration not found')
-		return null
+		return false
 	}
 
 	const person = actors.personFromRow(row)
 
-	return {
-		connectedActor: person,
-		identity: { email },
-		clientId,
-		accessDomain: row.accessDomain,
-		accessAud: row.accessAud,
-	}
+	ctx.data.connectedActor = person
+	ctx.data.identity = { email }
+	ctx.data.clientId = clientId
+	ctx.data.accessDomain = row.accessDomain
+	ctx.data.accessAud = row.accessAud
+
+	return true
 }
 
 export async function main(context: EventContext<Env, any, any>) {
@@ -83,7 +83,6 @@ export async function main(context: EventContext<Env, any, any>) {
 
 			const parts = token.split('.')
 			const [clientId, ...jwtParts] = parts
-			context.data.clientId = clientId
 
 			const jwt = jwtParts.join('.')
 
@@ -96,18 +95,18 @@ export async function main(context: EventContext<Env, any, any>) {
 			// verifying the JWT validity.
 			// This is because loading the context will also load the access
 			// configuration, which are used to verify the JWT.
-			const data = await loadContextData(context.env.DATABASE, clientId, payload.email)
-			if (data === null) {
+			if (!(await loadContextData(context.env.DATABASE, clientId, payload.email, context))) {
 				return errors.notAuthorized('failed to load context data')
 			}
 
-			const validatate = access.generateValidator({ jwt, domain: data.accessDomain, aud: data.accessAud })
+			const validatate = access.generateValidator({
+				jwt,
+				domain: context.data.accessDomain,
+				aud: context.data.accessAud,
+			})
 			await validatate(context.request)
 
-			// Once we ensured the JWt is valid, we can use the data.
-			context.data = data
-
-			const identity = await access.getIdentity({ jwt, domain: data.accessDomain })
+			const identity = await access.getIdentity({ jwt, domain: context.data.accessDomain })
 			if (!identity) {
 				return errors.notAuthorized('failed to load identity')
 			}
