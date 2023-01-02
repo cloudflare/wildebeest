@@ -46,7 +46,7 @@ async function loadContextData(db: D1Database, clientId: string, email: string):
 	}
 }
 
-export async function auth(context: EventContext<Env, any, any>) {
+export async function main(context: EventContext<Env, any, any>) {
 	if (context.request.method === 'OPTIONS') {
 		const headers = {
 			'Access-Control-Allow-Origin': '*',

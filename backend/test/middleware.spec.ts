@@ -17,7 +17,7 @@ describe('middleware', () => {
 			request,
 		}
 
-		const res = await middleware_main.auth(ctx)
+		const res = await middleware_main.main(ctx)
 		assert.equal(res.status, 200)
 		assertCORS(res)
 	})
@@ -45,7 +45,7 @@ describe('middleware', () => {
 			request,
 		}
 
-		const res = await middleware_main.auth(ctx)
+		const res = await middleware_main.main(ctx)
 		assert.equal(res.status, 401)
 	})
 
@@ -76,7 +76,7 @@ describe('middleware', () => {
 			request,
 		}
 
-		const res = await middleware_main.auth(ctx)
+		const res = await middleware_main.main(ctx)
 		assert.equal(res.status, 401)
 	})
 
@@ -110,7 +110,7 @@ describe('middleware', () => {
 			request,
 		}
 
-		const res = await middleware_main.auth(ctx)
+		const res = await middleware_main.main(ctx)
 		assert.equal(res.status, 200)
 		assert(!ctx.data.connectedUser)
 		assert(isUrlValid(ctx.data.connectedActor.id))
