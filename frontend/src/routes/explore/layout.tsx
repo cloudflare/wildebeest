@@ -1,5 +1,6 @@
 import { component$, Slot, useStylesScoped$ } from '@builder.io/qwik'
 import { Link, useLocation } from '@builder.io/qwik-city'
+import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import styles from './layout.scss?inline'
 
 type LinkConfig = {
@@ -40,12 +41,12 @@ export default component$(() => {
 
 	return (
 		<div class="container">
-			<div class="header-wrapper">
+			<StickyHeader>
 				<h2 class="text-reg text-md m-0 p-4 bg-slate-700 rounded-t">
 					<i class="fa fa-hashtag fa-fw mr-3" />
 					<span>Explore</span>
 				</h2>
-			</div>
+			</StickyHeader>
 			<div class="bg-slate-900 flex justify-around">{links.map((link) => renderNavLink(link))}</div>
 			<div class="content-container">
 				<Slot />

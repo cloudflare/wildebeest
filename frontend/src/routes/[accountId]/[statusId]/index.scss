@@ -1,12 +1,5 @@
 @use '../../../styles/theme.scss' as theme;
 
-// todo: this is broken but needs a big refactor
-// which is also needed for the explore sticky header
-.header {
-  position: sticky;
-  top: 0;
-}
-
 .back-button {
   background: transparent;
   color: theme.$indigo400;

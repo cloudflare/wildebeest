@@ -6,6 +6,7 @@ import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
 import { Link, loader$ } from '@builder.io/qwik-city'
+import StickyHeader from '~/components/StickyHeader/StickyHeader'
 
 export const statusLoader = loader$<
 	{ DATABASE: any; domain: string },
@@ -26,14 +27,15 @@ export default component$(() => {
 
 	return (
 		<>
-			{/* Header */}
-			<div class="flex justify-between items-center rounded-t header bg-slate-700">
-				<Link class="text-semi back-button p-4" href="/explore">
-					<i class="fa fa-chevron-left mr-2" />
-					<span class="back-button-text">Back</span>
-				</Link>
-				<i class="fa fa-eye mr-4 text-slate-400" />
-			</div>
+			<StickyHeader>
+				<div class="flex justify-between items-center rounded-t header bg-slate-700">
+					<Link class="text-semi back-button p-4" href="/explore">
+						<i class="fa fa-chevron-left mr-2" />
+						<span class="back-button-text">Back</span>
+					</Link>
+					<i class="fa fa-eye mr-4 text-slate-400" />
+				</div>
+			</StickyHeader>
 			<div class="bg-slate-700 p-4">
 				{/* Account Card */}
 				<div class="flex">
