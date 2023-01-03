@@ -34,7 +34,7 @@ export async function handleGetRequest(db: D1Database, request: Request): Promis
 		return errors.notAuthorized('missing authorization')
 	}
 
-	const domain = 'https://' + data.accessDomain
+	const domain = data.accessDomain
 
 	const validator = access.generateValidator({ jwt, domain, aud: data.accessAud })
 	const { payload } = await validator(request)
