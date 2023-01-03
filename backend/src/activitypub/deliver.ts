@@ -38,8 +38,8 @@ export async function deliverFollowers(db: D1Database, signingKey: CryptoKey, fr
 	const body = JSON.stringify(activity)
 	const followers = await getFollowers(db, from)
 
-	for (let i = 0, len = followers.length; i < len; i++) {
-		const follower = new URL(followers[i])
+	const promises = followers.map(async (id) => {
+		const follower = new URL(id)
 
 		// FIXME: When an actor follows another Actor we should download its object
 		// locally, so we can retrieve the Actor's inbox without a request.
@@ -47,7 +47,7 @@ export async function deliverFollowers(db: D1Database, signingKey: CryptoKey, fr
 		const targetActor = await actors.getAndCache(follower, db)
 		if (targetActor === null) {
 			console.warn(`actor ${follower} not found`)
-			continue
+			return
 		}
 
 		const req = new Request(targetActor.inbox, {
@@ -62,11 +62,14 @@ export async function deliverFollowers(db: D1Database, signingKey: CryptoKey, fr
 		const res = await fetch(req)
 		if (!res.ok) {
 			const body = await res.text()
-			throw new Error(`delivery to ${targetActor.inbox} returned ${res.status}: ${body}`)
+			console.error(`delivery to ${targetActor.inbox} returned ${res.status}: ${body}`)
+			return
 		}
 		{
 			const body = await res.text()
 			console.log(`${targetActor.inbox} returned 200: ${body}`)
 		}
-	}
+	})
+
+	await Promise.all(promises)
 }
