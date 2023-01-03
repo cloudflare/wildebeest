@@ -71,5 +71,5 @@ export async function deliverFollowers(db: D1Database, signingKey: CryptoKey, fr
 		}
 	})
 
-	await Promise.all(promises)
+	await Promise.allSettled(promises)
 }

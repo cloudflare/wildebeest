@@ -20,37 +20,60 @@ export async function createNotification(
 	actor: Actor,
 	fromActor: Actor,
 	obj: Object
-): Promise<Notification> {
+): Promise<string> {
 	const query = `
           INSERT INTO actor_notifications (type, actor_id, from_actor_id, object_id)
           VALUES (?, ?, ?, ?)
+          RETURNING id
 `
-	const out = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString(), obj.id.toString()).run()
-	if (!out.success) {
-		throw new Error('SQL error: ' + out.error)
-	}
+	const row: any = await db
+		.prepare(query)
+		.bind(type, actor.id.toString(), fromActor.id.toString(), obj.id.toString())
+		.first()
+	return row.id
 }
 
-export async function insertFollowNotification(db: D1Database, actor: Actor, fromActor: Actor) {
+export async function insertFollowNotification(db: D1Database, actor: Actor, fromActor: Actor): Promise<string> {
 	const type: NotificationType = 'follow'
 
 	const query = `
           INSERT INTO actor_notifications (type, actor_id, from_actor_id)
           VALUES (?, ?, ?)
+          RETURNING id
 `
-	const out = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).run()
-	if (!out.success) {
-		throw new Error('SQL error: ' + out.error)
-	}
+	const row: any = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).first()
+	return row.id
 }
 
-export async function sendLikeNotification(db: D1Database, fromActor: Actor, actor: Actor) {
+export async function sendFollowNotification(db: D1Database, follower: Actor, actor: Actor, notificationId: string) {
+	const sub = await config.get(db, 'email')
+
+	const data = {
+		preferred_locale: 'en',
+		notification_type: 'follow',
+		notification_id: notificationId,
+		icon: follower.icon!.url,
+		title: 'New follower',
+		body: `${follower.name} is now following you`,
+	}
+
+	const message: WebPushMessage = {
+		data: JSON.stringify(data),
+		urgency: 'normal',
+		sub,
+		ttl: 60 * 24 * 7,
+	}
+
+	return sendNotification(db, actor, message)
+}
+
+export async function sendLikeNotification(db: D1Database, fromActor: Actor, actor: Actor, notificationId: string) {
 	const sub = await config.get(db, 'email')
 
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'favourite',
-		notification_id: Date.now() | 0,
+		notification_id: notificationId,
 		icon: fromActor.icon!.url,
 		title: 'New favourite',
 		body: `${fromActor.name} favourited your status`,
@@ -63,24 +86,71 @@ export async function sendLikeNotification(db: D1Database, fromActor: Actor, act
 		ttl: 60 * 24 * 7,
 	}
 
-	const subscriptions = await getSubscriptionForAllClients(db, actor)
-
-	await Promise.all(subscriptions.map((s) => sendNotification(db, s, message)))
+	return sendNotification(db, actor, message)
 }
 
-async function sendNotification(db: D1Database, subscription: Subscription, message: WebPushMessage) {
+export async function sendMentionNotification(db: D1Database, fromActor: Actor, actor: Actor, notificationId: string) {
+	const sub = await config.get(db, 'email')
+
+	const data = {
+		preferred_locale: 'en',
+		notification_type: 'favourite',
+		notification_id: notificationId,
+		icon: fromActor.icon!.url,
+		title: 'New favourite',
+		body: `${fromActor.name} favourited your status`,
+	}
+
+	const message: WebPushMessage = {
+		data: JSON.stringify(data),
+		urgency: 'normal',
+		sub,
+		ttl: 60 * 24 * 7,
+	}
+
+	return sendNotification(db, actor, message)
+}
+
+export async function sendReblogNotification(db: D1Database, fromActor: Actor, actor: Actor, notificationId: string) {
+	const sub = await config.get(db, 'email')
+
+	const data = {
+		preferred_locale: 'en',
+		notification_type: 'reblog',
+		notification_id: notificationId,
+		icon: fromActor.icon!.url,
+		title: 'New boost',
+		body: `${fromActor.name} boosted your status`,
+	}
+
+	const message: WebPushMessage = {
+		data: JSON.stringify(data),
+		urgency: 'normal',
+		sub,
+		ttl: 60 * 24 * 7,
+	}
+
+	return sendNotification(db, actor, message)
+}
+
+async function sendNotification(db: D1Database, actor: Actor, message: WebPushMessage) {
 	const vapidKeys = await getVAPIDKeys(db)
+	const subscriptions = await getSubscriptionForAllClients(db, actor)
 
-	const device: WebPushInfos = {
-		endpoint: subscription.gateway.endpoint,
-		key: subscription.gateway.keys.p256dh,
-		auth: subscription.gateway.keys.auth,
-	}
+	const promises = subscriptions.map(async (subscription) => {
+		const device: WebPushInfos = {
+			endpoint: subscription.gateway.endpoint,
+			key: subscription.gateway.keys.p256dh,
+			auth: subscription.gateway.keys.auth,
+		}
 
-	const result = await generateWebPushMessage(message, device, vapidKeys)
-	if (result !== WebPushResult.Success) {
-		throw new Error('failed to send push notification')
-	}
+		const result = await generateWebPushMessage(message, device, vapidKeys)
+		if (result !== WebPushResult.Success) {
+			throw new Error('failed to send push notification')
+		}
+	})
+
+	await Promise.allSettled(promises)
 }
 
 export async function getNotifications(db: D1Database, actor: Actor): Promise<Array<Notification>> {

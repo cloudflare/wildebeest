@@ -1,4 +1,5 @@
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
+import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
 import * as ap_followers_page from 'wildebeest/functions/ap/users/[id]/followers/page'
 import * as ap_following_page from 'wildebeest/functions/ap/users/[id]/following/page'
 import * as ap_followers from 'wildebeest/functions/ap/users/[id]/followers'
@@ -33,6 +34,8 @@ describe('ActivityPub', () => {
 
 		test('Receive follow with Accept reply', async () => {
 			const db = await makeDB()
+			await configure(db, { title: 'title', description: 'a', email: 'email' })
+			await generateVAPIDKeys(db)
 			const actor: any = {
 				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
 			}
@@ -153,6 +156,8 @@ describe('ActivityPub', () => {
 
 		test('creates a notification', async () => {
 			const db = await makeDB()
+			await configure(db, { title: 'title', description: 'a', email: 'email' })
+			await generateVAPIDKeys(db)
 			const actor: any = {
 				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
 			}

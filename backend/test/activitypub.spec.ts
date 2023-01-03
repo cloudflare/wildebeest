@@ -1,6 +1,7 @@
 import { makeDB, assertCache, isUrlValid } from './utils'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
+import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
@@ -263,6 +264,7 @@ describe('ActivityPub', () => {
 					return new Response(
 						JSON.stringify({
 							id: remoteActorId,
+							icon: { url: 'img.com' },
 							type: 'Person',
 						})
 					)
@@ -282,7 +284,11 @@ describe('ActivityPub', () => {
 			}
 
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			await configure(db, { title: 'title', description: 'a', email: 'email' })
+			await generateVAPIDKeys(db)
+			const actor: any = {
+				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
+			}
 
 			const activity: any = {
 				type: 'Announce',

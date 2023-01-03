@@ -148,7 +148,7 @@ describe('Mastodon APIs', () => {
 				icon: { url: 'icon.com' },
 			}
 
-			await sendLikeNotification(db, fromActor, actor)
+			await sendLikeNotification(db, fromActor, actor, 'notifid')
 		})
 	})
 })

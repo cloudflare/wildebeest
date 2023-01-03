@@ -6,7 +6,10 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import * as accept from 'wildebeest/backend/src/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/backend/src/activitypub/actors/inbox'
 import {
+	sendMentionNotification,
 	sendLikeNotification,
+	sendFollowNotification,
+	sendReblogNotification,
 	createNotification,
 	insertFollowNotification,
 } from 'wildebeest/backend/src/mastodon/notification'
@@ -179,9 +182,12 @@ export async function handle(
 						continue
 					}
 
-					await addObjectInInbox(db, person, obj)
 					// FIXME: check if the actor mentions the person
-					await createNotification(db, 'mention', person, fromActor, obj)
+					const notifId = await createNotification(db, 'mention', person, fromActor, obj)
+					await Promise.all([
+						await addObjectInInbox(db, person, obj),
+						await sendMentionNotification(db, fromActor, person, notifId),
+					])
 				}
 			}
 
@@ -213,8 +219,11 @@ export async function handle(
 			if (receiver !== null) {
 				const originalActor = await actors.getAndCache(new URL(actorId), db)
 				const receiverAcct = `${receiver.preferredUsername}@${domain}`
-				await addFollowing(db, originalActor, receiver, receiverAcct)
-				await acceptFollowing(db, originalActor, receiver)
+
+				await Promise.all([
+					addFollowing(db, originalActor, receiver, receiverAcct),
+					acceptFollowing(db, originalActor, receiver),
+				])
 
 				// Automatically send the Accept reply
 				const reply = accept.create(receiver, activity)
@@ -222,7 +231,8 @@ export async function handle(
 				await deliverToActor(signingKey, receiver, originalActor, reply)
 
 				// Notify the user
-				await insertFollowNotification(db, receiver, originalActor)
+				const notifId = await insertFollowNotification(db, receiver, originalActor)
+				await sendFollowNotification(db, originalActor, receiver, notifId)
 			} else {
 				console.warn(`actor ${objectId} not found`)
 			}
@@ -259,6 +269,15 @@ export async function handle(
 
 			const fromActor = await actors.getAndCache(actorId, db)
 
+			// notify the user
+			const targetActor = await actors.getPersonById(db, new URL(obj.originalActorId))
+			if (targetActor === null) {
+				console.warn('object actor not found')
+				break
+			}
+
+			const notifId = await createNotification(db, 'reblog', targetActor, fromActor, obj)
+
 			await Promise.all([
 				// Add the object in the originating actor's outbox, allowing other
 				// actors on this instance to see the note in their timelines.
@@ -266,6 +285,8 @@ export async function handle(
 
 				// Store the reblog for counting
 				insertReblog(db, fromActor, obj),
+
+				sendReblogNotification(db, fromActor, targetActor, notifId),
 			])
 			break
 		}
@@ -288,14 +309,14 @@ export async function handle(
 				break
 			}
 
-			await Promise.all([
+			const [notifId] = await Promise.all([
 				// Notify the user
 				createNotification(db, 'favourite', targetActor, fromActor, obj),
 				// Store the like for counting
 				insertLike(db, fromActor, obj),
-
-				sendLikeNotification(db, fromActor, targetActor),
 			])
+
+			await sendLikeNotification(db, fromActor, targetActor, notifId)
 			break
 		}
 
