@@ -1,6 +1,6 @@
 import * as notifications_get from 'wildebeest/functions/api/v1/notifications/[id]'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
-import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
+import { createNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import * as notifications from 'wildebeest/functions/api/v1/notifications'
 import { makeDB, assertJSON, assertCORS, createTestClient } from '../utils'
@@ -55,9 +55,9 @@ describe('Mastodon APIs', () => {
 			}
 			await insertFollowNotification(db, connectedActor, fromActor)
 			await sleep(10)
-			await insertNotification(db, 'favourite', connectedActor, fromActor, note)
+			await createNotification(db, 'favourite', connectedActor, fromActor, note)
 			await sleep(10)
-			await insertNotification(db, 'mention', connectedActor, fromActor, note)
+			await createNotification(db, 'mention', connectedActor, fromActor, note)
 
 			const notifications: any = await getNotifications(db, connectedActor)
 
@@ -80,7 +80,7 @@ describe('Mastodon APIs', () => {
 			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
 			const fromActor: any = { id: await createPerson(domain, db, userKEK, 'from@cloudflare.com') }
 			const note = await createPublicNote(domain, db, 'my first status', actor)
-			await insertNotification(db, 'favourite', actor, fromActor, note)
+			await createNotification(db, 'favourite', actor, fromActor, note)
 
 			const res = await notifications_get.handleRequest(domain, '1', db, actor)
 

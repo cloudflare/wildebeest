@@ -7,7 +7,7 @@ import * as accept from 'wildebeest/backend/src/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/backend/src/activitypub/actors/inbox'
 import {
 	sendLikeNotification,
-	insertNotification,
+	createNotification,
 	insertFollowNotification,
 } from 'wildebeest/backend/src/mastodon/notification'
 import { type Object, updateObject } from 'wildebeest/backend/src/activitypub/objects'
@@ -181,7 +181,7 @@ export async function handle(
 
 					await addObjectInInbox(db, person, obj)
 					// FIXME: check if the actor mentions the person
-					await insertNotification(db, 'mention', person, fromActor, obj)
+					await createNotification(db, 'mention', person, fromActor, obj)
 				}
 			}
 
@@ -290,7 +290,7 @@ export async function handle(
 
 			await Promise.all([
 				// Notify the user
-				insertNotification(db, 'favourite', targetActor, fromActor, obj),
+				createNotification(db, 'favourite', targetActor, fromActor, obj),
 				// Store the like for counting
 				insertLike(db, fromActor, obj),
 

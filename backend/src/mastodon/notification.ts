@@ -14,13 +14,13 @@ import { getSubscriptionForAllClients } from 'wildebeest/backend/src/mastodon/su
 import { getVAPIDKeys } from 'wildebeest/backend/src/mastodon/subscription'
 import * as config from 'wildebeest/backend/src/config'
 
-export async function insertNotification(
+export async function createNotification(
 	db: D1Database,
 	type: NotificationType,
 	actor: Actor,
 	fromActor: Actor,
 	obj: Object
-) {
+): Promise<Notification> {
 	const query = `
           INSERT INTO actor_notifications (type, actor_id, from_actor_id, object_id)
           VALUES (?, ?, ?, ?)
