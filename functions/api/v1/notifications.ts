@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/notifications/#get
 
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
@@ -27,12 +28,13 @@ export async function handleRequest(domain: string, db: D1Database, connectedAct
         objects.*,
         actor_notifications.type,
         actor_notifications.actor_id,
-        actor_notifications.from_actor_id,
+        actor_notifications.from_actor_id as notif_from_actor_id,
         actor_notifications.id as notif_id
     FROM actor_notifications
     LEFT JOIN objects ON objects.id=actor_notifications.object_id
     WHERE actor_id=?
     ORDER BY actor_notifications.cdate DESC
+    LIMIT 20
   `
 
 	const stmt = db.prepare(query).bind(connectedActor.id.toString())
@@ -49,25 +51,31 @@ export async function handleRequest(domain: string, db: D1Database, connectedAct
 	for (let i = 0, len = results.length; i < len; i++) {
 		const result = results[i] as any
 		const properties = JSON.parse(result.properties)
-		const from_actor_id = new URL(result.from_actor_id)
+		const notifFromActorId = new URL(result.notif_from_actor_id)
 
-		const fromActor = await getPersonById(db, from_actor_id)
-		if (!fromActor) {
+		const notifFromActor = await getPersonById(db, notifFromActorId)
+		if (!notifFromActor) {
 			console.warn('unknown actor')
 			continue
 		}
 
-		const acct = urlToHandle(from_actor_id)
-		const fromAccount = await loadExternalMastodonAccount(acct, fromActor)
+		const acct = urlToHandle(notifFromActorId)
+		const notifFromAccount = await loadExternalMastodonAccount(acct, notifFromActor)
 
 		const notif: Notification = {
 			id: result.notif_id.toString(),
 			type: result.type,
 			created_at: new Date(result.cdate).toISOString(),
-			account: fromAccount,
+			account: notifFromAccount,
 		}
 
 		if (result.type === 'mention' || result.type === 'favourite') {
+			const actorId = new URL(result.original_actor_id)
+			const actor = await actors.getAndCache(actorId, db)
+
+			const acct = urlToHandle(actorId)
+			const account = await loadExternalMastodonAccount(acct, actor)
+
 			notif.status = {
 				id: result.mastodon_id,
 				content: properties.content,
@@ -79,10 +87,7 @@ export async function handleRequest(domain: string, db: D1Database, connectedAct
 				tags: [],
 				mentions: [],
 
-				// TODO: a shortcut has been taked. We assume that the actor
-				// generating the notification also created the object. In practice
-				// likely true but not guarantee.
-				account: fromAccount,
+				account,
 
 				// TODO: stub values
 				visibility: 'public',

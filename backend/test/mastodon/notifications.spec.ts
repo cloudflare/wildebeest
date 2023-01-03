@@ -31,25 +31,19 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const fromActorId = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
-			await db
-				.prepare("INSERT INTO objects (id, type, properties, local, mastodon_id) VALUES (?, ?, ?, 1, 'mastodon_id')")
-				.bind('object1', 'Note', JSON.stringify({ content: 'my status' }))
-				.run()
 
 			const connectedActor: any = {
 				id: actorId,
 			}
+			const note = await createPublicNote(domain, db, 'my first status', connectedActor)
 			const fromActor: any = {
 				id: fromActorId,
 			}
-			const obj: any = {
-				id: 'object1',
-			}
 			await insertFollowNotification(db, connectedActor, fromActor)
 			await sleep(10)
-			await insertNotification(db, 'favourite', connectedActor, fromActor, obj)
+			await insertNotification(db, 'favourite', connectedActor, fromActor, note)
 			await sleep(10)
-			await insertNotification(db, 'mention', connectedActor, fromActor, obj)
+			await insertNotification(db, 'mention', connectedActor, fromActor, note)
 
 			const res = await notifications.handleRequest(domain, db, connectedActor)
 			assert.equal(res.status, 200)
@@ -61,11 +55,12 @@ describe('Mastodon APIs', () => {
 
 			assert.equal(data[0].type, 'mention')
 			assert.equal(data[0].account.username, 'from')
-			assert.equal(data[0].status.id, 'mastodon_id')
+			assert.equal(data[0].status.id, note.mastodonId)
 
 			assert.equal(data[1].type, 'favourite')
 			assert.equal(data[1].account.username, 'from')
-			assert.equal(data[1].status.id, 'mastodon_id')
+			assert.equal(data[1].status.id, note.mastodonId)
+			assert.equal(data[1].status.account.username, 'sven')
 
 			assert.equal(data[2].type, 'follow')
 			assert.equal(data[2].account.username, 'from')
