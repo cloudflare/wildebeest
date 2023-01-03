@@ -34,5 +34,7 @@ export async function handlePostRequest(request: Request, db: D1Database): Promi
 	}
 
 	await config.configure(db, data)
-	return new Response()
+	await config.generateVAPIDKeys(db)
+
+	return new Response('', { status: 201 })
 }

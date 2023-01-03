@@ -31,3 +31,21 @@ export async function configureAccess(db: D1Database, domain: string, aud: strin
 		throw new Error('SQL error: ' + error)
 	}
 }
+
+export async function generateVAPIDKeys(db: D1Database) {
+	const keyPair = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
+		'sign',
+		'verify',
+	])) as CryptoKeyPair
+	const jwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey)
+
+	const sql = `
+        INSERT INTO instance_config
+        VALUES ('vapid_jwk', ?);
+    `
+
+	const { success, error } = await db.prepare(sql).bind(JSON.stringify(jwk)).run()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+}

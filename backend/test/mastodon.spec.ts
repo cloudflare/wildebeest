@@ -12,7 +12,6 @@ import { Actor, createPerson, getPersonById } from 'wildebeest/backend/src/activ
 import { insertNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createClient, getClientById } from '../src/mastodon/client'
 import { createSubscription } from '../src/mastodon/subscription'
-import * as startInstance from 'wildebeest/functions/start-instance'
 import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
 import { configure } from 'wildebeest/backend/src/config'
 
