@@ -5,7 +5,7 @@ import Status from '~/components/Status'
 import { loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 
-export const statusesLoader = loader$<{ DATABASE: any; domain: string }, Promise<MastodonStatus[]>>(
+export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<MastodonStatus[]>>(
 	async ({ platform }) => {
 		// TODO: use the "trending" API endpoint here.
 		const response = await timelines.handleRequest(platform.domain, platform.DATABASE, { local: true })

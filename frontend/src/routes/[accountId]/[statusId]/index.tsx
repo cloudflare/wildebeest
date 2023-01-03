@@ -9,7 +9,7 @@ import { Link, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 
 export const statusLoader = loader$<
-	{ DATABASE: any; domain: string },
+	{ DATABASE: D1Database; domain: string },
 	Promise<{ status: MastodonStatus; context: StatusContext }>
 >(async ({ platform, params }) => {
 	const response = await statusAPI.handleRequest(platform.DATABASE, params.statusId)

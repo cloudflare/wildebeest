@@ -24,11 +24,20 @@ export type MastodonStatus = {
 	media_attachments: MediaAttachment[]
 	mentions: Mention[]
 	tags: Tag[]
-	emojis: any[]
+	emojis: Emoji[]
 	account: Account
-	card: any
-	poll: any
+	card: Card
+	poll: Poll
 }
+
+/* eslint-disable @typescript-eslint/no-explicit-any
+-- TODO: We need to agree on the types to be used and replace the
+   following `any`s with proper types
+*/
+type Emoji = any
+type Card = any
+type Poll = any
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export type Account = {
 	id: string
@@ -51,7 +60,7 @@ export type Account = {
 	statuses_count: number
 	last_status_at: string
 	noindex?: boolean
-	emojis: Array<any>
+	emojis: Array<Emoji>
 	fields: AccountField[]
 }
 
