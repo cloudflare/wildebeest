@@ -50,25 +50,28 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 	if (query.domain === null) {
 		const sql = `
           SELECT actors.* FROM actors
-          WHERE rowid IN (SELECT rowid FROM search_fts WHERE (preferredUsername MATCH ? OR name MATCH ?) AND type='Person' ORDER BY rank LIMIT 10) OR 0
+          WHERE rowid IN (SELECT rowid FROM search_fts WHERE (preferredUsername MATCH ? OR name MATCH ?) AND type='Person' ORDER BY rank LIMIT 10)
         `
-		// `OR 0` makes the statement not throw when the rowid set is empty.
 
-		const { results, success, error } = await db
-			.prepare(sql)
-			.bind(query.localPart + '*', query.localPart + '*')
-			.all()
-		if (!success) {
-			throw new Error('SQL error: ' + error)
-		}
-
-		if (results !== undefined) {
-			for (let i = 0, len = results.length; i < len; i++) {
-				const row: any = results[i]
-				const actor = personFromRow(row)
-				const acct = urlToHandle(new URL(row.id))
-				out.accounts.push(await loadExternalMastodonAccount(acct, actor))
+		try {
+			const { results, success, error } = await db
+				.prepare(sql)
+				.bind(query.localPart + '*', query.localPart + '*')
+				.all()
+			if (!success) {
+				throw new Error('SQL error: ' + error)
 			}
+
+			if (results !== undefined) {
+				for (let i = 0, len = results.length; i < len; i++) {
+					const row: any = results[i]
+					const actor = personFromRow(row)
+					const acct = urlToHandle(new URL(row.id))
+					out.accounts.push(await loadExternalMastodonAccount(acct, actor))
+				}
+			}
+		} catch (err: any) {
+			console.warn(`failed to search: ${err.stack}`)
 		}
 	}
 
