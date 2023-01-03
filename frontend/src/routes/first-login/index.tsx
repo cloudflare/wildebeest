@@ -1,13 +1,7 @@
 import { component$ } from '@builder.io/qwik'
-import { DocumentHead, useLocation } from '@builder.io/qwik-city'
+import { DocumentHead } from '@builder.io/qwik-city'
 import { MastodonLogo } from '~/components/MastodonLogo'
-
-export const useDomain = () => {
-	const location = useLocation()
-	const url = new URL(location.href)
-	const domain = url.hostname
-	return domain
-}
+import { useDomain } from '~/utils/useDomain'
 
 export default component$(() => {
 	const domain = useDomain()
