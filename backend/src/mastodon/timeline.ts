@@ -5,10 +5,8 @@ import { toMastodonStatusFromRow } from './status'
 import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors/'
 
 export async function pregenerateTimelines(domain: string, db: D1Database, cache: KVNamespace, actor: Actor) {
-	{
-		const timeline = await getHomeTimeline(domain, db, actor)
-		await cache.put(actor.id + '/timeline/home', JSON.stringify(timeline))
-	}
+	const timeline = await getHomeTimeline(domain, db, actor)
+	await cache.put(actor.id + '/timeline/home', JSON.stringify(timeline))
 }
 
 export async function getHomeTimeline(domain: string, db: D1Database, actor: Actor): Promise<Array<MastodonStatus>> {

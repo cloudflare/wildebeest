@@ -9,6 +9,7 @@ import { sendLikeNotification } from 'wildebeest/backend/src/mastodon/notificati
 import { createSubscription } from 'wildebeest/backend/src/mastodon/subscription'
 import { generateVAPIDKeys, configure } from 'wildebeest/backend/src/config'
 import { arrayBufferToBase64 } from 'wildebeest/backend/src/utils/key-ops'
+import { getNotifications } from 'wildebeest/backend/src/mastodon/notification'
 
 const userKEK = 'test_kek15'
 const domain = 'cloudflare.com'
@@ -27,6 +28,19 @@ function parseCryptoKey(s: string): any {
 
 describe('Mastodon APIs', () => {
 	describe('notifications', () => {
+		test('returns notifications stored in KV cache', async () => {
+			const connectedActor: any = { id: 'id' }
+			const kv_cache: any = {
+				async get(key: string) {
+					assert.equal(key, 'id/notifications')
+					return 'cached data'
+				},
+			}
+			const req = new Request('https://' + domain)
+			const data = await notifications.handleRequest(req, kv_cache, connectedActor)
+			assert.equal(await data.text(), 'cached data')
+		})
+
 		test('returns notifications stored in db', async () => {
 			const db = await makeDB()
 			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
@@ -45,26 +59,20 @@ describe('Mastodon APIs', () => {
 			await sleep(10)
 			await insertNotification(db, 'mention', connectedActor, fromActor, note)
 
-			const res = await notifications.handleRequest(domain, db, connectedActor)
-			assert.equal(res.status, 200)
-			assertJSON(res)
-			assertCORS(res)
+			const notifications: any = await getNotifications(db, connectedActor)
 
-			const data = await res.json<Array<any>>()
-			assert.equal(data.length, 3)
+			assert.equal(notifications[0].type, 'mention')
+			assert.equal(notifications[0].account.username, 'from')
+			assert.equal(notifications[0].status.id, note.mastodonId)
 
-			assert.equal(data[0].type, 'mention')
-			assert.equal(data[0].account.username, 'from')
-			assert.equal(data[0].status.id, note.mastodonId)
+			assert.equal(notifications[1].type, 'favourite')
+			assert.equal(notifications[1].account.username, 'from')
+			assert.equal(notifications[1].status.id, note.mastodonId)
+			assert.equal(notifications[1].status.account.username, 'sven')
 
-			assert.equal(data[1].type, 'favourite')
-			assert.equal(data[1].account.username, 'from')
-			assert.equal(data[1].status.id, note.mastodonId)
-			assert.equal(data[1].status.account.username, 'sven')
-
-			assert.equal(data[2].type, 'follow')
-			assert.equal(data[2].account.username, 'from')
-			assert.equal(data[2].status, undefined)
+			assert.equal(notifications[2].type, 'follow')
+			assert.equal(notifications[2].account.username, 'from')
+			assert.equal(notifications[2].status, undefined)
 		})
 
 		test('get single non existant notification', async () => {

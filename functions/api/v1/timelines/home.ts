@@ -15,10 +15,18 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
-	return handleRequest(env.KV_CACHE, data.connectedActor)
+	return handleRequest(request, env.KV_CACHE, data.connectedActor)
 }
 
-export async function handleRequest(cache: KVNamespace, actor: Actor): Promise<Response> {
+export async function handleRequest(request: Request, cache: KVNamespace, actor: Actor): Promise<Response> {
+	const url = new URL(request.url)
+	if (url.searchParams.has('max_id')) {
+		// We just return the pregenerated notifications, without any filter for
+		// pagination. Return an empty array to avoid duplicating notifications
+		// in the app.
+		return new Response(JSON.stringify([]), { headers })
+	}
+
 	const timeline = await cache.get(actor.id + '/timeline/home')
 	if (timeline === null) {
 		return errors.timelineMissing()

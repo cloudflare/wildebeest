@@ -85,7 +85,8 @@ describe('Mastodon APIs', () => {
 					return 'cached data'
 				},
 			}
-			const data = await timelines_home.handleRequest(kv_cache, connectedActor)
+			const req = new Request('https://' + domain)
+			const data = await timelines_home.handleRequest(req, kv_cache, connectedActor)
 			assert.equal(await data.text(), 'cached data')
 		})
 

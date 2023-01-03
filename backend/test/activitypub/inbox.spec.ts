@@ -13,12 +13,14 @@ const kv_cache: any = {
 	async put() {},
 }
 
+const waitUntil = async (p: Promise<any>) => await p
+
 describe('ActivityPub', () => {
 	test('send Note to non existant user', async () => {
 		const db = await makeDB()
 
 		const activity: any = {}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
 		assert.equal(res.status, 404)
 	})
 
@@ -37,7 +39,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
 		assert.equal(res.status, 200)
 
 		const entry = await db
@@ -77,7 +79,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM outbox_objects WHERE actor_id=?').bind(remoteActorId).first()
@@ -100,7 +102,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_notifications').first()
@@ -139,7 +141,7 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actors WHERE id=?').bind(actorB).first()
@@ -161,7 +163,7 @@ describe('ActivityPub', () => {
 					content: 'post',
 				},
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
+			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
 			assert.equal(res.status, 200)
 		}
 
@@ -177,7 +179,7 @@ describe('ActivityPub', () => {
 					content: 'reply',
 				},
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK)
+			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
 			assert.equal(res.status, 200)
 		}
 
@@ -205,7 +207,7 @@ describe('ActivityPub', () => {
 			actor: actorB.id,
 			object: note.id,
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_reblogs').first()
@@ -226,7 +228,7 @@ describe('ActivityPub', () => {
 			actor: actorB.id,
 			object: note.id,
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
+		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_favourites').first()
@@ -248,7 +250,7 @@ describe('ActivityPub', () => {
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
+			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
@@ -270,7 +272,7 @@ describe('ActivityPub', () => {
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK)
+			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_favourites').first()

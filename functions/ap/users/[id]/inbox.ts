@@ -9,8 +9,9 @@ import { parseRequest } from 'wildebeest/backend/src/utils/httpsigjs/parser'
 import { fetchKey, verifySignature } from 'wildebeest/backend/src/utils/httpsigjs/verifier'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
+import * as notification from 'wildebeest/backend/src/mastodon/notification'
 
-export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
+export const onRequest: PagesFunction<Env, any> = async ({ params, request, env, waitUntil }) => {
 	const parsedSignature = parseRequest(request)
 	const pubKey = await fetchKey(parsedSignature)
 	const valid = await verifySignature(parsedSignature, pubKey)
@@ -29,7 +30,7 @@ export const onRequest: PagesFunction<Env, any> = async ({ params, request, env 
 
 	const activity: Activity = JSON.parse(body)
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, env.KV_CACHE, params.id as string, activity, env.userKEK)
+	return handleRequest(domain, env.DATABASE, env.KV_CACHE, params.id as string, activity, env.userKEK, waitUntil)
 }
 
 export async function handleRequest(
@@ -38,7 +39,8 @@ export async function handleRequest(
 	cache: KVNamespace,
 	id: string,
 	activity: Activity,
-	userKEK: string
+	userKEK: string,
+	waitUntil: (p: Promise<any>) => void
 ): Promise<Response> {
 	const handle = parseHandle(id)
 
@@ -54,8 +56,14 @@ export async function handleRequest(
 
 	await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
 
-	// Assuming we received new posts, pregenerate the user's timelines
-	await timeline.pregenerateTimelines(domain, db, cache, actor)
+	// Assuming we received new posts or a like, pregenerate the user's timelines
+	// and notifications.
+	waitUntil(
+		Promise.all([
+			timeline.pregenerateTimelines(domain, db, cache, actor),
+			notification.pregenerateNotifications(db, cache, actor),
+		])
+	)
 
 	return new Response('', { status: 200 })
 }

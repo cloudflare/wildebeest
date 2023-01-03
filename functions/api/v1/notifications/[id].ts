@@ -30,6 +30,7 @@ export async function handleRequest(
             actor_notifications.type,
             actor_notifications.actor_id,
             actor_notifications.from_actor_id,
+            actor_notifications.cdate as notif_cdate,
             actor_notifications.id as notif_id
         FROM actor_notifications
         INNER JOIN objects ON objects.id=actor_notifications.object_id
@@ -50,7 +51,7 @@ export async function handleRequest(
 	const out: Notification = {
 		id: row.notif_id.toString(),
 		type: row.type,
-		created_at: new Date(row.cdate).toISOString(),
+		created_at: new Date(row.notif_cdate).toISOString(),
 		account: fromAccount,
 	}
 

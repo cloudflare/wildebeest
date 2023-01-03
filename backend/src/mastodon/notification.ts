@@ -1,6 +1,10 @@
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { generateWebPushMessage } from 'wildebeest/backend/src/webpush'
+import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import type { WebPushInfos, WebPushMessage } from 'wildebeest/backend/src/webpush/webpushinfos'
 import { WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
@@ -77,4 +81,89 @@ async function sendNotification(db: D1Database, subscription: Subscription, mess
 	if (result !== WebPushResult.Success) {
 		throw new Error('failed to send push notification')
 	}
+}
+
+export async function getNotifications(db: D1Database, actor: Actor): Promise<Array<Notification>> {
+	const query = `
+    SELECT
+        objects.*,
+        actor_notifications.type,
+        actor_notifications.actor_id,
+        actor_notifications.from_actor_id as notif_from_actor_id,
+        actor_notifications.cdate as notif_cdate,
+        actor_notifications.id as notif_id
+    FROM actor_notifications
+    LEFT JOIN objects ON objects.id=actor_notifications.object_id
+    WHERE actor_id=?
+    ORDER BY actor_notifications.cdate DESC
+    LIMIT 20
+  `
+
+	const stmt = db.prepare(query).bind(actor.id.toString())
+	const { results, success, error } = await stmt.all()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+
+	const out: Array<Notification> = []
+	if (!results || results.length === 0) {
+		return []
+	}
+
+	for (let i = 0, len = results.length; i < len; i++) {
+		const result = results[i] as any
+		const properties = JSON.parse(result.properties)
+		const notifFromActorId = new URL(result.notif_from_actor_id)
+
+		const notifFromActor = await getPersonById(db, notifFromActorId)
+		if (!notifFromActor) {
+			console.warn('unknown actor')
+			continue
+		}
+
+		const acct = urlToHandle(notifFromActorId)
+		const notifFromAccount = await loadExternalMastodonAccount(acct, notifFromActor)
+
+		const notif: Notification = {
+			id: result.notif_id.toString(),
+			type: result.type,
+			created_at: new Date(result.notif_cdate).toISOString(),
+			account: notifFromAccount,
+		}
+
+		if (result.type === 'mention' || result.type === 'favourite') {
+			const actorId = new URL(result.original_actor_id)
+			const actor = await actors.getAndCache(actorId, db)
+
+			const acct = urlToHandle(actorId)
+			const account = await loadExternalMastodonAccount(acct, actor)
+
+			notif.status = {
+				id: result.mastodon_id,
+				content: properties.content,
+				uri: result.id,
+				created_at: new Date(result.cdate).toISOString(),
+
+				emojis: [],
+				media_attachments: [],
+				tags: [],
+				mentions: [],
+
+				account,
+
+				// TODO: stub values
+				visibility: 'public',
+				spoiler_text: '',
+			}
+		}
+
+		out.push(notif)
+	}
+
+	return out
+}
+
+export async function pregenerateNotifications(db: D1Database, cache: KVNamespace, actor: Actor) {
+	const notifications = await getNotifications(db, actor)
+	await cache.put(actor.id + '/notifications', JSON.stringify(notifications))
 }

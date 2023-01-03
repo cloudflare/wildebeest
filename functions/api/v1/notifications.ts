@@ -1,19 +1,14 @@
 // https://docs.joinmastodon.org/methods/notifications/#get
 
-import * as actors from 'wildebeest/backend/src/activitypub/actors'
-import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import type { Notification } from 'wildebeest/backend/src/types/notification'
+import { getNotifications } from 'wildebeest/backend/src/mastodon/notification'
 import type { MastodonStatus } from 'wildebeest/backend/src/types'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
-import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, data.connectedActor)
+	return handleRequest(request, env.KV_CACHE, data.connectedActor)
 }
 
 const headers = {
@@ -22,80 +17,18 @@ const headers = {
 	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
-export async function handleRequest(domain: string, db: D1Database, connectedActor: Person): Promise<Response> {
-	const query = `
-    SELECT
-        objects.*,
-        actor_notifications.type,
-        actor_notifications.actor_id,
-        actor_notifications.from_actor_id as notif_from_actor_id,
-        actor_notifications.id as notif_id
-    FROM actor_notifications
-    LEFT JOIN objects ON objects.id=actor_notifications.object_id
-    WHERE actor_id=?
-    ORDER BY actor_notifications.cdate DESC
-    LIMIT 20
-  `
-
-	const stmt = db.prepare(query).bind(connectedActor.id.toString())
-	const { results, success, error } = await stmt.all()
-	if (!success) {
-		throw new Error('SQL error: ' + error)
+export async function handleRequest(request: Request, cache: KVNamespace, connectedActor: Person): Promise<Response> {
+	const url = new URL(request.url)
+	if (url.searchParams.has('max_id')) {
+		// We just return the pregenerated notifications, without any filter for
+		// pagination. Return an empty array to avoid duplicating notifications
+		// in the app.
+		return new Response(JSON.stringify([]), { headers })
 	}
 
-	const out: Array<Notification> = []
-	if (!results || results.length === 0) {
-		return new Response(JSON.stringify(out), { headers })
+	const notifications = await cache.get(connectedActor.id + '/notifications')
+	if (notifications === null) {
+		return new Response(JSON.stringify([]), { headers })
 	}
-
-	for (let i = 0, len = results.length; i < len; i++) {
-		const result = results[i] as any
-		const properties = JSON.parse(result.properties)
-		const notifFromActorId = new URL(result.notif_from_actor_id)
-
-		const notifFromActor = await getPersonById(db, notifFromActorId)
-		if (!notifFromActor) {
-			console.warn('unknown actor')
-			continue
-		}
-
-		const acct = urlToHandle(notifFromActorId)
-		const notifFromAccount = await loadExternalMastodonAccount(acct, notifFromActor)
-
-		const notif: Notification = {
-			id: result.notif_id.toString(),
-			type: result.type,
-			created_at: new Date(result.cdate).toISOString(),
-			account: notifFromAccount,
-		}
-
-		if (result.type === 'mention' || result.type === 'favourite') {
-			const actorId = new URL(result.original_actor_id)
-			const actor = await actors.getAndCache(actorId, db)
-
-			const acct = urlToHandle(actorId)
-			const account = await loadExternalMastodonAccount(acct, actor)
-
-			notif.status = {
-				id: result.mastodon_id,
-				content: properties.content,
-				uri: result.id,
-				created_at: new Date(result.cdate).toISOString(),
-
-				emojis: [],
-				media_attachments: [],
-				tags: [],
-				mentions: [],
-
-				account,
-
-				// TODO: stub values
-				visibility: 'public',
-				spoiler_text: '',
-			}
-		}
-
-		out.push(notif)
-	}
-	return new Response(JSON.stringify(out), { headers })
+	return new Response(notifications, { headers })
 }
