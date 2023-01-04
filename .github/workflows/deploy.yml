@@ -11,6 +11,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: hashicorp/setup-terraform@v2
 
+      - name: Install package
+        run: |
+          sudo apt-get -y install jq
+
       - name: Setup node.js
         uses: actions/setup-node@v3
         with:
@@ -45,6 +49,12 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
+      - name: retrieve Zero Trust organization
+        run: |
+            auth_domain=$(curl https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/access/organizations \
+                -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}' | jq -r '.result.auth_domain')
+            printf "auth_domain=$auth_domain" >> $GITHUB_ENV
+
       - name: Init
         run: terraform init
         working-directory: ./tf
@@ -59,6 +69,7 @@ jobs:
           TF_VAR_cloudflare_zone_name: ${{ secrets.CF_ZONE_NAME }}
           TF_VAR_gh_username: ${{ github.actor }}
           TF_VAR_d1_id: ${{ env.d1_id }}
+          TF_VAR_access_auth_domain: ${{ env.auth_domain }}
 
       - name: Publish
         uses: cloudflare/wrangler-action@2.0.0
