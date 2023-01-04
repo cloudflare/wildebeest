@@ -1,10 +1,7 @@
-@use '../../theme.scss' as theme;
-
 header {
 	position: sticky;
 	top: 0;
 	// compensates for the 10px set w/ sticky on the main app columns
 	padding-top: 10px;
-	background: theme.$backgroundBaseColor;
 	z-index: 2;
 }

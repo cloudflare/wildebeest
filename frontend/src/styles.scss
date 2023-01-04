@@ -1,12 +1,9 @@
-@use './theme.scss' as theme;
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-	background-color: theme.$backgroundBaseColor;
-	color: theme.$fontBaseColor;
 	font-family: ui-sans-serif, sans-serif, ui-sans-serif;
 	line-height: 1.25rem;
 	text-rendering: optimizelegibility;
@@ -22,21 +19,9 @@ button {
 	cursor: pointer;
 }
 
-* {
-	// border defaults
-	border: 0 solid theme.$slate100;
-}
-
 .avatar {
 	width: 46px;
 	height: 46px;
-	border-radius: theme.$radius-medium;
-}
-
-.avatar-sm {
-	width: 36px;
-	height: 36px;
-	border-radius: theme.$radius-medium;
 }
 
 .pointer {
