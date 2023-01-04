@@ -1,5 +1,4 @@
 import { component$ } from '@builder.io/qwik'
-import { DocumentHead } from '@builder.io/qwik-city'
 import { MastodonLogo } from '~/components/MastodonLogo'
 import { useDomain } from '~/utils/useDomain'
 
@@ -46,13 +45,3 @@ export default component$(() => {
 		</div>
 	)
 })
-
-export const head: DocumentHead = {
-	title: 'Wildebeest (Mastodon on Cloudflare)',
-	meta: [
-		{
-			name: 'description',
-			content: 'A frontend for a mastodon server deployed on Cloudflare.',
-		},
-	],
-}

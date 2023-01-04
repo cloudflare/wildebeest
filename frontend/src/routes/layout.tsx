@@ -1,5 +1,5 @@
 import { component$, useStylesScoped$, Slot } from '@builder.io/qwik'
-import { useLocation } from '@builder.io/qwik-city'
+import { DocumentHead, useLocation } from '@builder.io/qwik-city'
 import styles from './layout.scss?inline'
 import { LeftColumn } from './LeftColumn/LeftColumn'
 import { RightColumn } from './RightColumn/RightColumn'
@@ -41,3 +41,13 @@ export default component$(() => {
 		</main>
 	)
 })
+
+export const head: DocumentHead = {
+	title: 'Wildebeest (Mastodon on Cloudflare)',
+	meta: [
+		{
+			name: 'description',
+			content: 'A frontend for a mastodon server deployed on Cloudflare.',
+		},
+	],
+}
