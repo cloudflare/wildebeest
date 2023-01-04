@@ -1532,11 +1532,11 @@ export const mastodonInstance: InstanceDetails = {
 	description: 'The original server operated by the Mastodon gGmbH non-profit',
 	usage: { users: { active_month: 220992 } },
 	thumbnail: {
-		url: 'https://files.mastodon.social/site_uploads/files/000/000/001/@1x/57c12f441d083cde.png',
+		url: '/assets/wildebeest-logo.png',
 		blurhash: 'UeKUpFxuo~R%0nW;WCnhF6RjaJt757oJodS$',
 		versions: {
-			'@1x': 'https://files.mastodon.social/site_uploads/files/000/000/001/@1x/57c12f441d083cde.png',
-			'@2x': 'https://files.mastodon.social/site_uploads/files/000/000/001/@2x/57c12f441d083cde.png',
+			'@1x': '/assets/wildebeest-logo.png',
+			'@2x': '/assets/wildebeest-logo.png',
 		},
 	},
 	languages: ['en'],
