@@ -64,7 +64,7 @@ const base64URLDecode = (s: string) => {
 }
 
 const asciiToUint8Array = (s: string) => {
-	let chars = []
+	const chars = []
 	for (let i = 0; i < s.length; ++i) {
 		chars.push(s.charCodeAt(i))
 	}
