@@ -32,5 +32,6 @@ module.exports = {
 		'no-case-declarations': 'error',
 		'no-console': 'error',
 		'@typescript-eslint/no-unused-vars': ['error'],
+		'prefer-const': 'error',
 	},
 }
