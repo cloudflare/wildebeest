@@ -39,7 +39,7 @@ export default component$(() => {
 				{/* Account Card */}
 				<div class="flex">
 					<img class="avatar" src={status.account.avatar} />
-					<div class="flex flex-column">
+					<div class="flex flex-col">
 						<div class="p-1">
 							{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
 							<a class="no-decoration">{status.account.display_name}</a>

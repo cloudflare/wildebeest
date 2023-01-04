@@ -21,7 +21,7 @@ export default component$(() => {
 					<>
 						{links.map((link) => (
 							<a href={link.url} class="no-decoration" target="_blank">
-								<div class="p-4 flex justify-between border-b border-slate-600 container">
+								<div class="p-4 flex justify-between border-b border-slate-600 link-wrapper">
 									<div class="mr-6">
 										<div class="my-2 text-sm text-slate-400">{link.provider_name}</div>
 										<div class="mb-2 text-lg text-bold leading-normal">{link.title}</div>

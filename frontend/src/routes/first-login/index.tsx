@@ -6,12 +6,12 @@ export default component$(() => {
 	const domain = useDomain()
 
 	return (
-		<div class="flex flex-column p-5 items-center">
+		<div class="flex flex-col p-5 items-center">
 			<h1 class="text-center mt-7 mb-9">
 				<MastodonLogo size="medium" />
 			</h1>
-			<form method="post" class="flex flex-column w-full max-w-md">
-				<div class="flex flex-column mb-6">
+			<form method="post" class="flex flex-col w-full max-w-md">
+				<div class="flex flex-col mb-6">
 					<label class="mb-2 max-w-max text-semi text-sm" for="login-username">
 						Username
 					</label>
@@ -25,7 +25,7 @@ export default component$(() => {
 						<span>@{domain}</span>
 					</div>
 				</div>
-				<div class="flex flex-column mb-6">
+				<div class="flex flex-col mb-6">
 					<label class="mb-2 max-w-max text-semi text-sm" for="login-name">
 						Display Name
 					</label>

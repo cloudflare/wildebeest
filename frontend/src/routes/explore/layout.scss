@@ -1,13 +1,13 @@
 @use '../../theme.scss' as theme;
 
-.container {
+.explore-wrapper {
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
   min-height: calc(100vh - 20px);
 }
 
-.content-container {
+.explore-content-wrapper {
   flex: 1 1 auto;
 }
 

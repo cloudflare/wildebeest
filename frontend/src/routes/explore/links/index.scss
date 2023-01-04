@@ -1,6 +1,6 @@
 @use '../../../theme.scss' as theme;
 
-.container {
+.link-wrapper {
   &:hover {
     background-color: theme.$slate700;
   }
