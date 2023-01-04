@@ -97,6 +97,11 @@ resource "cloudflare_pages_domain" "domain" {
   account_id   = var.cloudflare_account_id
   project_name = "wildebeest-${var.gh_username}"
   domain       = var.cloudflare_zone_name
+
+  depends_on = [
+    cloudflare_pages_project.wildebeest_pages_project,
+    cloudflare_record.record,
+  ]
 }
 
 resource "cloudflare_access_application" "wildebeest_access" {
