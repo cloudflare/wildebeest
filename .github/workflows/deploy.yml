@@ -56,6 +56,7 @@ jobs:
         env:
           TF_VAR_cloudflare_account_id: ${{ secrets.CF_ACCOUNT_ID }}
           TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
+          TF_VAR_cloudflare_zone_name: ${{ secrets.CF_ZONE_NAME }}
           TF_VAR_gh_username: ${{ github.actor }}
           TF_VAR_d1_id: ${{ env.d1_id }}
 
@@ -65,6 +66,7 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           preCommands: |
             echo "*** pre commands ***"
+            yarn
             yarn build
             cp -rv ./frontend/dist/* .
             echo "******"
