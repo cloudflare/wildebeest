@@ -20,7 +20,7 @@ export async function signRequest(request: Request, key: CryptoKey, keyId: URL):
 		request.headers.set('Host', url.host)
 	}
 
-	let components = ['@request-target', 'host']
+	const components = ['@request-target', 'host']
 	if (request.method == 'POST') {
 		components.push('digest')
 	}

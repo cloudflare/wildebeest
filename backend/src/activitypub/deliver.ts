@@ -14,7 +14,7 @@ const headers = {
 export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Actor, activity: Activity) {
 	const body = JSON.stringify(activity)
 	console.log({ body })
-	let req = new Request(to.inbox, {
+	const req = new Request(to.inbox, {
 		method: 'POST',
 		body,
 		headers,

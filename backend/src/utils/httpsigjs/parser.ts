@@ -5,12 +5,12 @@ import { HEADER, HttpSignatureError, InvalidAlgorithmError, validateAlgorithm } 
 
 ///--- Globals
 
-let State = {
+const State = {
 	New: 0,
 	Params: 1,
 }
 
-let ParamsState = {
+const ParamsState = {
 	Name: 0,
 	Quote: 1,
 	Value: 2,
@@ -125,10 +125,10 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 		headers = options.headers
 	}
 
-	let authz = request.headers.get(HEADER.AUTH) || request.headers.get(HEADER.SIG)
+	const authz = request.headers.get(HEADER.AUTH) || request.headers.get(HEADER.SIG)
 
 	if (!authz) {
-		let errHeader = HEADER.AUTH + ' or ' + HEADER.SIG
+		const errHeader = HEADER.AUTH + ' or ' + HEADER.SIG
 
 		throw new MissingHeaderError('no ' + errHeader + ' header ' + 'present in the request')
 	}
@@ -141,14 +141,14 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 	let tmpName = ''
 	let tmpValue = ''
 
-	let parsed = {
+	const parsed = {
 		scheme: authz === request.headers.get(HEADER.SIG) ? 'Signature' : '',
 		params: {},
 		signingString: '',
 	}
 
 	for (i = 0; i < authz.length; i++) {
-		let c = authz.charAt(i)
+		const c = authz.charAt(i)
 		let code = c.charCodeAt(0)
 
 		switch (Number(state)) {
@@ -268,7 +268,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 
 	// Build the signingString
 	for (i = 0; i < parsed.params.headers.length; i++) {
-		let h = parsed.params.headers[i].toLowerCase()
+		const h = parsed.params.headers[i].toLowerCase()
 		parsed.params.headers[i] = h
 
 		if (h === 'request-line') {
@@ -290,7 +290,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 		} else if (h === '(algorithm)') {
 			parsed.signingString += '(algorithm): ' + parsed.params.algorithm
 		} else if (h === '(opaque)') {
-			let opaque = parsed.params.opaque
+			const opaque = parsed.params.opaque
 			if (opaque === undefined) {
 				throw new MissingHeaderError('opaque param was not in the ' + authzHeaderName + ' header')
 			}
@@ -300,7 +300,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 		} else if (h === '(expires)') {
 			parsed.signingString += '(expires): ' + parsed.params.expires
 		} else {
-			let value = request.headers.get(h)
+			const value = request.headers.get(h)
 			if (value === null) throw new MissingHeaderError(h + ' was not in the request')
 			parsed.signingString += h + ': ' + value
 		}
@@ -317,7 +317,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 		} else {
 			date = new Date(request.headers.date)
 		}
-		let now = new Date()
+		const now = new Date()
 		skew = Math.abs(now.getTime() - date.getTime())
 
 		if (skew > options.clockSkew * 1000) {
@@ -341,7 +341,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 	}
 
 	if (parsed.params.expires) {
-		let expiredSince = Math.floor(Date.now() / 1000) - parsed.params.expires
+		const expiredSince = Math.floor(Date.now() / 1000) - parsed.params.expires
 		if (expiredSince > options.clockSkew) {
 			throw new ExpiredRequestError(
 				'Request expired with skew ' + expiredSince + 's greater than allowed ' + options.clockSkew + 's'

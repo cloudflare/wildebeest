@@ -12,6 +12,7 @@ module.exports = {
 	plugins: ['@typescript-eslint'],
 	root: true,
 	rules: {
+		'prefer-const': 'error',
 		'no-var': 'error',
 		'@typescript-eslint/no-unsafe-return': 'error',
 		/*
@@ -26,7 +27,6 @@ module.exports = {
 		'@typescript-eslint/restrict-plus-operands': 'off',
 		'no-constant-condition': 'off',
 		'@typescript-eslint/await-thenable': 'off',
-		'prefer-const': 'off',
 		'@typescript-eslint/require-await': 'off',
 		'@typescript-eslint/restrict-template-expressions': 'off',
 		'@typescript-eslint/no-misused-promises': 'off',
