@@ -103,7 +103,7 @@ export default component$<Props>(({ instanceConfig, setLoading }) => {
 
 						const url = generateLoginURL({
 							redirectURL: location.href,
-							domain: 'https://' + instanceConfig.accessDomain + '.cloudflareaccess.com',
+							domain: instanceConfig.accessDomain + '.cloudflareaccess.com',
 							aud: instanceConfig.accessAud,
 						})
 						window.location.href = url
