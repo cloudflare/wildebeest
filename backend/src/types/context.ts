@@ -9,10 +9,6 @@ export type ContextData = {
 	// ActivityPub Person object of the logged in user
 	connectedActor: Person
 
-	// Configure for Cloudflare Access
-	accessDomain: string
-	accessAud: string
-
 	// Object returned by Cloudflare Access' provider
 	identity: Identity
 

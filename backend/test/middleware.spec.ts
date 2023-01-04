@@ -2,7 +2,6 @@ import { isUrlValid, makeDB, assertCORS } from './utils'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { TEST_JWT, ACCESS_CERTS } from './test-data'
 import { strict as assert } from 'node:assert/strict'
-import { configureAccess } from 'wildebeest/backend/src/config/index'
 import * as middleware_main from 'wildebeest/backend/src/middleware/main'
 
 const userKEK = 'test_kek12'
@@ -99,14 +98,13 @@ describe('middleware', () => {
 
 		const db = await makeDB()
 		await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-		await configureAccess(db, accessDomain, accessAud)
 
 		const headers = { authorization: 'Bearer APPID.' + TEST_JWT }
 		const request = new Request('https://example.com', { headers })
 		const ctx: any = {
 			next: () => new Response(),
 			data: {},
-			env: { DATABASE: db },
+			env: { DATABASE: db, ACCESS_AUD: accessAud, ACCESS_AUTH_DOMAIN: accessDomain },
 			request,
 		}
 
@@ -114,7 +112,7 @@ describe('middleware', () => {
 		assert.equal(res.status, 200)
 		assert(!ctx.data.connectedUser)
 		assert(isUrlValid(ctx.data.connectedActor.id))
-		assert.equal(ctx.data.accessDomain, accessDomain)
-		assert.equal(ctx.data.accessAud, accessAud)
+		assert.equal(ctx.env.ACCESS_AUTH_DOMAIN, accessDomain)
+		assert.equal(ctx.env.ACCESS_AUD, accessAud)
 	})
 })

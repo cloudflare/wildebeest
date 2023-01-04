@@ -7,28 +7,44 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { InstanceConfig } from 'wildebeest/backend/src/config'
 import * as config from 'wildebeest/backend/src/config'
 
-export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handlePostRequest(request, env.DATABASE)
+export const onRequestPost: PagesFunction<Env, any> = async ({ request, env }) => {
+	return handlePostRequest(request, env.DATABASE, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
-export async function handlePostRequest(request: Request, db: D1Database): Promise<Response> {
-	const data = await request.json<InstanceConfig>()
-	if (!data.accessAud || !data.accessDomain) {
-		return new Response('', { status: 400 })
+export const onRequestGet: PagesFunction<Env, any> = async ({ request, env, next }) => {
+	const cookie = parse(request.headers.get('Cookie') || '')
+	const jwt = cookie['CF_Authorization']
+	if (!jwt) {
+		const { hostname } = new URL(request.url)
+		const url = access.generateLoginURL({
+			redirectURL: new URL('/start-instance', 'https://' + env.DOMAIN),
+			domain: env.ACCESS_AUTH_DOMAIN,
+			aud: env.ACCESS_AUD,
+		})
+		return Response.redirect(url)
 	}
+
+	return next()
+}
+
+export async function handlePostRequest(
+	request: Request,
+	db: D1Database,
+	accessDomain: string,
+	accessAud: string
+): Promise<Response> {
+	const data = await request.json<InstanceConfig>()
 
 	const cookie = parse(request.headers.get('Cookie') || '')
 	const jwt = cookie['CF_Authorization']
 	if (!jwt) {
-		// Allow to configure Access without any authentification
-		await config.configureAccess(db, data.accessDomain + '.cloudflareaccess.com', data.accessAud)
-		return new Response()
+		return new Response('', { status: 401 })
 	}
 
-	const validator = access.generateValidator({ jwt, domain: data.accessDomain, aud: data.accessAud })
+	const validator = access.generateValidator({ jwt, domain: accessDomain, aud: accessAud })
 	const { payload } = await validator(request)
 
-	const identity = await access.getIdentity({ jwt, domain: data.accessDomain })
+	const identity = await access.getIdentity({ jwt, domain: accessDomain })
 	if (!identity) {
 		return errors.notAuthorized('failed to load identity')
 	}

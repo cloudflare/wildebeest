@@ -69,6 +69,8 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
         CF_API_TOKEN  = ""
 
         USER_KEY = random_password.user_key.result
+
+        DOMAIN = var.cloudflare_zone_name
         ACCESS_AUD = cloudflare_access_application.wildebeest_access.aud
         ACCESS_AUTH_DOMAIN = var.access_auth_domain
       }
