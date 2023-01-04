@@ -14,7 +14,6 @@ export const statusLoader = loader$<
 >(async ({ platform, params }) => {
 	const response = await statusAPI.handleRequest(platform.DATABASE, params.statusId)
 	const results = await response.text()
-	console.log(results)
 	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
 	return { status: JSON.parse(results), context: { ancestors: [], descendants: [] } }
 })
