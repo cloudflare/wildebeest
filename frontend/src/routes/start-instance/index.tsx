@@ -2,14 +2,12 @@ import { $, component$, useStore, useClientEffect$, useSignal } from '@builder.i
 import { MastodonLogo } from '~/components/MastodonLogo'
 import { useDomain } from '~/utils/useDomain'
 import Step1 from './step-1'
-import Step2 from './step-2'
 import { type InstanceConfig, testAccess, testInstance } from './utils'
 
 export default component$(() => {
 	const domain = useDomain()
 
 	const loading = useSignal(true)
-	const accessConfigured = useSignal(false)
 	const instanceConfigured = useSignal(false)
 
 	const instanceConfig = useStore<InstanceConfig>({
@@ -21,20 +19,15 @@ export default component$(() => {
 	})
 
 	useClientEffect$(async () => {
-		if (await testAccess()) {
-			accessConfigured.value = true
-
-			if (await testInstance()) {
-				instanceConfigured.value = true
-			}
-		}
+        if (await testInstance()) {
+            instanceConfigured.value = true
+        }
 		loading.value = false
 	})
 
 	const getStepToShow = () => {
 		if (loading.value) return 'loading'
-		if (!accessConfigured.value) return 'step-1'
-		if (!instanceConfigured.value) return 'step-2'
+		if (!instanceConfigured.value) return 'step-1'
 		return 'all-good'
 	}
 
@@ -55,9 +48,8 @@ export default component$(() => {
 			</h1>
 			{stepToShow.startsWith('step-') && <p>Welcome to Wildebeest... Your instance hasn't been configured yet.</p>}
 			{stepToShow === 'loading' && <p>Loading...</p>}
-			{stepToShow === 'step-1' && <Step1 instanceConfig={instanceConfig} setLoading={setLoading} />}
-			{stepToShow === 'step-2' && (
-				<Step2 instanceConfig={instanceConfig} setLoading={setLoading} setInstanceConfigured={setInstanceConfigured} />
+			{stepToShow === 'step-1' && (
+				<Step1 instanceConfig={instanceConfig} setLoading={setLoading} setInstanceConfigured={setInstanceConfigured} />
 			)}
 			{stepToShow === 'all-good' && <p>All good, your instance is ready.</p>}
 		</div>

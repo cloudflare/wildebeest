@@ -37,7 +37,7 @@ describe('Wildebeest', () => {
 		}
 
 		const req = new Request('https://example.com', { method: 'POST', body, headers })
-		const res = await startInstance.handlePostRequest(req, db)
+		const res = await startInstance.handlePostRequest(req, db, accessDomain, accessAud)
 		assert.equal(res.status, 201)
 
 		const { value } = await db.prepare("SELECT value FROM instance_config WHERE key = 'vapid_jwk'").first()

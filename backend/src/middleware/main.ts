@@ -7,10 +7,7 @@ import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/accoun
 
 async function loadContextData(db: D1Database, clientId: string, email: string, ctx: any): Promise<boolean> {
 	const query = `
-        SELECT
-            actors.*,
-            (SELECT value FROM instance_config WHERE key='accessAud') as accessAud,
-            (SELECT value FROM instance_config WHERE key='accessDomain') as accessDomain
+        SELECT *
         FROM actors
         WHERE email=? AND type='Person'
     `
@@ -30,18 +27,12 @@ async function loadContextData(db: D1Database, clientId: string, email: string, 
 		console.warn('person not found')
 		return false
 	}
-	if (!row.accessDomain || !row.accessAud) {
-		console.warn('access configuration not found')
-		return false
-	}
 
 	const person = actors.personFromRow(row)
 
 	ctx.data.connectedActor = person
 	ctx.data.identity = { email }
 	ctx.data.clientId = clientId
-	ctx.data.accessDomain = row.accessDomain
-	ctx.data.accessAud = row.accessAud
 
 	return true
 }
@@ -101,12 +92,12 @@ export async function main(context: EventContext<Env, any, any>) {
 
 			const validatate = access.generateValidator({
 				jwt,
-				domain: context.data.accessDomain,
-				aud: context.data.accessAud,
+				domain: context.env.ACCESS_AUTH_DOMAIN,
+				aud: context.env.ACCESS_AUD,
 			})
 			await validatate(context.request)
 
-			const identity = await access.getIdentity({ jwt, domain: context.data.accessDomain })
+			const identity = await access.getIdentity({ jwt, domain: context.env.ACCESS_AUTH_DOMAIN })
 			if (!identity) {
 				return errors.notAuthorized('failed to load identity')
 			}

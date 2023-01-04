@@ -18,6 +18,10 @@ variable "d1_id" {
   type = string
 }
 
+variable "access_auth_domain" {
+  type = string
+}
+
 terraform {
   required_providers {
     cloudflare = {
@@ -65,6 +69,10 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
         CF_API_TOKEN  = ""
 
         USER_KEY = random_password.user_key.result
+
+        DOMAIN = var.cloudflare_zone_name
+        ACCESS_AUD = cloudflare_access_application.wildebeest_access.aud
+        ACCESS_AUTH_DOMAIN = var.access_auth_domain
       }
       kv_namespaces = {
         KV_CACHE = cloudflare_workers_kv_namespace.wildebeest_cache.id
@@ -111,7 +119,3 @@ resource "cloudflare_access_policy" "policy" {
     email = ["test@example.com"]
   }
 }
-
-/* output "access_aud" { */
-/*   value = cloudflare_access_application.wildebeest_access.aud */
-/* } */
