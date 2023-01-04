@@ -56,7 +56,7 @@ export async function createObject(
 		mastodonId: row.mastodon_id,
 		published: new Date(row.cdate).toISOString(),
 		originalActorId: row.original_actor_id,
-	}
+	} as Object
 }
 
 export async function get<T>(url: URL): Promise<T> {
@@ -114,7 +114,7 @@ export async function cacheObject(
 			mastodonId: row.mastodon_id,
 			originalActorId: row.original_actor_id,
 			originalObjectId: row.original_object_id,
-		}
+		} as Object
 	}
 }
 
@@ -168,5 +168,5 @@ WHERE objects.${key}=?
 		mastodonId: result.mastodon_id,
 		originalActorId: result.original_actor_id,
 		originalObjectId: result.original_object_id,
-	}
+	} as Object
 }

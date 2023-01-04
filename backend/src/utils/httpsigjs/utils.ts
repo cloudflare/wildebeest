@@ -31,7 +31,7 @@ export class InvalidAlgorithmError extends HttpSignatureError {
  * @returns {[string, string]}
  */
 export function validateAlgorithm(algorithm: string, publicKeyType?: string): [string, string] {
-	var alg = algorithm.toLowerCase().split('-')
+	const alg = algorithm.toLowerCase().split('-')
 
 	if (alg[0] === 'hs2019') {
 		return publicKeyType !== undefined ? validateAlgorithm(publicKeyType + '-sha256') : ['hs2019', 'sha256']

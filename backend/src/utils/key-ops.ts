@@ -157,7 +157,8 @@ const DEC = {
 	'-': '+',
 	_: '/',
 	'.': '=',
-}
+} as const
+type KeyOfDEC = keyof typeof DEC
 export function urlsafeBase64Decode(v: string) {
-	return atob(v.replace(/[-_.]/g, (m: string) => (DEC as any)[m]))
+	return atob(v.replace(/[-_.]/g, (m: string) => DEC[m as KeyOfDEC]))
 }

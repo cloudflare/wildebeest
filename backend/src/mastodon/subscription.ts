@@ -129,7 +129,7 @@ export async function getVAPIDKeys(db: D1Database): Promise<JWK> {
 	if (!row) {
 		throw new Error('missing VAPID keys')
 	}
-	const value = JSON.parse(row.value)
+	const value: JWK = JSON.parse(row.value)
 	return value
 }
 

@@ -26,7 +26,7 @@ export async function createNotification(
           VALUES (?, ?, ?, ?)
           RETURNING id
 `
-	const row: any = await db
+	const row: { id: string } = await db
 		.prepare(query)
 		.bind(type, actor.id.toString(), fromActor.id.toString(), obj.id.toString())
 		.first()
@@ -41,7 +41,7 @@ export async function insertFollowNotification(db: D1Database, actor: Actor, fro
           VALUES (?, ?, ?)
           RETURNING id
 `
-	const row: any = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).first()
+	const row: { id: string } = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).first()
 	return row.id
 }
 

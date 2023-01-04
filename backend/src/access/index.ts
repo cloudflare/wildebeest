@@ -78,7 +78,7 @@ export function getPayload(jwt: string): JWTPayload {
 	}
 	const [, payload] = parts
 
-	const payloadObj = JSON.parse(textDecoder.decode(base64URLDecode(payload)))
+	const payloadObj: JWTPayload = JSON.parse(textDecoder.decode(base64URLDecode(payload)))
 	return payloadObj
 }
 
