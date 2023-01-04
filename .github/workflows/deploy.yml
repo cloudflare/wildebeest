@@ -51,6 +51,7 @@ jobs:
 
       - name: Configure
         run: terraform plan && terraform apply -auto-approve
+        continue-on-error: true
         working-directory: ./tf
         env:
           TF_VAR_cloudflare_account_id: ${{ secrets.CF_ACCOUNT_ID }}
@@ -64,7 +65,8 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           preCommands: |
             echo "*** pre commands ***"
-            yarn
+            yarn build
+            cp -rv ./frontend/dist/* .
             echo "******"
           command: pages publish --project-name=wildebeest-${{ github.actor }} .
         env:

@@ -37,7 +37,7 @@ resource "cloudflare_workers_kv_namespace" "wildebeest_cache" {
   title = "wildebeest-cache"
 }
 
-resource "random_string" "user_key" {
+resource "random_password" "user_key" {
   length           = 256
   special          = false
 }
@@ -46,10 +46,6 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
   account_id = var.cloudflare_account_id
   name              = "wildebeest-${var.gh_username}"
   production_branch = "main"
-  build_config {
-      build_command       = "yarn build"
-      destination_dir     = "frontend/dist"
-  }
   deployment_configs {
     production {
       environment_variables = {
@@ -57,7 +53,7 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
         CF_ACCOUNT_ID = ""
         CF_API_TOKEN  = ""
 
-        USER_KEY = random_string.user_key.result
+        USER_KEY = random_password.user_key.result
       }
       kv_namespaces = {
         KV_CACHE = cloudflare_workers_kv_namespace.wildebeest_cache.id
