@@ -1,4 +1,4 @@
-@use '../../styles/theme.scss';
+@use '../../theme.scss';
 
 .search {
 	outline: 0;
@@ -12,6 +12,6 @@
 	border-radius: theme.$radius-medium;
 	margin: 0;
 	display: block;
-	padding: theme.$sp4;
+	padding: 1rem;
 	line-height: 18px;
 }

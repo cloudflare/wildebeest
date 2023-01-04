@@ -3,9 +3,7 @@ import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.
 import { RouterHead } from './components/router-head/router-head'
 
 import 'modern-normalize/modern-normalize.css'
-import './styles/theme.scss'
-import './styles/utility.scss'
-import globalStyles from './styles/global.scss?inline'
+import globalStyles from './styles.scss?inline'
 
 export default component$(() => {
 	useStyles$(globalStyles)
