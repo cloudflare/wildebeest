@@ -144,7 +144,7 @@ export function buildSignatureInputString(componentNames: Component[], parameter
 }
 
 function uint8ArrayToBase64(a: Uint8Array): string {
-	var a_s = Array.prototype.map.call(a, (c) => String.fromCharCode(c)).join(String())
+	const a_s = Array.prototype.map.call(a, (c) => String.fromCharCode(c)).join(String())
 	return btoa(a_s)
 }
 

@@ -12,6 +12,7 @@ module.exports = {
 	plugins: ['@typescript-eslint'],
 	root: true,
 	rules: {
+		'no-var': 'error',
 		/*
 			Note: the following rules have been set to off so that linting
 				  can pass with the current code, but we need to gradually
@@ -28,7 +29,6 @@ module.exports = {
 		'@typescript-eslint/require-await': 'off',
 		'@typescript-eslint/restrict-template-expressions': 'off',
 		'@typescript-eslint/no-misused-promises': 'off',
-		'no-var': 'off',
 		'@typescript-eslint/no-unsafe-return': 'off',
 		'@typescript-eslint/no-unnecessary-type-assertion': 'off',
 		'no-console': 'off',
