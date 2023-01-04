@@ -37,9 +37,11 @@ export async function handleRequest(domain: string, db: D1Database, id: string):
 		'@context': ['https://www.w3.org/ns/activitystreams'],
 		id: new URL(actor.following + '/page'),
 		type: 'OrderedCollectionPage',
-		prev: 'https://social.eng.chat/todo',
 		partOf: actor.following,
 		orderedItems: following,
+
+		// FIXME: stub values
+		prev: 'https://example.com/todo',
 	}
 	return new Response(JSON.stringify(out), { headers })
 }

@@ -1,4 +1,4 @@
-# Wildebeest
+# Contribute to Wildebeest
 
 ## Getting started
 
@@ -44,7 +44,7 @@ yarn --cwd frontend watch
 
 This is a Cloudflare Pages project and can be deployed directly from the command line using Wrangler.
 
-First you must create and configure the Pages project and D1 database.
+First you must create and configure the Pages project and bindings (D1 database, KV namespace, etc).
 
 ### Initialization
 
@@ -79,8 +79,12 @@ Enter `DATABASE` for the variable name and select the `wildebeest` database from
 
 ### Environment variables
 
-wildebeest expectes the Pages project to inject the following environment variables:
+wildebeest expectes the Pages project to inject the following environment variables.
+
+Secret used to encrypt user private key in the database:
 - `USER_KEY`
+
+API token for integration with Cloudflare services (Cloudflare Images for example):
 - `CF_ACCOUNT_ID`
 - `CF_API_TOKEN`
 

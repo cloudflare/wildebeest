@@ -69,11 +69,13 @@ LIMIT ?
 				replies: {
 					first: {
 						items: [],
-						next: 'https://social.eng.chat/users/babeljs/statuses/109372762645660352/replies?only_other_accounts=true&page=true',
-						partOf: 'https://social.eng.chat/users/babeljs/statuses/109372762645660352/replies',
+
+						// FIXME: stub values
+						next: 'https://example.com/users/a/statuses/109372762645660352/replies?only_other_accounts=true&page=true',
+						partOf: 'https://example.com/users/a/statuses/109372762645660352/replies',
 						type: 'CollectionPage',
 					},
-					id: 'https://social.eng.chat/users/babeljs/statuses/109372762645660352/replies',
+					id: 'https://example.com/users/a/statuses/109372762645660352/replies',
 					type: 'Collection',
 				},
 
@@ -104,9 +106,11 @@ LIMIT ?
 		],
 		id: new URL(actor.outbox + '/page'),
 		type: 'OrderedCollectionPage',
-		prev: 'https://social.eng.chat/todo',
 		partOf: actor.outbox,
 		orderedItems: items,
+
+		// FIXME: stub values
+		prev: 'https://example.com/todo',
 	}
 	return new Response(JSON.stringify(out), { headers })
 }
