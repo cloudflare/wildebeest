@@ -38,6 +38,15 @@ jobs:
         with:
           command: d1 migrations apply wildebeest-${{ github.actor }}
           apiToken: ${{ secrets.CF_API_TOKEN }}
+          preCommands: |
+            echo "*** pre commands ***"
+            cat <<EOT >> wrangler.toml
+            [[d1_databases]]
+            binding = "DATABASE"
+            database_name = "wildebeest-${{ github.actor }}"
+            database_id = "${{ env.d1_id }}"
+            EOT
+            echo "******"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
