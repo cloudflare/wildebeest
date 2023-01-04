@@ -61,7 +61,7 @@ export async function handle(
 		}
 		if (activity.object instanceof URL) {
 			// This is used for testing only.
-			return activity.object
+			return activity.object as URL
 		}
 		if (url === null) {
 			throw new Error('unknown value: ' + JSON.stringify(activity.object))
@@ -85,7 +85,7 @@ export async function handle(
 		}
 		if (activity.actor instanceof URL) {
 			// This is used for testing only.
-			return activity.actor
+			return activity.actor as URL
 		}
 		if (url === null) {
 			throw new Error('unknown value: ' + JSON.stringify(activity.actor))

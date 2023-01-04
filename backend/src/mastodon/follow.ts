@@ -1,4 +1,5 @@
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import { getResultsField } from './utils'
 
 const STATE_PENDING = 'pending'
 const STATE_ACCEPTED = 'accepted'
@@ -8,9 +9,9 @@ export async function addFollowing(db: D1Database, actor: Actor, target: Actor, 
 	const id = crypto.randomUUID()
 
 	const query = `
-        INSERT INTO actor_following (id, actor_id, target_actor_id, state, target_actor_acct)
-        VALUES (?, ?, ?, ?, ?)
-    `
+		INSERT INTO actor_following (id, actor_id, target_actor_id, state, target_actor_acct)
+		VALUES (?, ?, ?, ?, ?)
+	`
 
 	const out = await db
 		.prepare(query)
@@ -27,8 +28,8 @@ export async function acceptFollowing(db: D1Database, actor: Actor, target: Acto
 	const id = crypto.randomUUID()
 
 	const query = `
-        UPDATE actor_following SET state=? WHERE actor_id=? AND target_actor_id=? AND state=?
-    `
+		UPDATE actor_following SET state=? WHERE actor_id=? AND target_actor_id=? AND state=?
+	`
 
 	const out = await db
 		.prepare(query)
@@ -41,8 +42,8 @@ export async function acceptFollowing(db: D1Database, actor: Actor, target: Acto
 
 export async function removeFollowing(db: D1Database, actor: Actor, target: Actor) {
 	const query = `
-        DELETE FROM actor_following WHERE actor_id=? AND target_actor_id=?
-    `
+		DELETE FROM actor_following WHERE actor_id=? AND target_actor_id=?
+	`
 
 	const out = await db.prepare(query).bind(actor.id.toString(), target.id.toString()).run()
 	if (!out.success) {
@@ -50,70 +51,41 @@ export async function removeFollowing(db: D1Database, actor: Actor, target: Acto
 	}
 }
 
-export async function getFollowingAcct(db: D1Database, actor: Actor): Promise<Array<string>> {
+export function getFollowingAcct(db: D1Database, actor: Actor): Promise<Array<string>> {
 	const query = `
-        SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
-    `
+		SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
+	`
+	const statement = db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED)
 
-	const out: any = await db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED).all()
-	if (!out.success) {
-		throw new Error('SQL error: ' + out.error)
-	}
-
-	if (out.results !== null) {
-		return out.results.map((x: any) => x.target_actor_acct)
-	} else {
-		return []
-	}
+	return getResultsField(statement, 'target_actor_acct')
 }
 
-export async function getFollowingRequestedAcct(db: D1Database, actor: Actor): Promise<Array<string>> {
+export function getFollowingRequestedAcct(db: D1Database, actor: Actor): Promise<Array<string>> {
 	const query = `
-        SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
-    `
+		SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
+	`
 
-	const out: any = await db.prepare(query).bind(actor.id.toString(), STATE_PENDING).all()
-	if (!out.success) {
-		throw new Error('SQL error: ' + out.error)
-	}
+	const statement = db.prepare(query).bind(actor.id.toString(), STATE_PENDING)
 
-	if (out.results !== null) {
-		return out.results.map((x: any) => x.target_actor_acct)
-	} else {
-		return []
-	}
+	return getResultsField(statement, 'target_actor_acct')
 }
 
-export async function getFollowingId(db: D1Database, actor: Actor): Promise<Array<string>> {
+export function getFollowingId(db: D1Database, actor: Actor): Promise<Array<string>> {
 	const query = `
-        SELECT target_actor_id FROM actor_following WHERE actor_id=? AND state=?
-    `
+		SELECT target_actor_id FROM actor_following WHERE actor_id=? AND state=?
+	`
 
-	const out: any = await db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED).all()
-	if (!out.success) {
-		throw new Error('SQL error: ' + out.error)
-	}
+	const statement = db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED)
 
-	if (out.results !== null) {
-		return out.results.map((x: any) => x.target_actor_id)
-	} else {
-		return []
-	}
+	return getResultsField(statement, 'target_actor_id')
 }
 
-export async function getFollowers(db: D1Database, actor: Actor): Promise<Array<string>> {
+export function getFollowers(db: D1Database, actor: Actor): Promise<Array<string>> {
 	const query = `
-        SELECT actor_id FROM actor_following WHERE target_actor_id=? AND state=?
-    `
+		SELECT actor_id FROM actor_following WHERE target_actor_id=? AND state=?
+	`
 
-	const out: any = await db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED).all()
-	if (!out.success) {
-		throw new Error('SQL error: ' + out.error)
-	}
+	const statement = db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED)
 
-	if (out.results !== null) {
-		return out.results.map((x: any) => x.actor_id)
-	} else {
-		return []
-	}
+	return getResultsField(statement, 'actor_id')
 }

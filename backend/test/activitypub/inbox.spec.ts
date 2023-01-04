@@ -13,7 +13,7 @@ const kv_cache: any = {
 	async put() {},
 }
 
-const waitUntil = async (p: Promise<any>) => await p
+const waitUntil = async (p: Promise<void>) => await p
 
 describe('ActivityPub', () => {
 	test('send Note to non existant user', async () => {

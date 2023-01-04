@@ -233,5 +233,5 @@ export function personFromRow(row: any): Person {
 		// It's very possible that properties override the values set above.
 		// Almost guaranteed for remote user.
 		...JSON.parse(row.properties),
-	}
+	} as Person
 }
