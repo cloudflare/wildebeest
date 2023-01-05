@@ -28,12 +28,12 @@ describe('ActivityPub', () => {
 		const db = await makeDB()
 		await configure(db, { title: 'title', description: 'a', email: 'email' })
 		await generateVAPIDKeys(db)
-		const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+		const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 		const activity: any = {
 			type: 'Create',
-			actor: actorId,
-			to: [actorId],
+			actor: actor.id.toString(),
+			to: [actor.id.toString()],
 			cc: [],
 			object: {
 				id: 'https://example.com/note1',
@@ -97,8 +97,8 @@ describe('ActivityPub', () => {
 
 		const activity: any = {
 			type: 'Create',
-			actor: actorB,
-			to: [actorA],
+			actor: actorB.id.toString(),
+			to: [actorA.id.toString()],
 			cc: [],
 			object: {
 				id: 'https://example.com/note2',
@@ -111,8 +111,8 @@ describe('ActivityPub', () => {
 
 		const entry = await db.prepare('SELECT * FROM actor_notifications').first()
 		assert.equal(entry.type, 'mention')
-		assert.equal(entry.actor_id.toString(), actorA.toString())
-		assert.equal(entry.from_actor_id.toString(), actorB.toString())
+		assert.equal(entry.actor_id.toString(), actorA.id.toString())
+		assert.equal(entry.from_actor_id.toString(), actorB.id.toString())
 	})
 
 	test('remote actor sends Note with mention create notification and download actor', async () => {
@@ -139,7 +139,7 @@ describe('ActivityPub', () => {
 		const activity: any = {
 			type: 'Create',
 			actor: actorB,
-			to: [actorA],
+			to: [actorA.id.toString()],
 			cc: [],
 			object: {
 				id: 'https://example.com/note3',
@@ -158,13 +158,13 @@ describe('ActivityPub', () => {
 		const db = await makeDB()
 		await configure(db, { title: 'title', description: 'a', email: 'email' })
 		await generateVAPIDKeys(db)
-		const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+		const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 		{
 			const activity: any = {
 				type: 'Create',
-				actor: actorId,
-				to: [actorId],
+				actor: actor.id.toString(),
+				to: [actor.id.toString()],
 				object: {
 					id: 'https://example.com/note1',
 					type: 'Note',
@@ -178,8 +178,8 @@ describe('ActivityPub', () => {
 		{
 			const activity: any = {
 				type: 'Create',
-				actor: actorId,
-				to: [actorId],
+				actor: actor.id.toString(),
+				to: [actor.id.toString()],
 				object: {
 					inReplyTo: 'https://example.com/note1',
 					id: 'https://example.com/note2',
@@ -192,7 +192,7 @@ describe('ActivityPub', () => {
 		}
 
 		const entry = await db.prepare('SELECT * FROM actor_replies').first()
-		assert.equal(entry.actor_id, actorId.toString())
+		assert.equal(entry.actor_id, actor.id.toString().toString())
 
 		const obj: any = await objects.getObjectById(db, entry.object_id)
 		assert(obj)
@@ -208,8 +208,8 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await generateVAPIDKeys(db)
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
-			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
 			const note = await createPublicNote(domain, db, 'my first status', actorA)
 
@@ -230,8 +230,8 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
-			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
-			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
 			const note = await createPublicNote(domain, db, 'my first status', actorA)
 
@@ -256,8 +256,8 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
-			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
-			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
 			const note = await createPublicNote(domain, db, 'my first status', actorA)
 
@@ -278,8 +278,8 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
-			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
-			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
 			const note = await createPublicNote(domain, db, 'my first status', actorA)
 
@@ -301,8 +301,8 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
-			const actorA: any = { id: await createPerson(domain, db, userKEK, 'a@cloudflare.com') }
-			const actorB: any = { id: await createPerson(domain, db, userKEK, 'b@cloudflare.com') }
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
 			const note = await createPublicNote(domain, db, 'my first status', actorA)
 

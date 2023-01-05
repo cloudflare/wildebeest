@@ -28,7 +28,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			const db = await makeDB()
-			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const file = new File(['abc'], 'image.jpeg', { type: 'image/jpeg' })
 
