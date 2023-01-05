@@ -12,7 +12,7 @@ export default component$<Props>(({ instanceConfig, setLoading, setInstanceConfi
 		<>
 			<h2>Configure your instance</h2>
 
-			<div class="flex flex-column mb-6 w-full max-w-md">
+			<div class="flex flex-col mb-6 w-full max-w-md">
 				<label class="mb-2 max-w-max text-semi text-sm" for="start-instance-title">
 					Title
 				</label>
@@ -27,7 +27,7 @@ export default component$<Props>(({ instanceConfig, setLoading, setInstanceConfi
 				</div>
 			</div>
 
-			<div class="flex flex-column mb-6 w-full max-w-md">
+			<div class="flex flex-col mb-6 w-full max-w-md">
 				<label class="mb-2 max-w-max text-semi text-sm" for="start-instance-email">
 					Administrator email
 				</label>
@@ -43,7 +43,7 @@ export default component$<Props>(({ instanceConfig, setLoading, setInstanceConfi
 				</div>
 			</div>
 
-			<div class="flex flex-column mb-6 w-full max-w-md">
+			<div class="flex flex-col mb-6 w-full max-w-md">
 				<label class="mb-2 max-w-max text-semi text-sm" for="start-instance-description">
 					Description
 				</label>

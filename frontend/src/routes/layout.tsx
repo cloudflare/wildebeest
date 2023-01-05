@@ -18,7 +18,7 @@ export default component$(() => {
 	const showColumns = useShowColumns()
 
 	return (
-		<main class="container">
+		<main class="main-wrapper">
 			{showColumns && (
 				<div class="side-column">
 					<div class="sticky">
@@ -27,7 +27,7 @@ export default component$(() => {
 				</div>
 			)}
 			<div class={`w-full ${showColumns ? 'max-w-lg' : ''}`}>
-				<div class={`bg-slate-800 ${showColumns ? 'rounded ' : 'min-h-dscreen'}`}>
+				<div class={`bg-slate-800 ${showColumns ? 'rounded ' : 'min-h-screen'}`}>
 					<Slot />
 				</div>
 			</div>

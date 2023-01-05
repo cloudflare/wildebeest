@@ -23,8 +23,8 @@ export default component$((props: Props) => {
 		<div class="p-4 border-t border-slate-600 pointer" onClick$={handleContentClick}>
 			<div class="flex justify-between">
 				<div class="flex">
-					<img class="avatar" src={status.account.avatar} />
-					<div class="flex-column ml-3">
+					<img class="avatar rounded" src={status.account.avatar} />
+					<div class="flex-col ml-3">
 						<div class="p-1">
 							{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
 							<a class="no-decoration">{status.account.display_name}</a>

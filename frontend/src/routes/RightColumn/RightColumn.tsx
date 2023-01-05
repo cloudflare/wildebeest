@@ -38,7 +38,7 @@ export const RightColumn = component$(() => {
 	]
 
 	return (
-		<div class="flex flex-column justify-between container text-slate-400">
+		<div class="flex flex-col justify-between right-column-wrapper text-slate-400">
 			<div>
 				<div class="p-4">
 					<a href="https://mastodon.social">
