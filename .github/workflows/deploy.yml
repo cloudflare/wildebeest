@@ -66,7 +66,8 @@ jobs:
         env:
           TF_VAR_cloudflare_account_id: ${{ secrets.CF_ACCOUNT_ID }}
           TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
-          TF_VAR_cloudflare_zone_name: ${{ secrets.CF_ZONE_NAME }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
+          TF_VAR_cloudflare_deploy_domain: ${{ secrets.CF_DEPLOY_DOMAIN }}
           TF_VAR_gh_username: ${{ github.actor }}
           TF_VAR_d1_id: ${{ env.d1_id }}
           TF_VAR_access_auth_domain: ${{ env.auth_domain }}
