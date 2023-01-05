@@ -1,11 +1,8 @@
-import { component$, Resource, useResource$, useStylesScoped$ } from '@builder.io/qwik'
+import { component$, Resource, useResource$ } from '@builder.io/qwik'
 import { mastodonInstance } from '~/dummyData'
 import { InstanceDetails } from '~/types'
-import styles from './InstanceDetails.scss?inline'
 
 export default component$(() => {
-	useStylesScoped$(styles)
-
 	const resource = useResource$<InstanceDetails>(async () => {
 		return mastodonInstance
 	})
@@ -23,9 +20,9 @@ export default component$(() => {
 				onResolved={(instance) => {
 					return (
 						<div>
-							<img class="server-thumbnail" src={instance.thumbnail.url} />
+							<img style={{ width: '285px', height: '150px' }} src={instance.thumbnail.url} />
 							<p>{instance.description}</p>
-							<a class="no-decoration block mt-4" href={`https://${instance.domain}/about`}>
+							<a class="no-underline block mt-4" href={`https://${instance.domain}/about`}>
 								<div class="text-md text-semi text-slate-400 border border-slate-400 text-center p-3 rounded">
 									Learn More
 								</div>

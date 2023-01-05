@@ -1,4 +1,3 @@
-
 .status-content {
   a {
     text-decoration: none;
@@ -9,6 +8,10 @@
   }
   a.hashtag {
     color: #dbeafe;
+  }
+
+  p {
+    margin-bottom: theme('spacing.4');
   }
 }
 

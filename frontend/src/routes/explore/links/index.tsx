@@ -20,7 +20,7 @@ export default component$(() => {
 				onResolved={(links) => (
 					<>
 						{links.map((link) => (
-							<a href={link.url} class="no-decoration" target="_blank">
+							<a href={link.url} class="no-underline" target="_blank">
 								<div class="p-4 flex justify-between border-b border-slate-600 hover:bg-slate-700">
 									<div class="mr-6">
 										<div class="my-2 text-sm text-slate-400">{link.provider_name}</div>

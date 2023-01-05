@@ -17,7 +17,7 @@ export default component$(() => {
 
 		return (
 			<div class={`py-4 ${isActive ? 'active' : ''}`}>
-				<Link href={linkTarget} class="no-decoration text-bold text-slate-200 py-4">
+				<Link href={linkTarget} class="no-underline text-bold text-slate-200 py-4">
 					{linkText}
 				</Link>
 			</div>
