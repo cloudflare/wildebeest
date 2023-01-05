@@ -20,15 +20,9 @@ describe('Mastodon APIs', () => {
 	describe('timelines', () => {
 		test('home returns Notes in following Actors', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
-			const actor3: any = {
-				id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+			const actor3 = await createPerson(domain, db, userKEK, 'sven3@cloudflare.com')
 
 			// Actor is following actor2, but not actor3.
 			await addFollowing(db, actor, actor2, 'not needed')
@@ -61,15 +55,13 @@ describe('Mastodon APIs', () => {
 
 		test('home returns Notes from ourself', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			// Actor is posting
 			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'status from myself', actor))
 
 			// Actor should only see posts from actor2 in the timeline
-			const connectedActor: any = actor
+			const connectedActor = actor
 			const data = await timelines.getHomeTimeline(domain, db, connectedActor)
 			assert.equal(data.length, 1)
 			assert(data[0].id)
@@ -78,10 +70,11 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('home returns cache', async () => {
-			const connectedActor: any = { id: 'id' }
+			const db = await makeDB()
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const kv_cache: any = {
 				async get(key: string) {
-					assert.equal(key, 'id/timeline/home')
+					assert.equal(key, connectedActor.id + '/timeline/home')
 					return 'cached data'
 				},
 			}
@@ -92,12 +85,8 @@ describe('Mastodon APIs', () => {
 
 		test('public returns Notes', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 
 			const statusFromActor = await createPublicNote(domain, db, 'status from actor', actor)
 			await addObjectInOutbox(db, actor, statusFromActor)
@@ -137,7 +126,7 @@ describe('Mastodon APIs', () => {
 
 		test('public includes attachment', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const properties = { url: 'https://example.com/image.jpg' }
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
@@ -156,7 +145,7 @@ describe('Mastodon APIs', () => {
 
 		test('public timeline uses published_date', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const note1 = await createPublicNote(domain, db, 'note1', actor)
 			const note2 = await createPublicNote(domain, db, 'note2', actor)
@@ -176,7 +165,7 @@ describe('Mastodon APIs', () => {
 
 		test('timelines hides and counts replies', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const note = await createPublicNote(domain, db, 'a post', actor)
 			await addObjectInOutbox(db, actor, note)
@@ -208,7 +197,7 @@ describe('Mastodon APIs', () => {
 
 		test('show status reblogged', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const note = await createPublicNote(domain, db, 'a post', actor)
 			await addObjectInOutbox(db, actor, note)
@@ -223,7 +212,7 @@ describe('Mastodon APIs', () => {
 
 		test('show status favourited', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const note = await createPublicNote(domain, db, 'a post', actor)
 			await addObjectInOutbox(db, actor, note)
