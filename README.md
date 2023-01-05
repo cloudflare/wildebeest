@@ -1,6 +1,6 @@
 # Wildebeest
 
-Nothing to see yet here, follow the Cloudflare blog.
+Nothing to see yet here, follow the [Cloudflare blog](https://blog.cloudflare.com) for updates.
 
 ## User registration
 
