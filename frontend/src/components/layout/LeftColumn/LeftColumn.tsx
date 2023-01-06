@@ -5,6 +5,7 @@ import { useDomain } from '~/utils/useDomain'
 export default component$(() => {
 	const domain = useDomain()
 	const config = useContext(InstanceConfigContext)
+
 	return (
 		<div class="text-sm">
 			<p class="text-slate-400">
