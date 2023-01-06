@@ -74,7 +74,7 @@ describe('ActivityPub', () => {
 				},
 			}
 
-			await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
+			await activityHandler.handle(domain, activity, db, userKEK)
 
 			const row = await db
 				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
@@ -96,7 +96,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -114,7 +114,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -131,7 +131,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -150,7 +150,7 @@ describe('ActivityPub', () => {
 				},
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
 				message: 'object https://example.com/note2 does not exist',
 			})
 		})
@@ -174,7 +174,7 @@ describe('ActivityPub', () => {
 				object: object,
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, 'inbox'), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
 				message: 'actorid mismatch when updating object',
 			})
 		})
@@ -204,7 +204,7 @@ describe('ActivityPub', () => {
 				object: newObject,
 			}
 
-			await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
+			await activityHandler.handle(domain, activity, db, userKEK)
 
 			const updatedObject = await db.prepare('SELECT * FROM objects WHERE original_object_id=?').bind(object.id).first()
 			assert(updatedObject)
@@ -287,7 +287,7 @@ describe('ActivityPub', () => {
 				cc: [],
 				object: objectId,
 			}
-			await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
+			await activityHandler.handle(domain, activity, db, userKEK)
 
 			const object = await db.prepare('SELECT * FROM objects').bind(remoteActorId).first()
 			assert(object)
@@ -313,20 +313,22 @@ describe('ActivityPub', () => {
 			let result: any
 
 			// Cache object once adds it to the database
-			const obj1: any = await cacheObject(domain, db, properties, actor.id, originalObjectId, false)
-			assert.equal(obj1.a, 1)
-			assert.equal(obj1.b, 2)
+			const res1: any = await cacheObject(domain, db, properties, actor.id, originalObjectId, false)
+			assert.equal(res1.object.a, 1)
+			assert.equal(res1.object.b, 2)
+			assert(res1.created)
 
 			result = await db.prepare('SELECT count(*) as count from objects').first()
 			assert.equal(result.count, 1)
 
 			// Cache object second time updates the first one
 			properties.a = 3
-			const obj2: any = await cacheObject(domain, db, properties, actor.id, originalObjectId, false)
+			const res2: any = await cacheObject(domain, db, properties, actor.id, originalObjectId, false)
 			// The creation date and properties don't change
-			assert.equal(obj1.a, obj2.a)
-			assert.equal(obj1.b, obj2.b)
-			assert.equal(obj1.published, obj2.published)
+			assert.equal(res1.object.a, res2.object.a)
+			assert.equal(res1.object.b, res2.object.b)
+			assert.equal(res1.object.published, res2.object.published)
+			assert(!res2.created)
 
 			result = await db.prepare('SELECT count(*) as count from objects').first()
 			assert.equal(result.count, 1)

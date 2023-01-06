@@ -54,7 +54,7 @@ export async function handleRequest(
 		return new Response('', { status: 404 })
 	}
 
-	await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
+	await activityHandler.handle(domain, activity, db, userKEK)
 
 	// Assuming we received new posts or a like, pregenerate the user's timelines
 	// and notifications.

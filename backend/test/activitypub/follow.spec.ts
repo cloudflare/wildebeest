@@ -46,7 +46,7 @@ describe('ActivityPub', () => {
 				object: actor.id.toString(),
 			}
 
-			await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
+			await activityHandler.handle(domain, activity, db, userKEK)
 
 			const row = await db
 				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
@@ -144,7 +144,7 @@ describe('ActivityPub', () => {
 				object: actor.id,
 			}
 
-			await activityHandler.handle(domain, activity, db, userKEK, 'inbox')
+			await activityHandler.handle(domain, activity, db, userKEK)
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
 			assert.equal(entry.type, 'follow')
