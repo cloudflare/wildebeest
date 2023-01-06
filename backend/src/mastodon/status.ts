@@ -82,7 +82,7 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Pro
 		media_attachments: mediaAttachments,
 		content: obj.content || '',
 		id: obj.mastodonId || '',
-		uri: obj.url,
+		uri: obj.id,
 		created_at: obj.published || '',
 		account,
 
