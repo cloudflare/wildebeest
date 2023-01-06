@@ -35,7 +35,6 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
-			assertCache(res, 180)
 
 			{
 				const data = await res.json<any>()

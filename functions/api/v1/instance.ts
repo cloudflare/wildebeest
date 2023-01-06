@@ -12,7 +12,6 @@ export async function handleRequest(domain: string, db: D1Database) {
 		'Access-Control-Allow-Origin': '*',
 		'Access-Control-Allow-Headers': 'content-type, authorization',
 		'content-type': 'application/json; charset=utf-8',
-		'cache-control': 'max-age=180, public',
 	}
 
 	const query = `
