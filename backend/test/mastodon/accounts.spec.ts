@@ -420,8 +420,11 @@ describe('Mastodon APIs', () => {
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
 
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const localNote = await createPublicNote(domain, db, 'my localnote status', actor)
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+
+			const note = await createPublicNote(domain, db, 'my localnote status', actorA, [], {
+				attributedTo: actorA.id.toString(),
+			})
 
 			globalThis.fetch = async (input: RequestInfo) => {
 				if (input.toString() === 'https://social.com/.well-known/webfinger?resource=acct%3Asomeone%40social.com') {
@@ -431,29 +434,20 @@ describe('Mastodon APIs', () => {
 								{
 									rel: 'self',
 									type: 'application/activity+json',
-									href: 'https://social.com/someone',
+									href: 'https://social.com/users/someone',
 								},
 							],
 						})
 					)
 				}
 
-				if (input.toString() === 'https://social.com/someone') {
+				if (input.toString() === 'https://social.com/users/someone') {
 					return new Response(
 						JSON.stringify({
-							id: 'https://social.com/someone',
+							id: 'https://social.com/users/someone',
 							type: 'Person',
 							preferredUsername: 'someone',
 							outbox: 'https://social.com/outbox',
-						})
-					)
-				}
-
-				if (input.toString() === 'https://mastodon.social/users/someone') {
-					return new Response(
-						JSON.stringify({
-							id: 'https://mastodon.social/users/someone',
-							type: 'Person',
 						})
 					)
 				}
@@ -473,7 +467,7 @@ describe('Mastodon APIs', () => {
 								{
 									id: 'https://mastodon.social/users/a/statuses/b/activity',
 									type: 'Create',
-									actor: 'https://mastodon.social/users/someone',
+									actor: 'https://social.com/users/someone',
 									published: '2022-12-10T23:48:38Z',
 									object: {
 										id: 'https://example.com/object1',
@@ -484,9 +478,9 @@ describe('Mastodon APIs', () => {
 								{
 									id: 'https://mastodon.social/users/c/statuses/d/activity',
 									type: 'Announce',
-									actor: 'https://mastodon.social/users/someone',
+									actor: 'https://social.com/users/someone',
 									published: '2022-12-10T23:48:38Z',
-									object: localNote.id,
+									object: note.id,
 								},
 							],
 						})
@@ -501,7 +495,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 
 			const data = await res.json<Array<any>>()
-			assert.equal(data.length, 1)
+			assert.equal(data.length, 2)
 			assert.equal(data[0].content, '<p>p</p>')
 			assert.equal(data[0].account.username, 'someone')
 
