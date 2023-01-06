@@ -1,4 +1,3 @@
-import type { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 
 export type Identity = {

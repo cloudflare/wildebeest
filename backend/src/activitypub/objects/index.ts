@@ -1,4 +1,3 @@
-import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { UUID } from 'wildebeest/backend/src/types'
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
@@ -128,6 +127,7 @@ export async function cacheObject(
 }
 
 export async function updateObject(db: D1Database, properties: any, id: URL): Promise<boolean> {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const res: any = await db
 		.prepare('UPDATE objects SET properties = ? WHERE id = ?')
 		.bind(JSON.stringify(properties), id.toString())

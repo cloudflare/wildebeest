@@ -2,7 +2,6 @@ import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
-import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import * as accept from 'wildebeest/backend/src/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/backend/src/activitypub/actors/inbox'
 import {

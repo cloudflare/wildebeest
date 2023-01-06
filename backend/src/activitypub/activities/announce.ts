@@ -1,6 +1,5 @@
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-announce
 
-import type { Object } from '../objects'
 import type { Actor } from '../actors'
 import type { Activity } from '.'
 

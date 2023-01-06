@@ -1,5 +1,4 @@
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
-import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
@@ -9,7 +8,6 @@ import type { WebPushInfos, WebPushMessage } from 'wildebeest/backend/src/webpus
 import { WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { NotificationType, Notification } from 'wildebeest/backend/src/types/notification'
-import type { Subscription } from 'wildebeest/backend/src/mastodon/subscription'
 import { getSubscriptionForAllClients } from 'wildebeest/backend/src/mastodon/subscription'
 import { getVAPIDKeys } from 'wildebeest/backend/src/mastodon/subscription'
 import * as config from 'wildebeest/backend/src/config'

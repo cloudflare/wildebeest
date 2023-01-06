@@ -1,5 +1,4 @@
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
-import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { IMAGE } from 'wildebeest/backend/src/activitypub/objects/image'
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 

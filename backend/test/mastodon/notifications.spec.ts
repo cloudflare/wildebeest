@@ -3,7 +3,7 @@ import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/not
 import { createNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import * as notifications from 'wildebeest/functions/api/v1/notifications'
-import { makeDB, assertJSON, assertCORS, createTestClient } from '../utils'
+import { makeDB, assertJSON, createTestClient } from '../utils'
 import { strict as assert } from 'node:assert/strict'
 import { sendLikeNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createSubscription } from 'wildebeest/backend/src/mastodon/subscription'

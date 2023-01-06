@@ -43,6 +43,7 @@ export async function get(actor: Actor): Promise<OrderedCollection<Activity>> {
 	return collection
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function loadItems<T>(collection: OrderedCollection<T>, max: number): Promise<Array<T>> {
 	// FIXME: implement max and multi page support
 

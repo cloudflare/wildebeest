@@ -2,19 +2,13 @@ import { strict as assert } from 'node:assert/strict'
 import * as v1_instance from 'wildebeest/functions/api/v1/instance'
 import * as apps from 'wildebeest/functions/api/v1/apps'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
-import * as notifications from 'wildebeest/functions/api/v1/notifications'
-import { defaultImages } from 'wildebeest/config/accounts'
-import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer, createTestClient } from './utils'
-import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
-import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
-import { Actor, createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
-import { createClient, getClientById } from '../src/mastodon/client'
+import { makeDB, assertCORS, assertJSON, assertCache, createTestClient } from './utils'
+import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { createSubscription } from '../src/mastodon/subscription'
 import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
 import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
 
 const userKEK = 'test_kek'
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
@@ -75,6 +69,7 @@ describe('Mastodon APIs', () => {
 			assertCORS(res)
 			assertJSON(res)
 
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { name, website, redirect_uri, client_id, client_secret, vapid_key, ...rest } = await res.json<
 				Record<string, string>
 			>()

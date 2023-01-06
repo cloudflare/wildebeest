@@ -25,8 +25,6 @@ export async function addFollowing(db: D1Database, actor: Actor, target: Actor, 
 
 // Accept the pending following request
 export async function acceptFollowing(db: D1Database, actor: Actor, target: Actor) {
-	const id = crypto.randomUUID()
-
 	const query = `
 		UPDATE actor_following SET state=? WHERE actor_id=? AND target_actor_id=? AND state=?
 	`

@@ -12,7 +12,7 @@ import * as statuses_context from 'wildebeest/functions/api/v1/statuses/[id]/con
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
-import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
+import { isUrlValid, makeDB, assertJSON, streamToArrayBuffer } from '../utils'
 import * as note from 'wildebeest/backend/src/activitypub/objects/note'
 
 const userKEK = 'test_kek4'
@@ -100,7 +100,6 @@ describe('Mastodon APIs', () => {
 			const res = await statuses.handleRequest(req, db, connectedActor, userKEK)
 			assert.equal(res.status, 200)
 
-			const data = await res.json<any>()
 			const row = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first()
 			assert.equal(row.count, 1)
 		})
@@ -224,7 +223,7 @@ describe('Mastodon APIs', () => {
 				)
 				.run()
 
-			globalThis.fetch = async (input: any, data: any) => {
+			globalThis.fetch = async (input: any) => {
 				if (input === actor.id.toString()) {
 					return new Response(
 						JSON.stringify({
@@ -452,7 +451,7 @@ describe('Mastodon APIs', () => {
 					)
 					.run()
 
-				globalThis.fetch = async (input: any, data: any) => {
+				globalThis.fetch = async (input: any) => {
 					if (input === actor.id.toString()) {
 						return new Response(
 							JSON.stringify({

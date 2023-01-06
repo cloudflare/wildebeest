@@ -1,4 +1,4 @@
-import { makeDB, assertCache, isUrlValid } from '../utils'
+import { makeDB } from '../utils'
 import { generateVAPIDKeys, configure } from 'wildebeest/backend/src/config'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
