@@ -7,8 +7,6 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { InstanceConfig } from 'wildebeest/backend/src/config'
 import * as config from 'wildebeest/backend/src/config'
 
-import * as frontend from '../frontend/server/entry.cloudflare-pages'
-
 export const onRequestPost: PagesFunction<Env, any> = async ({ request, env }) => {
 	return handlePostRequest(request, env.DATABASE, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
@@ -27,6 +25,7 @@ export const onRequestGet: PagesFunction<Env, any> = async (ctx) => {
 		return Response.redirect(url)
 	}
 
+	const frontend = await import('../frontend/server/entry.cloudflare-pages')
 	return frontend.onRequest(ctx)
 }
 
