@@ -26,8 +26,6 @@ describe('Mastodon APIs', () => {
 				uri: 'uri',
 				email: 'email',
 				description: 'description',
-				accessAud: '1',
-				accessDomain: 'foo',
 			}
 			await configure(db, data)
 
@@ -50,8 +48,6 @@ describe('Mastodon APIs', () => {
 				uri: 'uri',
 				email: 'email',
 				description: 'description',
-				accessAud: '1',
-				accessDomain: 'foo',
 			}
 			await configure(db, data)
 
