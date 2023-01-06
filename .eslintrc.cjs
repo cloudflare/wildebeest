@@ -13,6 +13,7 @@ module.exports = {
 	root: true,
 	rules: {
 		'prefer-const': 'error',
+		'no-console': ['error', { 'allow': ['warn', 'error'] }],
 		'no-var': 'error',
 		'@typescript-eslint/no-unsafe-return': 'error',
 		'@typescript-eslint/no-unused-vars': 'error',
@@ -32,7 +33,6 @@ module.exports = {
 		'@typescript-eslint/restrict-template-expressions': 'off',
 		'@typescript-eslint/no-misused-promises': 'off',
 		'@typescript-eslint/no-unnecessary-type-assertion': 'off',
-		'no-console': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/no-inferrable-types': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',

@@ -24,7 +24,6 @@ describe('ActivityPub', () => {
 					assert.equal(input.method, 'POST')
 					const data = await input.json()
 					receivedActivity = data
-					console.log({ receivedActivity })
 					return new Response('')
 				}
 

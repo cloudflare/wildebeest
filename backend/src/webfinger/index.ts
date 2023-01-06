@@ -24,13 +24,12 @@ export async function queryAcctLink(domain: string, acct: string): Promise<URL |
 	let res
 	try {
 		const url = new URL('/.well-known/webfinger?' + params, 'https://' + domain)
-		console.log('query', url.href)
 		res = await fetch(url, { headers })
 		if (!res.ok) {
 			throw new Error(`WebFinger API returned: ${res.status}`)
 		}
 	} catch (err) {
-		console.warn('failed to query WebFinger:', err)
+		console.error('failed to query WebFinger:', err)
 		return null
 	}
 

@@ -3,6 +3,7 @@
  */
 export async function logger(context: EventContext<unknown, any, any>) {
 	const { method, url } = context.request
+	/* eslint-disable no-console */
 	console.log(`-> ${method} ${url} `)
 	const res = await context.next()
 	if (context.data.connectedActor) {
@@ -10,6 +11,6 @@ export async function logger(context: EventContext<unknown, any, any>) {
 	} else {
 		console.log(`<- ${res.status}`)
 	}
-
+	/* eslint-enable no-console */
 	return res
 }

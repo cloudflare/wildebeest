@@ -43,6 +43,5 @@ export async function generateWebPushMessage(
 			return WebPushResult.NotSubscribed
 	}
 
-	console.warn(`WebPush res: ${res.status} body: ${await res.text()}`)
 	return WebPushResult.Error
 }

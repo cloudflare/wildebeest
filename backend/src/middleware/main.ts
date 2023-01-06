@@ -101,7 +101,7 @@ export async function main(context: EventContext<Env, any, any>) {
 
 			return context.next()
 		} catch (err: any) {
-			console.warn(err.stack)
+			console.error(err.stack)
 			return errors.notAuthorized('unknown error occurred')
 		}
 	}

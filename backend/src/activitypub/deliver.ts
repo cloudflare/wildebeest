@@ -13,7 +13,6 @@ const headers = {
 
 export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Actor, activity: Activity) {
 	const body = JSON.stringify(activity)
-	console.log({ body })
 	const req = new Request(to.inbox, {
 		method: 'POST',
 		body,
@@ -29,8 +28,7 @@ export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Act
 		throw new Error(`delivery to ${to.inbox} returned ${res.status}: ${body}`)
 	}
 	{
-		const body = await res.text()
-		console.log(`${to.inbox} returned 200: ${body}`)
+		await res.text()
 	}
 }
 
@@ -66,8 +64,7 @@ export async function deliverFollowers(db: D1Database, signingKey: CryptoKey, fr
 			return
 		}
 		{
-			const body = await res.text()
-			console.log(`${targetActor.inbox} returned 200: ${body}`)
+			await res.text()
 		}
 	})
 
