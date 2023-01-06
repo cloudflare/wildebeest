@@ -43,16 +43,16 @@ export function assertCache(response: Response, maxge: number) {
 export async function streamToArrayBuffer(stream: ReadableStream) {
 	let result = new Uint8Array(0)
 	const reader = stream.getReader()
-	while (true) {
-		const { done, value } = await reader.read()
-		if (done) {
-			break
-		}
-
+	let { done, value } = await reader.read()
+	while (!done) {
 		const newResult = new Uint8Array(result.length + value.length)
 		newResult.set(result)
 		newResult.set(value, result.length)
 		result = newResult
+
+		const nextItem = await reader.read()
+		done = nextItem.done
+		value = nextItem.value
 	}
 	return result
 }

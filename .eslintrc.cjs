@@ -16,6 +16,7 @@ module.exports = {
 		'no-var': 'error',
 		'@typescript-eslint/no-unsafe-return': 'error',
 		'@typescript-eslint/no-unused-vars': 'error',
+		'no-constant-condition': 'error',
 		/*
 			Note: the following rules have been set to off so that linting
 				  can pass with the current code, but we need to gradually
@@ -26,7 +27,6 @@ module.exports = {
 		'@typescript-eslint/no-unsafe-call': 'off',
 		'@typescript-eslint/no-unsafe-member-access': 'off',
 		'@typescript-eslint/restrict-plus-operands': 'off',
-		'no-constant-condition': 'off',
 		'@typescript-eslint/await-thenable': 'off',
 		'@typescript-eslint/require-await': 'off',
 		'@typescript-eslint/restrict-template-expressions': 'off',
