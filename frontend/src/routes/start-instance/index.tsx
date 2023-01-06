@@ -19,9 +19,9 @@ export default component$(() => {
 	})
 
 	useClientEffect$(async () => {
-        if (await testInstance()) {
-            instanceConfigured.value = true
-        }
+		if (await testInstance()) {
+			instanceConfigured.value = true
+		}
 		loading.value = false
 	})
 
