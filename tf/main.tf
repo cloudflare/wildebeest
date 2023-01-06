@@ -62,9 +62,8 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
   deployment_configs {
     production {
       environment_variables = {
-        /* API key with Cloudflare Images perms */
-        CF_ACCOUNT_ID = ""
-        CF_API_TOKEN  = ""
+        CF_ACCOUNT_ID = var.cloudflare_account_id
+        CF_API_TOKEN = var.cloudflare_api_token
 
         USER_KEY = random_password.user_key.result
 
