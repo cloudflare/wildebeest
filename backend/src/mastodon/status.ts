@@ -45,8 +45,11 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Pro
 	const acct = urlToHandle(actorId)
 	const account = await loadExternalMastodonAccount(acct, actor)
 
-	const favourites = await getLikes(db, obj)
-	const reblogs = await getReblogs(db, obj)
+	// FIXME: temporarly disable favourites and reblogs counts
+	const favourites = []
+	const reblogs = []
+	// const favourites = await getLikes(db, obj)
+	// const reblogs = await getReblogs(db, obj)
 
 	const mediaAttachments: Array<MediaAttachment> = []
 
