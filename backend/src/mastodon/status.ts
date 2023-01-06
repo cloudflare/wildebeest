@@ -52,13 +52,17 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Pro
 
 	if (Array.isArray(obj.attachment)) {
 		for (let i = 0, len = obj.attachment.length; i < len; i++) {
-			const document = await getObjectById(db, obj.attachment[i].id)
-			if (document === null) {
-				console.warn('missing attachment object: ' + obj.attachment[i].id)
-				continue
-			}
+			if (obj.attachment[i].id) {
+				const document = await getObjectById(db, obj.attachment[i].id)
+				if (document === null) {
+					console.warn('missing attachment object: ' + obj.attachment[i].id)
+					continue
+				}
 
-			mediaAttachments.push(media.fromObject(document))
+				mediaAttachments.push(media.fromObject(document))
+			} else {
+				console.warn('attachment has no id')
+			}
 		}
 	}
 

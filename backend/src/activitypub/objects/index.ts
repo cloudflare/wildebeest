@@ -71,6 +71,11 @@ export async function get<T>(url: URL): Promise<T> {
 	return res.json<T>()
 }
 
+type CacheObjectRes = {
+	created: boolean
+	object: Object
+}
+
 export async function cacheObject(
 	domain: string,
 	db: D1Database,
@@ -78,10 +83,13 @@ export async function cacheObject(
 	originalActorId: URL,
 	originalObjectId: URL,
 	local: boolean
-): Promise<Object> {
+): Promise<CacheObjectRes> {
 	const cachedObject = await getObjectBy(db, 'original_object_id', originalObjectId.toString())
 	if (cachedObject !== null) {
-		return cachedObject
+		return {
+			created: false,
+			object: cachedObject,
+		}
 	}
 
 	const uuid = crypto.randomUUID()
@@ -104,8 +112,7 @@ export async function cacheObject(
 
 	{
 		const properties = JSON.parse(row.properties)
-
-		return {
+		const object = {
 			published: new Date(row.cdate).toISOString(),
 			...properties,
 
@@ -115,6 +122,8 @@ export async function cacheObject(
 			originalActorId: row.original_actor_id,
 			originalObjectId: row.original_object_id,
 		} as Object
+
+		return { object, created: true }
 	}
 }
 
