@@ -2,6 +2,7 @@ export type InstanceConfig = {
 	title?: string
 	email?: string
 	description?: string
+	thumbnail?: string
 }
 
 const DEFAULT_THUMBNAIL =
