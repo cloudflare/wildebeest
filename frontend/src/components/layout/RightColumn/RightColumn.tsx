@@ -1,6 +1,6 @@
 import { component$, useStylesScoped$ } from '@builder.io/qwik'
 import { Link, useLocation } from '@builder.io/qwik-city'
-import { MastodonLogo, WildebeestLogo } from '~/components/MastodonLogo'
+import { WildebeestLogo } from '~/components/MastodonLogo'
 import styles from './RightColumn.scss?inline'
 
 type LinkConfig = {
@@ -10,7 +10,7 @@ type LinkConfig = {
 	linkActiveRegex: RegExp
 }
 
-export const RightColumn = component$(() => {
+export default component$(() => {
 	useStylesScoped$(styles)
 	const location = useLocation()
 
