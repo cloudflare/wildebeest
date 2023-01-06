@@ -16,7 +16,7 @@ export async function handleRequest(domain: string, db: D1Database) {
 	}
 
 	const query = `
-        SELECT * FROM instance_config WHERE key IN ('title', 'description', 'email', 'short_description')
+        SELECT * FROM instance_config WHERE key IN ('title', 'description', 'email', 'short_description', 'thumbnail')
     `
 	const { results, error, success } = await db.prepare(query).all()
 	if (!success) {

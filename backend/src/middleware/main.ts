@@ -53,7 +53,6 @@ export async function main(context: EventContext<Env, any, any>) {
 		url.pathname === '/oauth/token' ||
 		url.pathname === '/oauth/authorize' || // Cloudflare Access runs on /oauth/authorize
 		url.pathname === '/api/v1/instance' ||
-		url.pathname === '/api/v2/instance' ||
 		url.pathname === '/api/v1/apps' ||
 		url.pathname === '/api/v1/timelines/public' ||
 		url.pathname === '/api/v1/custom_emojis' ||
