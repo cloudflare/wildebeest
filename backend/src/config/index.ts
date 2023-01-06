@@ -2,8 +2,6 @@ export type InstanceConfig = {
 	title?: string
 	email?: string
 	description?: string
-	accessAud?: string
-	accessDomain?: string
 }
 
 const DEFAULT_THUMBNAIL =
