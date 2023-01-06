@@ -119,9 +119,9 @@ Add an include rule to the policy with the list of Emails that you want to allow
 
 ### Configure your server
 
-Open your browser and go to your newly deployed Wildebeest domain `https://social.example.com/start-instance` (replace social.example.com with your domain).
+Open your browser and go to your newly deployed Wildebeest domain `https://social.example.com/start-instance` (replace social.example.com with your domain). Fill in the title, administrator Email and description. Press ***Configure***.
 
-(needs screenshot)
+![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/42663b5d-11a6-4d23-d99a-31daab333b00/w=560)
 
 Go to `https://social.example.com/api/v1/instance` (replace social.example.com with your domain) and double-check your configuration. It should show:
 
@@ -142,8 +142,36 @@ That's it, you're ready to start using your Wildebeest Mastodon compatible insta
 
 ## Supported clients
 
+Wildebeest is Mastodon API compatible, which means that you should be able to use most of the Web, Desktop, and Mobile clients with it. However, this project is a work in progress, and nuances might affect some of their functionality.
+
+This is the list clients that we have been using successfully while developing and testing Wildebeest:
+
+* [Pinafore](https://pinafore.social/) web client ([source](https://github.com/nolanlawson/pinafore)).
+* Mastodon [official](https://joinmastodon.org/apps) mobile client for [iOS](https://apps.apple.com/us/app/mastodon-for-iphone/id1571998974) ([source](https://github.com/mastodon/mastodon-ios)) and [Android](https://play.google.com/store/apps/details?id=org.joinmastodon.android) ([source](https://github.com/mastodon/mastodon-android)).
+
+Wilebeest also provides a read-only web client in your instance URL, where you can explore the timelines (local and federated), posts and profiles. We will continue to improve this web client and eventually add suport to posting content as well.
+
 ## Aditional Cloudflare services
+
+Since Wildebeest is a Cloudflare app running on Pages, you can seamlessly enable additional Cloudflare services to protect or improve your server.
 
 ### Email Routing
 
+If you want to receive Email at your @social.example.com domain, you can enable [Email Routing](https://developers.cloudflare.com/email-routing/get-started/enable-email-routing/) for free and take advantage of sophisticated Email forwarding and protection features. Simply log in to your account, select the Wildebeest zone and then click on Email to enable.
+
 ## Troubleshooting
+
+Sometimes things go south. The GitHub Actions deployment can fail for some reason, or some configuration changed or was accidentally removed.
+
+### Starting over
+
+If you attempted to deploy Wildebeest in your account and something failed, or you simply want to reinstall everything from scratch again, you need to do manual checkups and cleaning before you start over.
+
+* Go to your zone DNS settings and delete the CNAME record that points to `wildebeest-username.pages.dev`
+* Go to your account Pages section and delete the `wildebeest-username` project.
+* Go to your account Workers / KV section and delete the `wildebeest-username-cache` namespace.
+* Go to your account Workers / D1 and delete the `wildebeest-username` database.
+* Launch [Zero Trust](https://one.dash.cloudflare.com/), select your account, go to Access / Applications and delete the `wildebeest-username` application.
+* Delete your GitHub wildebeest forked repo.
+
+You can now start a clean install.
