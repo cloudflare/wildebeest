@@ -20,8 +20,10 @@ jobs:
           node-version: 16.13.x
       - name: Install
         run: yarn
+      - name: Build
+        run: yarn build
       - name: Check formatting
-        run:  yarn pretty      
+        run:  yarn pretty
       - name: Run API tests
         run: yarn test
 
