@@ -1,12 +1,14 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
-import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
+import { makeGetActorAsId, makeGetObjectAsId } from 'wildebeest/backend/src/activitypub/activities/handle'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Handle } from 'wildebeest/backend/src/utils/parse'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { MastodonAccount, MastodonStatus } from 'wildebeest/backend/src/types'
+import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import * as webfinger from 'wildebeest/backend/src/webfinger'
@@ -39,15 +41,13 @@ export async function handleRequest(request: Request, db: D1Database, id: string
 }
 
 async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database, userKEK: string): Promise<Response> {
-	const out: Array<MastodonStatus> = []
-
 	const url = new URL(request.url)
 	const domain = url.hostname
 	const isPinned = url.searchParams.get('pinned') === 'true'
 	if (isPinned) {
 		// TODO: pinned statuses are not implemented yet. Stub the endpoint
 		// to avoid returning statuses that aren't pinned.
-		return new Response(JSON.stringify(out), { headers })
+		return new Response(JSON.stringify([]), { headers })
 	}
 
 	const acct = `${handle.localPart}@${handle.domain}`
@@ -59,39 +59,62 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 	const actor = await actors.getAndCache(link, db)
 
 	const activities = await outbox.get(actor)
-	let results: Array<Object> = []
-
-	for (let i = 0, len = activities.items.length; i < len; i++) {
-		const activity = activities.items[i]
-		const { createdObjects } = await activityHandler.handle(domain, activity, db, userKEK, 'caching')
-		results = [...results, ...createdObjects]
-	}
+	let statuses: Array<MastodonStatus> = []
 
 	const account = await loadExternalMastodonAccount(acct, actor)
 
-	if (results && results.length > 0) {
-		for (let i = 0, len = results.length; i < len; i++) {
-			const result: any = results[i]
+	for (let i = 0, len = activities.items.length; i < len; i++) {
+		const activity = activities.items[i]
 
-			out.push({
-				id: result.mastodonId,
-				uri: objects.uri(domain, result.id),
-				created_at: result.published,
-				content: result.content,
-				emojis: [],
-				media_attachments: [],
-				tags: [],
-				mentions: [],
-				account,
+		const getObjectAsId = makeGetObjectAsId(activity)
+		const getActorAsId = makeGetActorAsId(activity)
 
-				// TODO: stub values
-				visibility: 'public',
-				spoiler_text: '',
-			})
+		if (activity.type === 'Create') {
+			const actorId = getActorAsId()
+			const originalObjectId = getObjectAsId()
+			const res = await objects.cacheObject(domain, db, activity.object, actorId, originalObjectId, false)
+			const status = await toMastodonStatusFromObject(db, res.object as Note)
+			if (status !== null) {
+				statuses.push(status)
+			}
 		}
+
+		if (activity.type === 'Announce') {
+			let obj: any
+
+			const actorId = getActorAsId()
+			const objectId = getObjectAsId()
+
+			const localObject = await objects.getObjectById(db, objectId)
+			if (localObject === null) {
+				try {
+					// Object doesn't exists locally, we'll need to download it.
+					const remoteObject = await objects.get<Note>(objectId)
+
+					const res = await objects.cacheObject(domain, db, remoteObject, actorId, objectId, false)
+					if (res === null) {
+						break
+					}
+					obj = res.object
+				} catch (err: any) {
+					console.warn(`failed to retrieve object ${objectId}: ${err.message}`)
+					break
+				}
+			} else {
+				// Object already exists locally, we can just use it.
+				obj = localObject
+			}
+
+			const status = await toMastodonStatusFromObject(db, obj)
+			if (status !== null) {
+				statuses.push(status)
+			}
+		}
+
+		// FIXME: support other Activities, like Update.
 	}
 
-	return new Response(JSON.stringify(out), { headers })
+	return new Response(JSON.stringify(statuses), { headers })
 }
 
 async function getLocalStatuses(request: Request, db: D1Database, handle: Handle): Promise<Response> {

@@ -2,19 +2,25 @@ export type InstanceConfig = {
 	title?: string
 	email?: string
 	description?: string
-	accessAud?: string
-	accessDomain?: string
+	thumbnail?: string
 }
+
+const DEFAULT_THUMBNAIL =
+	'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail'
 
 export async function configure(db: D1Database, data: InstanceConfig) {
 	const sql = `
         INSERT INTO instance_config
         VALUES ('title', ?),
                ('email', ?),
+               ('thumbnail', ?),
                ('description', ?);
     `
 
-	const { success, error } = await db.prepare(sql).bind(data.title, data.email, data.description).run()
+	const { success, error } = await db
+		.prepare(sql)
+		.bind(data.title, data.email, DEFAULT_THUMBNAIL, data.description)
+		.run()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}

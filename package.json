@@ -20,7 +20,7 @@
 		"prettier": "^2.8.1",
 		"ts-jest": "^29.0.3",
 		"typescript": "^4.9.4",
-		"wrangler": "0.0.0-616f8739"
+		"wrangler": "0.0.0-e93063e9"
 	},
 	"private": true,
 	"scripts": {
@@ -34,7 +34,7 @@
 		"database:migrate": "yarn d1 migrations apply DATABASE",
 		"database:create-mock": "rm -f .wrangler/state/d1/DATABASE.sqlite3 && yarn database:migrate --local && node ./frontend/mock-db/run.mjs",
 		"dev": "yarn build && yarn database:migrate --local && yarn pages dev frontend/dist --d1 DATABASE --persist --compatibility-date=2022-12-20",
-		"test:ui": "yarn build && concurrently --success command-1 --kill-others \"yarn pages dev frontend/dist --d1 DATABASE --persist --port 6868 --compatibility-date=2022-12-20 || true\" \"yarn --cwd frontend jest --verbose\"",
+		"test:ui": "yarn build && yarn database:create-mock && concurrently --success command-1 --kill-others \"yarn pages dev frontend/dist --d1 DATABASE --persist --port 6868 --compatibility-date=2022-12-20 || true\" \"yarn --cwd frontend jest --verbose\"",
 		"deploy:init": "yarn pages project create wildebeest && yarn d1 create wildebeest",
 		"deploy": "yarn build && yarn database:migrate && yarn pages publish frontend/dist --project-name=wildebeest"
 	},

@@ -6,6 +6,7 @@ import { formatRoundedNumber } from '~/utils/numbers'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
 import { Link, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
+import { Avatar } from '~/components/avatar'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database; domain: string },
@@ -35,11 +36,11 @@ export default component$(() => {
 			<div class="bg-slate-700 p-4">
 				{/* Account Card */}
 				<div class="flex">
-					<img class="avatar rounded" src={status.account.avatar} />
+					<Avatar src={status.account.avatar} />
 					<div class="flex flex-col">
 						<div class="p-1">
 							{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
-							<a class="no-decoration">{status.account.display_name}</a>
+							<a class="no-underline">{status.account.display_name}</a>
 						</div>
 						<div class="p-1 text-slate-400">@{status.account.acct}</div>
 					</div>
@@ -54,7 +55,7 @@ export default component$(() => {
 				)}
 				{/* Info Tray */}
 				<div class="text-slate-500 mt-4 text-sm">
-					<a href={status.url} class="no-decoration">
+					<a href={status.url} class="no-underline">
 						<span>{formatDateTime(status.created_at)}</span>
 					</a>
 					<span> · </span>
@@ -63,12 +64,12 @@ export default component$(() => {
 						<span>Web</span>
 					</span>
 					<span> · </span>
-					<a href={`${status.url}/reblogs`} class="no-decoration">
+					<a href={`${status.url}/reblogs`} class="no-underline">
 						<i class="fa fa-retweet mx-3" />
 						<span>{formatRoundedNumber(status.reblogs_count)}</span>
 					</a>
 					<span> · </span>
-					<a href={`${status.url}/favourites`} class="no-decoration">
+					<a href={`${status.url}/favourites`} class="no-underline">
 						<i class="fa fa-star mx-3" />
 						<span>{formatRoundedNumber(status.favourites_count)}</span>
 					</a>

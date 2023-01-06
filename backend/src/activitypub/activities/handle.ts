@@ -28,30 +28,8 @@ function extractID(domain: string, s: string | URL): string {
 	return s.toString().replace(`https://${domain}/ap/users/`, '')
 }
 
-export type HandleResponse = {
-	createdObjects: Array<Object>
-}
-
-export type HandleMode = 'caching' | 'inbox'
-
-export async function handle(
-	domain: string,
-	activity: Activity,
-	db: D1Database,
-	userKEK: string,
-	mode: HandleMode
-): Promise<HandleResponse> {
-	const createdObjects: Array<Object> = []
-
-	// The `object` field of the activity is required to be an object, with an
-	// `id` and a `type` field.
-	const requireComplexObject = () => {
-		if (typeof activity.object !== 'object') {
-			throw new Error('`activity.object` must be of type object')
-		}
-	}
-
-	const getObjectAsId = () => {
+export function makeGetObjectAsId(activity: Activity): Function {
+	return () => {
 		let url: any = null
 		if (activity.object.id !== undefined) {
 			url = activity.object.id
@@ -74,8 +52,10 @@ export async function handle(
 			throw err
 		}
 	}
+}
 
-	const getActorAsId = () => {
+export function makeGetActorAsId(activity: Activity): Function {
+	return () => {
 		let url: any = null
 		if (activity.actor.id !== undefined) {
 			url = activity.actor.id
@@ -98,6 +78,19 @@ export async function handle(
 			throw err
 		}
 	}
+}
+
+export async function handle(domain: string, activity: Activity, db: D1Database, userKEK: string) {
+	// The `object` field of the activity is required to be an object, with an
+	// `id` and a `type` field.
+	const requireComplexObject = () => {
+		if (typeof activity.object !== 'object') {
+			throw new Error('`activity.object` must be of type object')
+		}
+	}
+
+	const getObjectAsId = makeGetObjectAsId(activity)
+	const getActorAsId = makeGetActorAsId(activity)
 
 	console.log(activity)
 	switch (activity.type) {
@@ -140,11 +133,17 @@ export async function handle(
 			}
 
 			const objectId = getObjectAsId()
-			const obj = await createObject(domain, activity.object, db, actorId, objectId)
-			if (obj === null) {
+			const res = await cacheObject(domain, activity.object, db, actorId, objectId)
+			if (res === null) {
 				break
 			}
-			createdObjects.push(obj)
+
+			if (!res.created) {
+				// Object already existed in our database. Probably a duplicated
+				// message
+				break
+			}
+			const obj = res.object
 
 			const actor = await actors.getAndCache(actorId, db)
 
@@ -156,8 +155,8 @@ export async function handle(
 
 				if (inReplyToObject === null) {
 					const remoteObject = await objects.get(inReplyToObjectId)
-					inReplyToObject = await objects.cacheObject(domain, db, remoteObject, actorId, inReplyToObjectId, false)
-					createdObjects.push(inReplyToObject)
+					const res = await objects.cacheObject(domain, db, remoteObject, actorId, inReplyToObjectId, false)
+					inReplyToObject = res.object
 				}
 
 				await insertReply(db, actor, obj, inReplyToObject)
@@ -168,27 +167,25 @@ export async function handle(
 			// actors on this instance to see the note in their timelines.
 			await addObjectInOutbox(db, fromActor, obj, activity.published)
 
-			if (mode === 'inbox') {
-				for (let i = 0, len = recipients.length; i < len; i++) {
-					const handle = parseHandle(extractID(domain, recipients[i]))
-					if (handle.domain !== null && handle.domain !== domain) {
-						console.warn('activity not for current instance')
-						continue
-					}
-
-					const person = await actors.getPersonById(db, actorURL(domain, handle.localPart))
-					if (person === null) {
-						console.warn(`person ${recipients[i]} not found`)
-						continue
-					}
-
-					// FIXME: check if the actor mentions the person
-					const notifId = await createNotification(db, 'mention', person, fromActor, obj)
-					await Promise.all([
-						await addObjectInInbox(db, person, obj),
-						await sendMentionNotification(db, fromActor, person, notifId),
-					])
+			for (let i = 0, len = recipients.length; i < len; i++) {
+				const handle = parseHandle(extractID(domain, recipients[i]))
+				if (handle.domain !== null && handle.domain !== domain) {
+					console.warn('activity not for current instance')
+					continue
 				}
+
+				const person = await actors.getPersonById(db, actorURL(domain, handle.localPart))
+				if (person === null) {
+					console.warn(`person ${recipients[i]} not found`)
+					continue
+				}
+
+				// FIXME: check if the actor mentions the person
+				const notifId = await createNotification(db, 'mention', person, fromActor, obj)
+				await Promise.all([
+					await addObjectInInbox(db, person, obj),
+					await sendMentionNotification(db, fromActor, person, notifId),
+				])
 			}
 
 			break
@@ -253,11 +250,11 @@ export async function handle(
 					// Object doesn't exists locally, we'll need to download it.
 					const remoteObject = await objects.get<Note>(objectId)
 
-					obj = await createObject(domain, remoteObject, db, actorId, objectId)
-					if (obj === null) {
+					const res = await cacheObject(domain, remoteObject, db, actorId, objectId)
+					if (res === null) {
 						break
 					}
-					createdObjects.push(obj)
+					obj = res.object
 				} catch (err: any) {
 					console.warn(`failed to retrieve object ${objectId}: ${err.message}`)
 					break
@@ -323,17 +320,15 @@ export async function handle(
 		default:
 			console.warn(`Unsupported activity: ${activity.type}`)
 	}
-
-	return { createdObjects }
 }
 
-async function createObject(
+async function cacheObject(
 	domain: string,
 	obj: Object,
 	db: D1Database,
 	originalActorId: URL,
 	originalObjectId: URL
-): Promise<Object | null> {
+): Promise<{ created: boolean; object: Object } | null> {
 	switch (obj.type) {
 		case 'Note': {
 			return objects.cacheObject(domain, db, obj, originalActorId, originalObjectId, false)

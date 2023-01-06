@@ -2,7 +2,7 @@ import { $, component$, useStore, useClientEffect$, useSignal } from '@builder.i
 import { MastodonLogo } from '~/components/MastodonLogo'
 import { useDomain } from '~/utils/useDomain'
 import Step1 from './step-1'
-import { type InstanceConfig, testAccess, testInstance } from './utils'
+import { type InstanceConfig, testInstance } from './utils'
 
 export default component$(() => {
 	const domain = useDomain()
@@ -14,14 +14,12 @@ export default component$(() => {
 		title: `${domain} Wildebeest`,
 		email: `admin@${domain}`,
 		description: 'My personal Wildebeest instance (powered by Cloudflare)',
-		accessDomain: '',
-		accessAud: '',
 	})
 
 	useClientEffect$(async () => {
-        if (await testInstance()) {
-            instanceConfigured.value = true
-        }
+		if (await testInstance()) {
+			instanceConfigured.value = true
+		}
 		loading.value = false
 	})
 

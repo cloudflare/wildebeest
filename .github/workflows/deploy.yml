@@ -8,6 +8,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      - name: Ensure CF_DEPLOY_DOMAIN and CF_ZONE_ID are defined
+        run: |
+          if [ -z "$CF_ZONE_ID" ]
+          then
+              echo "CF_ZONE_ID not defined"
+              exit 1
+          fi
+          if [ -z "$CF_DEPLOY_DOMAIN" ]
+          then
+              echo "CF_DEPLOY_DOMAIN not defined"
+              exit 1
+          fi
+        env:
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_DEPLOY_DOMAIN: ${{ secrets.CF_DEPLOY_DOMAIN }}
+
       - uses: actions/checkout@v2
       - uses: hashicorp/setup-terraform@v2
 

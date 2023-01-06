@@ -1,6 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
 import * as v1_instance from 'wildebeest/functions/api/v1/instance'
-import * as v2_instance from 'wildebeest/functions/api/v2/instance'
 import * as apps from 'wildebeest/functions/api/v1/apps'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
 import * as notifications from 'wildebeest/functions/api/v1/notifications'
@@ -27,8 +26,6 @@ describe('Mastodon APIs', () => {
 				uri: 'uri',
 				email: 'email',
 				description: 'description',
-				accessAud: '1',
-				accessDomain: 'foo',
 			}
 			await configure(db, data)
 
@@ -36,32 +33,12 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
-			assertCache(res, 180)
 
 			{
 				const data = await res.json<any>()
 				assert.equal(data.rules.length, 0)
 				assert.equal(data.uri, domain)
 			}
-		})
-
-		test('return the instance infos v2', async () => {
-			const db = await makeDB()
-			const data = {
-				title: 'title',
-				uri: 'uri',
-				email: 'email',
-				description: 'description',
-				accessAud: '1',
-				accessDomain: 'foo',
-			}
-			await configure(db, data)
-
-			const res = await v2_instance.handleRequest(domain, db)
-			assert.equal(res.status, 200)
-			assertCORS(res)
-			assertJSON(res)
-			assertCache(res, 180)
 		})
 
 		test('adds a short_description if missing', async () => {
@@ -71,8 +48,6 @@ describe('Mastodon APIs', () => {
 				uri: 'uri',
 				email: 'email',
 				description: 'description',
-				accessAud: '1',
-				accessDomain: 'foo',
 			}
 			await configure(db, data)
 

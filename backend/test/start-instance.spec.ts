@@ -28,8 +28,6 @@ describe('Wildebeest', () => {
 			title: 'title',
 			description: 'description',
 			email: 'email',
-			accessDomain,
-			accessAud,
 		})
 
 		const headers = {

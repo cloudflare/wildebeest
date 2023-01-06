@@ -1,6 +1,6 @@
 import { component$, useStylesScoped$ } from '@builder.io/qwik'
 import { Link, useLocation } from '@builder.io/qwik-city'
-import { MastodonLogo } from '~/components/MastodonLogo'
+import { WildebeestLogo } from '~/components/MastodonLogo'
 import styles from './RightColumn.scss?inline'
 
 type LinkConfig = {
@@ -10,12 +10,12 @@ type LinkConfig = {
 	linkActiveRegex: RegExp
 }
 
-export const RightColumn = component$(() => {
+export default component$(() => {
 	useStylesScoped$(styles)
 	const location = useLocation()
 
 	const renderNavLink = ({ iconName, linkText, linkTarget, linkActiveRegex }: LinkConfig) => {
-		let classList = 'mx-4 my-5 block no-decoration text-semi max-w-max ' + location.pathname
+		let classList = 'mx-4 my-5 block no-underline text-semi max-w-max ' + location.pathname
 
 		if (linkActiveRegex.test(location.pathname)) {
 			classList += ' text-indigo-400'
@@ -41,8 +41,9 @@ export const RightColumn = component$(() => {
 		<div class="flex flex-col justify-between right-column-wrapper text-slate-400">
 			<div>
 				<div class="p-4">
-					<a href="https://mastodon.social">
-						<MastodonLogo size="small" />
+					<a class="no-underline flex items-center" href="https://mastodon.social">
+						<WildebeestLogo size="small" />
+						<span class="text-white font-bold text-xl ml-[-27px] mt-[-27px]">ildebeest</span>
 					</a>
 				</div>
 				<hr class="border-t border-slate-700 my-3" />
