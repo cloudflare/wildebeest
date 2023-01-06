@@ -6,7 +6,7 @@ export default component$(() => {
 	useStylesScoped$(styles)
 
 	return (
-		<header>
+		<header class="bg-slate-900">
 			<Slot />
 		</header>
 	)

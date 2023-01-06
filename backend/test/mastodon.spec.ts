@@ -142,7 +142,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const req = new Request('https://example.com')
 			const client = await createTestClient(db)
-			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const res = await subscription.handleGetRequest(db, req, connectedActor, client.id)
 			assert.equal(res.status, 404)
@@ -152,7 +152,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const req = new Request('https://example.com')
 			const client = await createTestClient(db)
-			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const data: any = {
 				subscription: {
@@ -181,7 +181,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const client = await createTestClient(db)
 			await generateVAPIDKeys(db)
-			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const data: any = {
 				subscription: {
@@ -214,7 +214,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const client = await createTestClient(db)
 			await generateVAPIDKeys(db)
-			const connectedActor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const data: any = {
 				subscription: {

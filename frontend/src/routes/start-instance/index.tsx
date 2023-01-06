@@ -42,7 +42,7 @@ export default component$(() => {
 	})
 
 	return (
-		<div class="flex flex-column p-5 items-center max-w-lg mx-auto">
+		<div class="flex flex-col p-5 items-center max-w-lg mx-auto">
 			<h1 class="text-center mt-7 mb-9">
 				<MastodonLogo size="medium" />
 			</h1>

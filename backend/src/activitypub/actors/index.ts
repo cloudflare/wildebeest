@@ -120,7 +120,7 @@ export async function createPerson(
 	userKEK: string,
 	email: string,
 	properties: Properties = {}
-): Promise<URL> {
+): Promise<Person> {
 	const userKeyPair = await generateUserKey(userKEK)
 
 	let privkey, salt
@@ -147,18 +147,18 @@ export async function createPerson(
 	}
 
 	const id = actorURL(domain, properties.preferredUsername).toString()
-
-	const { success, error } = await db
+	const row = await db
 		.prepare(
-			'INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt, properties) VALUES(?, ?, ?, ?, ?, ?, ?)'
+			`
+              INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt, properties)
+              VALUES(?, ?, ?, ?, ?, ?, ?)
+              RETURNING *
+          `
 		)
 		.bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt, JSON.stringify(properties))
-		.run()
-	if (!success) {
-		throw new Error('SQL error: ' + error)
-	}
+		.first()
 
-	return new URL(id)
+	return personFromRow(row)
 }
 
 export async function updateActorProperty(db: D1Database, actorId: URL, key: string, value: string) {

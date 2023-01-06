@@ -33,8 +33,7 @@ async function createStatus(db: D1Database, actor: Person, status: string, visib
 async function getOrCreatePerson(domain: string, db: D1Database, username: string): Promise<Person> {
 	const person = await getPersonByEmail(db, username)
 	if (person) return person
-	await createPerson(domain, db, kek, username)
-	const newPerson = await getPersonByEmail(db, username)
+	const newPerson = await createPerson(domain, db, kek, username)
 	if (!newPerson) {
 		throw new Error('Could not create Actor ' + username)
 	}

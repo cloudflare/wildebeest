@@ -40,7 +40,7 @@ export default component$(() => {
 	]
 
 	return (
-		<div class="container">
+		<div class="explore-wrapper">
 			<StickyHeader>
 				<h2 class="text-reg text-md m-0 p-4 bg-slate-700 rounded-t">
 					<i class="fa fa-hashtag fa-fw mr-3" />
@@ -48,7 +48,7 @@ export default component$(() => {
 				</h2>
 			</StickyHeader>
 			<div class="bg-slate-900 flex justify-around">{links.map((link) => renderNavLink(link))}</div>
-			<div class="content-container">
+			<div class="explore-content-wrapper">
 				<Slot />
 			</div>
 		</div>

@@ -29,10 +29,11 @@ function parseCryptoKey(s: string): any {
 describe('Mastodon APIs', () => {
 	describe('notifications', () => {
 		test('returns notifications stored in KV cache', async () => {
-			const connectedActor: any = { id: 'id' }
+			const db = await makeDB()
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const kv_cache: any = {
 				async get(key: string) {
-					assert.equal(key, 'id/notifications')
+					assert.equal(key, connectedActor.id + '/notifications')
 					return 'cached data'
 				},
 			}
@@ -43,16 +44,11 @@ describe('Mastodon APIs', () => {
 
 		test('returns notifications stored in db', async () => {
 			const db = await makeDB()
-			const actorId = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const fromActorId = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const fromActor = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
 
-			const connectedActor: any = {
-				id: actorId,
-			}
+			const connectedActor = actor
 			const note = await createPublicNote(domain, db, 'my first status', connectedActor)
-			const fromActor: any = {
-				id: fromActorId,
-			}
 			await insertFollowNotification(db, connectedActor, fromActor)
 			await sleep(10)
 			await createNotification(db, 'favourite', connectedActor, fromActor, note)
@@ -77,8 +73,8 @@ describe('Mastodon APIs', () => {
 
 		test('get single non existant notification', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
-			const fromActor: any = { id: await createPerson(domain, db, userKEK, 'from@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const fromActor = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
 			const note = await createPublicNote(domain, db, 'my first status', actor)
 			await createNotification(db, 'favourite', actor, fromActor, note)
 
@@ -124,7 +120,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			const client = await createTestClient(db)
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const p256dh = arrayBufferToBase64((await crypto.subtle.exportKey('raw', clientKeys.publicKey)) as ArrayBuffer)
 			const auth = arrayBufferToBase64(crypto.getRandomValues(new Uint8Array(16)))
@@ -143,11 +139,7 @@ describe('Mastodon APIs', () => {
 				},
 			})
 
-			const fromActor: any = {
-				id: await createPerson(domain, db, userKEK, 'from@cloudflare.com'),
-				icon: { url: 'icon.com' },
-			}
-
+			const fromActor = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
 			await sendLikeNotification(db, fromActor, actor, 'notifid')
 		})
 	})

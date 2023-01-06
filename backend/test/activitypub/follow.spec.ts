@@ -36,12 +36,8 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',
@@ -69,15 +65,9 @@ describe('ActivityPub', () => {
 
 		test('list actor following', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
-			const actor3: any = {
-				id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+			const actor3 = await createPerson(domain, db, userKEK, 'sven3@cloudflare.com')
 			await addFollowing(db, actor, actor2, 'not needed')
 			await acceptFollowing(db, actor, actor2)
 			await addFollowing(db, actor, actor3, 'not needed')
@@ -93,15 +83,9 @@ describe('ActivityPub', () => {
 
 		test('list actor following page', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
-			const actor3: any = {
-				id: await createPerson(domain, db, userKEK, 'sven3@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+			const actor3 = await createPerson(domain, db, userKEK, 'sven3@cloudflare.com')
 			await addFollowing(db, actor, actor2, 'not needed')
 			await acceptFollowing(db, actor, actor2)
 			await addFollowing(db, actor, actor3, 'not needed')
@@ -118,12 +102,8 @@ describe('ActivityPub', () => {
 
 		test('list actor follower', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 			await addFollowing(db, actor2, actor, 'not needed')
 			await acceptFollowing(db, actor2, actor)
 
@@ -137,12 +117,8 @@ describe('ActivityPub', () => {
 
 		test('list actor follower page', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 			await addFollowing(db, actor2, actor, 'not needed')
 			await acceptFollowing(db, actor2, actor)
 
@@ -158,12 +134,8 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',

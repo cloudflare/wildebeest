@@ -1,6 +1,5 @@
-import { component$, useStyles$ } from '@builder.io/qwik'
+import { component$ } from '@builder.io/qwik'
 import { MastodonStatus, StatusContext } from '~/types'
-import styles from './index.scss?inline'
 import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
@@ -19,8 +18,6 @@ export const statusLoader = loader$<
 })
 
 export default component$(() => {
-	useStyles$(styles)
-
 	const { status, context } = statusLoader.use().value
 	const mediaAttachment = (status.media_attachments && status.media_attachments[0]) || null
 
@@ -28,9 +25,9 @@ export default component$(() => {
 		<>
 			<StickyHeader>
 				<div class="flex justify-between items-center rounded-t header bg-slate-700">
-					<Link class="text-semi back-button p-4" href="/explore">
+					<Link class="text-semi no-underline text-indigo-400 bg-transparent p-4" href="/explore">
 						<i class="fa fa-chevron-left mr-2" />
-						<span class="back-button-text">Back</span>
+						<span class="hover:underline">Back</span>
 					</Link>
 					<i class="fa fa-eye mr-4 text-slate-400" />
 				</div>
@@ -38,8 +35,8 @@ export default component$(() => {
 			<div class="bg-slate-700 p-4">
 				{/* Account Card */}
 				<div class="flex">
-					<img class="avatar" src={status.account.avatar} />
-					<div class="flex flex-column">
+					<img class="avatar rounded" src={status.account.avatar} />
+					<div class="flex flex-col">
 						<div class="p-1">
 							{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
 							<a class="no-decoration">{status.account.display_name}</a>

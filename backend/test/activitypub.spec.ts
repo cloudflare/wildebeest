@@ -59,12 +59,8 @@ describe('ActivityPub', () => {
 
 		test('Accept follow request stores in db', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
-			const actor2: any = {
-				id: await createPerson(domain, db, userKEK, 'sven2@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 			await addFollowing(db, actor, actor2, 'not needed')
 
 			const activity = {
@@ -91,7 +87,7 @@ describe('ActivityPub', () => {
 
 		test('Object must be an object', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',
@@ -109,7 +105,7 @@ describe('ActivityPub', () => {
 	describe('Create', () => {
 		test('Object must be an object', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',
@@ -161,7 +157,7 @@ describe('ActivityPub', () => {
 
 		test('Object must have the same origin', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const object = {
 				id: 'https://example.com/note2',
 				type: 'Note',
@@ -185,7 +181,7 @@ describe('ActivityPub', () => {
 
 		test('Object is updated', async () => {
 			const db = await makeDB()
-			const actor: any = { id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com') }
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const object = {
 				id: 'https://example.com/note2',
 				type: 'Note',
@@ -219,9 +215,7 @@ describe('ActivityPub', () => {
 	describe('Outbox', () => {
 		test('return outbox', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my first status', actor))
 			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my second status', actor))
@@ -236,9 +230,7 @@ describe('ActivityPub', () => {
 
 		test('return outbox page', async () => {
 			const db = await makeDB()
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my first status', actor))
 			await sleep(10)
@@ -286,9 +278,7 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
-			const actor: any = {
-				id: await createPerson(domain, db, userKEK, 'sven@cloudflare.com'),
-			}
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const activity: any = {
 				type: 'Announce',
@@ -317,13 +307,13 @@ describe('ActivityPub', () => {
 		test('cacheObject deduplicates object', async () => {
 			const db = await makeDB()
 			const properties = { type: 'Note', a: 1, b: 2 }
-			const actorId = new URL(await createPerson(domain, db, userKEK, 'a@cloudflare.com'))
+			const actor = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const originalObjectId = new URL('https://example.com/object1')
 
 			let result: any
 
 			// Cache object once adds it to the database
-			const obj1: any = await cacheObject(domain, db, properties, actorId, originalObjectId, false)
+			const obj1: any = await cacheObject(domain, db, properties, actor.id, originalObjectId, false)
 			assert.equal(obj1.a, 1)
 			assert.equal(obj1.b, 2)
 
@@ -332,7 +322,7 @@ describe('ActivityPub', () => {
 
 			// Cache object second time updates the first one
 			properties.a = 3
-			const obj2: any = await cacheObject(domain, db, properties, actorId, originalObjectId, false)
+			const obj2: any = await cacheObject(domain, db, properties, actor.id, originalObjectId, false)
 			// The creation date and properties don't change
 			assert.equal(obj1.a, obj2.a)
 			assert.equal(obj1.b, obj2.b)
