@@ -2,7 +2,7 @@
 
 Wildebeest is an [ActivityPub](https://www.w3.org/TR/activitypub/) and [Mastodon](https://joinmastodon.org/)-compatible server whose goal is to allow anyone to operate their Fediverse server and identity on their domain without needing to keep infrastructure, with minimal setup and maintenance, and running in minutes.
 
-Wildebeest runs on top of Workers and Cloudflare's Supercloud, uses [Workers](https://workers.cloudflare.com/) and [Pages](https://pages.cloudflare.com/), the [D1 database](https://developers.cloudflare.com/d1/) to store metadata and configurations, [Zero Trust Access](https://www.cloudflare.com/en-gb/products/zero-trust/access/) to handle authentication and [Images](https://www.cloudflare.com/en-gb/products/cloudflare-images/) for media handling.
+Wildebeest runs on top Cloudflare's [Supercloud](https://blog.cloudflare.com/welcome-to-the-supercloud-and-developer-week-2022/), uses [Workers](https://workers.cloudflare.com/) and [Pages](https://pages.cloudflare.com/), the [D1 database](https://developers.cloudflare.com/d1/) to store metadata and configurations, [Zero Trust Access](https://www.cloudflare.com/en-gb/products/zero-trust/access/) to handle authentication and [Images](https://www.cloudflare.com/en-gb/products/cloudflare-images/) for media handling.
 
 Currently, Wildebeest supports the following features:
 
@@ -11,13 +11,13 @@ Currently, Wildebeest supports the following features:
 * Inbox and Outbox notes (text, mentions and images), follow, announce (reblog), accept (friend), like.
 * Server to server federation.
 * Web client for content exploration (read-only).
-* Compatibility with other Mastodon client apps (Mobile iOS/Android and Web).
+* Compatibility with [other Mastodon clients](#supported-clients) (Mobile iOS/Android and Web).
 
 Cloudflare will continue to evolve this open-source project with additional features over time and listen to the community feedback to steer our priorities. Pull requests and issues are welcome too.
 
 ## Requirements
 
-Wildebeest is a full-stack app running on top of Cloudflare Pages using a [Functions Worker](https://developers.cloudflare.com/pages/platform/functions/). We are of course assuming that you have a Cloudflare account (click [here](https://dash.cloudflare.com/sign-up) if you don't) and have at least one [zone](https://www.cloudflare.com/en-gb/learning/dns/glossary/dns-zone/) using Cloudflare. If you don't have a zone, you can use [Cloudflare Registrar](https://www.cloudflare.com/en-gb/products/registrar/) to register new a new domain or [transfer](https://developers.cloudflare.com/registrar/get-started/transfer-domain-to-cloudflare/) an existing one.
+Wildebeest is a full-stack app running on top of Cloudflare Pages using a [Pages Functions](https://developers.cloudflare.com/pages/platform/functions/). We are of course assuming that you have a Cloudflare account (click [here](https://dash.cloudflare.com/sign-up) if you don't) and have at least one [zone](https://www.cloudflare.com/en-gb/learning/dns/glossary/dns-zone/) using Cloudflare. If you don't have a zone, you can use [Cloudflare Registrar](https://www.cloudflare.com/en-gb/products/registrar/) to register new a new domain or [transfer](https://developers.cloudflare.com/registrar/get-started/transfer-domain-to-cloudflare/) an existing one.
 
 Some features, like data persistence, access controls, media storage, are handled by other Cloudflare products:
 
@@ -26,7 +26,7 @@ Some features, like data persistence, access controls, media storage, are handle
 * [Zero Trust Access](https://www.cloudflare.com/en-gb/products/zero-trust/access/) to handle user authentication and SSO on [any identity provider](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/).
 * [Images](https://www.cloudflare.com/en-gb/products/cloudflare-images/) for media handling.
 
-Most of out products offer a [generous free plan](https://www.cloudflare.com/en-gb/plans/) that allows our users to try them for personal or hobby projects that aren’t business-critical. However you need to activate one of the ***Images*** plans.
+Most of our products offer a [generous free plan](https://www.cloudflare.com/en-gb/plans/) that allows our users to try them for personal or hobby projects that aren’t business-critical. However you need to activate one of the ***Images*** plans.
 
 ### Images plan
 
@@ -107,7 +107,7 @@ Almost there, only two last steps missing:
 
 ### Configure the access rule
 
-The installation process automatically created a [Zero Trust Access application](https://developers.cloudflare.com/cloudflare-one/applications/) called `wildebeest-your-github-user` for you. Now you need to create a [policy](https://developers.cloudflare.com/cloudflare-one/policies/) that defines how and who can have access to your Wildebeest instance.
+The installation process automatically created a [Zero Trust Access application](https://developers.cloudflare.com/cloudflare-one/applications/) called `wildebeest-your-github-user` for you. Now you need to update the [policy](https://developers.cloudflare.com/cloudflare-one/policies/) that defines who can have access to your Wildebeest instance.
 
 Go to https://one.dash.cloudflare.com/access and select your account, then select ***Access / Applications*** and Edit the `wildebeest-your-github-user` application. Now edit the existing policy on the next screen.
 
