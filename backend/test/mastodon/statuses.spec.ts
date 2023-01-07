@@ -321,7 +321,8 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
-			assert.equal(data.favourites_count, 2)
+			// FIXME: temporarly disable favourites counts
+			assert.equal(data.favourites_count, 0)
 		})
 
 		test('get status with image', async () => {
@@ -381,7 +382,8 @@ describe('Mastodon APIs', () => {
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
-				assert.equal(data.reblogs_count, 2)
+				// FIXME: temporarly disable reblogs counts
+				assert.equal(data.reblogs_count, 0)
 			})
 
 			test('reblog records in db', async () => {

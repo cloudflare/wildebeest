@@ -1,4 +1,5 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
@@ -59,13 +60,10 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 	const actor = await actors.getAndCache(link, db)
 
 	const activities = await outbox.get(actor)
-	let statuses: Array<MastodonStatus> = []
 
 	const account = await loadExternalMastodonAccount(acct, actor)
 
-	for (let i = 0, len = activities.items.length; i < len; i++) {
-		const activity = activities.items[i]
-
+	const promises = activities.items.map(async (activity: Activity) => {
 		const getObjectAsId = makeGetObjectAsId(activity)
 		const getActorAsId = makeGetActorAsId(activity)
 
@@ -73,10 +71,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 			const actorId = getActorAsId()
 			const originalObjectId = getObjectAsId()
 			const res = await objects.cacheObject(domain, db, activity.object, actorId, originalObjectId, false)
-			const status = await toMastodonStatusFromObject(db, res.object as Note)
-			if (status !== null) {
-				statuses.push(status)
-			}
+			return toMastodonStatusFromObject(db, res.object as Note)
 		}
 
 		if (activity.type === 'Announce') {
@@ -93,26 +88,24 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 
 					const res = await objects.cacheObject(domain, db, remoteObject, actorId, objectId, false)
 					if (res === null) {
-						break
+						return null
 					}
 					obj = res.object
 				} catch (err: any) {
 					console.warn(`failed to retrieve object ${objectId}: ${err.message}`)
-					break
+					return null
 				}
 			} else {
 				// Object already exists locally, we can just use it.
 				obj = localObject
 			}
 
-			const status = await toMastodonStatusFromObject(db, obj)
-			if (status !== null) {
-				statuses.push(status)
-			}
+			return toMastodonStatusFromObject(db, obj)
 		}
 
 		// FIXME: support other Activities, like Update.
-	}
+	})
+	const statuses = (await Promise.all(promises)).filter(Boolean)
 
 	return new Response(JSON.stringify(statuses), { headers })
 }
