@@ -48,12 +48,6 @@ export type PluginArgs = {
 	domain: string
 }
 
-type CloudflareAccessPagesPluginFunction<
-	Env = unknown,
-	Params extends string = any,
-	Data extends Record<string, unknown> = Record<string, unknown>
-> = PagesPluginFunction<Env, Params, Data, PluginArgs>
-
 // Adapted slightly from https://github.com/cloudflare/workers-access-external-auth-example
 const base64URLDecode = (s: string) => {
 	s = s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')
@@ -85,6 +79,7 @@ export function getPayload(jwt: string): JWTPayload {
 export const generateValidator =
 	({ domain, aud, jwt }: { domain: string; aud: string; jwt: string }) =>
 	async (
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		request: Request
 	): Promise<{
 		payload: object

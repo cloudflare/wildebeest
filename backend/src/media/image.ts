@@ -1,5 +1,3 @@
-import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
-
 export type Config = {
 	accountId: string
 	apiToken: string

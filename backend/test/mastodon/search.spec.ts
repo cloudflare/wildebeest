@@ -1,7 +1,7 @@
 import * as search from 'wildebeest/functions/api/v2/search'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { defaultImages } from 'wildebeest/config/accounts'
-import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache } from '../utils'
+import { makeDB, assertCORS, assertJSON } from '../utils'
 import { strict as assert } from 'node:assert/strict'
 
 const userKEK = 'test_kek11'

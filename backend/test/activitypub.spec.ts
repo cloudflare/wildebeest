@@ -1,12 +1,12 @@
-import { makeDB, assertCache, isUrlValid } from './utils'
-import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
+import { makeDB, isUrlValid } from './utils'
+import { addFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
-import { cacheObject, createObject } from 'wildebeest/backend/src/activitypub/objects/'
+import { cacheObject } from 'wildebeest/backend/src/activitypub/objects/'
 
 import * as ap_users from 'wildebeest/functions/ap/users/[id]'
 import * as ap_outbox from 'wildebeest/functions/ap/users/[id]/outbox'
@@ -87,7 +87,7 @@ describe('ActivityPub', () => {
 
 		test('Object must be an object', async () => {
 			const db = await makeDB()
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',
@@ -105,7 +105,7 @@ describe('ActivityPub', () => {
 	describe('Create', () => {
 		test('Object must be an object', async () => {
 			const db = await makeDB()
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const activity = {
 				'@context': 'https://www.w3.org/ns/activitystreams',
@@ -278,7 +278,7 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			await generateVAPIDKeys(db)
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const activity: any = {
 				type: 'Announce',

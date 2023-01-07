@@ -6,7 +6,7 @@ import * as ap_followers from 'wildebeest/functions/ap/users/[id]/followers'
 import * as ap_following from 'wildebeest/functions/ap/users/[id]/following'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { strict as assert } from 'node:assert/strict'
-import { makeDB, assertCache, isUrlValid } from '../utils'
+import { makeDB } from '../utils'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 
 const userKEK = 'test_kek10'

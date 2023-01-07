@@ -11,7 +11,7 @@ import * as accounts_follow from 'wildebeest/functions/api/v1/accounts/[id]/foll
 import * as accounts_unfollow from 'wildebeest/functions/api/v1/accounts/[id]/unfollow'
 import * as accounts_statuses from 'wildebeest/functions/api/v1/accounts/[id]/statuses'
 import * as accounts_get from 'wildebeest/functions/api/v1/accounts/[id]'
-import { isUrlValid, makeDB, assertCORS, assertJSON, assertCache, streamToArrayBuffer } from '../utils'
+import { isUrlValid, makeDB, assertCORS, assertJSON } from '../utils'
 import * as accounts_verify_creds from 'wildebeest/functions/api/v1/accounts/verify_credentials'
 import * as accounts_update_creds from 'wildebeest/functions/api/v1/accounts/update_credentials'
 import { createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
@@ -362,7 +362,7 @@ describe('Mastodon APIs', () => {
 
 		test('get pinned statuses', async () => {
 			const db = await makeDB()
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const req = new Request('https://' + domain + '?pinned=true')
 			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain, userKEK)
@@ -510,7 +510,7 @@ describe('Mastodon APIs', () => {
 			await generateVAPIDKeys(db)
 
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const localNote = await createPublicNote(domain, db, 'my localnote status', actor)
+			await createPublicNote(domain, db, 'my localnote status', actor)
 
 			globalThis.fetch = async (input: RequestInfo) => {
 				if (input.toString() === 'https://social.com/.well-known/webfinger?resource=acct%3Asomeone%40social.com') {
@@ -586,7 +586,7 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('get local actor followers', async () => {
-			globalThis.fetch = async (input: any, opts: any) => {
+			globalThis.fetch = async (input: any) => {
 				if (input.toString() === 'https://' + domain + '/ap/users/sven2') {
 					return new Response(
 						JSON.stringify({
@@ -615,7 +615,7 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('get local actor following', async () => {
-			globalThis.fetch = async (input: any, opts: any) => {
+			globalThis.fetch = async (input: any) => {
 				if (input.toString() === 'https://' + domain + '/ap/users/sven2') {
 					return new Response(
 						JSON.stringify({
@@ -752,7 +752,7 @@ describe('Mastodon APIs', () => {
 			beforeEach(() => {
 				receivedActivity = null
 
-				globalThis.fetch = async (input: any, opts: any) => {
+				globalThis.fetch = async (input: any) => {
 					if (
 						input.toString() ===
 						'https://' + domain + '/.well-known/webfinger?resource=acct%3Aactor%40' + domain + ''

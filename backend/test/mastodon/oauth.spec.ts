@@ -2,15 +2,7 @@ import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import * as oauth_authorize from 'wildebeest/functions/oauth/authorize'
 import * as first_login from 'wildebeest/functions/first-login'
 import * as oauth_token from 'wildebeest/functions/oauth/token'
-import {
-	isUrlValid,
-	makeDB,
-	assertCORS,
-	assertJSON,
-	assertCache,
-	streamToArrayBuffer,
-	createTestClient,
-} from '../utils'
+import { isUrlValid, makeDB, assertCORS, assertJSON, createTestClient } from '../utils'
 import { TEST_JWT, ACCESS_CERTS } from '../test-data'
 import { strict as assert } from 'node:assert/strict'
 

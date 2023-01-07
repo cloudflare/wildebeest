@@ -1,9 +1,7 @@
 import * as access from 'wildebeest/backend/src/access'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
-import type { Identity, ContextData } from 'wildebeest/backend/src/types/context'
 import * as errors from 'wildebeest/backend/src/errors'
-import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
 async function loadContextData(db: D1Database, clientId: string, email: string, ctx: any): Promise<boolean> {
 	const query = `

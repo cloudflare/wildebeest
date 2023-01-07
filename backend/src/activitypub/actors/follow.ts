@@ -1,5 +1,5 @@
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
-import type { OrderedCollection, OrderedCollectionPage } from 'wildebeest/backend/src/activitypub/core'
+import type { OrderedCollection } from 'wildebeest/backend/src/activitypub/core'
 
 const headers = {
 	accept: 'application/activity+json',

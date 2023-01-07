@@ -5,7 +5,7 @@ import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/f
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import { makeDB, assertCORS, assertJSON, assertCache } from '../utils'
+import { makeDB, assertCORS, assertJSON } from '../utils'
 import * as timelines_home from 'wildebeest/functions/api/v1/timelines/home'
 import * as timelines_public from 'wildebeest/functions/api/v1/timelines/public'
 import * as timelines from 'wildebeest/backend/src/mastodon/timeline'

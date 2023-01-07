@@ -1,4 +1,3 @@
-import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { defaultImages } from 'wildebeest/config/accounts'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
 import type { Object } from '../objects'
