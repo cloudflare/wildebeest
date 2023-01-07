@@ -10,7 +10,7 @@ interface Props {
 export default component$<Props>(({ instanceConfig, setLoading, setInstanceConfigured }) => {
 	return (
 		<>
-			<h2>Configure your instance</h2>
+			<h2 class="mb-5">Configure your instance</h2>
 
 			<div class="flex flex-col mb-6 w-full max-w-md">
 				<label class="mb-2 max-w-max text-semi text-sm" for="start-instance-title">

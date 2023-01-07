@@ -40,15 +40,15 @@ export default component$(() => {
 	]
 
 	return (
-		<div class="explore-wrapper">
+		<div class="explore-wrapper flex flex-col">
 			<StickyHeader>
-				<h2 class="text-reg text-md m-0 p-4 bg-slate-700 rounded-t">
+				<h2 class="text-reg text-md m-0 p-4 bg-slate-700 xl:rounded-t">
 					<i class="fa fa-hashtag fa-fw mr-3" />
 					<span>Explore</span>
 				</h2>
 			</StickyHeader>
 			<div class="bg-slate-900 flex justify-around">{links.map((link) => renderNavLink(link))}</div>
-			<div class="explore-content-wrapper">
+			<div class="flex-auto">
 				<Slot />
 			</div>
 		</div>
