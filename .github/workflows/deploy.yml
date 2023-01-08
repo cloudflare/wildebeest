@@ -28,7 +28,7 @@ jobs:
       # TODO: switch to some lowercase function in the future when Actions supports it
       - name: Set lowercase actor name
         run: |
-          echo "ACTOR_LOWER=${GH_ACTOR,,}" >>${GITHUB_ENV}
+          echo "ACTOR_LOWER=${GH_ACTOR,,}" >> ${GITHUB_ENV}
         env:
           GH_ACTOR: ${{ github.actor }}
 
@@ -47,7 +47,7 @@ jobs:
       - name: Create D1 database
         uses: cloudflare/wrangler-action@2.0.0
         with:
-          command: d1 create wildebeest-${{ ACTOR_LOWER }}
+          command: d1 create wildebeest-${{ env.ACTOR_LOWER }}
           apiToken: ${{ secrets.CF_API_TOKEN }}
         continue-on-error: true
         env:
@@ -56,7 +56,7 @@ jobs:
       - name: retrieve D1 database
         uses: cloudflare/wrangler-action@2.0.0
         with:
-          command: d1 list | grep wildebeest-${{ ACTOR_LOWER }} | awk '{print "d1_id="$2}' >> $GITHUB_ENV
+          command: d1 list | grep wildebeest-${{ env.ACTOR_LOWER }} | awk '{print "d1_id="$2}' >> $GITHUB_ENV
           apiToken: ${{ secrets.CF_API_TOKEN }}
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
@@ -64,11 +64,11 @@ jobs:
       - name: migrate D1 database
         uses: cloudflare/wrangler-action@2.0.0
         with:
-          command: d1 migrations apply wildebeest-${{ ACTOR_LOWER }}
+          command: d1 migrations apply wildebeest-${{ env.ACTOR_LOWER }}
           apiToken: ${{ secrets.CF_API_TOKEN }}
           preCommands: |
             echo "*** pre commands ***"
-            echo -e "[[d1_databases]]\nbinding=\"DATABASE\"\ndatabase_name=\"wildebeest-${{ ACTOR_LOWER }}\"\ndatabase_id=\"${{ env.d1_id }}\"" >> wrangler.toml
+            echo -e "[[d1_databases]]\nbinding=\"DATABASE\"\ndatabase_name=\"wildebeest-${{ env.ACTOR_LOWER }}\"\ndatabase_id=\"${{ env.d1_id }}\"" >> wrangler.toml
             echo "******"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
@@ -92,7 +92,7 @@ jobs:
           TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
           TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
           TF_VAR_cloudflare_deploy_domain: ${{ secrets.CF_DEPLOY_DOMAIN }}
-          TF_VAR_gh_username: ${{ ACTOR_LOWER }}
+          TF_VAR_gh_username: ${{ env.ACTOR_LOWER }}
           TF_VAR_d1_id: ${{ env.d1_id }}
           TF_VAR_access_auth_domain: ${{ env.auth_domain }}
 
@@ -106,6 +106,6 @@ jobs:
             yarn build
             cp -rv ./frontend/dist/* .
             echo "******"
-          command: pages publish --project-name=wildebeest-${{ ACTOR_LOWER }} .
+          command: pages publish --project-name=wildebeest-${{ env.ACTOR_LOWER }} .
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
