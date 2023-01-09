@@ -20,8 +20,8 @@ export default component$(() => {
 	return (
 		<>
 			<StickyHeader>
-				<div class="xl:rounded-t bg-slate-700 p-4 flex items-center">
-					<i class="fa fa-users fa-fw mr-3 text-slate-100" />
+				<div class="xl:rounded-t bg-wildebeest-700 p-4 flex items-center">
+					<i class="fa fa-users fa-fw mr-3" />
 					<span>Local timeline</span>
 				</div>
 			</StickyHeader>

@@ -21,11 +21,11 @@ export default component$(() => {
 					<>
 						{links.map((link) => (
 							<a href={link.url} class="no-underline" target="_blank">
-								<div class="p-4 flex justify-between border-b border-slate-600 hover:bg-slate-700">
+								<div class="p-4 flex justify-between border-b border-wildebeest-600 hover:bg-wildebeest-700">
 									<div class="mr-6">
-										<div class="my-2 text-sm text-slate-400">{link.provider_name}</div>
+										<div class="my-2 text-sm text-wildebeest-400">{link.provider_name}</div>
 										<div class="mb-2 text-lg text-bold leading-normal">{link.title}</div>
-										<div class="text-sm text-slate-400">{formatHistory(link.history)}</div>
+										<div class="text-sm text-wildebeest-400">{formatHistory(link.history)}</div>
 									</div>
 									<div>
 										<img class="thumbnail" src={link.image} />

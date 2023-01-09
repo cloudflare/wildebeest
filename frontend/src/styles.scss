@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+	--wildebeest-color-200: #d9e1e8;
+	--wildebeest-color-400: #9baec8;
+	--wildebeest-color-500: #606984;
+	--wildebeest-color-700: #313543;
+	--wildebeest-color-600: #282c37;
+	--wildebeest-color-800: #1f232b;
+	--wildebeest-color-900: #191b22;
+	--wildebeest-vibrant-color-400: #8c8dff;
+	--wildebeest-vibrant-color-500: #6364ff;
+	--wildebeest-vibrant-color-600: #595aff;
+}
+
 body {
 	font-family: ui-sans-serif, sans-serif, ui-sans-serif;
 	line-height: 1.25rem;

@@ -32,7 +32,7 @@ export default component$(() => {
 	return (
 		<>
 			{showHeaderAndColumns && (
-				<header class="h-[3.9rem] z-50 sticky top-0 bg-slate-800 p-3 w-full border-b border-slate-700 xl:hidden">
+				<header class="h-[3.9rem] z-50 sticky top-0 bg-wildebeest-600 p-3 w-full border-b border-wildebeest-700 xl:hidden">
 					<a class="no-underline flex items-center w-max" href="https://mastodon.social">
 						<WildebeestLogo size="small" />
 					</a>
@@ -47,12 +47,12 @@ export default component$(() => {
 					</div>
 				)}
 				<div class={`w-full ${showHeaderAndColumns ? 'xl:max-w-xl' : ''}`}>
-					<div class={`bg-slate-800 ${showHeaderAndColumns ? 'rounded ' : 'min-h-screen'}`}>
+					<div class={`bg-wildebeest-600 ${showHeaderAndColumns ? 'rounded ' : 'min-h-screen'}`}>
 						<Slot />
 					</div>
 				</div>
 				{showHeaderAndColumns && (
-					<div class="w-fit md:w-72 border-l xl:border-l-0 border-slate-700 xl:mx-[10px]">
+					<div class="w-fit md:w-72 border-l xl:border-l-0 border-wildebeest-700 xl:mx-[10px]">
 						<div class="sticky top-[3.9rem] xl:top-[10px]">
 							<RightColumn />
 						</div>

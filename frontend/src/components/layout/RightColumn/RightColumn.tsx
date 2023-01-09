@@ -18,7 +18,7 @@ export default component$(() => {
 		let classList = 'mx-4 my-5 block no-underline text-semi max-w-max ' + location.pathname
 
 		if (linkActiveRegex.test(location.pathname)) {
-			classList += ' text-indigo-400'
+			classList += ' text-wildebeest-vibrant-400'
 		} else {
 			classList += ' hover:text-white focus:text-white'
 		}
@@ -40,17 +40,17 @@ export default component$(() => {
 	const aboutLink = { iconName: 'fa-ellipsis', linkText: 'About', linkTarget: '/about', linkActiveRegex: /^\/about/ }
 
 	return (
-		<div class="bg-slate-800 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-slate-400">
+		<div class="bg-wildebeest-600 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-wildebeest-200">
 			<div>
 				<div class="xl:p-4">
 					<a class="no-underline hidden xl:flex items-center" href="https://mastodon.social">
 						<WildebeestLogo size="medium" />
 					</a>
 				</div>
-				<hr class="hidden xl:block border-t border-slate-700 my-3" />
+				<hr class="hidden xl:block border-t border-wildebeest-700 my-3" />
 				{links.map((link) => renderNavLink(link))}
 				<div class="xl:hidden">
-					<hr class="border-t border-slate-700 my-3" />
+					<hr class="border-t border-wildebeest-700 my-3" />
 					{renderNavLink(aboutLink)}
 				</div>
 			</div>
