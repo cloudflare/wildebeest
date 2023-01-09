@@ -25,8 +25,8 @@ export default component$(() => {
 
 		return (
 			<Link href={linkTarget} class={classList}>
-				<i class={`fa ${iconName} fa-fw mr-3`} />
-				{linkText}
+				<i class={`fa ${iconName} fa-fw md:mr-3`} />
+				<span class="hidden md:inline">{linkText}</span>
 			</Link>
 		)
 	}
@@ -37,17 +37,25 @@ export default component$(() => {
 		{ iconName: 'fa-globe', linkText: 'Federated', linkTarget: '/public', linkActiveRegex: /^\/public\/?$/ },
 	]
 
+	const aboutLink = { iconName: 'fa-ellipsis', linkText: 'About', linkTarget: '/about', linkActiveRegex: /^\/about/ }
+
 	return (
-		<div class="flex flex-col justify-between right-column-wrapper text-slate-400">
+		<div class="bg-slate-800 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-slate-400">
 			<div>
-				<div class="p-4">
-					<a class="no-underline flex items-center" href="https://mastodon.social">
+				<div class="xl:p-4">
+					<a class="no-underline hidden xl:flex items-center" href="https://mastodon.social">
 						<WildebeestLogo size="small" />
-						<span class="text-white font-bold text-xl ml-[-27px] mt-[-27px]">ildebeest</span>
+						{/* TODO: We need to move the text inside the logo component for better reusability
+				(because we are adding the text every time we use the logo anyways) */}
+						<span class="text-white font-bold xl:text-xl xl:ml-[-27px] xl:mt-[-27px]">ildebeest</span>
 					</a>
 				</div>
-				<hr class="border-t border-slate-700 my-3" />
+				<hr class="hidden xl:block border-t border-slate-700 my-3" />
 				{links.map((link) => renderNavLink(link))}
+				<div class="xl:hidden">
+					<hr class="border-t border-slate-700 my-3" />
+					{renderNavLink(aboutLink)}
+				</div>
 			</div>
 		</div>
 	)

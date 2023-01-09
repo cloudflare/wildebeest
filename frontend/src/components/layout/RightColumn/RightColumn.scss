@@ -1,3 +1,11 @@
+@use '../../../tailwind-values.scss' as tailwind;
+
 .right-column-wrapper {
   height: calc(100vh - 20px);
+}
+
+@media (max-width: tailwind.$xl-breakpoint) {
+  .right-column-wrapper {
+    height: calc(100vh - 4.5rem);
+  }
 }

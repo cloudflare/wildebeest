@@ -25,7 +25,7 @@ export default component$(() => {
 	return (
 		<>
 			<StickyHeader>
-				<div class="flex justify-between items-center rounded-t header bg-slate-700">
+				<div class="flex justify-between items-center xl:rounded-t header bg-slate-700">
 					<Link class="text-semi no-underline text-indigo-400 bg-transparent p-4" href="/explore">
 						<i class="fa fa-chevron-left mr-2" />
 						<span class="hover:underline">Back</span>

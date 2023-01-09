@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik'
-import { MastodonLogo } from '~/components/MastodonLogo'
+import { MastodonLogo, WildebeestLogo } from '~/components/MastodonLogo'
 import { useDomain } from '~/utils/useDomain'
 
 export default component$(() => {
@@ -7,8 +7,11 @@ export default component$(() => {
 
 	return (
 		<div class="flex flex-col p-5 items-center">
-			<h1 class="text-center mt-7 mb-9">
-				<MastodonLogo size="medium" />
+			<h1 class="text-center mt-7 mb-9 flex items-center">
+				<WildebeestLogo size="medium" />
+				{/* TODO: We need to move the text inside the logo component for better reusability
+				(because we are adding the text every time we use the logo anyways) */}
+				<span class="text-white font-bold text-xl ml-[-27px] mt-[-27px]">ildebeest</span>
 			</h1>
 			<form method="post" class="flex flex-col w-full max-w-md">
 				<div class="flex flex-col mb-6">

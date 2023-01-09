@@ -1,15 +1,15 @@
-import { component$, useStylesScoped$, Slot, useContextProvider } from '@builder.io/qwik'
+import { component$, Slot, useContextProvider } from '@builder.io/qwik'
 import { DocumentHead, useLocation, loader$ } from '@builder.io/qwik-city'
 import * as instance from 'wildebeest/functions/api/v1/instance'
 import type { InstanceConfig } from 'wildebeest/backend/src/types/configs'
 import LeftColumn from '../components/layout/LeftColumn/LeftColumn'
 import RightColumn from '../components/layout/RightColumn/RightColumn'
-import styles from './layout.scss?inline'
 import { InstanceConfigContext } from '~/utils/instanceConfig'
+import { WildebeestLogo } from '~/components/MastodonLogo'
 
 const pathsWithoutColumns = ['/first-login', '/start-instance']
 
-export const useShowColumns = () => {
+export const useShowHeaderAndColumns = () => {
 	const location = useLocation()
 	const pathname = new URL(location.href).pathname
 	return !pathsWithoutColumns.includes(pathname)
@@ -25,34 +25,44 @@ export const instanceLoader = loader$<{ DATABASE: D1Database; domain: string }, 
 )
 
 export default component$(() => {
-	useStylesScoped$(styles)
-
-	const showColumns = useShowColumns()
+	const showHeaderAndColumns = useShowHeaderAndColumns()
 
 	useContextProvider(InstanceConfigContext, instanceLoader.use().value)
 
 	return (
-		<main class="main-wrapper">
-			{showColumns && (
-				<div class="side-column">
-					<div class="sticky">
-						<LeftColumn />
+		<>
+			{showHeaderAndColumns && (
+				<header class="h-[4.5rem] z-50 sticky top-0 bg-slate-800 p-3 w-full border-b border-slate-700 xl:hidden">
+					<a class="no-underline flex items-center w-max" href="https://mastodon.social">
+						<WildebeestLogo size="small" />
+						{/* TODO: We need to move the text inside the logo component for better reusability
+						(because we are adding the text every time we use the logo anyways) */}
+						<span class="text-white font-bold text-xl ml-[-27px] mt-[-27px]">ildebeest</span>
+					</a>
+				</header>
+			)}
+			<main class="h-full flex justify-center main-wrapper sticky top-[4.5rem]">
+				{showHeaderAndColumns && (
+					<div class="w-fit md:w-72 hidden xl:block mx-[10px]">
+						<div class="sticky top-[10px]">
+							<LeftColumn />
+						</div>
+					</div>
+				)}
+				<div class={`w-full ${showHeaderAndColumns ? 'xl:max-w-xl' : ''}`}>
+					<div class={`bg-slate-800 ${showHeaderAndColumns ? 'rounded ' : 'min-h-screen'}`}>
+						<Slot />
 					</div>
 				</div>
-			)}
-			<div class={`w-full ${showColumns ? 'max-w-lg' : ''}`}>
-				<div class={`bg-slate-800 ${showColumns ? 'rounded ' : 'min-h-screen'}`}>
-					<Slot />
-				</div>
-			</div>
-			{showColumns && (
-				<div class="side-column">
-					<div class="sticky">
-						<RightColumn />
+				{showHeaderAndColumns && (
+					<div class="w-fit md:w-72 border-l xl:border-l-0 border-slate-700 xl:mx-[10px]">
+						<div class="sticky top-[4.5rem] xl:top-[10px]">
+							<RightColumn />
+						</div>
 					</div>
-				</div>
-			)}
-		</main>
+				)}
+			</main>
+		</>
 	)
 })
 
