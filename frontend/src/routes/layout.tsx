@@ -32,16 +32,13 @@ export default component$(() => {
 	return (
 		<>
 			{showHeaderAndColumns && (
-				<header class="h-[4.5rem] z-50 sticky top-0 bg-slate-800 p-3 w-full border-b border-slate-700 xl:hidden">
+				<header class="h-[3.9rem] z-50 sticky top-0 bg-slate-800 p-3 w-full border-b border-slate-700 xl:hidden">
 					<a class="no-underline flex items-center w-max" href="https://mastodon.social">
 						<WildebeestLogo size="small" />
-						{/* TODO: We need to move the text inside the logo component for better reusability
-						(because we are adding the text every time we use the logo anyways) */}
-						<span class="text-white font-bold text-xl ml-[-27px] mt-[-27px]">ildebeest</span>
 					</a>
 				</header>
 			)}
-			<main class="h-full flex justify-center main-wrapper sticky top-[4.5rem]">
+			<main class="h-full flex justify-center main-wrapper sticky top-[3.9rem]">
 				{showHeaderAndColumns && (
 					<div class="w-fit md:w-72 hidden xl:block mx-[10px]">
 						<div class="sticky top-[10px]">
@@ -56,7 +53,7 @@ export default component$(() => {
 				</div>
 				{showHeaderAndColumns && (
 					<div class="w-fit md:w-72 border-l xl:border-l-0 border-slate-700 xl:mx-[10px]">
-						<div class="sticky top-[4.5rem] xl:top-[10px]">
+						<div class="sticky top-[3.9rem] xl:top-[10px]">
 							<RightColumn />
 						</div>
 					</div>
