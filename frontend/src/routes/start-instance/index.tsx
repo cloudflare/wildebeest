@@ -42,10 +42,7 @@ export default component$(() => {
 	return (
 		<div class="flex flex-col p-5 items-center max-w-lg mx-auto">
 			<h1 class="text-center mt-7 mb-9 flex items-center">
-				<WildebeestLogo size="medium" />
-				{/* TODO: We need to move the text inside the logo component for better reusability
-				(because we are adding the text every time we use the logo anyways) */}
-				<span class="text-white font-bold text-xl ml-[-27px] mt-[-27px]">ildebeest</span>
+				<WildebeestLogo size="large" />
 			</h1>
 			{stepToShow.startsWith('step-') && (
 				<div class="text-center">

@@ -44,10 +44,7 @@ export default component$(() => {
 			<div>
 				<div class="xl:p-4">
 					<a class="no-underline hidden xl:flex items-center" href="https://mastodon.social">
-						<WildebeestLogo size="small" />
-						{/* TODO: We need to move the text inside the logo component for better reusability
-				(because we are adding the text every time we use the logo anyways) */}
-						<span class="text-white font-bold xl:text-xl xl:ml-[-27px] xl:mt-[-27px]">ildebeest</span>
+						<WildebeestLogo size="medium" />
 					</a>
 				</div>
 				<hr class="hidden xl:block border-t border-slate-700 my-3" />
