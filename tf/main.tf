@@ -46,7 +46,7 @@ provider "cloudflare" {
 
 resource "cloudflare_workers_kv_namespace" "wildebeest_cache" {
   account_id = var.cloudflare_account_id
-  title = "wildebeest-${var.gh_username}-cache"
+  title = "wildebeest-${lower(var.gh_username)}-cache"
 }
 
 resource "random_password" "user_key" {
@@ -56,7 +56,7 @@ resource "random_password" "user_key" {
 
 resource "cloudflare_pages_project" "wildebeest_pages_project" {
   account_id = var.cloudflare_account_id
-  name              = "wildebeest-${var.gh_username}"
+  name              = "wildebeest-${lower(var.gh_username)}"
   production_branch = "main"
 
   deployment_configs {
@@ -92,7 +92,7 @@ resource "cloudflare_record" "record" {
 
 resource "cloudflare_pages_domain" "domain" {
   account_id   = var.cloudflare_account_id
-  project_name = "wildebeest-${var.gh_username}"
+  project_name = "wildebeest-${lower(var.gh_username)}"
   domain       = var.cloudflare_deploy_domain
 
   depends_on = [
@@ -103,7 +103,7 @@ resource "cloudflare_pages_domain" "domain" {
 
 resource "cloudflare_access_application" "wildebeest_access" {
   account_id                = var.cloudflare_account_id
-  name                      = "wildebeest-${var.gh_username}"
+  name                      = "wildebeest-${lower(var.gh_username)}"
   domain                    = "${var.cloudflare_deploy_domain}/oauth/authorize"
   type                      = "self_hosted"
   session_duration          = "168h"
