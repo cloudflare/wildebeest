@@ -121,3 +121,15 @@ resource "cloudflare_access_policy" "policy" {
     email = ["CHANGEME@example.com"]
   }
 }
+
+resource "cloudflare_zone_settings_override" "wildebeest_zone_config" {
+    zone_id = var.cloudflare_zone_id
+    settings {
+        brotli = "on"
+        minify {
+            css = "on"
+            js = "off"
+            html = "off"
+        }
+    }
+}
