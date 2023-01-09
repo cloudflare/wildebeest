@@ -28,7 +28,7 @@ jobs:
       # TODO: switch to some lowercase function in the future when Actions supports it
       - name: Set lowercase actor name
         run: |
-          echo "ACTOR_LOWER=${GH_ACTOR,,}" >> ${GITHUB_ENV}
+          echo $GH_ACTOR | awk '{ print "ACTOR_LOWER=" tolower($0) }' >> ${GITHUB_ENV}
         env:
           GH_ACTOR: ${{ github.actor }}
 
