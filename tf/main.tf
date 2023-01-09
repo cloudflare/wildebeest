@@ -136,7 +136,7 @@ resource "cloudflare_ruleset" "wildebeest_config_rules" {
       }
     }
     expression  = "(http.host eq \"${trimspace(var.cloudflare_deploy_domain)}\")"
-    description = "Disable JS minification for the Mastodon subdomain"
+    description = "Disable JS minification for the Wildebeest subdomain"
     enabled     = true
   }
 }
