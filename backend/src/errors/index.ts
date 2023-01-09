@@ -11,7 +11,7 @@ const headers = {
 
 function generateErrorResponse(error: string, status: number, errorDescription?: string): Response {
 	const res: ErrorResponse = {
-		error: `${error}. ` + 'If the problem persists please contact your instance administrator.',
+		error: `${error}. If the problem persists please contact your instance administrator.`,
 		...(errorDescription ? { error_description: errorDescription } : {}),
 	}
 	return new Response(JSON.stringify(res), { headers, status })
@@ -35,4 +35,8 @@ export function timelineMissing(): Response {
 
 export function clientUnknown(): Response {
 	return generateErrorResponse(`The client is unknown or invalid`, 403)
+}
+
+export function internalServerError(): Response {
+	return generateErrorResponse('Internal Server Error', 500)
 }
