@@ -122,14 +122,21 @@ resource "cloudflare_access_policy" "policy" {
   }
 }
 
-resource "cloudflare_zone_settings_override" "wildebeest_zone_config" {
-    zone_id = var.cloudflare_zone_id
-    settings {
-        brotli = "on"
-        minify {
-            css = "on"
-            js = "off"
-            html = "off"
-        }
+resource "cloudflare_ruleset" "wildebeest_config_rules" {
+  zone_id     = var.cloudflare_zone_id
+  name        = "Config rules ruleset"
+  kind        = "zone"
+  phase       = "http_config_settings"
+
+  rules {
+    action = "set_config"
+    action_parameters {
+      "autominify": {
+        "js": false
+      }
     }
+    expression  = "(http.host eq \"${cloudflare_deploy_domain}\""
+    description = "Disable JS minification for the Mastodon subdomain"
+    enabled     = true
+  }
 }
