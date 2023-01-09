@@ -80,9 +80,34 @@ jobs:
                 -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}' | jq -r '.result.auth_domain')
             printf "auth_domain=$auth_domain" >> $GITHUB_ENV
 
+      - name: retrieve Terraform state KV namespace
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:namespace list | jq -r '.[] | select( .title == "wildebeest-terraform-${{ env.OWNER_LOWER }}-state" ) | .id' | awk '{print "tfstate_kv="$1}' >> $GITHUB_ENV
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          preCommands: |
+            echo "*** pre commands ***"
+            apt-get update && apt-get -y install jq
+            echo "******"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
       - name: Init
         run: terraform init
         working-directory: ./tf
+
+      - name: download Terraform state
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:key get --namespace-id=${{ env.tfstate_kv }} terraform.tfstate > ./tf/terraform.tfstate
+          postCommands: |
+            echo "*** post commands ***"
+            chmod 777 ./tf/terraform.tfstate
+            echo "******"
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        if: ${{ env.tfstate_kv != '' }}
 
       - name: Configure
         run: terraform plan && terraform apply -auto-approve
@@ -96,6 +121,27 @@ jobs:
           TF_VAR_gh_username: ${{ env.OWNER_LOWER }}
           TF_VAR_d1_id: ${{ env.d1_id }}
           TF_VAR_access_auth_domain: ${{ env.auth_domain }}
+
+      - name: retrieve Terraform state KV namespace
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:namespace list | jq -r '.[] | select( .title == "wildebeest-terraform-${{ env.OWNER_LOWER }}-state" ) | .id' | awk '{print "tfstate_kv="$1}' >> $GITHUB_ENV
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          preCommands: |
+            echo "*** pre commands ***"
+            apt-get update && apt-get -y install jq
+            echo "******"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        if: ${{ env.tfstate_kv == '' }}
+
+      - name: store Terraform state
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:key put --namespace-id=${{ env.tfstate_kv }} terraform.tfstate --path=./tf/terraform.tfstate
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
       - name: Publish
         uses: cloudflare/wrangler-action@2.0.0

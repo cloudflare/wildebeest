@@ -1,17 +1,21 @@
 variable "cloudflare_account_id" {
   type = string
+  sensitive = true
 }
 
 variable "cloudflare_zone_id" {
   type = string
+  sensitive = true
 }
 
 variable "cloudflare_deploy_domain" {
   type = string
+  sensitive = true
 }
 
 variable "cloudflare_api_token" {
   type = string
+  sensitive = true
 }
 
 variable "gh_username" {
@@ -20,10 +24,12 @@ variable "gh_username" {
 
 variable "d1_id" {
   type = string
+  sensitive = true
 }
 
 variable "access_auth_domain" {
   type = string
+  sensitive = true
 }
 
 terraform {
@@ -49,6 +55,11 @@ resource "cloudflare_workers_kv_namespace" "wildebeest_cache" {
   title = "wildebeest-${lower(var.gh_username)}-cache"
 }
 
+resource "cloudflare_workers_kv_namespace" "terraform_state" {
+  account_id = var.cloudflare_account_id
+  title = "wildebeest-terraform-${lower(var.gh_username)}-state"
+}
+
 resource "random_password" "user_key" {
   length  = 256
   special = false
@@ -62,20 +73,20 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
   deployment_configs {
     production {
       environment_variables = {
-        CF_ACCOUNT_ID = var.cloudflare_account_id
-        CF_API_TOKEN = var.cloudflare_api_token
+        CF_ACCOUNT_ID = sensitive(var.cloudflare_account_id)
+        CF_API_TOKEN = sensitive(var.cloudflare_api_token)
 
-        USER_KEY = random_password.user_key.result
+        USER_KEY = sensitive(random_password.user_key.result)
 
-        DOMAIN = trimspace(var.cloudflare_deploy_domain)
-        ACCESS_AUD = cloudflare_access_application.wildebeest_access.aud
-        ACCESS_AUTH_DOMAIN = var.access_auth_domain
+        DOMAIN = sensitive(trimspace(var.cloudflare_deploy_domain))
+        ACCESS_AUD = sensitive(cloudflare_access_application.wildebeest_access.aud)
+        ACCESS_AUTH_DOMAIN = sensitive(var.access_auth_domain)
       }
       kv_namespaces = {
-        KV_CACHE = cloudflare_workers_kv_namespace.wildebeest_cache.id
+        KV_CACHE = sensitive(cloudflare_workers_kv_namespace.wildebeest_cache.id)
       }
       d1_databases = {
-        DATABASE = var.d1_id
+        DATABASE = sensitive(var.d1_id)
       }
     }
   }
