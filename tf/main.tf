@@ -67,7 +67,7 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
 
         USER_KEY = random_password.user_key.result
 
-        DOMAIN = var.cloudflare_deploy_domain
+        DOMAIN = trimspace(var.cloudflare_deploy_domain)
         ACCESS_AUD = cloudflare_access_application.wildebeest_access.aud
         ACCESS_AUTH_DOMAIN = var.access_auth_domain
       }
@@ -82,8 +82,8 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
 }
 
 resource "cloudflare_record" "record" {
-  zone_id = var.cloudflare_zone_id
-  name    = var.cloudflare_deploy_domain
+  zone_id = trimspace(var.cloudflare_zone_id)
+  name    = trimspace(var.cloudflare_deploy_domain)
   value   = cloudflare_pages_project.wildebeest_pages_project.subdomain
   type    = "CNAME"
   ttl     = 1
@@ -93,7 +93,7 @@ resource "cloudflare_record" "record" {
 resource "cloudflare_pages_domain" "domain" {
   account_id   = var.cloudflare_account_id
   project_name = "wildebeest-${lower(var.gh_username)}"
-  domain       = var.cloudflare_deploy_domain
+  domain       = trimspace(var.cloudflare_deploy_domain)
 
   depends_on = [
     cloudflare_pages_project.wildebeest_pages_project,
@@ -104,7 +104,7 @@ resource "cloudflare_pages_domain" "domain" {
 resource "cloudflare_access_application" "wildebeest_access" {
   account_id                = var.cloudflare_account_id
   name                      = "wildebeest-${lower(var.gh_username)}"
-  domain                    = "${var.cloudflare_deploy_domain}/oauth/authorize"
+  domain                    = "${trimspace(var.cloudflare_deploy_domain)}/oauth/authorize"
   type                      = "self_hosted"
   session_duration          = "168h"
   auto_redirect_to_identity = false
