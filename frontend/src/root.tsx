@@ -13,10 +13,10 @@ export default component$(() => {
 			<head>
 				<meta charSet="utf-8" />
 				<link rel="manifest" href="/manifest.json" />
-				<script src="https://kit.fontawesome.com/e3d907997f.js" crossorigin="anonymous"></script>
+				<script src="https://kit.fontawesome.com/e3d907997f.js" crossOrigin="anonymous"></script>
 				<RouterHead />
 			</head>
-			<body lang="en" class="bg-wildebeest-900 text-white min-w-min">
+			<body lang="en" class="flex flex-col bg-wildebeest-900 text-white min-w-min min-h-screen">
 				<RouterOutlet />
 				<ServiceWorkerRegister />
 			</body>
