@@ -6,6 +6,7 @@ import LeftColumn from '../components/layout/LeftColumn/LeftColumn'
 import RightColumn from '../components/layout/RightColumn/RightColumn'
 import { InstanceConfigContext } from '~/utils/instanceConfig'
 import { WildebeestLogo } from '~/components/MastodonLogo'
+import { getCommitHash } from '~/utils/getCommitHash'
 
 const pathsWithoutColumns = ['/first-login', '/start-instance']
 
@@ -38,7 +39,7 @@ export default component$(() => {
 					</a>
 				</header>
 			)}
-			<main class="h-full flex justify-center main-wrapper sticky top-[3.9rem]">
+			<main class="h-full flex justify-center main-wrapper top-[3.9rem]">
 				{showHeaderAndColumns && (
 					<div class="w-fit md:w-72 hidden xl:block mx-[10px]">
 						<div class="sticky top-[10px]">
@@ -52,13 +53,16 @@ export default component$(() => {
 					</div>
 				</div>
 				{showHeaderAndColumns && (
-					<div class="w-fit md:w-72 border-l xl:border-l-0 border-wildebeest-700 xl:mx-[10px]">
-						<div class="sticky top-[3.9rem] xl:top-[10px]">
+					<div class="w-fit md:w-72 border-l xl:border-l-0 border-wildebeest-700 xl:mx-[10px] flex flex-col">
+						<div class="xl:top-[10px] flex-1 flex flex-col">
 							<RightColumn />
 						</div>
 					</div>
 				)}
 			</main>
+			<footer class="flex justify-end p-2 bg-wildebeest-600 border-t border-wildebeest-700 xl:bg-transparent xl:mt-10 xl:mx-6">
+				<p class="text-sm text-wildebeest-500">v.{getCommitHash()}</p>
+			</footer>
 		</>
 	)
 })

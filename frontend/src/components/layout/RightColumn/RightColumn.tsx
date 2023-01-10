@@ -1,7 +1,6 @@
-import { component$, useStylesScoped$ } from '@builder.io/qwik'
+import { component$ } from '@builder.io/qwik'
 import { Link, useLocation } from '@builder.io/qwik-city'
 import { WildebeestLogo } from '~/components/MastodonLogo'
-import styles from './RightColumn.scss?inline'
 
 type LinkConfig = {
 	iconName: string
@@ -11,7 +10,6 @@ type LinkConfig = {
 }
 
 export default component$(() => {
-	useStylesScoped$(styles)
 	const location = useLocation()
 
 	const renderNavLink = ({ iconName, linkText, linkTarget, linkActiveRegex }: LinkConfig) => {
@@ -40,8 +38,8 @@ export default component$(() => {
 	const aboutLink = { iconName: 'fa-ellipsis', linkText: 'About', linkTarget: '/about', linkActiveRegex: /^\/about/ }
 
 	return (
-		<div class="bg-wildebeest-600 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-wildebeest-200">
-			<div>
+		<div class="bg-wildebeest-600 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-wildebeest-200 flex-1">
+			<div class="sticky top-[3.9rem]">
 				<div class="xl:p-4">
 					<a class="no-underline hidden xl:flex items-center" href="https://mastodon.social">
 						<WildebeestLogo size="medium" />
