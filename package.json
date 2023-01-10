@@ -29,7 +29,7 @@
 		"test": "NODE_OPTIONS=--experimental-vm-modules yarn jest",
 		"lint": "run-s lint:* --print-label",
 		"lint:frontend": "npm --prefix frontend run lint",
-		"lint:be": "npx eslint backend",
+		"lint:backend": "npx eslint backend",
 		"lint:functions": "npx eslint functions",
 		"build": "yarn --cwd frontend install && yarn --cwd frontend build",
 		"d1": "NO_D1_WARNING=true wrangler d1",
