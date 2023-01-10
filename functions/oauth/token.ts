@@ -4,10 +4,6 @@ import * as errors from 'wildebeest/backend/src/errors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { getClientById } from 'wildebeest/backend/src/mastodon/client'
 
-type Body = {
-	code: string | null
-}
-
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
 	return handleRequest(env.DATABASE, request)
 }
@@ -23,8 +19,9 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 		return new Response('', { headers })
 	}
 
-	const { code } = await request.json<Body>()
-	if (!code || code === '') {
+	const formData = await request.formData()
+	const code = formData.get('code')
+	if (!code) {
 		return errors.notAuthorized('missing authorization')
 	}
 
