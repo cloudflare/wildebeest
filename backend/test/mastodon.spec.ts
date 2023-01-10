@@ -3,6 +3,7 @@ import * as v1_instance from 'wildebeest/functions/api/v1/instance'
 import * as v2_instance from 'wildebeest/functions/api/v2/instance'
 import * as apps from 'wildebeest/functions/api/v1/apps'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
+import * as mutes from 'wildebeest/functions/api/v1/mutes'
 import { makeDB, assertCORS, assertJSON, assertCache, createTestClient } from './utils'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { createSubscription } from '../src/mastodon/subscription'
@@ -229,5 +230,14 @@ describe('Mastodon APIs', () => {
 			const { count } = await db.prepare('SELECT count(*) as count FROM subscriptions').first()
 			assert.equal(count, 1)
 		})
+	})
+
+	test('mutes returns an empty array', async () => {
+		const res = await mutes.onRequest()
+		assert.equal(res.status, 200)
+		assertJSON(res)
+
+		const data = await res.json<any>()
+		assert.equal(data.length, 0)
 	})
 })
