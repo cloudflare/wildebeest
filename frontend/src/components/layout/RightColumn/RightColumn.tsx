@@ -23,7 +23,7 @@ export default component$(() => {
 
 		return (
 			<Link href={linkTarget} class={classList}>
-				<i class={`fa ${iconName} fa-fw md:mr-3`} />
+				<i style={{ width: '1.25rem', height: '1rem' }} class={`fa ${iconName} fa-fw md:mr-3 w-5 h-4`} />
 				<span class="hidden md:inline">{linkText}</span>
 			</Link>
 		)
