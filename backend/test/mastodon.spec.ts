@@ -1,5 +1,6 @@
 import { strict as assert } from 'node:assert/strict'
 import * as v1_instance from 'wildebeest/functions/api/v1/instance'
+import * as v2_instance from 'wildebeest/functions/api/v2/instance'
 import * as apps from 'wildebeest/functions/api/v1/apps'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
 import { makeDB, assertCORS, assertJSON, assertCache, createTestClient } from './utils'
@@ -35,7 +36,7 @@ describe('Mastodon APIs', () => {
 			}
 		})
 
-		test('adds a short_description if missing', async () => {
+		test('adds a short_description if missing v1', async () => {
 			const db = await makeDB()
 			const data = {
 				title: 'title',
@@ -52,6 +53,22 @@ describe('Mastodon APIs', () => {
 				const data = await res.json<any>()
 				assert.equal(data.short_description, 'description')
 			}
+		})
+
+		test('return the instance infos v2', async () => {
+			const db = await makeDB()
+			const data = {
+				title: 'title',
+				uri: 'uri',
+				email: 'email',
+				description: 'description',
+			}
+			await configure(db, data)
+
+			const res = await v2_instance.handleRequest(domain, db)
+			assert.equal(res.status, 200)
+			assertCORS(res)
+			assertJSON(res)
 		})
 	})
 
