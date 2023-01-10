@@ -32,8 +32,8 @@ export default component$(() => {
 				</a>
 			</header>
 			<main class="flex-1 flex justify-center main-wrapper top-[3.9rem]">
-				<div class="w-fit md:w-72 hidden xl:block mx-[10px]">
-					<div class="sticky top-[10px]">
+				<div class="w-fit md:w-72 hidden xl:block mx-2.5">
+					<div class="sticky top-2.5">
 						<LeftColumn />
 					</div>
 				</div>
@@ -42,8 +42,8 @@ export default component$(() => {
 						<Slot />
 					</div>
 				</div>
-				<div class="w-fit md:w-72 border-l xl:border-l-0 border-wildebeest-700 xl:mx-[10px] flex flex-col">
-					<div class="xl:top-[10px] flex-1 flex flex-col">
+				<div class="w-fit md:w-72 border-l xl:border-l-0 border-wildebeest-700 xl:mx-2.5 flex flex-col">
+					<div class="xl:top-2.5 flex-1 flex flex-col">
 						<RightColumn />
 					</div>
 				</div>

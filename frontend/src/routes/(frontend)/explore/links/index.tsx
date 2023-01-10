@@ -1,12 +1,9 @@
-import { component$, Resource, useResource$, useStylesScoped$ } from '@builder.io/qwik'
+import { component$, Resource, useResource$ } from '@builder.io/qwik'
 import { links } from '~/dummyData'
 import { MastodonLink } from '~/types'
 import { formatHistory } from '~/utils/history'
-import styles from './index.scss?inline'
 
 export default component$(() => {
-	useStylesScoped$(styles)
-
 	const resource = useResource$<MastodonLink[]>(async () => {
 		return links
 	})
@@ -28,7 +25,7 @@ export default component$(() => {
 										<div class="text-sm text-wildebeest-400">{formatHistory(link.history)}</div>
 									</div>
 									<div>
-										<img class="thumbnail" src={link.image} />
+										<img class="w-32 max-w-fit h-32 object-cover" src={link.image} />
 									</div>
 								</div>
 							</a>

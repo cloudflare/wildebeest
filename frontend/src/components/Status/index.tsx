@@ -50,7 +50,7 @@ export default component$((props: Props) => {
 			{status.card && status.media_attachments.length == 0 && (
 				<a class="no-underline" href={status.card.url}>
 					<div class="rounded flex border border-wildebeest-600">
-						<img class="preview-image" src={status.card.image} />
+						<img class="w-16 h-16" src={status.card.image} />
 						<div class="p-3 overflow-hidden">
 							<div class="overflow-ellipsis text-sm text-bold text-wildebeest-400">{status.card.title}</div>
 							<div class="overflow-ellipsis mt-2 text-sm text-wildebeest-500">{status.card.provider_name}</div>

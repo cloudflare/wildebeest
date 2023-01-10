@@ -1,3 +1,7 @@
+// Important: The rules present in this file apply to dynamic content
+// defined by the client (set using dangerouslySetInnerHTML)
+// (thus wee cannot rely on Tailwind for such content)
+
 .status-content {
   a {
     text-decoration: none;
@@ -15,13 +19,6 @@
   }
 }
 
-.preview-image {
-  width: 4rem;
-  height: 4rem;
-}
-
-// These are rules that are attached to content and expected to be
-// defined by the client
 .invisible {
 	font-size: 0;
 	line-height: 0;
