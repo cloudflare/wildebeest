@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert/strict'
 
 import { parseHandle } from '../src/utils/parse'
 import { urlToHandle } from '../src/utils/handle'
-
+import { readBody } from 'wildebeest/backend/src/utils/body'
 import { generateUserKey, unwrapPrivateKey, importPublicKey } from 'wildebeest/backend/src/utils/key-ops'
 import { signRequest } from 'wildebeest/backend/src/utils/http-signing'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
@@ -68,5 +68,38 @@ describe('utils', () => {
 	test('URL to handle', async () => {
 		const res = urlToHandle(new URL('https://host.org/users/foobar'))
 		assert.equal(res, 'foobar@host.org')
+	})
+
+	test('read body handles JSON', async () => {
+		const body = JSON.stringify({ a: 1 })
+		const headers = {
+			'content-type': 'application/json;charset=utf-8',
+		}
+		const req = new Request('https://a.com', { method: 'POST', headers, body })
+
+		const data = await readBody<any>(req)
+		assert.equal(data.a, 1)
+	})
+
+	test('read body handles FormData', async () => {
+		const body = new FormData()
+		body.append('a', '1')
+
+		const headers = {}
+		const req = new Request('https://a.com', { method: 'POST', headers, body })
+
+		const data = await readBody<any>(req)
+		assert.equal(data.a, '1')
+	})
+
+	test('read body handles URL encoded', async () => {
+		const body = new URLSearchParams({ a: '1' })
+		const headers = {
+			'content-type': 'application/x-www-form-urlencoded',
+		}
+		const req = new Request('https://a.com', { method: 'POST', headers, body })
+
+		const data = await readBody<any>(req)
+		assert.equal(data.a, '1')
 	})
 })
