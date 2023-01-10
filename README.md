@@ -150,7 +150,7 @@ This is the list clients that we have been using successfully while developing a
 - [Pinafore](https://pinafore.social/) web client ([source](https://github.com/nolanlawson/pinafore)).
 - Mastodon [official](https://joinmastodon.org/apps) mobile client for [iOS](https://apps.apple.com/us/app/mastodon-for-iphone/id1571998974) ([source](https://github.com/mastodon/mastodon-ios)) and [Android](https://play.google.com/store/apps/details?id=org.joinmastodon.android) ([source](https://github.com/mastodon/mastodon-android)).
 
-Wildebeest also provides a read-only web client in your instance URL, where you can explore the timelines (local and federated), posts and profiles. We will continue to improve this web client and eventually add support for posting content as well.
+Wildebeest also provides a read-only web client in your instance URL, where you can explore the timelines (local and federated), posts and profiles. Please use the existing Mastodon clients to post and manage your account.
 
 ## Additional Cloudflare services
 
