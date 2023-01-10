@@ -27,6 +27,7 @@
 		"pretty": "npx prettier --list-different './**/*.ts'",
 		"test": "NODE_OPTIONS=--experimental-vm-modules yarn jest",
 		"lint": "npx eslint .",
+		"lint:frontend": "npm --prefix frontend run lint",
 		"lint:be": "npx eslint backend",
 		"lint:functions": "npx eslint functions",
 		"build": "yarn --cwd frontend install && yarn --cwd frontend build",
