@@ -22,10 +22,10 @@ describe('Toot details', () => {
 		const exploreResponse = await fetch('http://0.0.0.0:6868/explore/')
 		const exploreBody = await exploreResponse.text()
 		const match = exploreBody.match(/href="\/(@georgetakei\/[0-9a-z-]*)"/)
-		if (!match || !match[1]) fail()
 
 		// Fetch the page for it and validate the result
-		const tootPath = match[1]
+		const tootPath = match?.[1]
+		expect(tootPath).toBeTruthy()
 		const response = await fetch(`http://0.0.0.0:6868/${tootPath}`)
 		expect(response.status).toBe(200)
 		const body = await response.text()

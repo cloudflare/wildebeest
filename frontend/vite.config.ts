@@ -18,12 +18,6 @@ export default defineConfig(() => {
 			qwikVite(),
 			tsconfigPaths(),
 		],
-		build: { minify: false, sourcemap: true },
-		esbuild: {
-			minifySyntax: false,
-			minifyIdentifiers: false,
-			minifyWhitespace: false,
-		},
 		preview: {
 			headers: {
 				'Cache-Control': 'public, max-age=600',

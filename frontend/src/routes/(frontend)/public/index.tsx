@@ -22,7 +22,7 @@ export default component$(() => {
 		<>
 			<StickyHeader>
 				<div class="xl:rounded-t bg-wildebeest-700 p-4 flex items-center text-white">
-					<i class="fa fa-globe fa-fw mr-3" />
+					<i style={{ width: '1.25rem', height: '1rem' }} class="fa fa-globe fa-fw mr-3 w-5 h-4" />
 					<span>Federated timeline</span>
 				</div>
 			</StickyHeader>
