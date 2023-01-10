@@ -120,15 +120,3 @@ resource "cloudflare_access_application" "wildebeest_access" {
   session_duration          = "168h"
   auto_redirect_to_identity = false
 }
-
-resource "cloudflare_access_policy" "policy" {
-  application_id = cloudflare_access_application.wildebeest_access.id
-  account_id     = var.cloudflare_account_id
-  name           = "policy"
-  precedence     = "1"
-  decision       = "allow"
-
-  include {
-    email = ["CHANGEME@example.com"]
-  }
-}
