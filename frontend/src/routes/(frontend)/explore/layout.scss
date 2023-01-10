@@ -1,15 +1,3 @@
-@use '../../../tailwind-values.scss' as tailwind;
-
-.explore-wrapper {
-  min-height: calc(100vh - 20px);
-}
-
-@media (max-width: tailwind.$xl-breakpoint) {
-  .explore-wrapper {
-    min-height: calc(100vh - 3.9rem);
-  }
-}
-
 .active {
   color: #dcebfe;
   position: relative;
