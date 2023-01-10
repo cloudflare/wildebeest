@@ -31,13 +31,13 @@ export default component$(() => {
 					<WildebeestLogo size="small" />
 				</a>
 			</header>
-			<main class="h-full flex justify-center main-wrapper top-[3.9rem]">
+			<main class="flex-1 flex justify-center main-wrapper top-[3.9rem]">
 				<div class="w-fit md:w-72 hidden xl:block mx-[10px]">
 					<div class="sticky top-[10px]">
 						<LeftColumn />
 					</div>
 				</div>
-				<div class="w-full xl:max-w-xl">
+				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent">
 					<div class="bg-wildebeest-600 rounded">
 						<Slot />
 					</div>
