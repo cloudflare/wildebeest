@@ -5,5 +5,5 @@ type Props = {
 }
 
 export const Avatar = component$<Props>(({ src }) => {
-	return <img class="rounded" style={{ width: '46px', height: '46px' }} src={src} />
+	return <img class="rounded h-12 w-12" src={src} />
 })
