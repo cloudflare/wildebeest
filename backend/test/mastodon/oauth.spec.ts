@@ -139,11 +139,11 @@ describe('Mastodon APIs', () => {
 
 		test('token error on unknown client', async () => {
 			const db = await makeDB()
-			const body = { code: 'some-code' }
+			const body = new URLSearchParams({ code: 'some-code' })
 
 			const req = new Request('https://example.com/oauth/token', {
 				method: 'POST',
-				body: JSON.stringify(body),
+				body,
 			})
 			const res = await oauth_token.handleRequest(db, req)
 			assert.equal(res.status, 403)
@@ -154,13 +154,13 @@ describe('Mastodon APIs', () => {
 			const testScope = 'test abcd'
 			const client = await createTestClient(db, 'https://localhost', testScope)
 
-			const body = {
+			const body = new URLSearchParams({
 				code: client.id + '.some-code',
-			}
+			})
 
 			const req = new Request('https://example.com/oauth/token', {
 				method: 'POST',
-				body: JSON.stringify(body),
+				body,
 			})
 			const res = await oauth_token.handleRequest(db, req)
 			assert.equal(res.status, 200)
@@ -168,17 +168,17 @@ describe('Mastodon APIs', () => {
 			assertJSON(res)
 
 			const data = await res.json<any>()
-			assert.equal(data.access_token, body.code)
+			assert.equal(data.access_token, client.id + '.some-code')
 			assert.equal(data.scope, testScope)
 		})
 
 		test('token handles empty code', async () => {
 			const db = await makeDB()
-			const body = { code: '' }
+			const body = new URLSearchParams({ code: '' })
 
 			const req = new Request('https://example.com/oauth/token', {
 				method: 'POST',
-				body: JSON.stringify(body),
+				body,
 			})
 			const res = await oauth_token.handleRequest(db, req)
 			assert.equal(res.status, 401)
