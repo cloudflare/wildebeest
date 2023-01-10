@@ -51,12 +51,15 @@ export async function main(context: EventContext<Env, any, any>) {
 		url.pathname === '/oauth/token' ||
 		url.pathname === '/oauth/authorize' || // Cloudflare Access runs on /oauth/authorize
 		url.pathname === '/api/v1/instance' ||
+		url.pathname === '/api/v2/instance' ||
 		url.pathname === '/api/v1/apps' ||
 		url.pathname === '/api/v1/timelines/public' ||
 		url.pathname === '/api/v1/custom_emojis' ||
 		url.pathname === '/.well-known/webfinger' ||
 		url.pathname === '/start-instance' || // Access is required by the handler
 		url.pathname === '/start-instance-test-access' || // Access is required by the handler
+		url.pathname === '/api/v1/trends/statuses' ||
+		url.pathname === '/api/v1/trends/links' ||
 		url.pathname.startsWith('/ap/') // all ActivityPub endpoints
 	) {
 		return context.next()
