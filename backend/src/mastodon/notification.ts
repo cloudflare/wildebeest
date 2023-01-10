@@ -92,11 +92,11 @@ export async function sendMentionNotification(db: D1Database, fromActor: Actor, 
 
 	const data = {
 		preferred_locale: 'en',
-		notification_type: 'favourite',
+		notification_type: 'mention',
 		notification_id: notificationId,
 		icon: fromActor.icon!.url,
-		title: 'New favourite',
-		body: `${fromActor.name} favourited your status`,
+		title: 'New mention',
+		body: `You were mentioned by ${fromActor.name}`,
 	}
 
 	const message: WebPushMessage = {
