@@ -20,7 +20,7 @@
 		"prettier": "^2.8.1",
 		"ts-jest": "^29.0.3",
 		"typescript": "^4.9.4",
-		"wrangler": "0.0.0-e93063e9"
+		"wrangler": "2.7.1"
 	},
 	"private": true,
 	"scripts": {
