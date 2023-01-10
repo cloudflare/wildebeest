@@ -22,7 +22,7 @@ export default component$((props: Props) => {
 	const handleContentClick = $(() => nav(statusUrl))
 
 	return (
-		<div class="p-4 border-t border-wildebeest-600 pointer">
+		<div class="p-4 border-t border-wildebeest-700 pointer">
 			<div onClick$={handleContentClick}>
 				<div class="flex justify-between mb-3">
 					<div class="flex">
