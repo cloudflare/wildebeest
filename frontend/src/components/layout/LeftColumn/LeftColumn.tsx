@@ -13,7 +13,7 @@ export default component$(() => {
 				<a href="https://github.com/cloudflare/wildebeest">Wildebeest</a>.
 			</p>
 			<div>
-				<img style={{ width: '285px', height: '150px' }} src={config.thumbnail} />
+				<img class="w-full" src={config.thumbnail} />
 				<p>{config.description}</p>
 			</div>
 		</div>

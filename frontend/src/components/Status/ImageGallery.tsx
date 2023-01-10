@@ -1,6 +1,5 @@
-import { component$, useStore, useStyles$, $ } from '@builder.io/qwik'
+import { component$, useStore, $ } from '@builder.io/qwik'
 import { MediaAttachment } from '~/types'
-import styles from './ImageGallery.scss?inline'
 
 type Props = {
 	mediaAttachment: MediaAttachment
@@ -17,8 +16,6 @@ export const focusToObjectFit = (focus: { x: number; y: number }) => {
 }
 
 export default component$<Props>(({ mediaAttachment }) => {
-	useStyles$(styles)
-
 	const store = useStore({
 		isModalOpen: false,
 	})
@@ -40,9 +37,9 @@ export default component$<Props>(({ mediaAttachment }) => {
 
 	return (
 		<>
-			<div style={{ height: '250px' }}>
+			<div class="h-60">
 				<img
-					class="preview-image rounded"
+					class="object-cover w-full h-full rounded"
 					style={{
 						...(objectFit && { 'object-position': `${objectFit.x}% ${objectFit.y}%` }),
 					}}
@@ -50,9 +47,9 @@ export default component$<Props>(({ mediaAttachment }) => {
 					onClick$={onPreviewClick}
 				/>
 				{store.isModalOpen && (
-					<div class="modal-root">
-						<div class="overlay"></div>
-						<div class="modal" onClick$={onModalClose}>
+					<div class="relative pointer-events-auto z-50">
+						<div class="overlay inset-0 fixed z-60 bg-black opacity-70"></div>
+						<div class="fixed z-70 inset-0 grid place-items-center" onClick$={onModalClose}>
 							<img src={mediaAttachment.url} />
 						</div>
 					</div>
