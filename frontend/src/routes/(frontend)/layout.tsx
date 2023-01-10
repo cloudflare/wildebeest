@@ -8,11 +8,15 @@ import { WildebeestLogo } from '~/components/MastodonLogo'
 import { getCommitHash } from '~/utils/getCommitHash'
 import { InstanceConfigContext } from '~/utils/instanceConfig'
 
-export const instanceLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<InstanceConfig>>(
-	async ({ platform }) => {
+export const instanceLoader = loader$<{ DATABASE: D1Database }, Promise<InstanceConfig>>(
+	async ({ platform, redirect }) => {
 		const response = await instance.handleRequest('', platform.DATABASE)
 		const results = await response.text()
 		const json = JSON.parse(results) as InstanceConfig
+		if (!json.title) {
+			// If there is no title set then we have not configured the instance
+			throw redirect(302, '/start-instance')
+		}
 		return json
 	}
 )
