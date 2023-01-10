@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root, ::before, ::after {
 	// Change the value of wildebeest-hue to change the hue/base color
 	// of the whole wildebeest application
 	--wildebeest-hue: 225;
