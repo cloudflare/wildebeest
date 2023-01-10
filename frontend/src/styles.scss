@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+	// Change the value of wildebeest-hue to change the hue/base color
+	// of the whole wildebeest application
+	--wildebeest-hue: 225;
+
+	--wildebeest-vibrant-hue: calc( var(--wildebeest-hue) + 15 );
+	--wildebeest-color-200: hsl(var(--wildebeest-hue), 25%, 88%);
+	--wildebeest-color-400: hsl(var(--wildebeest-hue), 29%, 70%);
+	--wildebeest-color-500: hsl(var(--wildebeest-hue), 16%, 45%);
+	--wildebeest-color-700: hsl(var(--wildebeest-hue), 16%, 23%);
+	--wildebeest-color-600: hsl(var(--wildebeest-hue), 15%, 19%);
+	--wildebeest-color-800: hsl(var(--wildebeest-hue), 16%, 15%);
+	--wildebeest-color-900: hsl(var(--wildebeest-hue), 15%, 12%);
+	--wildebeest-vibrant-color-400: hsl(var(--wildebeest-vibrant-hue), 100%, 77%);
+	--wildebeest-vibrant-color-500: hsl(var(--wildebeest-vibrant-hue), 100%, 69%);
+	--wildebeest-vibrant-color-600: hsl(var(--wildebeest-vibrant-hue), 100%, 67%);
+}
+
 body {
 	font-family: ui-sans-serif, sans-serif, ui-sans-serif;
 	line-height: 1.25rem;

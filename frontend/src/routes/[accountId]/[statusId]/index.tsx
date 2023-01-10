@@ -25,15 +25,15 @@ export default component$(() => {
 	return (
 		<>
 			<StickyHeader>
-				<div class="flex justify-between items-center xl:rounded-t header bg-slate-700">
-					<Link class="text-semi no-underline text-indigo-400 bg-transparent p-4" href="/explore">
+				<div class="flex justify-between items-center xl:rounded-t header bg-wildebeest-700">
+					<Link class="text-semi no-underline text-wildebeest-vibrant-400 bg-transparent p-4" href="/explore">
 						<i class="fa fa-chevron-left mr-2" />
 						<span class="hover:underline">Back</span>
 					</Link>
-					<i class="fa fa-eye mr-4 text-slate-400" />
+					<i class="fa fa-eye mr-4 text-wildebeest-400" />
 				</div>
 			</StickyHeader>
-			<div class="bg-slate-700 p-4">
+			<div class="bg-wildebeest-700 p-4">
 				{/* Account Card */}
 				<div class="flex">
 					<Avatar src={status.account.avatar} />
@@ -42,7 +42,7 @@ export default component$(() => {
 							{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
 							<a class="no-underline">{status.account.display_name}</a>
 						</div>
-						<div class="p-1 text-slate-400">@{status.account.acct}</div>
+						<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>
 					</div>
 				</div>
 				{/* Content */}
@@ -54,7 +54,7 @@ export default component$(() => {
 					</div>
 				)}
 				{/* Info Tray */}
-				<div class="text-slate-500 mt-4 text-sm">
+				<div class="text-wildebeest-500 mt-4 text-sm">
 					<a href={status.url} class="no-underline">
 						<span>{formatDateTime(status.created_at)}</span>
 					</a>

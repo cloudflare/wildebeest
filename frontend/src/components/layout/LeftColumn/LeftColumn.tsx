@@ -8,7 +8,7 @@ export default component$(() => {
 
 	return (
 		<div class="hidden xl:block text-sm">
-			<p class="text-slate-400">
+			<p class="text-wildebeest-400">
 				<span class="text-semi">{domain}</span> is part of the decentralized social network powered by{' '}
 				<a href="https://github.com/cloudflare/wildebeest">Wildebeest</a>.
 			</p>

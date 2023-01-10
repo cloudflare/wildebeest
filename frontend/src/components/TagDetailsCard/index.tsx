@@ -17,8 +17,8 @@ export default component$((props: Props) => {
 	return (
 		<div class="flex justify-between items-center">
 			<div class="">
-				<div class="text-sm text-bold text-slate-400">#{props.tagDetails.name}</div>
-				<div class="text-xs text-slate-500">{formatHistory(history)}</div>
+				<div class="text-sm text-bold text-wildebeest-400">#{props.tagDetails.name}</div>
+				<div class="text-xs text-wildebeest-500">{formatHistory(history)}</div>
 			</div>
 			<Sparkline data={data} />
 		</div>
