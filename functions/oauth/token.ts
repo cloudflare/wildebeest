@@ -9,7 +9,7 @@ type Body = {
 	code: string | null
 }
 
-export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
+export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
 	return handleRequest(env.DATABASE, request)
 }
 

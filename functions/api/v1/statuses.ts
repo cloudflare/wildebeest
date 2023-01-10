@@ -1,7 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
 
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
-import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
@@ -9,8 +8,6 @@ import { getMentions } from 'wildebeest/backend/src/mastodon/status'
 import * as activities from 'wildebeest/backend/src/activitypub/activities/create'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import type { MastodonAccount } from 'wildebeest/backend/src/types/account'
-import type { MastodonStatus } from 'wildebeest/backend/src/types/status'
 import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import { deliverFollowers, deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
@@ -47,7 +44,7 @@ export async function handleRequest(
 		return new Response('', { status: 400 })
 	}
 
-	let mediaAttachments: Array<Document> = []
+	const mediaAttachments: Array<Document> = []
 	if (body.media_ids && body.media_ids.length > 0) {
 		for (let i = 0, len = body.media_ids.length; i < len; i++) {
 			const id = body.media_ids[i]

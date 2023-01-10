@@ -3,15 +3,14 @@ import * as access from 'wildebeest/backend/src/access'
 import * as errors from 'wildebeest/backend/src/errors'
 import { parse } from 'cookie'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import type { InstanceConfig } from 'wildebeest/backend/src/config'
-import { configure } from 'wildebeest/backend/src/config'
 
-export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ request, data, env }) => {
-	return handleGetRequest(env.DATABASE, request)
+export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
+	return handleGetRequest(env, request)
 }
 
 // Route to test if Access has been configured properly
-export async function handleGetRequest(db: D1Database, request: Request): Promise<Response> {
+export async function handleGetRequest(env: Env, request: Request): Promise<Response> {
+	const db = env.DATABASE
 	const query = `
         SELECT * FROM instance_config WHERE key IN ('accessDomain', 'accessAud')
     `
@@ -37,7 +36,7 @@ export async function handleGetRequest(db: D1Database, request: Request): Promis
 	const domain = env.ACCESS_AUTH_DOMAIN
 
 	const validator = access.generateValidator({ jwt, domain, aud: env.ACCESS_AUD })
-	const { payload } = await validator(request)
+	await validator(request)
 
 	const identity = await access.getIdentity({ jwt, domain })
 	if (!identity) {

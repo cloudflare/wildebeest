@@ -5,10 +5,6 @@ import type { CreateRequest } from 'wildebeest/backend/src/mastodon/subscription
 import { ContextData } from 'wildebeest/backend/src/types/context'
 import { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
-import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
-import type { WebPushInfos, WebPushMessage, WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
-import { b64ToUrlEncoded, exportPublicKeyPair } from 'wildebeest/backend/src/webpush/util'
-import { generateWebPushMessage } from 'wildebeest/backend/src/webpush'
 import { getVAPIDKeys, VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {

@@ -3,7 +3,6 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import * as access from 'wildebeest/backend/src/access'
 import { parse } from 'cookie'
-import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { InstanceConfig } from 'wildebeest/backend/src/config'
 import * as config from 'wildebeest/backend/src/config'
 
@@ -12,11 +11,10 @@ export const onRequestPost: PagesFunction<Env, any> = async ({ request, env }) =
 }
 
 export const onRequestGet: PagesFunction<Env, any> = async (ctx) => {
-	const { request, env, next } = ctx
+	const { request, env } = ctx
 	const cookie = parse(request.headers.get('Cookie') || '')
 	const jwt = cookie['CF_Authorization']
 	if (!jwt) {
-		const { hostname } = new URL(request.url)
 		const url = access.generateLoginURL({
 			redirectURL: new URL('/start-instance', 'https://' + env.DOMAIN),
 			domain: env.ACCESS_AUTH_DOMAIN,
@@ -44,7 +42,7 @@ export async function handlePostRequest(
 	}
 
 	const validator = access.generateValidator({ jwt, domain: accessDomain, aud: accessAud })
-	const { payload } = await validator(request)
+	await validator(request)
 
 	const identity = await access.getIdentity({ jwt, domain: accessDomain })
 	if (!identity) {

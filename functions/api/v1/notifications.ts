@@ -1,11 +1,8 @@
 // https://docs.joinmastodon.org/methods/notifications/#get
 
 import type { Env } from 'wildebeest/backend/src/types/env'
-import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import { getNotifications } from 'wildebeest/backend/src/mastodon/notification'
-import type { MastodonStatus } from 'wildebeest/backend/src/types'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
 	return handleRequest(request, env.KV_CACHE, data.connectedActor)

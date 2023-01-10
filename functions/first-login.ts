@@ -2,11 +2,9 @@
 // especially)
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import * as errors from 'wildebeest/backend/src/errors'
 
-export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
+export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
 	return handlePostRequest(request, env.DATABASE, env.userKEK)
 }
 

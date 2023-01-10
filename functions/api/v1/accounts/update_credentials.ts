@@ -9,7 +9,7 @@ import * as images from 'wildebeest/backend/src/media/image'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { updateActorProperty } from 'wildebeest/backend/src/activitypub/actors'
-import type { CredentialAccount, MastodonAccount } from 'wildebeest/backend/src/types/account'
+import type { CredentialAccount } from 'wildebeest/backend/src/types/account'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
