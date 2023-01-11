@@ -108,21 +108,23 @@ Almost there, only two last steps missing:
 
 ### Configure the access rule
 
-The installation process automatically created a [Zero Trust Access application](https://developers.cloudflare.com/cloudflare-one/applications/) called `wildebeest-your-github-user` for you. Now you need to update the [policy](https://developers.cloudflare.com/cloudflare-one/policies/) that defines who can have access to your Wildebeest instance.
+The installation process automatically created a [Zero Trust Access application](https://developers.cloudflare.com/cloudflare-one/applications/) called `wildebeest-your-github-user` for you. Now you need to create a [policy](https://developers.cloudflare.com/cloudflare-one/policies/) that defines who can have access to your Wildebeest instance.
 
-Go to https://one.dash.cloudflare.com/access and select your account, then select **_Access / Applications_** and Edit the `wildebeest-your-github-user` application. Now edit the existing policy on the next screen.
+Go to https://one.dash.cloudflare.com/access and select your account, then select **_Access / Applications_** and Edit the `wildebeest-your-github-user` application.
 
 ![access applications](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/c93d68e8-ddfc-457d-bc63-cc50472e9e00/public)
 
-Add an include rule to the policy with the list of Emails that you want to allow and then click **_Save policy_**
+Now click **_Add a policy_**. Name the policy `wildebeest-policy`, set the action to **_Allow_**, and add an include rule with the list of Emails that you want to allow and then click **_Save policy_**
 
 ![access policy](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/f6b1238f-22c3-4daf-6102-7178fc91ca00/public)
 
 ### Configure your server
 
-Open your browser and go to your newly deployed Wildebeest domain `https://social.example.com/start-instance` (replace social.example.com with your domain). Fill in the title, administrator Email and description. Press **_Configure_**.
+Open your browser and go to your newly deployed Wildebeest domain `https://social.example.com/` (replace social.example.com with your domain).
 
-![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/42663b5d-11a6-4d23-d99a-31daab333b00/w=560)
+Because it's the first time, you will be redirected to `/start-instance`. Fill in the title, administrator Email and description. Press **_Configure_**.
+
+![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/a2055f7f-3d26-44d3-1cf7-f123a5d42000/w=400)
 
 Go to `https://social.example.com/api/v1/instance` (replace social.example.com with your domain) and double-check your configuration. It should show:
 
@@ -151,6 +153,22 @@ This is the list clients that we have been using successfully while developing a
 - Mastodon [official](https://joinmastodon.org/apps) mobile client for [iOS](https://apps.apple.com/us/app/mastodon-for-iphone/id1571998974) ([source](https://github.com/mastodon/mastodon-ios)) and [Android](https://play.google.com/store/apps/details?id=org.joinmastodon.android) ([source](https://github.com/mastodon/mastodon-android)).
 
 Wildebeest also provides a read-only web client in your instance URL, where you can explore the timelines (local and federated), posts and profiles. Please use the existing Mastodon clients to post and manage your account.
+
+## Updating Wildebeest
+
+Updating your Wildebeest to the latest version is as easy as rebasing your forked repo with the official one. This will do it:
+
+```
+git remote add upstream https://github.com/cloudflare/wildebeest.git
+git fetch upstream
+git checkout main
+git rebase upstream/master
+git push -f origin main
+```
+
+If you made local changes before rebasing, this operation may result in conflits. If that's the case, then you have to [resolve them](https://docs.github.com/en/get-started/using-git/resolving-merge-conflicts-after-a-git-rebase).
+
+Once you push the changes back to your origin, the Github Actions CI is triggered, and a new build will be deployed.
 
 ## Additional Cloudflare services
 
