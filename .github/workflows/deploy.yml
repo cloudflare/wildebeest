@@ -109,6 +109,39 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         if: ${{ env.tfstate_kv != '' }}
 
+      - name: download VAPID keys
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:key get --namespace-id=${{ env.tfstate_kv }} vapid_jwk | jq . > ./tf/vapid_jwk
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          preCommands: |
+            echo "*** pre commands ***"
+            apt-get update && apt-get -y install jq
+            echo "******"
+          postCommands: |
+            echo "*** post commands ***"
+            chmod 777 ./tf/vapid_jwk
+            echo "******"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        continue-on-error: true
+
+      - name: generate VAPID keys if needed
+        run: |
+          if [ ! -s ./tf/vapid_jwk ]
+          then
+            node ./scripts/generate-vapid-keys.mjs > ./tf/vapid_jwk
+            echo "VAPID keys generated"
+          fi
+
+      - name: store VAPID keys state
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:key put --namespace-id=${{ env.tfstate_kv }} vapid_jwk --path=./tf/vapid_jwk
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
       - name: Configure
         run: terraform plan && terraform apply -auto-approve
         continue-on-error: true

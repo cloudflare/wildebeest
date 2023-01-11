@@ -1,4 +1,5 @@
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
@@ -9,8 +10,6 @@ import { WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { NotificationType, Notification } from 'wildebeest/backend/src/types/notification'
 import { getSubscriptionForAllClients } from 'wildebeest/backend/src/mastodon/subscription'
-import { getVAPIDKeys } from 'wildebeest/backend/src/mastodon/subscription'
-import * as config from 'wildebeest/backend/src/config'
 
 export async function createNotification(
 	db: D1Database,
@@ -43,9 +42,14 @@ export async function insertFollowNotification(db: D1Database, actor: Actor, fro
 	return row.id
 }
 
-export async function sendFollowNotification(db: D1Database, follower: Actor, actor: Actor, notificationId: string) {
-	const sub = await config.get(db, 'email')
-
+export async function sendFollowNotification(
+	db: D1Database,
+	follower: Actor,
+	actor: Actor,
+	notificationId: string,
+	adminEmail: string,
+	vapidKeys: JWK
+) {
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'follow',
@@ -58,16 +62,21 @@ export async function sendFollowNotification(db: D1Database, follower: Actor, ac
 	const message: WebPushMessage = {
 		data: JSON.stringify(data),
 		urgency: 'normal',
-		sub,
+		sub: adminEmail,
 		ttl: 60 * 24 * 7,
 	}
 
-	return sendNotification(db, actor, message)
+	return sendNotification(db, actor, message, vapidKeys)
 }
 
-export async function sendLikeNotification(db: D1Database, fromActor: Actor, actor: Actor, notificationId: string) {
-	const sub = await config.get(db, 'email')
-
+export async function sendLikeNotification(
+	db: D1Database,
+	fromActor: Actor,
+	actor: Actor,
+	notificationId: string,
+	adminEmail: string,
+	vapidKeys: JWK
+) {
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'favourite',
@@ -80,16 +89,21 @@ export async function sendLikeNotification(db: D1Database, fromActor: Actor, act
 	const message: WebPushMessage = {
 		data: JSON.stringify(data),
 		urgency: 'normal',
-		sub,
+		sub: adminEmail,
 		ttl: 60 * 24 * 7,
 	}
 
-	return sendNotification(db, actor, message)
+	return sendNotification(db, actor, message, vapidKeys)
 }
 
-export async function sendMentionNotification(db: D1Database, fromActor: Actor, actor: Actor, notificationId: string) {
-	const sub = await config.get(db, 'email')
-
+export async function sendMentionNotification(
+	db: D1Database,
+	fromActor: Actor,
+	actor: Actor,
+	notificationId: string,
+	adminEmail: string,
+	vapidKeys: JWK
+) {
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'mention',
@@ -102,16 +116,21 @@ export async function sendMentionNotification(db: D1Database, fromActor: Actor, 
 	const message: WebPushMessage = {
 		data: JSON.stringify(data),
 		urgency: 'normal',
-		sub,
+		sub: adminEmail,
 		ttl: 60 * 24 * 7,
 	}
 
-	return sendNotification(db, actor, message)
+	return sendNotification(db, actor, message, vapidKeys)
 }
 
-export async function sendReblogNotification(db: D1Database, fromActor: Actor, actor: Actor, notificationId: string) {
-	const sub = await config.get(db, 'email')
-
+export async function sendReblogNotification(
+	db: D1Database,
+	fromActor: Actor,
+	actor: Actor,
+	notificationId: string,
+	adminEmail: string,
+	vapidKeys: JWK
+) {
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'reblog',
@@ -124,15 +143,14 @@ export async function sendReblogNotification(db: D1Database, fromActor: Actor, a
 	const message: WebPushMessage = {
 		data: JSON.stringify(data),
 		urgency: 'normal',
-		sub,
+		sub: adminEmail,
 		ttl: 60 * 24 * 7,
 	}
 
-	return sendNotification(db, actor, message)
+	return sendNotification(db, actor, message, vapidKeys)
 }
 
-async function sendNotification(db: D1Database, actor: Actor, message: WebPushMessage) {
-	const vapidKeys = await getVAPIDKeys(db)
+async function sendNotification(db: D1Database, actor: Actor, message: WebPushMessage, vapidKeys: JWK) {
 	const subscriptions = await getSubscriptionForAllClients(db, actor)
 
 	const promises = subscriptions.map(async (subscription) => {

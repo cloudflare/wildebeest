@@ -124,15 +124,6 @@ function subscriptionFromRow(row: any): Subscription {
 	}
 }
 
-export async function getVAPIDKeys(db: D1Database): Promise<JWK> {
-	const row: any = await db.prepare("SELECT value FROM instance_config WHERE key = 'vapid_jwk'").first()
-	if (!row) {
-		throw new Error('missing VAPID keys')
-	}
-	const value: JWK = JSON.parse(row.value)
-	return value
-}
-
 export function VAPIDPublicKey(keys: JWK): string {
 	return b64ToUrlEncoded(exportPublicKeyPair(keys))
 }

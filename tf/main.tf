@@ -98,6 +98,7 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
         INSTANCE_TITLE = var.wd_instance_title
         ADMIN_EMAIL    = var.wd_admin_email
         INSTANCE_DESCR = var.wd_instance_description
+        VAPID_JWK      = sensitive(file("${path.module}/vapid_jwk"))
       }
       kv_namespaces = {
         KV_CACHE = sensitive(cloudflare_workers_kv_namespace.wildebeest_cache.id)

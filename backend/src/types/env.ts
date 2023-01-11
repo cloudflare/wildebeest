@@ -10,4 +10,10 @@ export interface Env {
 	DOMAIN: string
 	ACCESS_AUD: string
 	ACCESS_AUTH_DOMAIN: string
+
+	// Configuration for the instance
+	INSTANCE_TITLE: string
+	ADMIN_EMAIL: string
+	INSTANCE_DESCR: string
+	VAPID_JWK: string
 }

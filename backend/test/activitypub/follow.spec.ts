@@ -1,5 +1,5 @@
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
-import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as ap_followers_page from 'wildebeest/functions/ap/users/[id]/followers/page'
 import * as ap_following_page from 'wildebeest/functions/ap/users/[id]/following/page'
 import * as ap_followers from 'wildebeest/functions/ap/users/[id]/followers'
@@ -11,6 +11,8 @@ import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 
 const userKEK = 'test_kek10'
 const domain = 'cloudflare.com'
+const adminEmail = 'admin@example.com'
+const vapidKeys = {} as JWK
 
 describe('ActivityPub', () => {
 	describe('Follow', () => {
@@ -34,8 +36,6 @@ describe('ActivityPub', () => {
 
 		test('Receive follow with Accept reply', async () => {
 			const db = await makeDB()
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			await generateVAPIDKeys(db)
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 
@@ -46,7 +46,7 @@ describe('ActivityPub', () => {
 				object: actor.id.toString(),
 			}
 
-			await activityHandler.handle(domain, activity, db, userKEK)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
 			const row = await db
 				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
@@ -132,8 +132,6 @@ describe('ActivityPub', () => {
 
 		test('creates a notification', async () => {
 			const db = await makeDB()
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			await generateVAPIDKeys(db)
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 
@@ -144,7 +142,7 @@ describe('ActivityPub', () => {
 				object: actor.id,
 			}
 
-			await activityHandler.handle(domain, activity, db, userKEK)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
 			assert.equal(entry.type, 'follow')

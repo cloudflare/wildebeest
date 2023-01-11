@@ -1,5 +1,4 @@
 import { strict as assert } from 'node:assert/strict'
-import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as accounts_following from 'wildebeest/functions/api/v1/accounts/[id]/following'
@@ -418,8 +417,6 @@ describe('Mastodon APIs', () => {
 
 		test('get remote actor statuses', async () => {
 			const db = await makeDB()
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			await generateVAPIDKeys(db)
 
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 
@@ -508,7 +505,6 @@ describe('Mastodon APIs', () => {
 
 		test('get remote actor statuses ignoring object that fail to download', async () => {
 			const db = await makeDB()
-			await generateVAPIDKeys(db)
 
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			await createPublicNote(domain, db, 'my localnote status', actor)

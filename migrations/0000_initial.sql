@@ -139,11 +139,6 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   FOREIGN KEY(client_id) REFERENCES clients(id)
 );
 
-CREATE TABLE IF NOT EXISTS instance_config (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL
-);
-
 CREATE VIRTUAL TABLE IF NOT EXISTS search_fts USING fts5 (
     type,
     name,
