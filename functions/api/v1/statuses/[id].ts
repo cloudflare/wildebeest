@@ -1,15 +1,11 @@
 // https://docs.joinmastodon.org/methods/statuses/#get
 
 import type { UUID } from 'wildebeest/backend/src/types'
-import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
-import { parseHandle } from 'wildebeest/backend/src/utils/parse'
-import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import { getFollowers } from 'wildebeest/backend/src/mastodon/follow'
 import { getMastodonStatusById } from 'wildebeest/backend/src/mastodon/status'
 import type { Env } from 'wildebeest/backend/src/types/env'
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env, data }) => {
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, env }) => {
 	return handleRequest(env.DATABASE, params.id as UUID)
 }
 

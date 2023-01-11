@@ -1,6 +1,4 @@
 import { ContextData } from 'wildebeest/backend/src/types/context'
-import { b64ToUrlEncoded, exportPublicKeyPair } from 'wildebeest/backend/src/webpush/util'
-import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { Env } from 'wildebeest/backend/src/types/env'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
 import { getVAPIDKeys, VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
@@ -12,7 +10,7 @@ type AppsPost = {
 	scopes: string
 }
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
 	return handleRequest(env.DATABASE, request)
 }
 

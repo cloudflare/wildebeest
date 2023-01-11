@@ -3,7 +3,6 @@ import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
-import * as activities from 'wildebeest/backend/src/activitypub/activities'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import { parseRequest } from 'wildebeest/backend/src/utils/httpsigjs/parser'
 import { fetchKey, verifySignature } from 'wildebeest/backend/src/utils/httpsigjs/verifier'

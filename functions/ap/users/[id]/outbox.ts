@@ -1,12 +1,8 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
-import * as objects from 'wildebeest/backend/src/activitypub/objects'
-import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
-import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
-import * as activityCreate from 'wildebeest/backend/src/activitypub/activities/create'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
@@ -17,6 +13,7 @@ const headers = {
 	'content-type': 'application/json; charset=utf-8',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use userKEK
 export async function handleRequest(domain: string, db: D1Database, id: string, userKEK: string): Promise<Response> {
 	const handle = parseHandle(id)
 

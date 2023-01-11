@@ -10,7 +10,7 @@ export async function readBody<T>(request: Request): Promise<T> {
 		return request.json<T>()
 	} else {
 		const form = await request.formData()
-		let out: any = {}
+		const out: any = {}
 
 		for (const [key, value] of form) {
 			out[key] = value

@@ -1,13 +1,9 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { getFollowingId } from 'wildebeest/backend/src/mastodon/follow'
-import * as objects from 'wildebeest/backend/src/activitypub/objects'
-import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
-import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
-import * as activityCreate from 'wildebeest/backend/src/activitypub/activities/create'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
