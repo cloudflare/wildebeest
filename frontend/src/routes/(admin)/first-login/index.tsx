@@ -1,4 +1,5 @@
 import { component$ } from '@builder.io/qwik'
+import { DocumentHead } from '@builder.io/qwik-city'
 import { WildebeestLogo } from '~/components/MastodonLogo'
 import { useDomain } from '~/utils/useDomain'
 
@@ -45,3 +46,15 @@ export default component$(() => {
 		</div>
 	)
 })
+
+export const head: DocumentHead = () => {
+	return {
+		title: 'Wildebeest Login',
+		meta: [
+			{
+				name: 'description',
+				content: 'Wildebeest Login page',
+			},
+		],
+	}
+}

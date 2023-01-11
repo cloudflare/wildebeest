@@ -22,7 +22,7 @@ export default component$(() => {
 		}
 
 		return (
-			<Link href={linkTarget} class={classList}>
+			<Link href={linkTarget} class={classList} aria-label={linkText}>
 				<i style={{ width: '1.25rem', height: '1rem' }} class={`fa ${iconName} fa-fw md:mr-3 w-5 h-4`} />
 				<span class="hidden md:inline">{linkText}</span>
 			</Link>
@@ -41,7 +41,7 @@ export default component$(() => {
 		<div class="bg-wildebeest-600 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-wildebeest-200 flex-1">
 			<div class="sticky top-[3.9rem] xl:top-0">
 				<div class="xl:p-4">
-					<a class="no-underline hidden xl:flex items-center" href="https://mastodon.social">
+					<a class="no-underline hidden xl:flex items-center" aria-label="Wildebeest Home" href="/">
 						<WildebeestLogo size="medium" />
 					</a>
 				</div>

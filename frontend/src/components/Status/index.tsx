@@ -26,7 +26,7 @@ export default component$((props: Props) => {
 			<div onClick$={handleContentClick}>
 				<div class="flex justify-between mb-3">
 					<div class="flex">
-						<Avatar src={status.account.avatar} />
+						<Avatar accountDisplayName={status.account.display_name} src={status.account.avatar} />
 						<div class="flex-col ml-3">
 							<div>
 								{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}

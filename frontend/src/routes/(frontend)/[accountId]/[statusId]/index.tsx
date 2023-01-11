@@ -36,7 +36,7 @@ export default component$(() => {
 			<div class="bg-wildebeest-700 p-4">
 				{/* Account Card */}
 				<div class="flex">
-					<Avatar src={status.account.avatar} />
+					<Avatar accountDisplayName={status.account.display_name} src={status.account.avatar} />
 					<div class="flex flex-col">
 						<div class="p-1">
 							{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
