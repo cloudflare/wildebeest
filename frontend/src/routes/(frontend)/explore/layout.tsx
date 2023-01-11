@@ -1,7 +1,6 @@
-import { component$, Slot, useStylesScoped$ } from '@builder.io/qwik'
+import { component$, Slot } from '@builder.io/qwik'
 import { Link, useLocation } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
-import styles from './layout.scss?inline'
 
 type LinkConfig = {
 	linkText: string
@@ -9,14 +8,13 @@ type LinkConfig = {
 }
 
 export default component$(() => {
-	useStylesScoped$(styles)
 	const location = useLocation()
 
 	const renderNavLink = ({ linkText, linkTarget }: LinkConfig) => {
 		const isActive = location.pathname.replace(/\/$/, '') === linkTarget
 
 		return (
-			<div class={`py-4 ${isActive ? 'active' : ''}`}>
+			<div class={`py-4 ${isActive ? activeClasses.join(' ') : ''}`}>
 				<Link href={linkTarget} class="no-underline text-bold text-wildebeest-200 py-4">
 					{linkText}
 				</Link>
@@ -54,3 +52,35 @@ export default component$(() => {
 		</div>
 	)
 })
+
+export const activeClasses = [
+	'relative',
+	'before:block',
+	'before:content-[""]',
+	'before:absolute',
+	'before:w-0',
+	'before:h-0',
+	'before:bottom-[-1px]',
+	'before:left-1/2',
+	'before:translate-x-[-50%]',
+	'before:border-solid',
+	'before:border-t-0',
+	'before:border-x-[0.7rem]',
+	'before:border-b-[0.7rem]',
+	'before:border-x-transparent',
+	'before:border-b-wildebeest-500',
+	'after:block',
+	'after:content-[""]',
+	'after:absolute',
+	'after:w-0',
+	'after:h-0',
+	'after:bottom-[-1px]',
+	'after:left-1/2',
+	'after:translate-x-[-50%]',
+	'after:border-solid',
+	'after:border-t-0',
+	'after:border-x-[0.7rem]',
+	'after:border-b-[0.7rem]',
+	'after:border-x-transparent',
+	'after:border-b-wildebeest-600',
+]
