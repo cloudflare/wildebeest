@@ -1,7 +1,6 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
-import * as errors from 'wildebeest/backend/src/errors'
 
 const headers = {
 	'Access-Control-Allow-Origin': '*',
@@ -24,7 +23,7 @@ export async function handleRequest(request: Request, cache: KVNamespace, actor:
 
 	const timeline = await cache.get(actor.id + '/timeline/home')
 	if (timeline === null) {
-		return errors.timelineMissing()
+		return new Response(JSON.stringify([]), { headers })
 	}
 	return new Response(timeline, { headers })
 }
