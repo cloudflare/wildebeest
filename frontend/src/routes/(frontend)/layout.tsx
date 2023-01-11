@@ -12,7 +12,7 @@ import { InstanceConfigContext } from '~/utils/instanceConfig'
 export const instanceLoader = loader$<
 	{ DATABASE: D1Database; INSTANCE_TITLE: string; INSTANCE_DESCR: string; ADMIN_EMAIL: string },
 	Promise<InstanceConfig>
->(async ({ platform, redirect }) => {
+>(async ({ platform }) => {
 	const env = {
 		INSTANCE_DESCR: platform.INSTANCE_DESCR,
 		INSTANCE_TITLE: platform.INSTANCE_TITLE,
