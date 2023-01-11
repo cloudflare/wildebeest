@@ -68,9 +68,9 @@ We're all set now, let's start the installation process.
 
 Wildebeest uses [Deploy to Workers](https://deploy.workers.cloudflare.com/) to automate the installation process.
 
-Click here to start the installation.
+**Click here to start the installation.**
 
-<a class="github-button" href="https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true" data-icon="octicon-package" aria-label="Install Wildebeest">Install Wildebeest</a>
+[<img src="https://deploy.workers.cloudflare.com/button"/>](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true)
 
 Please pay attention to all the steps involved in the installation process.
 
@@ -108,21 +108,23 @@ Almost there, only two last steps missing:
 
 ### Configure the access rule
 
-The installation process automatically created a [Zero Trust Access application](https://developers.cloudflare.com/cloudflare-one/applications/) called `wildebeest-your-github-user` for you. Now you need to update the [policy](https://developers.cloudflare.com/cloudflare-one/policies/) that defines who can have access to your Wildebeest instance.
+The installation process automatically created a [Zero Trust Access application](https://developers.cloudflare.com/cloudflare-one/applications/) called `wildebeest-your-github-user` for you. Now you need to create a [policy](https://developers.cloudflare.com/cloudflare-one/policies/) that defines who can have access to your Wildebeest instance.
 
-Go to https://one.dash.cloudflare.com/access and select your account, then select **_Access / Applications_** and Edit the `wildebeest-your-github-user` application. Now edit the existing policy on the next screen.
+Go to https://one.dash.cloudflare.com/access and select your account, then select **_Access / Applications_** and Edit the `wildebeest-your-github-user` application.
 
 ![access applications](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/c93d68e8-ddfc-457d-bc63-cc50472e9e00/public)
 
-Add an include rule to the policy with the list of Emails that you want to allow and then click **_Save policy_**
+Now click **_Add a policy_**. Name the policy `wildebeest-policy`, set the action to **_Allow_**, and add an include rule with the list of Emails that you want to allow and then click **_Save policy_**
 
 ![access policy](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/f6b1238f-22c3-4daf-6102-7178fc91ca00/public)
 
 ### Configure your server
 
-Open your browser and go to your newly deployed Wildebeest domain `https://social.example.com/start-instance` (replace social.example.com with your domain). Fill in the title, administrator Email and description. Press **_Configure_**.
+Open your browser and go to your newly deployed Wildebeest domain `https://social.example.com/` (replace social.example.com with your domain).
 
-![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/42663b5d-11a6-4d23-d99a-31daab333b00/w=560)
+Because it's the first time, you will be redirected to `/start-instance`. Fill in the title, administrator Email and description. Press **_Configure_**.
+
+![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/a2055f7f-3d26-44d3-1cf7-f123a5d42000/w=400)
 
 Go to `https://social.example.com/api/v1/instance` (replace social.example.com with your domain) and double-check your configuration. It should show:
 
@@ -152,6 +154,14 @@ This is the list clients that we have been using successfully while developing a
 
 Wildebeest also provides a read-only web client in your instance URL, where you can explore the timelines (local and federated), posts and profiles. Please use the existing Mastodon clients to post and manage your account.
 
+## Updating Wildebeest
+
+Updating your Wildebeest to the latest version is as easy as going to your forked repo on GitHub and clicking the **_Sync fork_** button:
+
+![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/92ddc9f2-789b-454d-f6ca-2e9011613900/w=500)
+
+Once your fork is syncronized with the official repo, the Github Actions CI is triggered and a new build will be deployed.
+
 ## Additional Cloudflare services
 
 Since Wildebeest is a Cloudflare app running on Pages, you can seamlessly enable additional Cloudflare services to protect or improve your server.
@@ -169,7 +179,7 @@ Sometimes things go south. The GitHub Actions deployment can fail for some reaso
 If you attempted to deploy Wildebeest in your account and something failed, or you simply want to reinstall everything from scratch again, you need to do manual checkups and cleaning before you start over.
 
 - Go to your zone DNS settings and delete the CNAME record that points to `wildebeest-username.pages.dev`
-- Go to your account Pages section and delete the `wildebeest-username` project.
+- Go to your account Pages section and delete the `wildebeest-username` project (make sure you remove the custom domain first if it's been configured).
 - Go to your account Workers / KV section and delete the `wildebeest-username-cache` namespace.
 - Go to your account Workers / D1 and delete the `wildebeest-username` database.
 - Launch [Zero Trust](https://one.dash.cloudflare.com/), select your account, go to Access / Applications and delete the `wildebeest-username` application.
