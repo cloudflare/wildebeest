@@ -1,10 +1,10 @@
 import { component$, $, useStyles$ } from '@builder.io/qwik'
 import { Link, useNavigate } from '@builder.io/qwik-city'
 import { formatTimeAgo } from '~/utils/dateTime'
-import { MastodonStatus } from '~/types'
-import styles from './index.scss?inline'
 import { Avatar } from '../avatar'
 import Image from './ImageGallery'
+import type { Account, MastodonStatus } from '~/types'
+import styles from './index.scss?inline'
 
 type Props = {
 	status: MastodonStatus
@@ -14,7 +14,8 @@ export default component$((props: Props) => {
 	useStyles$(styles)
 	const nav = useNavigate()
 
-	const status = props.status
+	const status = props.status.reblog ?? props.status
+	const reblogger = props.status.reblog && props.status.account
 
 	const accountUrl = `/@${status.account.username}`
 	const statusUrl = `${accountUrl}/${status.id}`
@@ -23,14 +24,16 @@ export default component$((props: Props) => {
 
 	return (
 		<div class="p-4 border-t border-wildebeest-700 pointer">
+			<RebloggerLink account={reblogger}></RebloggerLink>
 			<div onClick$={handleContentClick}>
 				<div class="flex justify-between mb-3">
 					<div class="flex">
-						<Avatar accountDisplayName={status.account.display_name} src={status.account.avatar} />
+						<Avatar primary={status.account} secondary={reblogger} />
 						<div class="flex-col ml-3">
 							<div>
-								{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
-								<a class="no-underline">{status.account.display_name}</a>
+								<a class="no-underline" href={status.account.url}>
+									{status.account.display_name}
+								</a>
 							</div>
 							<div class="text-wildebeest-500">@{status.account.username}</div>
 						</div>
@@ -61,3 +64,19 @@ export default component$((props: Props) => {
 		</div>
 	)
 })
+
+export const RebloggerLink = ({ account }: { account: Account | null }) => {
+	return (
+		account && (
+			<div class="flex text-wildebeest-500 py-3">
+				<p>
+					<i class="fa fa-retweet mr-3" />
+					<a class="no-underline" href={account.url}>
+						{account.display_name}
+					</a>
+					&nbsp;boosted
+				</p>
+			</div>
+		)
+	)
+}

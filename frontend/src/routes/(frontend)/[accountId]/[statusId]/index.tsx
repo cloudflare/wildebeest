@@ -36,11 +36,12 @@ export default component$(() => {
 			<div class="bg-wildebeest-700 p-4">
 				{/* Account Card */}
 				<div class="flex">
-					<Avatar accountDisplayName={status.account.display_name} src={status.account.avatar} />
+					<Avatar primary={status.account} secondary={null} />
 					<div class="flex flex-col">
 						<div class="p-1">
-							{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
-							<a class="no-underline">{status.account.display_name}</a>
+							<a class="no-underline" href={status.account.url}>
+								{status.account.display_name}
+							</a>
 						</div>
 						<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>
 					</div>

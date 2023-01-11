@@ -88,7 +88,7 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Pro
 }
 
 // toMastodonStatusFromRow makes assumption about what field are available on
-// the `row` object. This funciton is only used for timelines, which is optimized
+// the `row` object. This function is only used for timelines, which is optimized
 // SQL. Otherwise don't use this function.
 export async function toMastodonStatusFromRow(
 	domain: string,

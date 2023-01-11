@@ -5,14 +5,14 @@ describe('Posts timeline page', () => {
 		const response = await fetch('http://0.0.0.0:6868/')
 		expect(response.status).toBe(200)
 		const body = await response.text()
-		expect(body).toContain("I'll be House Speaker")
+		expect(body).toContain('We did it!')
 	})
 
 	it('should display a list of statuses for the explore page', async () => {
 		const response = await fetch('http://0.0.0.0:6868/explore/')
 		expect(response.status).toBe(200)
 		const body = await response.text()
-		expect(body).toContain("I'll be House Speaker")
+		expect(body).toContain('We did it!')
 	})
 })
 
@@ -21,7 +21,7 @@ describe('Toot details', () => {
 		// Find a specific toot in the list
 		const exploreResponse = await fetch('http://0.0.0.0:6868/explore/')
 		const exploreBody = await exploreResponse.text()
-		const match = exploreBody.match(/href="\/(@georgetakei\/[0-9a-z-]*)"/)
+		const match = exploreBody.match(/href="\/(@BethanyBlack\/[0-9a-z-]*)"/)
 
 		// Fetch the page for it and validate the result
 		const tootPath = match?.[1]
@@ -29,6 +29,6 @@ describe('Toot details', () => {
 		const response = await fetch(`http://0.0.0.0:6868/${tootPath}`)
 		expect(response.status).toBe(200)
 		const body = await response.text()
-		expect(body).toContain("I'll be House Speaker")
+		expect(body).toContain('We did it!')
 	})
 })

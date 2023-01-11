@@ -12,15 +12,21 @@ export type MastodonStatus = {
 	sensitive: boolean
 	spoiler_text: string
 	visibility: 'public' | 'private' | 'unlisted'
-	language: string
+	language: string | null
 	uri: string
 	url: string
 	replies_count: number
 	reblogs_count: number
 	favourites_count: number
 	edited_at: string | null
-	reblog: Reblog | null
-	application?: Application
+	favourited?: boolean
+	reblogged?: boolean
+	muted?: boolean
+	bookmarked?: boolean
+	pinned?: boolean
+	filtered?: FilterResult[]
+	reblog: MastodonStatus | null
+	application?: Application | null
 	media_attachments: MediaAttachment[]
 	mentions: Mention[]
 	tags: Tag[]
@@ -37,6 +43,7 @@ export type MastodonStatus = {
 type Emoji = any
 type Card = any
 type Poll = any
+type FilterResult = any
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export type Account = {
@@ -85,16 +92,6 @@ export type Tag = {
 export type Application = {
 	name: string
 	website: string | null
-}
-
-export type Reblog = {
-	id: string
-	created_at: string
-	favourited: false
-	reblogged: true
-	muted: false
-	bookmarked: false
-	pinned: false
 }
 
 export type MediaAttachment = {
