@@ -156,19 +156,11 @@ Wildebeest also provides a read-only web client in your instance URL, where you 
 
 ## Updating Wildebeest
 
-Updating your Wildebeest to the latest version is as easy as rebasing your forked repo with the official one. This will do it:
+Updating your Wildebeest to the latest version is as easy as going to your forked repo on GitHub and clicking the **_Sync fork_** button:
 
-```
-git remote add upstream https://github.com/cloudflare/wildebeest.git
-git fetch upstream
-git checkout main
-git rebase upstream/master
-git push -f origin main
-```
+![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/92ddc9f2-789b-454d-f6ca-2e9011613900/w=500)
 
-If you made local changes before rebasing, this operation may result in conflits. If that's the case, then you have to [resolve them](https://docs.github.com/en/get-started/using-git/resolving-merge-conflicts-after-a-git-rebase).
-
-Once you push the changes back to your origin, the Github Actions CI is triggered, and a new build will be deployed.
+Once your fork is syncronized with the official repo, the Github Actions CI is triggered and a new build will be deployed.
 
 ## Additional Cloudflare services
 
