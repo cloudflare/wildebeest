@@ -83,6 +83,21 @@ describe('Mastodon APIs', () => {
 			assert.equal(await data.text(), 'cached data')
 		})
 
+		test('home returns empty if not in cache', async () => {
+			const db = await makeDB()
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const kv_cache: any = {
+				async get() {
+					return null
+				},
+			}
+			const req = new Request('https://' + domain)
+			const data = await timelines_home.handleRequest(req, kv_cache, connectedActor)
+			const posts = await data.json<Array<any>>()
+
+			assert.equal(posts.length, 0)
+		})
+
 		test('public returns Notes', async () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
