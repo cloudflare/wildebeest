@@ -22,8 +22,8 @@ jobs:
               exit 1
           fi
         env:
-          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
-          CF_DEPLOY_DOMAIN: ${{ secrets.CF_DEPLOY_DOMAIN }}
+          CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
+          CF_DEPLOY_DOMAIN: ${{ vars.CF_DEPLOY_DOMAIN }}
 
       # this is needed to get the lowercase version of the repository_owner name
       # TODO: switch to some lowercase function in the future when Actions supports it
@@ -116,11 +116,14 @@ jobs:
         env:
           TF_VAR_cloudflare_account_id: ${{ secrets.CF_ACCOUNT_ID }}
           TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
-          TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
-          TF_VAR_cloudflare_deploy_domain: ${{ secrets.CF_DEPLOY_DOMAIN }}
+          TF_VAR_cloudflare_zone_id: ${{ vars.CF_ZONE_ID }}
+          TF_VAR_cloudflare_deploy_domain: ${{ vars.CF_DEPLOY_DOMAIN }}
           TF_VAR_gh_username: ${{ env.OWNER_LOWER }}
           TF_VAR_d1_id: ${{ env.d1_id }}
           TF_VAR_access_auth_domain: ${{ env.auth_domain }}
+          TF_VAR_wd_instance_title: ${{ vars.INSTANCE_TITLE }}
+          TF_VAR_wd_admin_email: ${{ vars.ADMIN_EMAIL }}
+          TF_VAR_wd_instance_description: ${{ vars.INSTANCE_DESCR }}
 
       - name: retrieve Terraform state KV namespace
         uses: cloudflare/wrangler-action@2.0.0
