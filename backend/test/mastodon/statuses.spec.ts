@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert/strict'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import { getMentions } from 'wildebeest/backend/src/mastodon/status'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
-import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createPublicNote, Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as statuses from 'wildebeest/functions/api/v1/statuses'
 import * as statuses_get from 'wildebeest/functions/api/v1/statuses/[id]'
@@ -16,6 +16,7 @@ import { isUrlValid, makeDB, assertJSON, streamToArrayBuffer, makeQueue, makeCac
 import * as activities from 'wildebeest/backend/src/activitypub/activities'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
+import { MastodonStatus } from 'wildebeest/backend/src/types'
 
 const userKEK = 'test_kek4'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -60,9 +61,9 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 			assertJSON(res)
 
-			const data = await res.json<any>()
-			assert(data.uri.includes('example.com'))
-			assert(data.uri.includes(data.id))
+			const data = await res.json<MastodonStatus>()
+			assert((data.uri as unknown as string).includes('example.com'))
+			assert((data.uri as unknown as string).includes(data.id))
 			// Required fields from https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Status.java
 			assert(data.created_at !== undefined)
 			assert(data.account !== undefined)
@@ -84,7 +85,7 @@ describe('Mastodon APIs', () => {
           FROM objects
         `
 				)
-				.first()
+				.first<{ content: string; original_actor_id: URL; original_object_id: unknown }>()
 			assert.equal(row.content, 'my status <p>evil</p>') // note the sanitization
 			assert.equal(row.original_actor_id.toString(), actor.id.toString())
 			assert.equal(row.original_object_id, null)
@@ -138,7 +139,7 @@ describe('Mastodon APIs', () => {
 			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 
-			const row = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first()
+			const row = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first<{ count: number }>()
 			assert.equal(row.count, 1)
 		})
 
@@ -180,7 +181,7 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('create new status with mention delivers ActivityPub Note', async () => {
-			let deliveredNote: any = null
+			let deliveredNote: Note | null = null
 
 			globalThis.fetch = async (input: RequestInfo, data: any) => {
 				if (input.toString() === 'https://remote.com/.well-known/webfinger?resource=acct%3Asven%40remote.com') {
@@ -246,12 +247,15 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 
 			assert(deliveredNote)
-			assert.equal(deliveredNote.type, 'Create')
-			assert.equal(deliveredNote.actor, `https://${domain}/ap/users/sven`)
-			assert.equal(deliveredNote.object.attributedTo, `https://${domain}/ap/users/sven`)
-			assert.equal(deliveredNote.object.type, 'Note')
-			assert(deliveredNote.object.to.includes(activities.PUBLIC_GROUP))
-			assert.equal(deliveredNote.object.cc.length, 1)
+			assert.equal((deliveredNote as { type: string }).type, 'Create')
+			assert.equal((deliveredNote as { actor: string }).actor, `https://${domain}/ap/users/sven`)
+			assert.equal(
+				(deliveredNote as { object: { attributedTo: string } }).object.attributedTo,
+				`https://${domain}/ap/users/sven`
+			)
+			assert.equal((deliveredNote as { object: { type: string } }).object.type, 'Note')
+			assert((deliveredNote as { object: { to: string[] } }).object.to.includes(activities.PUBLIC_GROUP))
+			assert.equal((deliveredNote as { object: { cc: string[] } }).object.cc.length, 1)
 		})
 
 		test('create new status with image', async () => {
@@ -302,15 +306,16 @@ describe('Mastodon APIs', () => {
 				)
 				.run()
 
-			globalThis.fetch = async (input: any) => {
-				if (input.url === actor.id.toString() + '/inbox') {
-					assert.equal(input.method, 'POST')
-					const body = await input.json()
+			globalThis.fetch = async (input: RequestInfo) => {
+				const request = new Request(input)
+				if (request.url === actor.id.toString() + '/inbox') {
+					assert.equal(request.method, 'POST')
+					const body = await request.json()
 					deliveredActivity = body
 					return new Response()
 				}
 
-				throw new Error('unexpected request to ' + JSON.stringify(input))
+				throw new Error('unexpected request to ' + request.url)
 			}
 
 			const connectedActor: any = actor
@@ -336,7 +341,7 @@ describe('Mastodon APIs', () => {
 			const data = await res.json<any>()
 			assert.equal(data.favourited, true)
 
-			const row = await db.prepare(`SELECT * FROM actor_favourites`).first()
+			const row = await db.prepare(`SELECT * FROM actor_favourites`).first<{ actor_id: string; object_id: string }>()
 			assert.equal(row.actor_id, actor.id.toString())
 			assert.equal(row.object_id, note.id.toString())
 		})
@@ -469,7 +474,7 @@ describe('Mastodon APIs', () => {
 				const data = await res.json<any>()
 				assert.equal(data.reblogged, true)
 
-				const row = await db.prepare(`SELECT * FROM actor_reblogs`).first()
+				const row = await db.prepare(`SELECT * FROM actor_reblogs`).first<{ actor_id: string; object_id: string }>()
 				assert.equal(row.actor_id, actor.id.toString())
 				assert.equal(row.object_id, note.id.toString())
 			})
@@ -486,7 +491,7 @@ describe('Mastodon APIs', () => {
 				const res = await statuses_reblog.handleRequest(db, note.mastodonId!, connectedActor, userKEK, queue, domain)
 				assert.equal(res.status, 200)
 
-				const row = await db.prepare(`SELECT * FROM outbox_objects`).first()
+				const row = await db.prepare(`SELECT * FROM outbox_objects`).first<{ actor_id: string; object_id: string }>()
 				assert.equal(row.actor_id, actor.id.toString())
 				assert.equal(row.object_id, note.id.toString())
 			})
@@ -513,15 +518,16 @@ describe('Mastodon APIs', () => {
 					)
 					.run()
 
-				globalThis.fetch = async (input: any) => {
-					if (input.url === 'https://cloudflare.com/ap/users/sven/inbox') {
-						assert.equal(input.method, 'POST')
-						const body = await input.json()
+				globalThis.fetch = async (input: RequestInfo) => {
+					const request = new Request(input)
+					if (request.url === 'https://cloudflare.com/ap/users/sven/inbox') {
+						assert.equal(request.method, 'POST')
+						const body = await request.json()
 						deliveredActivity = body
 						return new Response()
 					}
 
-					throw new Error('unexpected request to ' + JSON.stringify(input))
+					throw new Error('unexpected request to ' + request.url)
 				}
 
 				const connectedActor: any = actor
@@ -588,13 +594,16 @@ describe('Mastodon APIs', () => {
                 `
 					)
 					.bind(data.id)
-					.first()
+					.first<{ inReplyTo: string }>()
 				assert(row !== undefined)
 				assert.equal(row.inReplyTo, note.id.toString())
 			}
 
 			{
-				const row = await db.prepare('select * from actor_replies').first()
+				const row = await db.prepare('select * from actor_replies').first<{
+					actor_id: string
+					in_reply_to_object_id: string
+				}>()
 				assert(row !== undefined)
 				assert.equal(row.actor_id, actor.id.toString())
 				assert.equal(row.in_reply_to_object_id, note.id.toString())
@@ -619,7 +628,7 @@ describe('Mastodon APIs', () => {
 
 			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
 			assert.equal(res.status, 400)
-			const data = await res.json<any>()
+			const data = await res.json<{ error: string }>()
 			assert(data.error.includes('Limit exceeded'))
 		})
 
@@ -644,7 +653,7 @@ describe('Mastodon APIs', () => {
 
 			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
 			assert.equal(res.status, 400)
-			const data = await res.json<any>()
+			const data = await res.json<{ error: string }>()
 			assert(data.error.includes('Limit exceeded'))
 		})
 	})

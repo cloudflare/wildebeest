@@ -8,7 +8,11 @@ import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import type { WebPushInfos, WebPushMessage } from 'wildebeest/backend/src/webpush/webpushinfos'
 import { WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
-import type { NotificationType, Notification } from 'wildebeest/backend/src/types/notification'
+import type {
+	NotificationType,
+	Notification,
+	NotificationsQueryResult,
+} from 'wildebeest/backend/src/types/notification'
 import { getSubscriptionForAllClients } from 'wildebeest/backend/src/mastodon/subscription'
 import type { Cache } from 'wildebeest/backend/src/cache'
 
@@ -24,10 +28,10 @@ export async function createNotification(
           VALUES (?, ?, ?, ?)
           RETURNING id
 `
-	const row: { id: string } = await db
+	const row = await db
 		.prepare(query)
 		.bind(type, actor.id.toString(), fromActor.id.toString(), obj.id.toString())
-		.first()
+		.first<{ id: string }>()
 	return row.id
 }
 
@@ -39,7 +43,7 @@ export async function insertFollowNotification(db: D1Database, actor: Actor, fro
           VALUES (?, ?, ?)
           RETURNING id
 `
-	const row: { id: string } = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).first()
+	const row = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).first<{ id: string }>()
 	return row.id
 }
 
@@ -187,7 +191,7 @@ export async function getNotifications(db: D1Database, actor: Actor, domain: str
   `
 
 	const stmt = db.prepare(query).bind(actor.id.toString())
-	const { results, success, error } = await stmt.all()
+	const { results, success, error } = await stmt.all<NotificationsQueryResult>()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}
@@ -198,7 +202,7 @@ export async function getNotifications(db: D1Database, actor: Actor, domain: str
 	}
 
 	for (let i = 0, len = results.length; i < len; i++) {
-		const result = results[i] as any
+		const result = results[i]
 		const properties = JSON.parse(result.properties)
 		const notifFromActorId = new URL(result.notif_from_actor_id)
 

@@ -5,6 +5,7 @@ import * as oauth_token from 'wildebeest/functions/oauth/token'
 import { isUrlValid, makeDB, assertCORS, assertJSON, createTestClient } from '../utils'
 import { TEST_JWT, ACCESS_CERTS } from '../test-data'
 import { strict as assert } from 'node:assert/strict'
+import { Actor } from 'wildebeest/backend/src/activitypub/actors'
 
 const userKEK = 'test_kek3'
 const accessDomain = 'access.com'
@@ -100,7 +101,7 @@ describe('Mastodon APIs', () => {
 			)
 
 			// actor isn't created yet
-			const { count } = await db.prepare('SELECT count(*) as count FROM actors').first()
+			const { count } = await db.prepare('SELECT count(*) as count FROM actors').first<{ count: number }>()
 			assert.equal(count, 0)
 		})
 
@@ -126,7 +127,9 @@ describe('Mastodon APIs', () => {
 			const location = res.headers.get('location')
 			assert.equal(location, 'https://redirect.com/a')
 
-			const actor = await db.prepare('SELECT * FROM actors').first()
+			const actor = await db
+				.prepare('SELECT * FROM actors')
+				.first<{ properties: string; email: string; id: string } & Actor>()
 			const properties = JSON.parse(actor.properties)
 
 			assert.equal(actor.email, 'a@cloudflare.com')
@@ -134,7 +137,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(properties.name, 'name')
 			assert(isUrlValid(actor.id))
 			// ensure that we generate a correct key pairs for the user
-			assert((await getSigningKey(userKEK, db, actor)) instanceof CryptoKey)
+			assert((await getSigningKey(userKEK, db, actor as Actor)) instanceof CryptoKey)
 		})
 
 		test('token error on unknown client', async () => {

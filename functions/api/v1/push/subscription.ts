@@ -6,7 +6,7 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { createSubscription, getSubscription } from 'wildebeest/backend/src/mastodon/subscription'
 import type { CreateRequest } from 'wildebeest/backend/src/mastodon/subscription'
 import { ContextData } from 'wildebeest/backend/src/types/context'
-import { Env } from 'wildebeest/backend/src/types/env'
+import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 

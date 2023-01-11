@@ -121,7 +121,7 @@ export const generateValidator =
 
 		const unroundedSecondsSinceEpoch = Date.now() / 1000
 
-		const payloadObj = JSON.parse(textDecoder.decode(base64URLDecode(payload)))
+		const payloadObj = JSON.parse(textDecoder.decode(base64URLDecode(payload))) as JWTPayload
 
 		// For testing disable JWT checks.
 		// Ideally we match the production behavior in testing but that

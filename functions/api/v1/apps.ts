@@ -1,7 +1,7 @@
 import { ContextData } from 'wildebeest/backend/src/types/context'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
-import { Env } from 'wildebeest/backend/src/types/env'
+import type { Env } from 'wildebeest/backend/src/types/env'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 import { getVAPIDKeys } from 'wildebeest/backend/src/config'

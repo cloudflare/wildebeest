@@ -117,7 +117,7 @@ describe('Mastodon APIs', () => {
 
 			globalThis.fetch = async (input: RequestInfo, data: any) => {
 				if (input === 'https://push.com') {
-					assert(data.headers['Authorization'].includes('WebPush'))
+					assert((data.headers['Authorization'] as string).includes('WebPush'))
 
 					const cryptoKeyHeader = parseCryptoKey(data.headers['Crypto-Key'])
 					assert(cryptoKeyHeader.dh)

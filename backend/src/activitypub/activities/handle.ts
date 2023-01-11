@@ -29,7 +29,7 @@ function extractID(domain: string, s: string | URL): string {
 	return s.toString().replace(`https://${domain}/ap/users/`, '')
 }
 
-export function makeGetObjectAsId(activity: Activity): Function {
+export function makeGetObjectAsId(activity: Activity) {
 	return () => {
 		let url: any = null
 		if (activity.object.id !== undefined) {
@@ -55,7 +55,7 @@ export function makeGetObjectAsId(activity: Activity): Function {
 	}
 }
 
-export function makeGetActorAsId(activity: Activity): Function {
+export function makeGetActorAsId(activity: Activity) {
 	return () => {
 		let url: any = null
 		if (activity.actor.id !== undefined) {

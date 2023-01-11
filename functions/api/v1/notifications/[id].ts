@@ -1,6 +1,6 @@
 // https://docs.joinmastodon.org/methods/notifications/#get-one
 
-import type { Notification } from 'wildebeest/backend/src/types/notification'
+import type { Notification, NotificationsQueryResult } from 'wildebeest/backend/src/types/notification'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
@@ -36,7 +36,7 @@ export async function handleRequest(
         WHERE actor_notifications.id=? AND actor_notifications.actor_id=?
     `
 
-	const row: any = await db.prepare(query).bind(id, connectedActor.id.toString()).first()
+	const row = await db.prepare(query).bind(id, connectedActor.id.toString()).first<NotificationsQueryResult>()
 
 	const from_actor_id = new URL(row.from_actor_id)
 	const fromActor = await getPersonById(db, from_actor_id)

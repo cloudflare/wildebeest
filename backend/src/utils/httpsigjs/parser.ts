@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Copyright 2012 Joyent, Inc.  All rights reserved.
 
 import { HEADER, HttpSignatureError, InvalidAlgorithmError, validateAlgorithm } from './utils'
@@ -61,6 +60,9 @@ export type ParsedSignature = {
 	keyId: string
 	signingString: string
 	algorithm: string
+	scheme: string
+	params: Record<string, string | string[] | number>
+	opaque: string
 }
 
 ///--- Exported API
@@ -141,10 +143,14 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 	let tmpName = ''
 	let tmpValue = ''
 
-	const parsed = {
+	const parsed: ParsedSignature = {
 		scheme: authz === request.headers.get(HEADER.SIG) ? 'Signature' : '',
 		params: {},
 		signingString: '',
+		signature: '',
+		keyId: '',
+		algorithm: '',
+		opaque: '',
 	}
 
 	for (i = 0; i < authz.length; i++) {
@@ -234,14 +240,16 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 		}
 	}
 
+	let parsedHeaders: string[] = []
+
 	if (!parsed.params.headers || parsed.params.headers === '') {
 		if (request.headers.has('x-date')) {
-			parsed.params.headers = ['x-date']
+			parsedHeaders = ['x-date']
 		} else {
-			parsed.params.headers = ['date']
+			parsedHeaders = ['date']
 		}
-	} else {
-		parsed.params.headers = parsed.params.headers.split(' ')
+	} else if (typeof parsed.params.headers === 'string') {
+		parsedHeaders = parsed.params.headers.split(' ')
 	}
 
 	// Minimally validate the parsed object
@@ -253,13 +261,13 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 
 	if (!parsed.params.signature) throw new InvalidHeaderError('signature was not specified')
 
-	if (['date', 'x-date', '(created)'].every((hdr) => parsed.params.headers.indexOf(hdr) < 0)) {
+	if (['date', 'x-date', '(created)'].every((hdr) => parsedHeaders.indexOf(hdr) < 0)) {
 		throw new MissingHeaderError('no signed date header')
 	}
 
 	// Check the algorithm against the official list
 	try {
-		validateAlgorithm(parsed.params.algorithm, 'rsa')
+		validateAlgorithm(parsed.params.algorithm as string, 'rsa')
 	} catch (e) {
 		if (e instanceof InvalidAlgorithmError)
 			throw new InvalidParamsError(parsed.params.algorithm + ' is not ' + 'supported')
@@ -267,9 +275,9 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 	}
 
 	// Build the signingString
-	for (i = 0; i < parsed.params.headers.length; i++) {
-		const h = parsed.params.headers[i].toLowerCase()
-		parsed.params.headers[i] = h
+	for (i = 0; i < parsedHeaders.length; i++) {
+		const h = parsedHeaders[i].toLowerCase()
+		parsedHeaders[i] = h
 
 		if (h === 'request-line') {
 			if (!options.strict) {
@@ -292,6 +300,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 		} else if (h === '(opaque)') {
 			const opaque = parsed.params.opaque
 			if (opaque === undefined) {
+				//@ts-expect-error -- authzHeaderName doesn't exist TOFIX
 				throw new MissingHeaderError('opaque param was not in the ' + authzHeaderName + ' header')
 			}
 			parsed.signingString += '(opaque): ' + opaque
@@ -305,17 +314,17 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 			parsed.signingString += h + ': ' + value
 		}
 
-		if (i + 1 < parsed.params.headers.length) parsed.signingString += '\n'
+		if (i + 1 < parsedHeaders.length) parsed.signingString += '\n'
 	}
 
 	// Check against the constraints
 	let date
 	let skew
-	if (request.headers.date || request.headers.has('x-date')) {
+	if (request.headers.get('date') || request.headers.has('x-date')) {
 		if (request.headers.has('x-date')) {
 			date = new Date(request.headers.get('x-date') as string)
 		} else {
-			date = new Date(request.headers.date)
+			date = new Date(request.headers.get('date') as string)
 		}
 		const now = new Date()
 		skew = Math.abs(now.getTime() - date.getTime())
@@ -325,7 +334,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 		}
 	}
 
-	if (parsed.params.created) {
+	if (parsed.params.created && typeof parsed.params.created === 'number') {
 		skew = parsed.params.created - Math.floor(Date.now() / 1000)
 		if (skew > options.clockSkew) {
 			throw new ExpiredRequestError(
@@ -340,7 +349,7 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 		}
 	}
 
-	if (parsed.params.expires) {
+	if (parsed.params.expires && typeof parsed.params.expires === 'number') {
 		const expiredSince = Math.floor(Date.now() / 1000) - parsed.params.expires
 		if (expiredSince > options.clockSkew) {
 			throw new ExpiredRequestError(
@@ -352,14 +361,17 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 	headers.forEach(function (hdr) {
 		// Remember that we already checked any headers in the params
 		// were in the request, so if this passes we're good.
-		if (parsed.params.headers.indexOf(hdr.toLowerCase()) < 0)
+		if (parsedHeaders.indexOf(hdr.toLowerCase()) < 0) {
 			throw new MissingHeaderError(hdr + ' was not a signed header')
+		}
 	})
 
-	parsed.params.algorithm = parsed.params.algorithm.toLowerCase()
-	parsed.algorithm = parsed.params.algorithm.toUpperCase()
-	parsed.keyId = parsed.params.keyId
-	parsed.opaque = parsed.params.opaque
-	parsed.signature = parsed.params.signature
+	const algorithm = parsed.params.algorithm as string
+	parsed.params.algorithm = algorithm.toLowerCase()
+	parsed.algorithm = algorithm.toUpperCase()
+	parsed.keyId = parsed.params.keyId as string
+	parsed.opaque = parsed.params.opaque as string
+	parsed.signature = parsed.params.signature as string
+	parsed.params.headers = parsedHeaders
 	return parsed
 }

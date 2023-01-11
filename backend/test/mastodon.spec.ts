@@ -26,6 +26,17 @@ async function generateVAPIDKeys(): Promise<JWK> {
 
 describe('Mastodon APIs', () => {
 	describe('instance', () => {
+		type Data = {
+			rules: unknown[]
+			uri: string
+			title: string
+			email: string
+			description: string
+			version: string
+			domain: string
+			contact: { email: string }
+		}
+
 		test('return the instance infos v1', async () => {
 			const env = {
 				INSTANCE_TITLE: 'a',
@@ -39,7 +50,7 @@ describe('Mastodon APIs', () => {
 			assertJSON(res)
 
 			{
-				const data = await res.json<any>()
+				const data = await res.json<Data>()
 				assert.equal(data.rules.length, 0)
 				assert.equal(data.uri, domain)
 				assert.equal(data.title, 'a')
@@ -77,7 +88,7 @@ describe('Mastodon APIs', () => {
 			assertJSON(res)
 
 			{
-				const data = await res.json<any>()
+				const data = await res.json<Data>()
 				assert.equal(data.rules.length, 0)
 				assert.equal(data.domain, domain)
 				assert.equal(data.title, 'a')
@@ -248,7 +259,7 @@ describe('Mastodon APIs', () => {
 			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id, vapidKeys)
 			assert.equal(res.status, 200)
 
-			const { count } = await db.prepare('SELECT count(*) as count FROM subscriptions').first()
+			const { count } = await db.prepare('SELECT count(*) as count FROM subscriptions').first<{ count: number }>()
 			assert.equal(count, 1)
 		})
 	})

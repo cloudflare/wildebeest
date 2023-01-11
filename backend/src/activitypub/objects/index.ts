@@ -154,7 +154,7 @@ export async function getObjectByMastodonId(db: D1Database, id: UUID): Promise<O
 	return getObjectBy(db, 'mastodon_id', id)
 }
 
-export async function getObjectBy(db: D1Database, key: string, value: string): Promise<Object | null> {
+export async function getObjectBy(db: D1Database, key: string, value: string) {
 	const query = `
 SELECT *
 FROM objects
