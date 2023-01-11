@@ -74,37 +74,44 @@ Wildebeest uses [Deploy to Workers](https://deploy.workers.cloudflare.com/) to a
 
 Please pay attention to all the steps involved in the installation process.
 
-- Authorize Workers to use your Github account.
+- Authorize Workers to use your GitHub account.
 - Enter your **Account ID** (from the previous section) and the **API token** that you created previously.
-- Fork the repository into your personal Github account.
-- Enable Github Actions.
-- Open a new tab to `https://github.com/your-username/wildebeest` and create two secrets (CF_ZONE_ID and CF_DEPLOY_DOMAIN) under your Github Repository Actions settings. **See section below for detailed instructions**.
+- Configure your instance/project with the **Zone ID**, **Domain**, **Title**, **Admin Email** and **Description**.
+- Fork the repository into your personal GitHub account.
+- Enable GitHub Actions.
 - Deploy.
 
-The installation script will now build and deploy your project to Cloudflare Pages and will run a [Terraform script](https://github.com/cloudflare/wildebeest/blob/main/tf/main.tf) to configure the D1, KV, DNS, Images and Access settings automatically for you.
+### Authorizations and API Token
+
+The first two steps are authorizing Workers to use your GitHub account and entering your **Account ID** and the **API token** you created in the requirements section.
 
 ![deploy to workers](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/00d9a77c-440f-46e5-b2bf-ccd198815800/public)
 
-### Github Actions secrets
+### Instance configuration
 
-In the installation script above, after you **_Enable Github Actions_**, you need to create two secrets under your forked repo, by going to **_Settings / Secrets / Actions_** and clicking on the **_New repository secret_** button. They are:
+Configure your instance/project with the **Zone ID** (see the requirements above), **Domain** (the full FQDN domain of your zone, where you want to deploy your Wildebeest server), **Title**, **Admin Email** and **Description**.
 
-- **CF_ZONE_ID** - Use the Zone ID that you got from the requirements above.
-- **CF_DEPLOY_DOMAIN** - The full FQDN domain where you want to deploy your Wildebeest server. Example: social.example.com
+![configure instance](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/8aa836c5-a8e1-4ea5-d55c-a678aafe0b00/public)
 
-**This step is critical. If you miss it, your deployment will fail.**
+Now click **_Fork the repository_**.
 
-![github actions secrets](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/c1e5d33f-2314-42be-0b29-b487bd386400/public)
+Then enable GitHub Actions and confirm by clicking **_Workflows enabled_**.
+
+And finally click **_Deploy_**.
+
+![deploy](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/be02ef19-b38a-4aef-7591-37dde5161200/public)
+
+The installation script will now build and deploy your project to Cloudflare Pages and will run a [Terraform script](https://github.com/cloudflare/wildebeest/blob/main/tf/main.tf) to configure the D1, KV, DNS, Images and Access settings automatically for you.
 
 ## Finish installation
 
-If you followed all the steps, you should see a successful Github Actions build.
+If you followed all the steps, you should see a successful GitHub Actions build.
 
 ![github actions secrets](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/2f00e3e4-aace-46f9-f0f4-eaeceb691a00/w=915)
 
 You can also confirm in the Cloudflare [dashboard](https://dash.cloudflare.com) that the Pages project, DNS entry, KV namespace, D1 database and Access rule were all created and configured.
 
-Almost there, only two last steps missing:
+Almost there, only one last step missing:
 
 ### Configure the access rule
 
@@ -118,26 +125,25 @@ Now click **_Add a policy_**. Name the policy `wildebeest-policy`, set the actio
 
 ![access policy](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/f6b1238f-22c3-4daf-6102-7178fc91ca00/public)
 
-### Configure your server
+### You're ready
 
-Open your browser and go to your newly deployed Wildebeest domain `https://social.example.com/` (replace social.example.com with your domain).
+Open your browser and go to your newly deployed Wildebeest domain `https://social.example/` (replace social.example with your domain). You should see something like this:
 
-Because it's the first time, you will be redirected to `/start-instance`. Fill in the title, administrator Email and description. Press **_Configure_**.
+![ready](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/8ffd58d6-6b5b-46c0-af21-ec58a57f1600/public)
 
-![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/a2055f7f-3d26-44d3-1cf7-f123a5d42000/w=400)
 
-Go to `https://social.example.com/api/v1/instance` (replace social.example.com with your domain) and double-check your configuration. It should show:
+Go to `https://social.example/api/v1/instance` (replace social.example with your domain) and double-check your configuration. It should show:
 
 ```json
 {
-	"description": "My personal Wildebeest instance (powered by Cloudflare)",
-	"email": "john@social.example.com",
-	"title": "my fediverse",
+	"description": "Private Mastodon Server",
+	"email": "admin@social.example",
+	"title": "My Wildebeest Server",
 	"registrations": false,
 	"version": "4.0.2",
 	"rules": [],
-	"uri": "social.example.com",
-	"short_description": "I can only show you the door, you're the one that has to walk through it"
+	"uri": "social.example",
+	"short_description": "Private Mastodon Server"
 }
 ```
 
@@ -154,13 +160,23 @@ This is the list clients that we have been using successfully while developing a
 
 Wildebeest also provides a read-only web client in your instance URL, where you can explore the timelines (local and federated), posts and profiles. Please use the existing Mastodon clients to post and manage your account.
 
+### Wildebeest has no user registration
+
+Wildebeest uses [Zero Trust Access](https://www.cloudflare.com/en-gb/products/zero-trust/access/) to handle user authentication. It assumes that your users will register with another identity provider (Zero Trust supports [many providers](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/) or your custom one that implements [Generic SAML 2.0](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/generic-saml/)).
+
+When you start using Wildebeest with a client, you don't need to register. Instead, you go straight to log in, which will redirect you to the Access page and handle the authentication step according to the policy that you defined earlier.
+
+When authenticated, Access will redirect you back to Wildebeest. The first time this happens, we will detect that we don't have information about the user and ask for your **Username** and **Display Name**. This will be asked only once and is what will show in your public Mastodon profile.
+
+![first login](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/4f5d27d0-3d30-49bd-b356-e33c194d7c00/w=450)
+
 ## Updating Wildebeest
 
 Updating your Wildebeest to the latest version is as easy as going to your forked repo on GitHub and clicking the **_Sync fork_** button:
 
 ![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/92ddc9f2-789b-454d-f6ca-2e9011613900/w=500)
 
-Once your fork is syncronized with the official repo, the Github Actions CI is triggered and a new build will be deployed.
+Once your fork is syncronized with the official repo, the GitHub Actions CI is triggered and a new build will be deployed.
 
 ## Additional Cloudflare services
 
@@ -168,7 +184,7 @@ Since Wildebeest is a Cloudflare app running on Pages, you can seamlessly enable
 
 ### Email Routing
 
-If you want to receive Email at your @social.example.com domain, you can enable [Email Routing](https://developers.cloudflare.com/email-routing/get-started/enable-email-routing/) for free and take advantage of sophisticated Email forwarding and protection features. Simply log in to your account, select the Wildebeest zone and then click on Email to enable.
+If you want to receive Email at your @social.example domain, you can enable [Email Routing](https://developers.cloudflare.com/email-routing/get-started/enable-email-routing/) for free and take advantage of sophisticated Email forwarding and protection features. Simply log in to your account, select the Wildebeest zone and then click on Email to enable.
 
 ## Troubleshooting
 
@@ -180,9 +196,21 @@ If you attempted to deploy Wildebeest in your account and something failed, or y
 
 - Go to your zone DNS settings and delete the CNAME record that points to `wildebeest-username.pages.dev`
 - Go to your account Pages section and delete the `wildebeest-username` project (make sure you remove the custom domain first if it's been configured).
-- Go to your account Workers / KV section and delete the `wildebeest-username-cache` namespace.
+- Go to your account Workers / KV section and delete the `wildebeest-username-cache` and `wildebeest-terraform-username-state` namespaces.
 - Go to your account Workers / D1 and delete the `wildebeest-username` database.
 - Launch [Zero Trust](https://one.dash.cloudflare.com/), select your account, go to Access / Applications and delete the `wildebeest-username` application.
 - Delete your GitHub wildebeest forked repo.
 
 You can now start a clean install.
+
+### Error 1102
+
+Wildebeest runs cryptographical functions and can process lots of data internally, depending on the size of the instance and social graph. It's possible that, in some cases, a request exceeds the Worker's resource limits in the free plan.
+
+We will keep optimizing our code to run as fast as possible, but if you start seeing 1102 errors when using your Wildebeest pages and APIs, you might need to upgrade to Workers Unbound, which provides much higher limits.
+
+To do that, go to your **_Account Page_** / **_Pages_**, select the `wildebeest-username` project, go to **_Settings_** / **_Functions_** and change the usage model to **Unbound**.
+
+![unbound](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/45de3429-d01a-4cfc-2ffc-819ac4f51900/public)
+
+After you change your Pages project to Unbound, you need to redeploy it. Go to GitHub Actions in your repo, select the latest successful deploy, and press **Re-run all jobs**.
