@@ -13,7 +13,7 @@ export default component$(() => {
 	const location = useLocation()
 
 	const renderNavLink = ({ iconName, linkText, linkTarget, linkActiveRegex }: LinkConfig) => {
-		let classList = 'mx-4 my-5 block no-underline text-semi max-w-max ' + location.pathname
+		let classList = 'mx-4 my-5 h-5 flex no-underline text-semi max-w-max ' + location.pathname
 
 		if (linkActiveRegex.test(location.pathname)) {
 			classList += ' text-wildebeest-vibrant-400'
@@ -23,7 +23,7 @@ export default component$(() => {
 
 		return (
 			<Link href={linkTarget} class={classList} aria-label={linkText}>
-				<i style={{ width: '1.25rem', height: '1rem' }} class={`fa ${iconName} fa-fw md:mr-3 w-5 h-4`} />
+				<i class={`fa ${iconName} fa-fw md:mr-3 w-5 leading-tight inline-block`} />
 				<span class="hidden md:inline">{linkText}</span>
 			</Link>
 		)

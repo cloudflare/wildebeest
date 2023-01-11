@@ -42,8 +42,8 @@ export default component$(() => {
 	return (
 		<div class="explore-wrapper flex flex-col">
 			<StickyHeader>
-				<h2 class="text-reg text-md m-0 p-4 bg-wildebeest-700 xl:rounded-t">
-					<i style={{ width: '1.25rem', height: '1rem' }} class="fa fa-hashtag fa-fw mr-3 w-5 h-4" />
+				<h2 class="text-reg text-md m-0 p-4 flex bg-wildebeest-700 xl:rounded-t">
+					<i class="fa fa-hashtag fa-fw mr-3 w-5 leading-tight inline-block" />
 					<span>Explore</span>
 				</h2>
 			</StickyHeader>
