@@ -3,20 +3,12 @@ import * as statusesAPI from 'wildebeest/functions/api/v1/statuses'
 import { statuses } from 'wildebeest/frontend/src/dummyData'
 import type { MastodonStatus } from 'wildebeest/frontend/src/types'
 import type { MastodonAccount } from 'wildebeest/backend/src/types'
-import { configure } from 'wildebeest/backend/src/config'
 
 const kek = 'test-kek'
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
  */
 export async function init(domain: string, db: D1Database) {
-	configure(db, {
-		title: 'Wildebeest',
-		email: '',
-		description: 'Wildebeest dev instance',
-		thumbnail: '/assets/wildebeest-logo.png',
-	})
-
 	for (const status of statuses as MastodonStatus[]) {
 		const actor = await getOrCreatePerson(domain, db, status.account.username)
 		await createStatus(db, actor, status.content)

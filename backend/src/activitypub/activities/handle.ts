@@ -1,4 +1,5 @@
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
@@ -79,7 +80,14 @@ export function makeGetActorAsId(activity: Activity): Function {
 	}
 }
 
-export async function handle(domain: string, activity: Activity, db: D1Database, userKEK: string) {
+export async function handle(
+	domain: string,
+	activity: Activity,
+	db: D1Database,
+	userKEK: string,
+	adminEmail: string,
+	vapidKeys: JWK
+) {
 	// The `object` field of the activity is required to be an object, with an
 	// `id` and a `type` field.
 	const requireComplexObject = () => {
@@ -183,7 +191,7 @@ export async function handle(domain: string, activity: Activity, db: D1Database,
 				const notifId = await createNotification(db, 'mention', person, fromActor, obj)
 				await Promise.all([
 					await addObjectInInbox(db, person, obj),
-					await sendMentionNotification(db, fromActor, person, notifId),
+					await sendMentionNotification(db, fromActor, person, notifId, adminEmail, vapidKeys),
 				])
 			}
 
@@ -228,7 +236,7 @@ export async function handle(domain: string, activity: Activity, db: D1Database,
 
 				// Notify the user
 				const notifId = await insertFollowNotification(db, receiver, originalActor)
-				await sendFollowNotification(db, originalActor, receiver, notifId)
+				await sendFollowNotification(db, originalActor, receiver, notifId, adminEmail, vapidKeys)
 			} else {
 				console.warn(`actor ${objectId} not found`)
 			}
@@ -282,7 +290,7 @@ export async function handle(domain: string, activity: Activity, db: D1Database,
 				// Store the reblog for counting
 				insertReblog(db, fromActor, obj),
 
-				sendReblogNotification(db, fromActor, targetActor, notifId),
+				sendReblogNotification(db, fromActor, targetActor, notifId, adminEmail, vapidKeys),
 			])
 			break
 		}
@@ -312,7 +320,7 @@ export async function handle(domain: string, activity: Activity, db: D1Database,
 				insertLike(db, fromActor, obj),
 			])
 
-			await sendLikeNotification(db, fromActor, targetActor, notifId)
+			await sendLikeNotification(db, fromActor, targetActor, notifId, adminEmail, vapidKeys)
 			break
 		}
 

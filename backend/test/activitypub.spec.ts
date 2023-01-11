@@ -1,7 +1,7 @@
 import { makeDB, isUrlValid } from './utils'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { addFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
@@ -13,8 +13,10 @@ import * as ap_outbox from 'wildebeest/functions/ap/users/[id]/outbox'
 import * as ap_outbox_page from 'wildebeest/functions/ap/users/[id]/outbox/page'
 
 const userKEK = 'test_kek5'
+const vapidKeys = {} as JWK
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const domain = 'cloudflare.com'
+const adminEmail = 'admin@example.com'
 
 describe('ActivityPub', () => {
 	test('fetch non-existant user by id', async () => {
@@ -74,7 +76,7 @@ describe('ActivityPub', () => {
 				},
 			}
 
-			await activityHandler.handle(domain, activity, db, userKEK)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
 			const row = await db
 				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
@@ -96,7 +98,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -114,7 +116,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -131,7 +133,7 @@ describe('ActivityPub', () => {
 				object: 'a',
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
 				message: '`activity.object` must be of type object',
 			})
 		})
@@ -150,7 +152,7 @@ describe('ActivityPub', () => {
 				},
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
 				message: 'object https://example.com/note2 does not exist',
 			})
 		})
@@ -174,7 +176,7 @@ describe('ActivityPub', () => {
 				object: object,
 			}
 
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK), {
+			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
 				message: 'actorid mismatch when updating object',
 			})
 		})
@@ -204,7 +206,7 @@ describe('ActivityPub', () => {
 				object: newObject,
 			}
 
-			await activityHandler.handle(domain, activity, db, userKEK)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
 			const updatedObject = await db.prepare('SELECT * FROM objects WHERE original_object_id=?').bind(object.id).first()
 			assert(updatedObject)
@@ -276,8 +278,6 @@ describe('ActivityPub', () => {
 			}
 
 			const db = await makeDB()
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			await generateVAPIDKeys(db)
 			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const activity: any = {
@@ -287,7 +287,7 @@ describe('ActivityPub', () => {
 				cc: [],
 				object: objectId,
 			}
-			await activityHandler.handle(domain, activity, db, userKEK)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
 			const object = await db.prepare('SELECT * FROM objects').bind(remoteActorId).first()
 			assert(object)

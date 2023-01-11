@@ -70,7 +70,7 @@ Wildebeest uses [Deploy to Workers](https://deploy.workers.cloudflare.com/) to a
 
 **Click here to start the installation.**
 
-[<img src="https://deploy.workers.cloudflare.com/button"/>](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true)
+[<img src="https://deploy.workers.cloudflare.com/button"/>](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true&fields={%22name%22:%22Zone%20tag%22,%22secret%22:%22CF_ZONE_ID%22,%22descr%22:%22Zone%20tag%22}&fields={%22name%22:%22Domain%22,%22secret%22:%22CF_DEPLOY_DOMAIN%22,%22descr%22:%22Domain%20on%20which%20your%20instance%20will%20be%20running%22}&fields={%22name%22:%22Instance%20title%22,%22secret%22:%22INSTANCE_TITLE%22,%22descr%22:%22Title%20of%20your%20instance%22}&fields={%22name%22:%22Administrator%20email%22,%22secret%22:%22ADMIN_EMAIL%22,%22descr%22:%22An%20email%20address%20that%20can%20be%20messaged%20regarding%20inquiries%20or%20issues%22}&fields={%22name%22:%22Instance%20description%22,%22secret%22:%22INSTANCE_DESCR%22,%22descr%22:%22A%20short,%20plain-text%20description%20of%20your%20instance%22})
 
 Please pay attention to all the steps involved in the installation process.
 
