@@ -22,8 +22,8 @@ jobs:
               exit 1
           fi
         env:
-          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
-          CF_DEPLOY_DOMAIN: ${{ secrets.CF_DEPLOY_DOMAIN }}
+          CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
+          CF_DEPLOY_DOMAIN: ${{ vars.CF_DEPLOY_DOMAIN }}
 
       # this is needed to get the lowercase version of the repository_owner name
       # TODO: switch to some lowercase function in the future when Actions supports it
@@ -109,6 +109,30 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         if: ${{ env.tfstate_kv != '' }}
 
+      - name: download VAPID keys
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:key get --namespace-id=${{ env.tfstate_kv }} vapid_jwk | jq . > ./tf/vapid_jwk
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          preCommands: |
+            echo "*** pre commands ***"
+            apt-get update && apt-get -y install jq
+            echo "******"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        continue-on-error: true
+        if: ${{ env.tfstate_kv != '' }}
+
+      - name: generate VAPID keys if needed
+        run: |
+          sudo chmod 777 ./tf/vapid_jwk || true
+
+          if [ ! -s ./tf/vapid_jwk ]
+          then
+            node ./scripts/generate-vapid-keys.mjs > ./tf/vapid_jwk
+            echo "VAPID keys generated"
+          fi
+
       - name: Configure
         run: terraform plan && terraform apply -auto-approve
         continue-on-error: true
@@ -116,11 +140,14 @@ jobs:
         env:
           TF_VAR_cloudflare_account_id: ${{ secrets.CF_ACCOUNT_ID }}
           TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
-          TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
-          TF_VAR_cloudflare_deploy_domain: ${{ secrets.CF_DEPLOY_DOMAIN }}
+          TF_VAR_cloudflare_zone_id: ${{ vars.CF_ZONE_ID }}
+          TF_VAR_cloudflare_deploy_domain: ${{ vars.CF_DEPLOY_DOMAIN }}
           TF_VAR_gh_username: ${{ env.OWNER_LOWER }}
           TF_VAR_d1_id: ${{ env.d1_id }}
           TF_VAR_access_auth_domain: ${{ env.auth_domain }}
+          TF_VAR_wd_instance_title: ${{ vars.INSTANCE_TITLE }}
+          TF_VAR_wd_admin_email: ${{ vars.ADMIN_EMAIL }}
+          TF_VAR_wd_instance_description: ${{ vars.INSTANCE_DESCR }}
 
       - name: retrieve Terraform state KV namespace
         uses: cloudflare/wrangler-action@2.0.0
@@ -134,6 +161,14 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         if: ${{ env.tfstate_kv == '' }}
+        
+      - name: store VAPID keys state
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:key put --namespace-id=${{ env.tfstate_kv }} vapid_jwk --path=./tf/vapid_jwk
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
       - name: store Terraform state
         uses: cloudflare/wrangler-action@2.0.0

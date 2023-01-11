@@ -8,7 +8,7 @@ const headers = {
 	'content-type': 'application/json; charset=utf-8',
 }
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
 	const { searchParams } = new URL(request.url)
 	const local = searchParams.get('local') === 'true'
 	const remote = searchParams.get('remote') === 'true'
@@ -21,6 +21,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 export async function handleRequest(
 	domain: string,
 	db: D1Database,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use only_media
 	{ local = false, remote = false, only_media = false, offset = 0 } = {}
 ): Promise<Response> {
 	let localParam = LocalPreference.NotSet

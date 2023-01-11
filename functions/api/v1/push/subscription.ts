@@ -1,22 +1,20 @@
 import { getClientById } from 'wildebeest/backend/src/mastodon/client'
+import { getVAPIDKeys } from 'wildebeest/backend/src/config'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { createSubscription, getSubscription } from 'wildebeest/backend/src/mastodon/subscription'
 import type { CreateRequest } from 'wildebeest/backend/src/mastodon/subscription'
 import { ContextData } from 'wildebeest/backend/src/types/context'
 import { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
-import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
-import type { WebPushInfos, WebPushMessage, WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
-import { b64ToUrlEncoded, exportPublicKeyPair } from 'wildebeest/backend/src/webpush/util'
-import { generateWebPushMessage } from 'wildebeest/backend/src/webpush'
-import { getVAPIDKeys, VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
+import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
 	return handleGetRequest(env.DATABASE, request, data.connectedActor, data.clientId)
 }
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handlePostRequest(env.DATABASE, request, data.connectedActor, data.clientId)
+	return handlePostRequest(env.DATABASE, request, data.connectedActor, data.clientId, getVAPIDKeys(env))
 }
 
 const headers = {
@@ -56,7 +54,13 @@ export async function handleGetRequest(db: D1Database, request: Request, connect
 	return new Response(JSON.stringify(res), { headers })
 }
 
-export async function handlePostRequest(db: D1Database, request: Request, connectedActor: Actor, clientId: string) {
+export async function handlePostRequest(
+	db: D1Database,
+	request: Request,
+	connectedActor: Actor,
+	clientId: string,
+	vapidKeys: JWK
+) {
 	const client = await getClientById(db, clientId)
 	if (client === null) {
 		return errors.clientUnknown()
@@ -70,7 +74,7 @@ export async function handlePostRequest(db: D1Database, request: Request, connec
 		subscription = await createSubscription(db, connectedActor, client, data)
 	}
 
-	const vapidKey = VAPIDPublicKey(await getVAPIDKeys(db))
+	const vapidKey = VAPIDPublicKey(vapidKeys)
 
 	const res = {
 		id: 4,

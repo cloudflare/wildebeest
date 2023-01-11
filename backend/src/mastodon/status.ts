@@ -9,8 +9,6 @@ import * as media from 'wildebeest/backend/src/media/'
 import type { MastodonStatus } from 'wildebeest/backend/src/types'
 import { parseHandle } from '../utils/parse'
 import { urlToHandle } from '../utils/handle'
-import { getLikes } from './like'
-import { getReblogs } from './reblog'
 
 export function getMentions(input: string): Array<Handle> {
 	const mentions: Array<Handle> = []

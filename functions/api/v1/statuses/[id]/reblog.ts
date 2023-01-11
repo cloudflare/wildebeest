@@ -1,7 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#boost
 
 import type { Env } from 'wildebeest/backend/src/types/env'
-import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
@@ -12,10 +11,9 @@ import * as announce from 'wildebeest/backend/src/activitypub/activities/announc
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data, params }) => {
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ env, data, params }) => {
 	return handleRequest(env.DATABASE, params.id as string, data.connectedActor, env.userKEK)
 }
 

@@ -23,7 +23,11 @@ jobs:
       - name: Build
         run: yarn build
       - name: Check formatting
-        run:  yarn pretty
+        run: yarn pretty
+      - name: Check backend linting
+        run: yarn lint:backend
+      - name: Check functions linting
+        run: yarn lint:functions
       - name: Run API tests
         run: yarn test
 
@@ -40,5 +44,7 @@ jobs:
         run: yarn && yarn --cwd frontend
       - name: Initialize local database
         run: yarn database:create-mock
+      - name: Check frontend linting
+        run: yarn lint:frontend
       - name: Run UI tests
         run: yarn test:ui

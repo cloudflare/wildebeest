@@ -1,4 +1,5 @@
 import * as notifications_get from 'wildebeest/functions/api/v1/notifications/[id]'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
@@ -7,13 +8,13 @@ import { makeDB, assertJSON, createTestClient } from '../utils'
 import { strict as assert } from 'node:assert/strict'
 import { sendLikeNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createSubscription } from 'wildebeest/backend/src/mastodon/subscription'
-import { generateVAPIDKeys, configure } from 'wildebeest/backend/src/config'
 import { arrayBufferToBase64 } from 'wildebeest/backend/src/utils/key-ops'
 import { getNotifications } from 'wildebeest/backend/src/mastodon/notification'
 
 const userKEK = 'test_kek15'
 const domain = 'cloudflare.com'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const vapidKeys = {} as JWK
 
 function parseCryptoKey(s: string): any {
 	const parts = s.split(';')
@@ -92,8 +93,6 @@ describe('Mastodon APIs', () => {
 
 		test('send like notification', async () => {
 			const db = await makeDB()
-			await generateVAPIDKeys(db)
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
 
 			const clientKeys = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
 				'sign',
@@ -140,7 +139,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const fromActor = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
-			await sendLikeNotification(db, fromActor, actor, 'notifid')
+			await sendLikeNotification(db, fromActor, actor, 'notifid', 'admin@example.com', vapidKeys)
 		})
 	})
 })

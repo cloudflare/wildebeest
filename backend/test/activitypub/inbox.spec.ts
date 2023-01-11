@@ -1,5 +1,5 @@
 import { makeDB } from '../utils'
-import { generateVAPIDKeys, configure } from 'wildebeest/backend/src/config'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
@@ -8,6 +8,8 @@ import { strict as assert } from 'node:assert/strict'
 
 const userKEK = 'test_kek9'
 const domain = 'cloudflare.com'
+const adminEmail = 'admin@example.com'
+const vapidKeys = {} as JWK
 
 const kv_cache: any = {
 	async put() {},
@@ -20,14 +22,22 @@ describe('ActivityPub', () => {
 		const db = await makeDB()
 
 		const activity: any = {}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
+		const res = await ap_inbox.handleRequest(
+			domain,
+			db,
+			kv_cache,
+			'sven',
+			activity,
+			userKEK,
+			waitUntil,
+			adminEmail,
+			vapidKeys
+		)
 		assert.equal(res.status, 404)
 	})
 
 	test('send Note to inbox stores in DB', async () => {
 		const db = await makeDB()
-		await configure(db, { title: 'title', description: 'a', email: 'email' })
-		await generateVAPIDKeys(db)
 		const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 		const activity: any = {
@@ -41,7 +51,17 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
+		const res = await ap_inbox.handleRequest(
+			domain,
+			db,
+			kv_cache,
+			'sven',
+			activity,
+			userKEK,
+			waitUntil,
+			adminEmail,
+			vapidKeys
+		)
 		assert.equal(res.status, 200)
 
 		const entry = await db
@@ -81,7 +101,17 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
+		const res = await ap_inbox.handleRequest(
+			domain,
+			db,
+			kv_cache,
+			'sven',
+			activity,
+			userKEK,
+			waitUntil,
+			adminEmail,
+			vapidKeys
+		)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM outbox_objects WHERE actor_id=?').bind(remoteActorId).first()
@@ -90,8 +120,6 @@ describe('ActivityPub', () => {
 
 	test('local actor sends Note with mention create notification', async () => {
 		const db = await makeDB()
-		await configure(db, { title: 'title', description: 'a', email: 'email' })
-		await generateVAPIDKeys(db)
 		const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 		const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
@@ -106,7 +134,17 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
+		const res = await ap_inbox.handleRequest(
+			domain,
+			db,
+			kv_cache,
+			'a',
+			activity,
+			userKEK,
+			waitUntil,
+			adminEmail,
+			vapidKeys
+		)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actor_notifications').first()
@@ -132,8 +170,6 @@ describe('ActivityPub', () => {
 		}
 
 		const db = await makeDB()
-		await configure(db, { title: 'title', description: 'a', email: 'email' })
-		await generateVAPIDKeys(db)
 		const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 
 		const activity: any = {
@@ -147,7 +183,17 @@ describe('ActivityPub', () => {
 				content: 'test note',
 			},
 		}
-		const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
+		const res = await ap_inbox.handleRequest(
+			domain,
+			db,
+			kv_cache,
+			'a',
+			activity,
+			userKEK,
+			waitUntil,
+			adminEmail,
+			vapidKeys
+		)
 		assert.equal(res.status, 200)
 
 		const entry = await db.prepare('SELECT * FROM actors WHERE id=?').bind(actorB).first()
@@ -156,8 +202,6 @@ describe('ActivityPub', () => {
 
 	test('send Note records reply', async () => {
 		const db = await makeDB()
-		await configure(db, { title: 'title', description: 'a', email: 'email' })
-		await generateVAPIDKeys(db)
 		const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 		{
@@ -171,7 +215,17 @@ describe('ActivityPub', () => {
 					content: 'post',
 				},
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
+			const res = await ap_inbox.handleRequest(
+				domain,
+				db,
+				kv_cache,
+				'sven',
+				activity,
+				userKEK,
+				waitUntil,
+				adminEmail,
+				vapidKeys
+			)
 			assert.equal(res.status, 200)
 		}
 
@@ -187,7 +241,17 @@ describe('ActivityPub', () => {
 					content: 'reply',
 				},
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'sven', activity, userKEK, waitUntil)
+			const res = await ap_inbox.handleRequest(
+				domain,
+				db,
+				kv_cache,
+				'sven',
+				activity,
+				userKEK,
+				waitUntil,
+				adminEmail,
+				vapidKeys
+			)
 			assert.equal(res.status, 200)
 		}
 
@@ -206,8 +270,6 @@ describe('ActivityPub', () => {
 	describe('Announce', () => {
 		test('records reblog in db', async () => {
 			const db = await makeDB()
-			await generateVAPIDKeys(db)
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
@@ -218,7 +280,17 @@ describe('ActivityPub', () => {
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
+			const res = await ap_inbox.handleRequest(
+				domain,
+				db,
+				kv_cache,
+				'a',
+				activity,
+				userKEK,
+				waitUntil,
+				adminEmail,
+				vapidKeys
+			)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_reblogs').first()
@@ -228,8 +300,6 @@ describe('ActivityPub', () => {
 
 		test('creates notification', async () => {
 			const db = await makeDB()
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			await generateVAPIDKeys(db)
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
@@ -240,7 +310,17 @@ describe('ActivityPub', () => {
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
+			const res = await ap_inbox.handleRequest(
+				domain,
+				db,
+				kv_cache,
+				'a',
+				activity,
+				userKEK,
+				waitUntil,
+				adminEmail,
+				vapidKeys
+			)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
@@ -254,8 +334,6 @@ describe('ActivityPub', () => {
 	describe('Like', () => {
 		test('records like in db', async () => {
 			const db = await makeDB()
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			await generateVAPIDKeys(db)
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
@@ -266,7 +344,17 @@ describe('ActivityPub', () => {
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
+			const res = await ap_inbox.handleRequest(
+				domain,
+				db,
+				kv_cache,
+				'a',
+				activity,
+				userKEK,
+				waitUntil,
+				adminEmail,
+				vapidKeys
+			)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_favourites').first()
@@ -276,8 +364,6 @@ describe('ActivityPub', () => {
 
 		test('creates notification', async () => {
 			const db = await makeDB()
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			await generateVAPIDKeys(db)
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
@@ -288,7 +374,17 @@ describe('ActivityPub', () => {
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
+			const res = await ap_inbox.handleRequest(
+				domain,
+				db,
+				kv_cache,
+				'a',
+				activity,
+				userKEK,
+				waitUntil,
+				adminEmail,
+				vapidKeys
+			)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
@@ -299,8 +395,6 @@ describe('ActivityPub', () => {
 
 		test('records like in db', async () => {
 			const db = await makeDB()
-			await configure(db, { title: 'title', description: 'a', email: 'email' })
-			await generateVAPIDKeys(db)
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
@@ -311,7 +405,17 @@ describe('ActivityPub', () => {
 				actor: actorB.id,
 				object: note.id,
 			}
-			const res = await ap_inbox.handleRequest(domain, db, kv_cache, 'a', activity, userKEK, waitUntil)
+			const res = await ap_inbox.handleRequest(
+				domain,
+				db,
+				kv_cache,
+				'a',
+				activity,
+				userKEK,
+				waitUntil,
+				adminEmail,
+				vapidKeys
+			)
 			assert.equal(res.status, 200)
 
 			const entry = await db.prepare('SELECT * FROM actor_favourites').first()

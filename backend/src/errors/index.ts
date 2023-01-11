@@ -29,10 +29,6 @@ export function userConflict(): Response {
 	return generateErrorResponse(`User already exists or conflicts`, 403)
 }
 
-export function timelineMissing(): Response {
-	return generateErrorResponse(`The timeline is invalid or being regenerated`, 404)
-}
-
 export function clientUnknown(): Response {
 	return generateErrorResponse(`The client is unknown or invalid`, 403)
 }

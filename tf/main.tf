@@ -32,6 +32,19 @@ variable "access_auth_domain" {
   sensitive = true
 }
 
+variable "wd_instance_title" {
+  type = string
+  sensitive = true
+}
+variable "wd_admin_email" {
+  type = string
+  sensitive = true
+}
+variable "wd_instance_description" {
+  type = string
+  sensitive = true
+}
+
 terraform {
   required_providers {
     cloudflare = {
@@ -81,6 +94,11 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
         DOMAIN = sensitive(trimspace(var.cloudflare_deploy_domain))
         ACCESS_AUD = sensitive(cloudflare_access_application.wildebeest_access.aud)
         ACCESS_AUTH_DOMAIN = sensitive(var.access_auth_domain)
+
+        INSTANCE_TITLE = var.wd_instance_title
+        ADMIN_EMAIL    = var.wd_admin_email
+        INSTANCE_DESCR = var.wd_instance_description
+        VAPID_JWK      = sensitive(file("${path.module}/vapid_jwk"))
       }
       kv_namespaces = {
         KV_CACHE = sensitive(cloudflare_workers_kv_namespace.wildebeest_cache.id)
@@ -119,16 +137,4 @@ resource "cloudflare_access_application" "wildebeest_access" {
   type                      = "self_hosted"
   session_duration          = "168h"
   auto_redirect_to_identity = false
-}
-
-resource "cloudflare_access_policy" "policy" {
-  application_id = cloudflare_access_application.wildebeest_access.id
-  account_id     = var.cloudflare_account_id
-  name           = "policy"
-  precedence     = "1"
-  decision       = "allow"
-
-  include {
-    email = ["CHANGEME@example.com"]
-  }
 }

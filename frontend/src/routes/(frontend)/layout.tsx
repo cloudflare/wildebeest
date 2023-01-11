@@ -1,4 +1,5 @@
 import { component$, Slot, useContextProvider } from '@builder.io/qwik'
+import type { Env } from 'wildebeest/backend/src/types/env'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import * as instance from 'wildebeest/functions/api/v1/instance'
 import type { InstanceConfig } from 'wildebeest/backend/src/types/configs'
@@ -8,18 +9,20 @@ import { WildebeestLogo } from '~/components/MastodonLogo'
 import { getCommitHash } from '~/utils/getCommitHash'
 import { InstanceConfigContext } from '~/utils/instanceConfig'
 
-export const instanceLoader = loader$<{ DATABASE: D1Database }, Promise<InstanceConfig>>(
-	async ({ platform, redirect }) => {
-		const response = await instance.handleRequest('', platform.DATABASE)
-		const results = await response.text()
-		const json = JSON.parse(results) as InstanceConfig
-		if (!json.title) {
-			// If there is no title set then we have not configured the instance
-			throw redirect(302, '/start-instance')
-		}
-		return json
-	}
-)
+export const instanceLoader = loader$<
+	{ DATABASE: D1Database; INSTANCE_TITLE: string; INSTANCE_DESCR: string; ADMIN_EMAIL: string },
+	Promise<InstanceConfig>
+>(async ({ platform }) => {
+	const env = {
+		INSTANCE_DESCR: platform.INSTANCE_DESCR,
+		INSTANCE_TITLE: platform.INSTANCE_TITLE,
+		ADMIN_EMAIL: platform.ADMIN_EMAIL,
+	} as Env
+	const response = await instance.handleRequest('', platform.DATABASE, env)
+	const results = await response.text()
+	const json = JSON.parse(results) as InstanceConfig
+	return json
+})
 
 export default component$(() => {
 	useContextProvider(InstanceConfigContext, instanceLoader.use().value)

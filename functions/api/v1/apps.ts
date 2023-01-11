@@ -1,9 +1,9 @@
 import { ContextData } from 'wildebeest/backend/src/types/context'
-import { b64ToUrlEncoded, exportPublicKeyPair } from 'wildebeest/backend/src/webpush/util'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { Env } from 'wildebeest/backend/src/types/env'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
-import { getVAPIDKeys, VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
+import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
+import { getVAPIDKeys } from 'wildebeest/backend/src/config'
 
 type AppsPost = {
 	redirect_uris: string
@@ -12,11 +12,11 @@ type AppsPost = {
 	scopes: string
 }
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(env.DATABASE, request)
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
+	return handleRequest(env.DATABASE, request, getVAPIDKeys(env))
 }
 
-export async function handleRequest(db: D1Database, request: Request) {
+export async function handleRequest(db: D1Database, request: Request, vapidKeys: JWK) {
 	if (request.method !== 'POST') {
 		return new Response('', { status: 400 })
 	}
@@ -24,7 +24,7 @@ export async function handleRequest(db: D1Database, request: Request) {
 	const body = await request.json<AppsPost>()
 
 	const client = await createClient(db, body.client_name, body.redirect_uris, body.website, body.scopes)
-	const vapidKey = VAPIDPublicKey(await getVAPIDKeys(db))
+	const vapidKey = VAPIDPublicKey(vapidKeys)
 
 	const res = {
 		name: body.client_name,

@@ -21,6 +21,7 @@ const headers = {
 
 const DEFAULT_LIMIT = 20
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use userKEK
 export async function handleRequest(domain: string, db: D1Database, id: string, userKEK: string): Promise<Response> {
 	const handle = parseHandle(id)
 

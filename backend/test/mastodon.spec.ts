@@ -1,4 +1,6 @@
 import { strict as assert } from 'node:assert/strict'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
+import type { Env } from 'wildebeest/backend/src/types/env'
 import * as v1_instance from 'wildebeest/functions/api/v1/instance'
 import * as v2_instance from 'wildebeest/functions/api/v2/instance'
 import * as apps from 'wildebeest/functions/api/v1/apps'
@@ -9,24 +11,29 @@ import { makeDB, assertCORS, assertJSON, assertCache, createTestClient } from '.
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { createSubscription } from '../src/mastodon/subscription'
 import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
-import { configure, generateVAPIDKeys } from 'wildebeest/backend/src/config'
 
 const userKEK = 'test_kek'
 const domain = 'cloudflare.com'
 
+async function generateVAPIDKeys(): Promise<JWK> {
+	const keyPair = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
+		'sign',
+		'verify',
+	])) as CryptoKeyPair
+	const jwk = (await crypto.subtle.exportKey('jwk', keyPair.privateKey)) as JWK
+	return jwk
+}
+
 describe('Mastodon APIs', () => {
 	describe('instance', () => {
 		test('return the instance infos v1', async () => {
-			const db = await makeDB()
-			const data = {
-				title: 'title',
-				uri: 'uri',
-				email: 'email',
-				description: 'description',
-			}
-			await configure(db, data)
+			const env = {
+				INSTANCE_TITLE: 'a',
+				ADMIN_EMAIL: 'b',
+				INSTANCE_DESCR: 'c',
+			} as Env
 
-			const res = await v1_instance.handleRequest(domain, db)
+			const res = await v1_instance.handleRequest(domain, env)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
@@ -35,55 +42,60 @@ describe('Mastodon APIs', () => {
 				const data = await res.json<any>()
 				assert.equal(data.rules.length, 0)
 				assert.equal(data.uri, domain)
+				assert.equal(data.title, 'a')
+				assert.equal(data.email, 'b')
+				assert.equal(data.description, 'c')
 			}
 		})
 
 		test('adds a short_description if missing v1', async () => {
-			const db = await makeDB()
-			const data = {
-				title: 'title',
-				uri: 'uri',
-				email: 'email',
-				description: 'description',
-			}
-			await configure(db, data)
+			const env = {
+				INSTANCE_DESCR: 'c',
+			} as Env
 
-			const res = await v1_instance.handleRequest(domain, db)
+			const res = await v1_instance.handleRequest(domain, env)
 			assert.equal(res.status, 200)
 
 			{
 				const data = await res.json<any>()
-				assert.equal(data.short_description, 'description')
+				assert.equal(data.short_description, 'c')
 			}
 		})
 
 		test('return the instance infos v2', async () => {
 			const db = await makeDB()
-			const data = {
-				title: 'title',
-				uri: 'uri',
-				email: 'email',
-				description: 'description',
-			}
-			await configure(db, data)
 
-			const res = await v2_instance.handleRequest(domain, db)
+			const env = {
+				INSTANCE_TITLE: 'a',
+				ADMIN_EMAIL: 'b',
+				INSTANCE_DESCR: 'c',
+			} as Env
+			const res = await v2_instance.handleRequest(domain, db, env)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
+
+			{
+				const data = await res.json<any>()
+				assert.equal(data.rules.length, 0)
+				assert.equal(data.domain, domain)
+				assert.equal(data.title, 'a')
+				assert.equal(data.contact.email, 'b')
+				assert.equal(data.description, 'c')
+			}
 		})
 	})
 
 	describe('apps', () => {
 		test('return the app infos', async () => {
 			const db = await makeDB()
-			await generateVAPIDKeys(db)
+			const vapidKeys = await generateVAPIDKeys()
 			const request = new Request('https://example.com', {
 				method: 'POST',
 				body: '{"redirect_uris":"mastodon://joinmastodon.org/oauth","website":"https://app.joinmastodon.org/ios","client_name":"Mastodon for iOS","scopes":"read write follow push"}',
 			})
 
-			const res = await apps.handleRequest(db, request)
+			const res = await apps.handleRequest(db, request, vapidKeys)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 			assertJSON(res)
@@ -100,11 +112,14 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('returns 404 for GET request', async () => {
+			const vapidKeys = await generateVAPIDKeys()
 			const request = new Request('https://example.com')
 			const ctx: any = {
 				next: () => new Response(),
 				data: null,
-				env: {},
+				env: {
+					VAPID_JWK: JSON.stringify(vapidKeys),
+				},
 				request,
 			}
 
@@ -169,8 +184,8 @@ describe('Mastodon APIs', () => {
 		test('create subscription', async () => {
 			const db = await makeDB()
 			const client = await createTestClient(db)
-			await generateVAPIDKeys(db)
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const vapidKeys = await generateVAPIDKeys()
 
 			const data: any = {
 				subscription: {
@@ -190,7 +205,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(data),
 			})
 
-			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id)
+			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id, vapidKeys)
 			assert.equal(res.status, 200)
 
 			const row: any = await db.prepare('SELECT * FROM subscriptions').first()
@@ -202,8 +217,8 @@ describe('Mastodon APIs', () => {
 		test('create subscriptions only creates one', async () => {
 			const db = await makeDB()
 			const client = await createTestClient(db)
-			await generateVAPIDKeys(db)
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const vapidKeys = await generateVAPIDKeys()
 
 			const data: any = {
 				subscription: {
@@ -225,7 +240,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(data),
 			})
 
-			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id)
+			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id, vapidKeys)
 			assert.equal(res.status, 200)
 
 			const { count } = await db.prepare('SELECT count(*) as count FROM subscriptions').first()

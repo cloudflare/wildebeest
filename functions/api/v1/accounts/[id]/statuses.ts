@@ -2,13 +2,12 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { makeGetActorAsId, makeGetObjectAsId } from 'wildebeest/backend/src/activitypub/activities/handle'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Handle } from 'wildebeest/backend/src/utils/parse'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import type { MastodonAccount, MastodonStatus } from 'wildebeest/backend/src/types'
+import type { MastodonStatus } from 'wildebeest/backend/src/types'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
@@ -41,6 +40,7 @@ export async function handleRequest(request: Request, db: D1Database, id: string
 	}
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use userKEK
 async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database, userKEK: string): Promise<Response> {
 	const url = new URL(request.url)
 	const domain = url.hostname
@@ -61,6 +61,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 
 	const activities = await outbox.get(actor)
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use account
 	const account = await loadExternalMastodonAccount(acct, actor)
 
 	const promises = activities.items.map(async (activity: Activity) => {
