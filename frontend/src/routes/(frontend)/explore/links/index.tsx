@@ -25,7 +25,7 @@ export default component$(() => {
 										<div class="text-sm text-wildebeest-400">{formatHistory(link.history)}</div>
 									</div>
 									<div>
-										<img class="w-32 max-w-fit h-32 object-cover" src={link.image} />
+										<img class="w-32 max-w-fit h-32 object-cover" src={link.image} alt="" />
 									</div>
 								</div>
 							</a>
