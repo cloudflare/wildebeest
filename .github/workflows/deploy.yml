@@ -133,14 +133,6 @@ jobs:
             echo "VAPID keys generated"
           fi
 
-      - name: store VAPID keys state
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          command: kv:key put --namespace-id=${{ env.tfstate_kv }} vapid_jwk --path=./tf/vapid_jwk
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-
       - name: Configure
         run: terraform plan && terraform apply -auto-approve
         continue-on-error: true
@@ -169,6 +161,14 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         if: ${{ env.tfstate_kv == '' }}
+        
+      - name: store VAPID keys state
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:key put --namespace-id=${{ env.tfstate_kv }} vapid_jwk --path=./tf/vapid_jwk
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
       - name: store Terraform state
         uses: cloudflare/wrangler-action@2.0.0
