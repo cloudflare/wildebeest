@@ -16,6 +16,7 @@ import { deliverFollowers, deliverToActor } from 'wildebeest/backend/src/activit
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
+import { readBody } from 'wildebeest/backend/src/utils/body'
 
 type StatusCreate = {
 	status: string
@@ -40,8 +41,10 @@ export async function handleRequest(
 	if (request.method !== 'POST') {
 		return new Response('', { status: 400 })
 	}
+	const contentType = request.headers.get('content-type')
+	console.log({ contentType })
 
-	const body = await request.json<StatusCreate>()
+	const body = await readBody<StatusCreate>(request)
 	console.log(body)
 	if (body.status === undefined || body.visibility === undefined) {
 		return new Response('', { status: 400 })

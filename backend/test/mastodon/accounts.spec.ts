@@ -18,6 +18,7 @@ import { createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
+import * as filters from 'wildebeest/functions/api/v1/filters'
 
 const userKEK = 'test_kek2'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -840,6 +841,15 @@ describe('Mastodon APIs', () => {
 				assert(row)
 				assert.equal(row.count, 0)
 			})
+		})
+
+		test('view filters return empty array', async () => {
+			const res = await filters.onRequest()
+			assert.equal(res.status, 200)
+			assertJSON(res)
+
+			const data = await res.json<any>()
+			assert.equal(data.length, 0)
 		})
 	})
 })
