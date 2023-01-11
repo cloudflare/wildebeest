@@ -13,7 +13,7 @@ export default component$(() => {
 				<a href="https://github.com/cloudflare/wildebeest">Wildebeest</a>.
 			</p>
 			<div>
-				<img class="w-full" src={config.thumbnail} />
+				<img class="w-full" src={config.thumbnail} alt="Wildebeest instance thumbnail" />
 				<p>{config.description}</p>
 			</div>
 		</div>
