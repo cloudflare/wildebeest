@@ -168,7 +168,7 @@ When you start using Wildebeest with a client, you don't need to register. Inste
 
 When authenticated, Access will redirect you back to Wildebeest. The first time this happens, we will detect that we don't have information about the user and ask for your **Username** and **Display Name**. This will be asked only once and is what will show in your public Mastodon profile.
 
-![first login](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/4f5d27d0-3d30-49bd-b356-e33c194d7c00/w=640)
+![first login](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/4f5d27d0-3d30-49bd-b356-e33c194d7c00/w=450)
 
 ## Updating Wildebeest
 
