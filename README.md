@@ -68,9 +68,9 @@ We're all set now, let's start the installation process.
 
 Wildebeest uses [Deploy to Workers](https://deploy.workers.cloudflare.com/) to automate the installation process.
 
-Click here to start the installation.
+**Click here to start the installation.**
 
-<a class="github-button" href="https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true" data-icon="octicon-package" aria-label="Install Wildebeest">Install Wildebeest</a>
+[<img src="https://deploy.workers.cloudflare.com/button"/>](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true)
 
 Please pay attention to all the steps involved in the installation process.
 
@@ -169,7 +169,7 @@ Sometimes things go south. The GitHub Actions deployment can fail for some reaso
 If you attempted to deploy Wildebeest in your account and something failed, or you simply want to reinstall everything from scratch again, you need to do manual checkups and cleaning before you start over.
 
 - Go to your zone DNS settings and delete the CNAME record that points to `wildebeest-username.pages.dev`
-- Go to your account Pages section and delete the `wildebeest-username` project.
+- Go to your account Pages section and delete the `wildebeest-username` project (make sure you remove the custom domain first if it's been configured).
 - Go to your account Workers / KV section and delete the `wildebeest-username-cache` namespace.
 - Go to your account Workers / D1 and delete the `wildebeest-username` database.
 - Launch [Zero Trust](https://one.dash.cloudflare.com/), select your account, go to Access / Applications and delete the `wildebeest-username` application.
