@@ -23,8 +23,12 @@ async function createStatus(db: D1Database, actor: Person, status: string, visib
 		status,
 		visibility,
 	}
+	const headers = {
+		'content-type': 'application/json',
+	}
 	const req = new Request('https://example.com', {
 		method: 'POST',
+		headers,
 		body: JSON.stringify(body),
 	})
 	await statusesAPI.handleRequest(req, db, actor, kek)
