@@ -118,16 +118,15 @@ jobs:
             echo "*** pre commands ***"
             apt-get update && apt-get -y install jq
             echo "******"
-          postCommands: |
-            echo "*** post commands ***"
-            chmod 777 ./tf/vapid_jwk
-            echo "******"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         continue-on-error: true
+        if: ${{ env.tfstate_kv != '' }}
 
       - name: generate VAPID keys if needed
         run: |
+          sudo chmod 777 ./tf/vapid_jwk || true
+
           if [ ! -s ./tf/vapid_jwk ]
           then
             node ./scripts/generate-vapid-keys.mjs > ./tf/vapid_jwk
