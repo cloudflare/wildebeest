@@ -15,8 +15,12 @@ export async function init(domain: string, db: D1Database) {
 		loadedStatuses.push(await createStatus(db, actor, status.content))
 	}
 
-	const reblogger = await getOrCreatePerson(domain, db, loadedStatuses[1].account)
-	await reblogStatus(db, reblogger, loadedStatuses[2])
+	// Grab the account from an arbitrary status to use as the reblogger
+	const rebloggerAccount = loadedStatuses[1].account
+	const reblogger = await getOrCreatePerson(domain, db, rebloggerAccount)
+	// Reblog an arbitrary status with this reblogger
+	const statusToReblog = loadedStatuses[2]
+	await reblogStatus(db, reblogger, statusToReblog)
 }
 
 /**
@@ -35,7 +39,8 @@ async function createStatus(db: D1Database, actor: Person, status: string, visib
 		headers,
 		body: JSON.stringify(body),
 	})
-	return (await (await statusesAPI.handleRequest(req, db, actor, kek)).json()) as MastodonStatus
+	const resp = await statusesAPI.handleRequest(req, db, actor, kek)
+	return (await resp.json()) as MastodonStatus
 }
 
 async function getOrCreatePerson(
