@@ -1,6 +1,7 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 
-const INSTANCE_VERSION = '4.0.2'
+export const INSTANCE_VERSION = '0.0.0'
+export const COMPAT_VERSION = '4.0.2'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain = new URL(request.url).hostname
@@ -34,7 +35,7 @@ export async function handleRequest(domain: string, db: D1Database) {
 	// should go through the login flow and authenticate with Access.
 	// The documentation is incorrect and registrations is a boolean.
 	res.registrations = false
-	res.version = INSTANCE_VERSION
+	res.version = `${COMPAT_VERSION} (compatible; Wildebeest ${INSTANCE_VERSION})`
 	res.rules = []
 	res.uri = domain
 

@@ -1,7 +1,7 @@
+import { COMPAT_VERSION, INSTANCE_VERSION } from 'wildebeest/functions/api/v1/instance'
+
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { InstanceConfigV2 } from 'wildebeest/backend/src/types/configs'
-
-const INSTANCE_VERSION = '4.0.2'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain = new URL(request.url).hostname
@@ -34,7 +34,7 @@ export async function handleRequest(domain: string, db: D1Database) {
 	const res: InstanceConfigV2 = {
 		domain,
 		title: config.title,
-		version: INSTANCE_VERSION,
+		version: `${COMPAT_VERSION} (compatible; Wildebeest ${INSTANCE_VERSION})`,
 		source_url: 'https://github.com/cloudflare/wildebeest',
 		description: config.description,
 		thumbnail: {
