@@ -2,9 +2,9 @@ const PROJECT_URL = 'https://github.com/cloudflare/wildebeest'
 const ONE_CLICK_BASE_URL = 'https://deploy.workers.cloudflare.com'
 const FIELDS = [
 	{
-		name: 'Zone tag',
+		name: 'Zone ID',
 		secret: 'CF_ZONE_ID',
-		descr: 'Zone tag',
+		descr: 'Get your Zone ID from the Cloudflare Dashboard',
 	},
 	{
 		name: 'Domain',
@@ -17,9 +17,9 @@ const FIELDS = [
 		descr: 'Title of your instance',
 	},
 	{
-		name: 'Administrator email',
+		name: 'Administrator Email',
 		secret: 'ADMIN_EMAIL',
-		descr: 'An email address that can be messaged regarding inquiries or issues',
+		descr: 'An Email address that can be messaged regarding inquiries or issues',
 	},
 	{
 		name: 'Instance description',
