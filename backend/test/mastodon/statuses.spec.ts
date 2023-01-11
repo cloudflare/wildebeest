@@ -27,6 +27,7 @@ describe('Mastodon APIs', () => {
 			const body = { status: 'my status' }
 			const req = new Request('https://example.com', {
 				method: 'POST',
+				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify(body),
 			})
 
@@ -45,6 +46,7 @@ describe('Mastodon APIs', () => {
 			}
 			const req = new Request('https://example.com', {
 				method: 'POST',
+				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify(body),
 			})
 
@@ -93,6 +95,7 @@ describe('Mastodon APIs', () => {
 			}
 			const req = new Request('https://example.com', {
 				method: 'POST',
+				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify(body),
 			})
 
@@ -161,6 +164,7 @@ describe('Mastodon APIs', () => {
 			}
 			const req = new Request('https://example.com', {
 				method: 'POST',
+				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify(body),
 			})
 
@@ -191,6 +195,7 @@ describe('Mastodon APIs', () => {
 			}
 			const req = new Request('https://example.com', {
 				method: 'POST',
+				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify(body),
 			})
 
