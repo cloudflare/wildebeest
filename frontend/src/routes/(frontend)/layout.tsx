@@ -21,10 +21,6 @@ export const instanceLoader = loader$<
 	const response = await instance.handleRequest('', platform.DATABASE, env)
 	const results = await response.text()
 	const json = JSON.parse(results) as InstanceConfig
-	if (!json.title) {
-		// If there is no title set then we have not configured the instance
-		throw redirect(302, '/start-instance')
-	}
 	return json
 })
 
