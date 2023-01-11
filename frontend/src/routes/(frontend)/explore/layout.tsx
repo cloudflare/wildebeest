@@ -1,41 +1,43 @@
 import { component$, Slot } from '@builder.io/qwik'
-import { Link, useLocation } from '@builder.io/qwik-city'
+// import { Link, useLocation } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 
-type LinkConfig = {
-	linkText: string
-	linkTarget: string
-}
+// type LinkConfig = {
+// 	linkText: string
+// 	linkTarget: string
+// }
 
 export default component$(() => {
-	const location = useLocation()
+	/*********** Hiding these features (news & hashtag links) until the backend support is available ******************/
 
-	const renderNavLink = ({ linkText, linkTarget }: LinkConfig) => {
-		const isActive = location.pathname.replace(/\/$/, '') === linkTarget
+	// const location = useLocation()
 
-		return (
-			<div class={`py-4 ${isActive ? activeClasses.join(' ') : ''}`}>
-				<Link href={linkTarget} class="no-underline text-bold text-wildebeest-200 py-4">
-					{linkText}
-				</Link>
-			</div>
-		)
-	}
+	// const renderNavLink = ({ linkText, linkTarget }: LinkConfig) => {
+	// 	const isActive = location.pathname.replace(/\/$/, '') === linkTarget
 
-	const links = [
-		{
-			linkText: 'Posts',
-			linkTarget: '/explore',
-		},
-		{
-			linkText: 'Hashtags',
-			linkTarget: '/explore/tags',
-		},
-		{
-			linkText: 'News',
-			linkTarget: '/explore/links',
-		},
-	]
+	// 	return (
+	// 		<div class={`py-4 ${isActive ? activeClasses.join(' ') : ''}`}>
+	// 			<Link href={linkTarget} class="no-underline text-bold text-wildebeest-200 py-4">
+	// 				{linkText}
+	// 			</Link>
+	// 		</div>
+	// 	)
+	// }
+
+	// const links = [
+	// 	{
+	// 		linkText: 'Posts',
+	// 		linkTarget: '/explore',
+	// 	},
+	// 	{
+	// 		linkText: 'Hashtags',
+	// 		linkTarget: '/explore/tags',
+	// 	},
+	// 	{
+	// 		linkText: 'News',
+	// 		linkTarget: '/explore/links',
+	// 	},
+	// ]
 
 	return (
 		<div class="explore-wrapper flex flex-col">
@@ -45,7 +47,7 @@ export default component$(() => {
 					<span>Explore</span>
 				</h2>
 			</StickyHeader>
-			<div class="bg-wildebeest-800 flex justify-around">{links.map((link) => renderNavLink(link))}</div>
+			{/* <div class="bg-wildebeest-800 flex justify-around">{links.map((link) => renderNavLink(link))}</div> */}
 			<div class="flex-auto">
 				<Slot />
 			</div>
