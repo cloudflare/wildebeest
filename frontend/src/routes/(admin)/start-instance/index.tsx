@@ -1,4 +1,5 @@
 import { $, component$, useStore, useClientEffect$, useSignal } from '@builder.io/qwik'
+import { DocumentHead } from '@builder.io/qwik-city'
 import { WildebeestLogo } from '~/components/MastodonLogo'
 import { useDomain } from '~/utils/useDomain'
 import Step1 from './step-1'
@@ -58,3 +59,15 @@ export default component$(() => {
 		</div>
 	)
 })
+
+export const head: DocumentHead = () => {
+	return {
+		title: 'Wildebeest Start Instance',
+		meta: [
+			{
+				name: 'description',
+				content: 'Wildebeest Instance Setup page',
+			},
+		],
+	}
+}
