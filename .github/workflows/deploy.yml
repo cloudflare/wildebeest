@@ -1,7 +1,7 @@
 name: Deploy
 on:
   push:
-    branches:    
+    branches:
       - main
   repository_dispatch:
 jobs:
@@ -76,9 +76,9 @@ jobs:
 
       - name: retrieve Zero Trust organization
         run: |
-            auth_domain=$(curl https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/access/organizations \
-                -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}' | jq -r '.result.auth_domain')
-            printf "auth_domain=$auth_domain" >> $GITHUB_ENV
+          auth_domain=$(curl https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/access/organizations \
+              -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}' | jq -r '.result.auth_domain')
+          printf "auth_domain=$auth_domain" >> $GITHUB_ENV
 
       - name: retrieve Terraform state KV namespace
         uses: cloudflare/wrangler-action@2.0.0
@@ -161,7 +161,7 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         if: ${{ env.tfstate_kv == '' }}
-        
+
       - name: store VAPID keys state
         uses: cloudflare/wrangler-action@2.0.0
         with:
@@ -191,3 +191,4 @@ jobs:
           command: pages publish --project-name=wildebeest-${{ env.OWNER_LOWER }} .
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          COMMIT_HASH: ${{ github.sha }}

@@ -26,6 +26,7 @@ export const instanceLoader = loader$<
 
 export default component$(() => {
 	useContextProvider(InstanceConfigContext, instanceLoader.use().value)
+	const commitHash = getCommitHash()
 
 	return (
 		<>
@@ -52,7 +53,7 @@ export default component$(() => {
 				</div>
 			</main>
 			<footer class="flex justify-end p-2 bg-wildebeest-600 border-t border-wildebeest-700 xl:bg-transparent xl:mt-10 xl:mx-6">
-				<p class="text-sm text-wildebeest-500">v.{getCommitHash()}</p>
+				{commitHash && <p class="text-sm text-wildebeest-500">v.{commitHash}</p>}
 			</footer>
 		</>
 	)
