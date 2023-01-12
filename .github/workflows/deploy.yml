@@ -148,6 +148,9 @@ jobs:
           TF_VAR_wd_instance_title: ${{ vars.INSTANCE_TITLE }}
           TF_VAR_wd_admin_email: ${{ vars.ADMIN_EMAIL }}
           TF_VAR_wd_instance_description: ${{ vars.INSTANCE_DESCR }}
+          TF_VAR_sentry_dsn: ${{ secrets.SENTRY_DSN }}
+          TF_VAR_sentry_access_client_id: ${{ secrets.SENTRY_ACCESS_CLIENT_ID }}
+          TF_VAR_sentry_access_client_secret: ${{ secrets.SENTRY_ACCESS_CLIENT_SECRET }}
 
       - name: retrieve Terraform state KV namespace
         uses: cloudflare/wrangler-action@2.0.0
@@ -161,7 +164,7 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         if: ${{ env.tfstate_kv == '' }}
-        
+
       - name: store VAPID keys state
         uses: cloudflare/wrangler-action@2.0.0
         with:

@@ -45,6 +45,19 @@ variable "wd_instance_description" {
   sensitive = true
 }
 
+variable "sentry_dsn" {
+  type = string
+  sensitive = true
+}
+variable "sentry_access_client_id" {
+  type = string
+  sensitive = true
+}
+variable "sentry_access_client_secret" {
+  type = string
+  sensitive = true
+}
+
 terraform {
   required_providers {
     cloudflare = {
@@ -99,6 +112,10 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
         ADMIN_EMAIL    = var.wd_admin_email
         INSTANCE_DESCR = var.wd_instance_description
         VAPID_JWK      = sensitive(file("${path.module}/vapid_jwk"))
+
+        SENTRY_DSN                  = var.sentry_dsn
+        SENTRY_ACCESS_CLIENT_ID     = var.sentry_access_client_id
+        SENTRY_ACCESS_CLIENT_SECRET = var.sentry_access_client_secret
       }
       kv_namespaces = {
         KV_CACHE = sensitive(cloudflare_workers_kv_namespace.wildebeest_cache.id)
