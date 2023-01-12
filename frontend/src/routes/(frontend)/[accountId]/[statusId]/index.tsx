@@ -27,7 +27,7 @@ export default component$(() => {
 			<StickyHeader>
 				<div class="flex justify-between items-center xl:rounded-t header bg-wildebeest-700">
 					<Link class="text-semi no-underline text-wildebeest-vibrant-400 bg-transparent p-4" href="/explore">
-						<i class="fa fa-chevron-left mr-2" />
+						<i class="fa fa-chevron-left mr-2 w-3 inline-block" />
 						<span class="hover:underline">Back</span>
 					</Link>
 				</div>
@@ -77,17 +77,17 @@ export const InfoTray = component$<{ status: MastodonStatus }>(({ status }) => {
 			</Info>
 			<span> · </span>
 			<span>
-				<i class="fa fa-globe mx-3" />
+				<i class="fa fa-globe mx-3 w-4 inline-block" />
 				<span>Web</span>
 			</span>
 			<span> · </span>
 			<Info href={status.url ? `${status.url}/reblogs` : null}>
-				<i class="fa fa-retweet mx-3" />
+				<i class="fa fa-retweet mx-3 w-4 inline-block" />
 				<span>{formatRoundedNumber(status.reblogs_count)}</span>
 			</Info>
 			<span> · </span>
 			<Info href={status.url ? `${status.url}/favourites` : null}>
-				<i class="fa fa-star mx-3" />
+				<i class="fa fa-star mx-3 w-4 inline-block" />
 				<span>{formatRoundedNumber(status.favourites_count)}</span>
 			</Info>
 		</div>
