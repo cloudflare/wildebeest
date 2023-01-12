@@ -32,7 +32,7 @@ export async function handleRequest(
             actor_notifications.cdate as notif_cdate,
             actor_notifications.id as notif_id
         FROM actor_notifications
-        INNER JOIN objects ON objects.id=actor_notifications.object_id
+        LEFT JOIN objects ON objects.id=actor_notifications.object_id
         WHERE actor_notifications.id=? AND actor_notifications.actor_id=?
     `
 

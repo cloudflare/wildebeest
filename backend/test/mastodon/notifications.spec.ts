@@ -72,7 +72,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(notifications[2].status, undefined)
 		})
 
-		test('get single non existant notification', async () => {
+		test('get single favourite notification', async () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const fromActor = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
@@ -89,6 +89,24 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.type, 'favourite')
 			assert.equal(data.account.acct, 'from@cloudflare.com')
 			assert.equal(data.status.content, 'my first status')
+		})
+
+		test('get single follow notification', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const fromActor = await createPerson(domain, db, userKEK, 'from@cloudflare.com')
+			await insertFollowNotification(db, actor, fromActor)
+
+			const res = await notifications_get.handleRequest(domain, '1', db, actor)
+
+			assert.equal(res.status, 200)
+			assertJSON(res)
+
+			const data = await res.json<any>()
+			assert.equal(data.id, '1')
+			assert.equal(data.type, 'follow')
+			assert.equal(data.account.acct, 'from@cloudflare.com')
+			assert.equal(data.status, undefined)
 		})
 
 		test('send like notification', async () => {
