@@ -63,7 +63,10 @@ export async function handleRequest(
 	}
 
 	const headers = {
-		'content-type': 'application/json; charset=utf-8',
+		'Access-Control-Allow-Origin': '*',
+		'Access-Control-Allow-Headers': 'content-type, authorization',
+		'Access-Control-Allow-Methods': 'POST',
+		'content-type': 'application/json',
 	}
 	return new Response(JSON.stringify(res), { headers })
 }
