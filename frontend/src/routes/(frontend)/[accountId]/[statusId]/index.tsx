@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik'
+import { component$, Slot } from '@builder.io/qwik'
 import { MastodonStatus, StatusContext } from '~/types'
 import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
@@ -73,24 +73,40 @@ export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) =
 export const InfoTray = component$<{ status: MastodonStatus }>(({ status }) => {
 	return (
 		<div class="text-wildebeest-500 mt-4 text-sm">
-			<a href={status.url} class="no-underline">
+			<Info href={status.url}>
 				<span>{formatDateTime(status.created_at)}</span>
-			</a>
+			</Info>
 			<span> · </span>
 			<span>
 				<i class="fa fa-globe mx-3" />
 				<span>Web</span>
 			</span>
 			<span> · </span>
-			<a href={`${status.url}/reblogs`} class="no-underline">
+			<Info href={status.url ? `${status.url}/reblogs` : null}>
 				<i class="fa fa-retweet mx-3" />
 				<span>{formatRoundedNumber(status.reblogs_count)}</span>
-			</a>
+			</Info>
 			<span> · </span>
-			<a href={`${status.url}/favourites`} class="no-underline">
+			<Info href={status.url ? `${status.url}/favourites` : null}>
 				<i class="fa fa-star mx-3" />
 				<span>{formatRoundedNumber(status.favourites_count)}</span>
-			</a>
+			</Info>
 		</div>
+	)
+})
+
+export const Info = component$<{ href: string | null }>(({ href }) => {
+	return (
+		<>
+			{!href ? (
+				<span>
+					<Slot />
+				</span>
+			) : (
+				<a href={href} class="no-underline">
+					<Slot />
+				</a>
+			)}
+		</>
 	)
 })
