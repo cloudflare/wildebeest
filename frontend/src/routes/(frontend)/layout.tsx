@@ -18,7 +18,7 @@ export const instanceLoader = loader$<
 		INSTANCE_TITLE: platform.INSTANCE_TITLE,
 		ADMIN_EMAIL: platform.ADMIN_EMAIL,
 	} as Env
-	const response = await instance.handleRequest('', platform.DATABASE, env)
+	const response = await instance.handleRequest('', env)
 	const results = await response.text()
 	const json = JSON.parse(results) as InstanceConfig
 	return json
@@ -35,7 +35,7 @@ export default component$(() => {
 					<WildebeestLogo size="small" />
 				</a>
 			</header>
-			<main class="flex-1 flex justify-center main-wrapper top-[3.9rem]">
+			<main class="flex-1 flex justify-center top-[3.9rem]">
 				<div class="w-fit md:w-72 hidden xl:block mx-2.5">
 					<div class="sticky top-2.5">
 						<LeftColumn />
