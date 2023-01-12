@@ -34,47 +34,17 @@ export default component$(() => {
 				</div>
 			</StickyHeader>
 			<div class="bg-wildebeest-700 p-4">
-				{/* Account Card */}
-				<div class="flex">
-					<Avatar primary={status.account} secondary={null} />
-					<div class="flex flex-col">
-						<div class="p-1">
-							<a class="no-underline" href={status.account.url}>
-								{status.account.display_name}
-							</a>
-						</div>
-						<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>
-					</div>
-				</div>
-				{/* Content */}
+				<AccountCard status={status} />
+
 				<div class="leading-normal status-content text-lg" dangerouslySetInnerHTML={status.content} />
-				{/* Media Attachments */}
+
 				{mediaAttachment && (
 					<div class="flex justify-center" style={{ height: `${mediaAttachment.meta.small.height}px` }}>
 						{mediaAttachment.preview_url && <img class="rounded" src={mediaAttachment.preview_url} />}
 					</div>
 				)}
-				{/* Info Tray */}
-				<div class="text-wildebeest-500 mt-4 text-sm">
-					<a href={status.url} class="no-underline">
-						<span>{formatDateTime(status.created_at)}</span>
-					</a>
-					<span> · </span>
-					<span>
-						<i class="fa fa-globe mx-3" />
-						<span>Web</span>
-					</span>
-					<span> · </span>
-					<a href={`${status.url}/reblogs`} class="no-underline">
-						<i class="fa fa-retweet mx-3" />
-						<span>{formatRoundedNumber(status.reblogs_count)}</span>
-					</a>
-					<span> · </span>
-					<a href={`${status.url}/favourites`} class="no-underline">
-						<i class="fa fa-star mx-3" />
-						<span>{formatRoundedNumber(status.favourites_count)}</span>
-					</a>
-				</div>
+
+				<InfoTray status={status} />
 			</div>
 			<div>
 				{context.descendants.map((status) => {
@@ -82,5 +52,45 @@ export default component$(() => {
 				})}
 			</div>
 		</>
+	)
+})
+
+export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) => {
+	return (
+		<div class="flex">
+			<Avatar primary={status.account} secondary={null} />
+			<div class="flex flex-col">
+				<div class="p-1">
+					{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
+					<a class="no-underline">{status.account.display_name}</a>
+				</div>
+				<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>
+			</div>
+		</div>
+	)
+})
+
+export const InfoTray = component$<{ status: MastodonStatus }>(({ status }) => {
+	return (
+		<div class="text-wildebeest-500 mt-4 text-sm">
+			<a href={status.url} class="no-underline">
+				<span>{formatDateTime(status.created_at)}</span>
+			</a>
+			<span> · </span>
+			<span>
+				<i class="fa fa-globe mx-3" />
+				<span>Web</span>
+			</span>
+			<span> · </span>
+			<a href={`${status.url}/reblogs`} class="no-underline">
+				<i class="fa fa-retweet mx-3" />
+				<span>{formatRoundedNumber(status.reblogs_count)}</span>
+			</a>
+			<span> · </span>
+			<a href={`${status.url}/favourites`} class="no-underline">
+				<i class="fa fa-star mx-3" />
+				<span>{formatRoundedNumber(status.favourites_count)}</span>
+			</a>
+		</div>
 	)
 })
