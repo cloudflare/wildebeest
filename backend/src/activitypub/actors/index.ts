@@ -38,7 +38,11 @@ export interface Actor extends Object {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 export interface Person extends Actor {
-	publicKey: string
+	publicKey: {
+		id: string
+		owner: URL
+		publicKeyPem: string
+	}
 }
 
 export async function get(url: string | URL): Promise<Actor> {
@@ -111,14 +115,20 @@ export async function getPersonByEmail(db: D1Database, email: string): Promise<P
 	return personFromRow(row)
 }
 
-type Properties = { [key: string]: Properties | string }
+type PersonProperties = {
+	name?: string
+	summary?: string
+	icon?: { url: string }
+	image?: { url: string }
+	preferredUsername?: string
+}
 
 export async function createPerson(
 	domain: string,
 	db: D1Database,
 	userKEK: string,
 	email: string,
-	properties: Properties = {}
+	properties: PersonProperties = {}
 ): Promise<Person> {
 	const userKeyPair = await generateUserKey(userKEK)
 
@@ -181,18 +191,22 @@ export async function getPersonById(db: D1Database, id: URL): Promise<Person | n
 }
 
 export function personFromRow(row: any): Person {
-	const icon: Object = {
+	const properties = JSON.parse(row.properties) as PersonProperties
+	const icon = properties.icon ?? {
 		type: 'Image',
 		mediaType: 'image/jpeg',
 		url: new URL(defaultImages.avatar),
 		id: new URL(row.id + '#icon'),
 	}
-	const image: Object = {
+	const image = properties.image ?? {
 		type: 'Image',
 		mediaType: 'image/jpeg',
 		url: new URL(defaultImages.header),
 		id: new URL(row.id + '#image'),
 	}
+
+	const preferredUsername = properties.preferredUsername
+	const name = properties.name ?? preferredUsername
 
 	let publicKey = null
 	if (row.pubkey !== null) {
@@ -214,9 +228,11 @@ export function personFromRow(row: any): Person {
 		// Hidden values
 		[emailSymbol]: row.email,
 
-		name: row.preferredUsername,
+		...properties,
+		name,
 		icon,
 		image,
+		preferredUsername,
 		discoverable: true,
 		publicKey,
 		type: PERSON,
@@ -227,10 +243,6 @@ export function personFromRow(row: any): Person {
 		following: followingURL(row.id),
 		followers: followersURL(row.id),
 
-		url: new URL('@' + row.preferredUsername, 'https://' + domain),
-
-		// It's very possible that properties override the values set above.
-		// Almost guaranteed for remote user.
-		...JSON.parse(row.properties),
+		url: new URL('@' + preferredUsername, 'https://' + domain),
 	} as Person
 }

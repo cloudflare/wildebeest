@@ -6,15 +6,8 @@ import * as apOutbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as apFollow from 'wildebeest/backend/src/activitypub/actors/follow'
 
 function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
-	let avatar = defaultImages.avatar
-	let header = defaultImages.header
-
-	if (res.icon !== undefined && typeof res.icon.url === 'string') {
-		avatar = res.icon.url
-	}
-	if (res.image !== undefined && typeof res.image.url === 'string') {
-		header = res.image.url
-	}
+	const avatar = res.icon?.url.toString() ?? defaultImages.avatar
+	const header = res.image?.url.toString() ?? defaultImages.header
 
 	return {
 		acct,
