@@ -66,7 +66,7 @@ export async function handleRequest(
 		'Access-Control-Allow-Origin': '*',
 		'Access-Control-Allow-Headers': 'content-type, authorization',
 		'Access-Control-Allow-Methods': 'POST',
-		'content-type': 'application/json',
+		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })
 }
