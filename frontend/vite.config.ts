@@ -2,9 +2,8 @@ import { defineConfig } from 'vite'
 import { qwikVite } from '@builder.io/qwik/optimizer'
 import { qwikCity } from '@builder.io/qwik-city/vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import { execSync } from 'child_process'
 
-const commitHash = execSync('git rev-parse --short HEAD').toString().replace(/\n/g, '')
+const commitHash = process.env['COMMIT_HASH']?.slice(0, 7)
 
 export default defineConfig(() => {
 	return {
