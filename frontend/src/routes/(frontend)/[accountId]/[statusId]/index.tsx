@@ -55,13 +55,16 @@ export default component$(() => {
 })
 
 export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) => {
+	const accountUrl = `/@${status.account.username}`
+
 	return (
 		<div class="flex">
 			<Avatar primary={status.account} secondary={null} />
 			<div class="flex flex-col">
 				<div class="p-1">
-					{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
-					<a class="no-underline">{status.account.display_name}</a>
+					<Link href={accountUrl} class="no-underline">
+						{status.account.display_name}
+					</Link>
 				</div>
 				<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>
 			</div>

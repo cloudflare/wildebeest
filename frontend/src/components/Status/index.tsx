@@ -31,9 +31,9 @@ export default component$((props: Props) => {
 						<Avatar primary={status.account} secondary={reblogger} />
 						<div class="flex-col ml-3">
 							<div>
-								<a class="no-underline" href={status.account.url}>
+								<Link class="no-underline" href={accountUrl}>
 									{status.account.display_name}
-								</a>
+								</Link>
 							</div>
 							<div class="text-wildebeest-500">@{status.account.username}</div>
 						</div>
