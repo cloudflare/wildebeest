@@ -184,6 +184,7 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           preCommands: |
             echo "*** pre commands ***"
+            git config --global --add safe.directory /github/workspace
             yarn
             yarn build
             cp -rv ./frontend/dist/* .
