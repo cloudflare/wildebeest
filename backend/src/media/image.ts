@@ -29,7 +29,6 @@ export async function uploadImage(file: File, config: Config): Promise<URL> {
 		method: 'POST',
 		body: formData,
 		headers: {
-			'content-type': file.type,
 			authorization: 'Bearer ' + config.apiToken,
 		},
 	})
