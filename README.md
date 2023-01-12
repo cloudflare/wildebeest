@@ -49,8 +49,9 @@ Now press **_Create Custom Token_** and add the following permissions:
 - Workers KV Storage, account level, edit permission.
 - DNS, zone level, edit permission.
 - Cloudflare Images, account level, edit permission.
+- Workers Scripts, account level, edit permission.
 
-![token permissions](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/a29c3063-dc81-470b-3d57-ce047e0b3f00/public)
+![token permissions](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/c60327db-b651-4655-6c98-0f4e8c652600/public)
 
 You can limit the token to the specific zone where you will using Wildebeest if you want. Don't set a TTL.
 
