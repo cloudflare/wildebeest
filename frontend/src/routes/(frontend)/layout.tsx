@@ -18,7 +18,7 @@ export const instanceLoader = loader$<
 		INSTANCE_TITLE: platform.INSTANCE_TITLE,
 		ADMIN_EMAIL: platform.ADMIN_EMAIL,
 	} as Env
-	const response = await instance.handleRequest('', platform.DATABASE, env)
+	const response = await instance.handleRequest('', env)
 	const results = await response.text()
 	const json = JSON.parse(results) as InstanceConfig
 	return json
