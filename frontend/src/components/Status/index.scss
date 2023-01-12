@@ -8,10 +8,10 @@
     color: var(--wildebeest-vibrant-color-400);
   }
   a.mention {
-    color: #dbeafe;
+    color: var(--wildebeest-vibrant-color-200);
   }
   a.hashtag {
-    color: #dbeafe;
+    color: var(--wildebeest-vibrant-color-200);
   }
 
   p {
@@ -39,6 +39,6 @@
 }
 
 .status-link {
-  color: #dbeafe;
+  color: var(--wildebeest-vibrant-color-200);
 	text-decoration: none;
 }
