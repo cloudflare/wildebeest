@@ -181,6 +181,55 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
+      - name: retrieve Wildebeest cache KV namespace
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: kv:namespace list | jq -r '.[] | select( .title == "wildebeest-${{ env.OWNER_LOWER }}-cache" ) | .id' | awk '{print "cache_kv="$1}' >> $GITHUB_ENV
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          preCommands: |
+            echo "*** pre commands ***"
+            apt-get update && apt-get -y install jq
+            echo "******"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+      - name: Publish consumer
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          preCommands: |
+            echo "*** pre commands ***"
+            echo -e "[[d1_databases]]\nbinding=\"DATABASE\"\ndatabase_name=\"wildebeest-${{ env.OWNER_LOWER }}\"\ndatabase_id=\"${{ env.d1_id }}\"\n" >> consumer/wrangler.toml
+
+            echo -e "[[kv_namespaces]]\n" >> consumer/wrangler.toml
+            echo -e "binding=\"KV_CACHE\"\n" >> consumer/wrangler.toml
+            echo -e "id=\"${{ env.cache_kv }}\"\n" >> consumer/wrangler.toml
+
+            echo -e "[vars]\n" >> consumer/wrangler.toml
+            echo -e "DOMAIN=\"${{ vars.CF_DEPLOY_DOMAIN }}\"\n" >> consumer/wrangler.toml
+            echo -e "ADMIN_EMAIL=\"${{ vars.ADMIN_EMAIL }}\"\n" >> consumer/wrangler.toml
+            echo "******"
+          command: publish --config consumer/wrangler.toml
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+      - name: add Queue producer to Pages
+        run: |
+          curl https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/pages/projects/wildebeest-${{ env.OWNER_LOWER }} \
+              -XPATCH \
+              -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}' \
+              -d  ' {
+                  "deployment_configs": {
+                    "production": {
+                      "queue_producers": {
+                        "QUEUE": {
+                          "name": "wildebeest"
+                        }
+                      }
+                    }
+                  }
+                }' > /dev/null
+
       - name: Publish
         uses: cloudflare/wrangler-action@2.0.0
         with:
@@ -191,7 +240,7 @@ jobs:
             yarn build
             cp -rv ./frontend/dist/* .
             # remove folder that aren't needed in Pages before we upload
-            rm -rf ./tf ./scripts ./.github ./.npm
+            rm -rf ./tf ./scripts ./.github ./.npm ./consumer
             echo "******"
           command: pages publish --project-name=wildebeest-${{ env.OWNER_LOWER }} .
         env:
