@@ -12,8 +12,10 @@ const domain = 'cloudflare.com'
 describe('Mastodon APIs', () => {
 	describe('media', () => {
 		test('upload image creates object', async () => {
-			globalThis.fetch = async (input: RequestInfo) => {
+			globalThis.fetch = async (input: RequestInfo, data: any) => {
 				if (input === 'https://api.cloudflare.com/client/v4/accounts/testaccountid/images/v1') {
+					assert.equal(data.headers['content-type'], 'image/jpeg')
+
 					return new Response(
 						JSON.stringify({
 							success: true,
