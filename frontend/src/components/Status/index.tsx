@@ -70,7 +70,7 @@ export const RebloggerLink = ({ account }: { account: Account | null }) => {
 		account && (
 			<div class="flex text-wildebeest-500 py-3">
 				<p>
-					<i class="fa fa-retweet mr-3" />
+					<i class="fa fa-retweet mr-3 w-4 inline-block" />
 					<a class="no-underline" href={account.url}>
 						{account.display_name}
 					</a>
