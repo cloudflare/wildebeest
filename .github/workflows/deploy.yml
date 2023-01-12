@@ -190,6 +190,8 @@ jobs:
             yarn
             yarn build
             cp -rv ./frontend/dist/* .
+            # remove folder that aren't needed in Pages before we upload
+            rm -rf ./tf ./scripts ./.github ./.npm
             echo "******"
           command: pages publish --project-name=wildebeest-${{ env.OWNER_LOWER }} .
         env:
