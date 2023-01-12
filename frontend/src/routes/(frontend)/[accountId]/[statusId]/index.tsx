@@ -30,7 +30,6 @@ export default component$(() => {
 						<i class="fa fa-chevron-left mr-2" />
 						<span class="hover:underline">Back</span>
 					</Link>
-					<i class="fa fa-eye mr-4 text-wildebeest-400" />
 				</div>
 			</StickyHeader>
 			<div class="bg-wildebeest-700 p-4">
