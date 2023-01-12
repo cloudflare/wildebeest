@@ -75,17 +75,17 @@ export const InfoTray = component$<{ status: MastodonStatus }>(({ status }) => {
 			<Info href={status.url}>
 				<span>{formatDateTime(status.created_at)}</span>
 			</Info>
-			<span> · </span>
+			<span class="ml-3"> · </span>
 			<span>
 				<i class="fa fa-globe mx-3 w-4 inline-block" />
 				<span>Web</span>
 			</span>
-			<span> · </span>
+			<span class="ml-3"> · </span>
 			<Info href={status.url ? `${status.url}/reblogs` : null}>
 				<i class="fa fa-retweet mx-3 w-4 inline-block" />
 				<span>{formatRoundedNumber(status.reblogs_count)}</span>
 			</Info>
-			<span> · </span>
+			<span class="ml-3"> · </span>
 			<Info href={status.url ? `${status.url}/favourites` : null}>
 				<i class="fa fa-star mx-3 w-4 inline-block" />
 				<span>{formatRoundedNumber(status.favourites_count)}</span>
