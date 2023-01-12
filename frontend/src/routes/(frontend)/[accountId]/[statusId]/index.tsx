@@ -11,10 +11,12 @@ import { Avatar } from '~/components/avatar'
 export const statusLoader = loader$<
 	{ DATABASE: D1Database; domain: string },
 	Promise<{ status: MastodonStatus; context: StatusContext }>
->(async ({ platform, params }) => {
+>(async ({ redirect, platform, params }) => {
 	const response = await statusAPI.handleRequest(platform.DATABASE, params.statusId)
 	const results = await response.text()
-	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
+	if (!results) {
+		throw redirect(303, '/not-found')
+	}
 	return { status: JSON.parse(results), context: { ancestors: [], descendants: [] } }
 })
 
