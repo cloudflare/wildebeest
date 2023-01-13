@@ -1,6 +1,7 @@
 // https://www.w3.org/TR/activitypub/#delivery
 
-import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import type { MessageSendRequest, Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
+import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { Activity } from './activities'
 import type { Actor } from './actors'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
@@ -34,42 +35,30 @@ export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Act
 	}
 }
 
-export async function deliverFollowers(db: D1Database, signingKey: CryptoKey, from: Actor, activity: Activity) {
-	const body = JSON.stringify(activity)
+export async function deliverFollowers(
+	db: D1Database,
+	userKEK: string,
+	from: Actor,
+	activity: Activity,
+	queue: Queue<DeliverMessageBody>
+) {
 	const followers = await getFollowers(db, from)
 
-	const promises = followers.map(async (id) => {
-		const follower = new URL(id)
+	const messages: Array<MessageSendRequest<DeliverMessageBody>> = await Promise.all(
+		followers.map(async (id) => {
+			const body = {
+				// Make sure the object is supported by `structuredClone()`, ie
+				// removing the URL objects as they aren't clonabled.
+				activity: JSON.parse(JSON.stringify(activity)),
 
-		// FIXME: When an actor follows another Actor we should download its object
-		// locally, so we can retrieve the Actor's inbox without a request.
-
-		const targetActor = await actors.getAndCache(follower, db)
-		if (targetActor === null) {
-			console.warn(`actor ${follower} not found`)
-			return
-		}
-
-		const req = new Request(targetActor.inbox, {
-			method: 'POST',
-			body,
-			headers,
+				actorId: from.id.toString(),
+				toActorId: id,
+				type: MessageType.Deliver,
+				userKEK,
+			}
+			return { body }
 		})
-		const digest = await generateDigestHeader(body)
-		req.headers.set('Digest', digest)
-		await signRequest(req, signingKey, new URL(from.id))
+	)
 
-		const res = await fetch(req)
-		if (!res.ok) {
-			const body = await res.text()
-			console.error(`delivery to ${targetActor.inbox} returned ${res.status}: ${body}`)
-			return
-		}
-		{
-			const body = await res.text()
-			console.log(`${targetActor.inbox} returned 200: ${body}`)
-		}
-	})
-
-	await Promise.allSettled(promises)
+	await queue.sendBatch(messages)
 }

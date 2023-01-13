@@ -249,7 +249,7 @@ jobs:
             yarn build
             cp -rv ./frontend/dist/* .
             # remove folder that aren't needed in Pages before we upload
-            rm -rf ./tf ./scripts ./.github ./.npm ./consumer
+            rm -rf ./tf ./scripts ./.github ./.npm ./consumer ./*.md
             echo "******"
           command: pages publish --project-name=wildebeest-${{ env.OWNER_LOWER }} .
         env:

@@ -5,6 +5,10 @@ import { statuses } from 'wildebeest/frontend/src/dummyData'
 import type { Account, MastodonStatus } from 'wildebeest/frontend/src/types'
 
 const kek = 'test-kek'
+const queue = {
+	async send() {},
+	async sendBatch() {},
+}
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
  */
@@ -39,7 +43,7 @@ async function createStatus(db: D1Database, actor: Person, status: string, visib
 		headers,
 		body: JSON.stringify(body),
 	})
-	const resp = await statusesAPI.handleRequest(req, db, actor, kek)
+	const resp = await statusesAPI.handleRequest(req, db, actor, kek, queue)
 	return (await resp.json()) as MastodonStatus
 }
 
@@ -61,5 +65,5 @@ async function getOrCreatePerson(
 }
 
 async function reblogStatus(db: D1Database, actor: Person, status: MastodonStatus) {
-	await reblogAPI.handleRequest(db, status.id, actor, kek)
+	await reblogAPI.handleRequest(db, status.id, actor, kek, queue)
 }

@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
+import { MessageType } from 'wildebeest/backend/src/types/queue'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as accounts_following from 'wildebeest/functions/api/v1/accounts/[id]/following'
@@ -10,7 +11,7 @@ import * as accounts_follow from 'wildebeest/functions/api/v1/accounts/[id]/foll
 import * as accounts_unfollow from 'wildebeest/functions/api/v1/accounts/[id]/unfollow'
 import * as accounts_statuses from 'wildebeest/functions/api/v1/accounts/[id]/statuses'
 import * as accounts_get from 'wildebeest/functions/api/v1/accounts/[id]'
-import { isUrlValid, makeDB, assertCORS, assertJSON } from '../utils'
+import { isUrlValid, makeDB, assertCORS, assertJSON, makeQueue } from '../utils'
 import * as accounts_verify_creds from 'wildebeest/functions/api/v1/accounts/verify_credentials'
 import * as accounts_update_creds from 'wildebeest/functions/api/v1/accounts/update_credentials'
 import { createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
@@ -96,6 +97,7 @@ describe('Mastodon APIs', () => {
 
 		test('update credentials', async () => {
 			const db = await makeDB()
+			const queue = makeQueue()
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const updates = new FormData()
@@ -112,7 +114,8 @@ describe('Mastodon APIs', () => {
 				connectedActor,
 				'CF_ACCOUNT_ID',
 				'CF_API_TOKEN',
-				userKEK
+				userKEK,
+				queue
 			)
 			assert.equal(res.status, 200)
 
@@ -126,24 +129,13 @@ describe('Mastodon APIs', () => {
 			assert.equal(updatedActor.summary, 'hein')
 		})
 
-		test('update credentials sends update', async () => {
+		test('update credentials sends update to follower', async () => {
 			const db = await makeDB()
+			const queue = makeQueue()
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 			await addFollowing(db, actor2, connectedActor, 'sven2@' + domain)
 			await acceptFollowing(db, actor2, connectedActor)
-
-			let receivedActivity: any = null
-
-			globalThis.fetch = async (input: any) => {
-				if (input.url.toString() === `https://${domain}/ap/users/sven2/inbox`) {
-					assert.equal(input.method, 'POST')
-					receivedActivity = await input.json()
-					return new Response('')
-				}
-
-				throw new Error('unexpected request to ' + input.url)
-			}
 
 			const updates = new FormData()
 			updates.set('display_name', 'newsven')
@@ -158,14 +150,17 @@ describe('Mastodon APIs', () => {
 				connectedActor,
 				'CF_ACCOUNT_ID',
 				'CF_API_TOKEN',
-				userKEK
+				userKEK,
+				queue
 			)
 			assert.equal(res.status, 200)
 
-			assert(receivedActivity)
-			assert.equal(receivedActivity.type, 'Update')
-			assert.equal(receivedActivity.object.id.toString(), connectedActor.id.toString())
-			assert.equal(receivedActivity.object.name, 'newsven')
+			assert.equal(queue.messages.length, 1)
+
+			assert.equal(queue.messages[0].type, MessageType.Deliver)
+			assert.equal(queue.messages[0].activity.type, 'Update')
+			assert.equal(queue.messages[0].actorId, connectedActor.id.toString())
+			assert.equal(queue.messages[0].toActorId, actor2.id.toString())
 		})
 
 		test('update credentials avatar and header', async () => {
@@ -187,6 +182,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			const db = await makeDB()
+			const queue = makeQueue()
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const updates = new FormData()
@@ -203,7 +199,8 @@ describe('Mastodon APIs', () => {
 				connectedActor,
 				'CF_ACCOUNT_ID',
 				'CF_API_TOKEN',
-				userKEK
+				userKEK,
+				queue
 			)
 			assert.equal(res.status, 200)
 
