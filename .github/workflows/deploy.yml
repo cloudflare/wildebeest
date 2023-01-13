@@ -213,6 +213,15 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
+      - name: Create Queue
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: queues create wildebeest
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        continue-on-error: true
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
       - name: add Queue producer to Pages
         run: |
           curl https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/pages/projects/wildebeest-${{ env.OWNER_LOWER }} \
