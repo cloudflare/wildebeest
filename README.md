@@ -26,13 +26,19 @@ Some features, like data persistence, access controls, media storage, are handle
 - [Zero Trust Access](https://www.cloudflare.com/en-gb/products/zero-trust/access/) to handle user authentication and SSO on [any identity provider](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/).
 - [Images](https://www.cloudflare.com/en-gb/products/cloudflare-images/) for media handling.
 
-Most of our products offer a [generous free plan](https://www.cloudflare.com/en-gb/plans/) that allows our users to try them for personal or hobby projects that aren’t business-critical. However the **_Images_** one doesn't have a free tier, so for setting up your instance you need to activate one of the paid **_Images_** plans.
+Most of our products offer a [generous free plan](https://www.cloudflare.com/en-gb/plans/) that allows our users to try them for personal or hobby projects that aren’t business-critical. However, for setting up your instance, you need to activate one of the paid plans for **_Images_** and **_Workers_**.
 
 ### Images plan
 
 To activate **_Images_**, please login into your account, select **_Images_** on the left menu, and then select the plan that best fits your needs.
 
 ![images subscription](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/fd07dede-a883-4372-b0cf-3afb6b2ab400/public)
+
+### Workers plan
+
+To active the **_Workers_**, please login into your account, select **_Workers / Plans_** on the left menu, and then select the **_Pay-as-you-go_** -plan.
+
+<img width="1231" alt="Screenshot 2023-01-13 at 19 25 02" src="https://user-images.githubusercontent.com/679717/212381239-5b25bbc4-4225-4d45-8749-899578a07dde.png">
 
 ### API token
 
