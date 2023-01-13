@@ -192,6 +192,15 @@ jobs:
             echo "******"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          
+      - name: Create Queue
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: queues create wildebeest
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        continue-on-error: true
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
       - name: Publish consumer
         uses: cloudflare/wrangler-action@2.0.0
@@ -210,15 +219,6 @@ jobs:
             echo -e "ADMIN_EMAIL=\"${{ vars.ADMIN_EMAIL }}\"\n" >> consumer/wrangler.toml
             echo "******"
           command: publish --config consumer/wrangler.toml
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-
-      - name: Create Queue
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          command: queues create wildebeest
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-        continue-on-error: true
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
