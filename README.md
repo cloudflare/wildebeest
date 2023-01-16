@@ -36,11 +36,10 @@ To activate **_Images_**, please login into your account, select **_Images_** on
 
 ### API token
 
-Before we begin, you also need to create an API token in your Cloudflare account. To do that, [login](https://dash.cloudflare.com/) into your account, and press the **_Create Token_** button under **_My Profile (top right corner) / API Tokens_**.
+[Click here](https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=[{"key":"d1","type":"edit"},{"key":"page","type":"edit"},{"key":"images","type":"edit"},{"key":"access_acct","type":"read"},{"key":"workers_kv_storage","type":"edit"},{"key":"dns","type":"edit"},{"key":"access","type":"edit"},{"key":"workers_scripts","type":"edit"}]&name=Wildebeest) to create a Cloudflare API token with the necessary permissions for Wildebesst.
 
-![create token](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/589e9e1b-5c50-4269-f039-3414454c4a00/public)
-
-Now press **_Create Custom Token_** and add the following permissions:
+<details>
+<summary>API token permissions</summary>
 
 - D1, account level, edit permission.
 - Cloudflare Pages, account level, edit permission.
@@ -51,7 +50,7 @@ Now press **_Create Custom Token_** and add the following permissions:
 - Cloudflare Images, account level, edit permission.
 - Workers Scripts, account level, edit permission.
 
-![token permissions](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/c60327db-b651-4655-6c98-0f4e8c652600/public)
+</details>
 
 You can limit the token to the specific zone where you will using Wildebeest if you want. Don't set a TTL.
 
