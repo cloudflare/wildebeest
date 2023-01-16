@@ -32,6 +32,10 @@ function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
 
 		emojis: [],
 		fields: [],
+
+		followers_count: 0,
+		following_count: 0,
+		statuses_count: 0,
 	}
 }
 

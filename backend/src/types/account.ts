@@ -21,9 +21,9 @@ export interface MastodonAccount {
 	discoverable?: boolean
 	group?: boolean
 
-	followers_count?: number
-	following_count?: number
-	statuses_count?: number
+	followers_count: number
+	following_count: number
+	statuses_count: number
 
 	emojis: Array<any>
 	fields: Array<Field>
