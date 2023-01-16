@@ -109,7 +109,7 @@ describe('ActivityPub', () => {
 			}
 		})
 
-		test("should show private notes to target but doesn't yet", async () => {
+		test("doesn't show private note in target outbox", async () => {
 			const db = await makeDB()
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'target@cloudflare.com')
