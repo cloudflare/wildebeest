@@ -7,10 +7,11 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as activityCreate from 'wildebeest/backend/src/activitypub/activities/create'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, params.id as string, env.userKEK)
+	return handleRequest(domain, env.DATABASE, params.id as string)
 }
 
 const headers = {
@@ -21,8 +22,7 @@ const headers = {
 
 const DEFAULT_LIMIT = 20
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use userKEK
-export async function handleRequest(domain: string, db: D1Database, id: string, userKEK: string): Promise<Response> {
+export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 
 	if (handle.domain !== null) {
@@ -42,9 +42,11 @@ export async function handleRequest(domain: string, db: D1Database, id: string, 
 SELECT objects.*
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE outbox_objects.actor_id = ? AND objects.type = 'Note'
+WHERE outbox_objects.actor_id = ?1
+      AND objects.type = 'Note'
+      AND outbox_objects.target = '${PUBLIC_GROUP}'
 ORDER by outbox_objects.cdate DESC
-LIMIT ?
+LIMIT ?2
 `
 
 	const { success, error, results } = await db.prepare(QUERY).bind(actorId.toString(), DEFAULT_LIMIT).all()

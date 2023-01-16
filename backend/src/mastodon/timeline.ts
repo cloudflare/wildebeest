@@ -2,6 +2,7 @@ import type { MastodonStatus } from 'wildebeest/backend/src/types/status'
 import { getFollowingId } from 'wildebeest/backend/src/mastodon/follow'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
 import { toMastodonStatusFromRow } from './status'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 
 export async function pregenerateTimelines(domain: string, db: D1Database, cache: KVNamespace, actor: Actor) {
 	const timeline = await getHomeTimeline(domain, db, actor)
@@ -31,6 +32,7 @@ WHERE
      objects.type = 'Note'
      AND outbox_objects.actor_id IN (SELECT value FROM json_each(?))
      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
+     AND outbox_objects.target = '${PUBLIC_GROUP}'
 ORDER by outbox_objects.published_date DESC
 LIMIT ?
 `
@@ -97,6 +99,7 @@ INNER JOIN actors ON actors.id=outbox_objects.actor_id
 WHERE objects.type='Note'
       AND ${localPreferenceQuery(localPreference)}
       AND json_extract(objects.properties, '$.inReplyTo') IS NULL
+      AND outbox_objects.target = '${PUBLIC_GROUP}'
 ORDER by outbox_objects.published_date DESC
 LIMIT ?1 OFFSET ?2
 `

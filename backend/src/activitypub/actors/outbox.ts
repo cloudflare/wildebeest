@@ -2,20 +2,27 @@ import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { OrderedCollection, OrderedCollectionPage } from 'wildebeest/backend/src/activitypub/core'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 
-export async function addObjectInOutbox(db: D1Database, actor: Actor, obj: Object, published_date?: string) {
+export async function addObjectInOutbox(
+	db: D1Database,
+	actor: Actor,
+	obj: Object,
+	published_date?: string,
+	target: string = PUBLIC_GROUP
+) {
 	const id = crypto.randomUUID()
 	let out: any = null
 
 	if (published_date !== undefined) {
 		out = await db
-			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, published_date) VALUES(?, ?, ?, ?)')
-			.bind(id, actor.id.toString(), obj.id.toString(), published_date)
+			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, published_date, target) VALUES(?, ?, ?, ?, ?)')
+			.bind(id, actor.id.toString(), obj.id.toString(), published_date, target)
 			.run()
 	} else {
 		out = await db
-			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id) VALUES(?, ?, ?)')
-			.bind(id, actor.id.toString(), obj.id.toString())
+			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, target) VALUES(?, ?, ?, ?)')
+			.bind(id, actor.id.toString(), obj.id.toString(), target)
 			.run()
 	}
 	if (!out.success) {

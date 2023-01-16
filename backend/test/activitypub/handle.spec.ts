@@ -14,136 +14,6 @@ const vapidKeys = {} as JWK
 
 describe('ActivityPub', () => {
 	describe('handle Activity', () => {
-		test('Note to inbox stores in DB', async () => {
-			const db = await makeDB()
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-			const activity: any = {
-				type: 'Create',
-				actor: actor.id.toString(),
-				to: [actor.id.toString()],
-				cc: [],
-				object: {
-					id: 'https://example.com/note1',
-					type: 'Note',
-					content: 'test note',
-				},
-			}
-			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-			const entry = await db
-				.prepare('SELECT objects.* FROM inbox_objects INNER JOIN objects ON objects.id=inbox_objects.object_id')
-				.first()
-			const properties = JSON.parse(entry.properties)
-			assert.equal(properties.content, 'test note')
-		})
-
-		test("Note adds in remote actor's outbox", async () => {
-			const remoteActorId = 'https://example.com/actor'
-
-			globalThis.fetch = async (input: RequestInfo) => {
-				if (input.toString() === remoteActorId) {
-					return new Response(
-						JSON.stringify({
-							id: remoteActorId,
-							type: 'Person',
-						})
-					)
-				}
-
-				throw new Error('unexpected request to ' + input)
-			}
-
-			const db = await makeDB()
-			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-			const activity: any = {
-				type: 'Create',
-				actor: remoteActorId,
-				to: [],
-				cc: [],
-				object: {
-					id: 'https://example.com/note1',
-					type: 'Note',
-					content: 'test note',
-				},
-			}
-			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-			const entry = await db.prepare('SELECT * FROM outbox_objects WHERE actor_id=?').bind(remoteActorId).first()
-			assert.equal(entry.actor_id, remoteActorId)
-		})
-
-		test('local actor sends Note with mention create notification', async () => {
-			const db = await makeDB()
-			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
-
-			const activity: any = {
-				type: 'Create',
-				actor: actorB.id.toString(),
-				to: [actorA.id.toString()],
-				cc: [],
-				object: {
-					id: 'https://example.com/note2',
-					type: 'Note',
-					content: 'test note',
-				},
-			}
-			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
-			assert(entry)
-			assert.equal(entry.type, 'mention')
-			assert.equal(entry.actor_id.toString(), actorA.id.toString())
-			assert.equal(entry.from_actor_id.toString(), actorB.id.toString())
-		})
-
-		test('Note records reply', async () => {
-			const db = await makeDB()
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-			{
-				const activity: any = {
-					type: 'Create',
-					actor: actor.id.toString(),
-					to: [actor.id.toString()],
-					object: {
-						id: 'https://example.com/note1',
-						type: 'Note',
-						content: 'post',
-					},
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-			}
-
-			{
-				const activity: any = {
-					type: 'Create',
-					actor: actor.id.toString(),
-					to: [actor.id.toString()],
-					object: {
-						inReplyTo: 'https://example.com/note1',
-						id: 'https://example.com/note2',
-						type: 'Note',
-						content: 'reply',
-					},
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-			}
-
-			const entry = await db.prepare('SELECT * FROM actor_replies').first()
-			assert.equal(entry.actor_id, actor.id.toString().toString())
-
-			const obj: any = await getObjectById(db, entry.object_id)
-			assert(obj)
-			assert.equal(obj.originalObjectId, 'https://example.com/note2')
-
-			const inReplyTo: any = await getObjectById(db, entry.in_reply_to_object_id)
-			assert(inReplyTo)
-			assert.equal(inReplyTo.originalObjectId, 'https://example.com/note1')
-		})
-
 		describe('Announce', () => {
 			test('records reblog in db', async () => {
 				const db = await makeDB()
@@ -313,6 +183,157 @@ describe('ActivityPub', () => {
 				await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
 					message: '`activity.object` must be of type object',
 				})
+			})
+
+			test('Note to inbox stores in DB', async () => {
+				const db = await makeDB()
+				const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+				const activity: any = {
+					type: 'Create',
+					actor: actor.id.toString(),
+					to: [actor.id.toString()],
+					cc: [],
+					object: {
+						id: 'https://example.com/note1',
+						type: 'Note',
+						content: 'test note',
+					},
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const entry = await db
+					.prepare('SELECT objects.* FROM inbox_objects INNER JOIN objects ON objects.id=inbox_objects.object_id')
+					.first()
+				const properties = JSON.parse(entry.properties)
+				assert.equal(properties.content, 'test note')
+			})
+
+			test("Note adds in remote actor's outbox", async () => {
+				const remoteActorId = 'https://example.com/actor'
+
+				globalThis.fetch = async (input: RequestInfo) => {
+					if (input.toString() === remoteActorId) {
+						return new Response(
+							JSON.stringify({
+								id: remoteActorId,
+								type: 'Person',
+							})
+						)
+					}
+
+					throw new Error('unexpected request to ' + input)
+				}
+
+				const db = await makeDB()
+				await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+				const activity: any = {
+					type: 'Create',
+					actor: remoteActorId,
+					to: [],
+					cc: [],
+					object: {
+						id: 'https://example.com/note1',
+						type: 'Note',
+						content: 'test note',
+					},
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const entry = await db.prepare('SELECT * FROM outbox_objects WHERE actor_id=?').bind(remoteActorId).first()
+				assert.equal(entry.actor_id, remoteActorId)
+			})
+
+			test('local actor sends Note with mention create notification', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+				const activity: any = {
+					type: 'Create',
+					actor: actorB.id.toString(),
+					to: [actorA.id.toString()],
+					cc: [],
+					object: {
+						id: 'https://example.com/note2',
+						type: 'Note',
+						content: 'test note',
+					},
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const entry = await db.prepare('SELECT * FROM actor_notifications').first()
+				assert(entry)
+				assert.equal(entry.type, 'mention')
+				assert.equal(entry.actor_id.toString(), actorA.id.toString())
+				assert.equal(entry.from_actor_id.toString(), actorB.id.toString())
+			})
+
+			test('Note records reply', async () => {
+				const db = await makeDB()
+				const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+				{
+					const activity: any = {
+						type: 'Create',
+						actor: actor.id.toString(),
+						to: [actor.id.toString()],
+						object: {
+							id: 'https://example.com/note1',
+							type: 'Note',
+							content: 'post',
+						},
+					}
+					await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+				}
+
+				{
+					const activity: any = {
+						type: 'Create',
+						actor: actor.id.toString(),
+						to: [actor.id.toString()],
+						object: {
+							inReplyTo: 'https://example.com/note1',
+							id: 'https://example.com/note2',
+							type: 'Note',
+							content: 'reply',
+						},
+					}
+					await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+				}
+
+				const entry = await db.prepare('SELECT * FROM actor_replies').first()
+				assert.equal(entry.actor_id, actor.id.toString().toString())
+
+				const obj: any = await getObjectById(db, entry.object_id)
+				assert(obj)
+				assert.equal(obj.originalObjectId, 'https://example.com/note2')
+
+				const inReplyTo: any = await getObjectById(db, entry.in_reply_to_object_id)
+				assert(inReplyTo)
+				assert.equal(inReplyTo.originalObjectId, 'https://example.com/note1')
+			})
+
+			test('preserve Note sent with `to`', async () => {
+				const db = await makeDB()
+				const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+				const activity: any = {
+					type: 'Create',
+					actor: actor.id.toString(),
+					to: ['some actor'],
+					cc: [],
+					object: {
+						id: 'https://example.com/note1',
+						type: 'Note',
+						content: 'test note',
+					},
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const row = await db.prepare('SELECT * FROM outbox_objects').first()
+				assert.equal(row.target, 'some actor')
 			})
 		})
 

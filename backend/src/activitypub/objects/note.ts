@@ -3,10 +3,10 @@
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { followersURL } from 'wildebeest/backend/src/activitypub/actors'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import * as objects from '.'
 
 const NOTE = 'Note'
-export const PUBLIC = 'https://www.w3.org/ns/activitystreams#Public'
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 export interface Note extends objects.Object {
@@ -34,8 +34,39 @@ export async function createPublicNote(
 	const properties = {
 		attributedTo: actorId,
 		content,
-		to: [PUBLIC],
+		to: [PUBLIC_GROUP],
 		cc: [followersURL(actorId)],
+
+		// FIXME: stub values
+		inReplyTo: null,
+		replies: null,
+		sensitive: false,
+		summary: null,
+		tag: [],
+		attachment,
+
+		...extraProperties,
+	}
+
+	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
+}
+
+export async function createPrivateNote(
+	domain: string,
+	db: D1Database,
+	content: string,
+	actor: Actor,
+	targetActor: Actor,
+	attachment: Array<Document> = [],
+	extraProperties: any = {}
+): Promise<Note> {
+	const actorId = new URL(actor.id)
+
+	const properties = {
+		attributedTo: actorId,
+		content,
+		to: [targetActor.id.toString()],
+		cc: [],
 
 		// FIXME: stub values
 		inReplyTo: null,
