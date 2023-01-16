@@ -1,4 +1,5 @@
 import { makeDB, isUrlValid } from './utils'
+import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
@@ -148,9 +149,9 @@ describe('ActivityPub', () => {
 			assert.equal(res.status, 200)
 
 			assert(msg)
-			assert.equal(msg.type, 'activity')
+			assert.equal(msg.type, MessageType.Inbox)
 			assert.equal(msg.actorId, actor.id.toString())
-			assert.equal(msg.content.type, 'some activity')
+			assert.equal(msg.activity.type, 'some activity')
 		})
 	})
 })

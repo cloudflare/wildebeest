@@ -1,5 +1,5 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
-
+import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
@@ -23,7 +23,7 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK)
+	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK, env.QUEUE)
 }
 
 // FIXME: add tests for delivery to followers and mentions to a specific Actor.
@@ -31,7 +31,8 @@ export async function handleRequest(
 	request: Request,
 	db: D1Database,
 	connectedActor: Person,
-	userKEK: string
+	userKEK: string,
+	queue: Queue<DeliverMessageBody>
 ): Promise<Response> {
 	// TODO: implement Idempotency-Key
 
@@ -64,28 +65,29 @@ export async function handleRequest(
 	const note = await createPublicNote(domain, db, body.status, connectedActor, mediaAttachments)
 	await addObjectInOutbox(db, connectedActor, note)
 
-	// If the status is mentioning other persons, we need to delivery it to them.
-	const mentions = getMentions(body.status)
-	for (let i = 0, len = mentions.length; i < len; i++) {
-		if (mentions[i].domain === null) {
-			// Only deliver the note for remote actors
-			continue
-		}
-		const acct = `${mentions[i].localPart}@${mentions[i].domain}`
-		const targetActor = await queryAcct(mentions[i].domain!, acct)
-		if (targetActor === null) {
-			console.warn(`actor ${acct} not found`)
-			continue
-		}
-		note.to.push(targetActor.id.toString())
-		const activity = activities.create(domain, connectedActor, note)
-		const signingKey = await getSigningKey(userKEK, db, connectedActor)
-		await deliverToActor(signingKey, connectedActor, targetActor, activity)
-	}
-
 	const activity = activities.create(domain, connectedActor, note)
-	const signingKey = await getSigningKey(userKEK, db, connectedActor)
-	await deliverFollowers(db, signingKey, connectedActor, activity)
+	await deliverFollowers(db, userKEK, connectedActor, activity, queue)
+
+	{
+		// If the status is mentioning other persons, we need to delivery it to them.
+		const mentions = getMentions(body.status)
+		for (let i = 0, len = mentions.length; i < len; i++) {
+			if (mentions[i].domain === null) {
+				// Only deliver the note for remote actors
+				continue
+			}
+			const acct = `${mentions[i].localPart}@${mentions[i].domain}`
+			const targetActor = await queryAcct(mentions[i].domain!, acct)
+			if (targetActor === null) {
+				console.warn(`actor ${acct} not found`)
+				continue
+			}
+			note.to.push(targetActor.id.toString())
+			const activity = activities.create(domain, connectedActor, note)
+			const signingKey = await getSigningKey(userKEK, db, connectedActor)
+			await deliverToActor(signingKey, connectedActor, targetActor, activity)
+		}
+	}
 
 	const account = await loadLocalMastodonAccount(db, connectedActor)
 

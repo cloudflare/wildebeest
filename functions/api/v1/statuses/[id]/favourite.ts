@@ -34,7 +34,7 @@ export async function handleRequest(
 
 	if (obj.originalObjectId && obj.originalActorId) {
 		// Liking an external object delivers the like activity
-		const targetActor = await actors.get(obj.originalActorId)
+		const targetActor = await actors.getAndCache(new URL(obj.originalActorId), db)
 		if (!targetActor) {
 			return new Response(`target Actor ${obj.originalActorId} not found`, { status: 404 })
 		}

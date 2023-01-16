@@ -1,8 +1,10 @@
+import type { Queue, MessageBody } from 'wildebeest/backend/src/types/queue'
+
 export interface Env {
 	DATABASE: D1Database
 	KV_CACHE: KVNamespace
 	userKEK: string
-	QUEUE: Queue
+	QUEUE: Queue<MessageBody>
 
 	CF_ACCOUNT_ID: string
 	CF_API_TOKEN: string

@@ -1,6 +1,7 @@
 name = "wildebeest-consumer"
 compatibility_date = "2023-01-12"
 main = "./src/index.ts"
+usage_model = "unbound"
 
 [[queues.consumers]]
   queue = "wildebeest"

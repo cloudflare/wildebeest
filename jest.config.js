@@ -2,7 +2,7 @@
 export default {
 	preset: 'ts-jest',
 	verbose: true,
-	testMatch: ["<rootDir>/backend/test/**/(*.)+(spec|test).[jt]s?(x)"],
+	testMatch: ["<rootDir>/(backend|consumer)/test/**/(*.)+(spec|test).[jt]s?(x)"],
 	testTimeout: 30000,
 	testEnvironment: 'miniflare',
 	// Configuration is automatically loaded from `.env`, `package.json` and
