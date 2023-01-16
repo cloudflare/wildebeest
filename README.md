@@ -36,7 +36,7 @@ To activate **_Images_**, please login into your account, select **_Images_** on
 
 ### API token
 
-[Click here](https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=[{"key":"d1","type":"edit"},{"key":"page","type":"edit"},{"key":"images","type":"edit"},{"key":"access_acct","type":"read"},{"key":"workers_kv_storage","type":"edit"},{"key":"dns","type":"edit"},{"key":"access","type":"edit"},{"key":"workers_scripts","type":"edit"}]&name=Wildebeest) to create a Cloudflare API token with the necessary permissions for Wildebesst.
+[Click here](https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=[{"key":"d1","type":"edit"},{"key":"page","type":"edit"},{"key":"images","type":"edit"},{"key":"access_acct","type":"read"},{"key":"workers_kv_storage","type":"edit"},{"key":"dns","type":"edit"},{"key":"access","type":"edit"},{"key":"workers_scripts","type":"edit"}]&name=Wildebeest) to create a Cloudflare API token with the necessary permissions for Wildebeest.
 
 <details>
 <summary>API token permissions</summary>
