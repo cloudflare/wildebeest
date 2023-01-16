@@ -20,6 +20,9 @@ import { MessageType } from 'wildebeest/backend/src/types/queue'
 const userKEK = 'test_kek4'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const domain = 'cloudflare.com'
+const kv_cache: any = {
+	async put() {},
+}
 
 describe('Mastodon APIs', () => {
 	describe('statuses', () => {
@@ -35,7 +38,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor: any = {}
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
 			assert.equal(res.status, 400)
 		})
 
@@ -55,7 +58,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor = actor
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
 			assert.equal(res.status, 200)
 			assertJSON(res)
 
@@ -89,6 +92,41 @@ describe('Mastodon APIs', () => {
 			assert.equal(row.original_object_id, null)
 		})
 
+		test('create new status regenerates the timeline and contains post', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			let cache = null
+			const kv_cache: any = {
+				async put(key: string, value: any) {
+					assert.equal(key, actor.id + '/timeline/home')
+					cache = value
+				},
+			}
+
+			const body = {
+				status: 'my status',
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			assert.equal(res.status, 200)
+			assertJSON(res)
+
+			const data = await res.json<any>()
+
+			assert(cache)
+			const timeline = JSON.parse(cache)
+			assert.equal(timeline.length, 1)
+			assert.equal(timeline[0].id, data.id)
+		})
+
 		test("create new status adds to Actor's outbox", async () => {
 			const db = await makeDB()
 			const queue = makeQueue()
@@ -105,7 +143,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor = actor
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
 			assert.equal(res.status, 200)
 
 			const row = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first()
@@ -133,7 +171,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const res = await statuses.handleRequest(req, db, actor, userKEK, queue)
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
 			assert.equal(res.status, 200)
 
 			assert.equal(queue.messages.length, 2)
@@ -212,7 +250,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor = actor
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
 			assert.equal(res.status, 200)
 
 			assert(deliveredNote)
@@ -229,7 +267,7 @@ describe('Mastodon APIs', () => {
 			const queue = makeQueue()
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const properties = { url: 'foo' }
+			const properties = { url: 'https://example.com/image.jpg' }
 			const image = await createImage(domain, db, connectedActor, properties)
 
 			const body = {
@@ -243,7 +281,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()

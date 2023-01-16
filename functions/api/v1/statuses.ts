@@ -1,4 +1,5 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
+import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
@@ -23,7 +24,7 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK, env.QUEUE)
+	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK, env.QUEUE, env.KV_CACHE)
 }
 
 // FIXME: add tests for delivery to followers and mentions to a specific Actor.
@@ -32,7 +33,8 @@ export async function handleRequest(
 	db: D1Database,
 	connectedActor: Person,
 	userKEK: string,
-	queue: Queue<DeliverMessageBody>
+	queue: Queue<DeliverMessageBody>,
+	cache: KVNamespace
 ): Promise<Response> {
 	// TODO: implement Idempotency-Key
 
@@ -88,6 +90,8 @@ export async function handleRequest(
 			await deliverToActor(signingKey, connectedActor, targetActor, activity)
 		}
 	}
+
+	await timeline.pregenerateTimelines(domain, db, cache, connectedActor)
 
 	const account = await loadLocalMastodonAccount(db, connectedActor)
 
