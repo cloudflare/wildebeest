@@ -5,13 +5,16 @@ import { statuses } from 'wildebeest/frontend/src/dummyData'
 import type { Account, MastodonStatus } from 'wildebeest/frontend/src/types'
 
 const kek = 'test-kek'
+/* eslint-disable @typescript-eslint/no-empty-function */
 const queue = {
 	async send() {},
 	async sendBatch() {},
 }
-const kv_cache: any = {
+const kv_cache = {
 	async put() {},
 }
+/* eslint-enable @typescript-eslint/no-empty-function */
+
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
  */
@@ -46,7 +49,7 @@ async function createStatus(db: D1Database, actor: Person, status: string, visib
 		headers,
 		body: JSON.stringify(body),
 	})
-	const resp = await statusesAPI.handleRequest(req, db, actor, kek, queue, kv_cache)
+	const resp = await statusesAPI.handleRequest(req, db, actor, kek, queue, kv_cache as unknown as KVNamespace)
 	return (await resp.json()) as MastodonStatus
 }
 
