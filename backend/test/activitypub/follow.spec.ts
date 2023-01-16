@@ -149,5 +149,26 @@ describe('ActivityPub', () => {
 			assert.equal(entry.actor_id.toString(), actor.id.toString())
 			assert.equal(entry.from_actor_id.toString(), actor2.id.toString())
 		})
+
+		test('ignore when trying to follow multiple times', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Follow',
+				actor: actor2.id,
+				object: actor.id,
+			}
+
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+			// Even if we followed multiple times, only one row should be present.
+			const { count } = await db.prepare(`SELECT count(*) as count FROM actor_following`).first()
+			assert.equal(count, 1)
+		})
 	})
 })

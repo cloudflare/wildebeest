@@ -9,7 +9,7 @@ export async function addFollowing(db: D1Database, actor: Actor, target: Actor, 
 	const id = crypto.randomUUID()
 
 	const query = `
-		INSERT INTO actor_following (id, actor_id, target_actor_id, state, target_actor_acct)
+		INSERT OR IGNORE INTO actor_following (id, actor_id, target_actor_id, state, target_actor_acct)
 		VALUES (?, ?, ?, ?, ?)
 	`
 

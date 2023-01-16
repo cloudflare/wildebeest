@@ -3,6 +3,7 @@ import type { Queue } from 'wildebeest/backend/src/types/queue'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
 import type { Client } from 'wildebeest/backend/src/mastodon/client'
 import { promises as fs } from 'fs'
+import * as path from 'path'
 import { BetaDatabase } from '@miniflare/d1'
 import * as Database from 'better-sqlite3'
 
@@ -21,8 +22,12 @@ export async function makeDB(): Promise<any> {
 	const db2 = new BetaDatabase(db)!
 
 	// Manually run our migrations since @miniflare/d1 doesn't support it (yet).
-	const initial = await fs.readFile('./migrations/0000_initial.sql', 'utf-8')
-	await db.exec(initial)
+	const migrations = await fs.readdir('./migrations/')
+
+	for (let i = 0, len = migrations.length; i < len; i++) {
+		const content = await fs.readFile(path.join('migrations', migrations[i]), 'utf-8')
+		await db.exec(content)
+	}
 
 	return db2
 }

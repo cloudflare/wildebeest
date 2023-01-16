@@ -224,12 +224,10 @@ export async function handle(
 				const originalActor = await actors.getAndCache(new URL(actorId), db)
 				const receiverAcct = `${receiver.preferredUsername}@${domain}`
 
-				await Promise.all([
-					addFollowing(db, originalActor, receiver, receiverAcct),
-					acceptFollowing(db, originalActor, receiver),
-				])
+				await addFollowing(db, originalActor, receiver, receiverAcct)
 
 				// Automatically send the Accept reply
+				await acceptFollowing(db, originalActor, receiver)
 				const reply = accept.create(receiver, activity)
 				const signingKey = await getSigningKey(userKEK, db, receiver)
 				await deliverToActor(signingKey, receiver, originalActor, reply)
