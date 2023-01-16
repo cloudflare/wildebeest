@@ -28,8 +28,22 @@ const FIELDS = [
 	},
 ]
 
+const API_TOKEN_TEMPLATE = JSON.stringify([
+	{ key: 'd1', type: 'edit' },
+	{ key: 'page', type: 'edit' },
+	{ key: 'images', type: 'edit' },
+	{ key: 'access', type: 'edit' },
+	{ key: 'workers_kv_storage', type: 'edit' },
+	{ key: 'access_acct', type: 'read' },
+	{ key: 'dns', type: 'edit' },
+	{ key: 'workers_script', type: 'edit' },
+])
+
 const fields = FIELDS.map((x) => JSON.stringify(x))
 	.map((v) => `fields=${v}`)
 	.join('&')
-const url = new URL(`/?url=${PROJECT_URL}&authed=true&${fields}`, ONE_CLICK_BASE_URL)
+const url = new URL(
+	`/?url=${PROJECT_URL}&authed=true&${fields}&apiTokenTmpl=${API_TOKEN_TEMPLATE}&apiTokenName=Wildebeest`,
+	ONE_CLICK_BASE_URL
+)
 console.log(url.href)
