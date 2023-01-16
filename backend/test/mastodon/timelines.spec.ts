@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert/strict'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
-import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createPublicNote, createPrivateNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { makeDB, assertCORS, assertJSON } from '../utils'
@@ -51,6 +51,40 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[1].account.username, 'sven2')
 			assert.equal(data[1].favourites_count, 1)
 			assert.equal(data[1].reblogs_count, 1)
+		})
+
+		test("home doesn't show private Notes from followed actors", async () => {
+			const db = await makeDB()
+			const actor1 = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+			const actor3 = await createPerson(domain, db, userKEK, 'sven3@cloudflare.com')
+
+			// actor3 follows actor1 and actor2
+			await addFollowing(db, actor3, actor1, 'not needed')
+			await acceptFollowing(db, actor3, actor1)
+			await addFollowing(db, actor3, actor2, 'not needed')
+			await acceptFollowing(db, actor3, actor2)
+
+			// actor2 sends a DM to actor1
+			const note = await createPrivateNote(domain, db, 'DM', actor2, actor1)
+			await addObjectInOutbox(db, actor2, note, undefined, actor1.id.toString())
+
+			// actor3 shouldn't see the private note
+			const data = await timelines.getHomeTimeline(domain, db, actor3)
+			assert.equal(data.length, 0)
+		})
+
+		test("public doesn't show private Notes", async () => {
+			const db = await makeDB()
+			const actor1 = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+
+			// actor2 sends a DM to actor1
+			const note = await createPrivateNote(domain, db, 'DM', actor2, actor1)
+			await addObjectInOutbox(db, actor2, note, undefined, actor1.id.toString())
+
+			const data = await timelines.getPublicTimeline(domain, db, timelines.LocalPreference.NotSet)
+			assert.equal(data.length, 0)
 		})
 
 		test('home returns Notes from ourself', async () => {

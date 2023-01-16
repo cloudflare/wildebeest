@@ -1,4 +1,5 @@
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
@@ -131,11 +132,17 @@ export async function handle(
 			// FIXME: download any attachment Objects
 
 			let recipients: Array<string> = []
+			let target = PUBLIC_GROUP
 
-			if (Array.isArray(activity.to)) {
+			if (Array.isArray(activity.to) && activity.to.length > 0) {
 				recipients = [...recipients, ...activity.to]
+
+				if (activity.to.length !== 1) {
+					console.warn("multiple `Activity.to` isn't supported")
+				}
+				target = activity.to[0]
 			}
-			if (Array.isArray(activity.cc)) {
+			if (Array.isArray(activity.cc) && activity.cc.length > 0) {
 				recipients = [...recipients, ...activity.cc]
 			}
 
@@ -172,7 +179,7 @@ export async function handle(
 			const fromActor = await actors.getAndCache(getActorAsId(), db)
 			// Add the object in the originating actor's outbox, allowing other
 			// actors on this instance to see the note in their timelines.
-			await addObjectInOutbox(db, fromActor, obj, activity.published)
+			await addObjectInOutbox(db, fromActor, obj, activity.published, target)
 
 			for (let i = 0, len = recipients.length; i < len; i++) {
 				const handle = parseHandle(extractID(domain, recipients[i]))

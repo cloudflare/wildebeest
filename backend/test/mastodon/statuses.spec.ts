@@ -13,7 +13,7 @@ import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { isUrlValid, makeDB, assertJSON, streamToArrayBuffer, makeQueue } from '../utils'
-import * as note from 'wildebeest/backend/src/activitypub/objects/note'
+import * as activities from 'wildebeest/backend/src/activitypub/activities'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 
@@ -220,7 +220,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(deliveredNote.actor, `https://${domain}/ap/users/sven`)
 			assert.equal(deliveredNote.object.attributedTo, `https://${domain}/ap/users/sven`)
 			assert.equal(deliveredNote.object.type, 'Note')
-			assert(deliveredNote.object.to.includes(note.PUBLIC))
+			assert(deliveredNote.object.to.includes(activities.PUBLIC_GROUP))
 			assert.equal(deliveredNote.object.cc.length, 1)
 		})
 

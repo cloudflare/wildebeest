@@ -2,7 +2,7 @@ import { makeDB, isUrlValid } from './utils'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createPublicNote, createPrivateNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
 import { cacheObject } from 'wildebeest/backend/src/activitypub/objects/'
@@ -74,7 +74,7 @@ describe('ActivityPub', () => {
 			await sleep(10)
 			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my second status', actor))
 
-			const res = await ap_outbox_page.handleRequest(domain, db, 'sven', userKEK)
+			const res = await ap_outbox_page.handleRequest(domain, db, 'sven')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -82,6 +82,46 @@ describe('ActivityPub', () => {
 			assert.equal(data.orderedItems.length, 2)
 			assert.equal(data.orderedItems[0].object.content, 'my second status')
 			assert.equal(data.orderedItems[1].object.content, 'my first status')
+		})
+
+		test("doesn't show private notes to anyone", async () => {
+			const db = await makeDB()
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+			const note = await createPrivateNote(domain, db, 'DM', actorA, actorB)
+			await addObjectInOutbox(db, actorA, note, undefined, actorB.id.toString())
+
+			{
+				const res = await ap_outbox_page.handleRequest(domain, db, 'a')
+				assert.equal(res.status, 200)
+
+				const data = await res.json<any>()
+				assert.equal(data.orderedItems.length, 0)
+			}
+
+			{
+				const res = await ap_outbox_page.handleRequest(domain, db, 'b')
+				assert.equal(res.status, 200)
+
+				const data = await res.json<any>()
+				assert.equal(data.orderedItems.length, 0)
+			}
+		})
+
+		test("should show private notes to target but doesn't yet", async () => {
+			const db = await makeDB()
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'target@cloudflare.com')
+
+			const note = await createPrivateNote(domain, db, 'DM', actorA, actorB)
+			await addObjectInOutbox(db, actorA, note)
+
+			const res = await ap_outbox_page.handleRequest(domain, db, 'target')
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.orderedItems.length, 0)
 		})
 	})
 
