@@ -123,6 +123,8 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
       d1_databases = {
         DATABASE = sensitive(var.d1_id)
       }
+
+      compatibility_date = "2023-01-09"
     }
   }
 }

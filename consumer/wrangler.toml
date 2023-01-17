@@ -1,5 +1,5 @@
 name = "wildebeest-consumer"
-compatibility_date = "2023-01-12"
+compatibility_date = "2023-01-09"
 main = "./src/index.ts"
 usage_model = "unbound"
 
