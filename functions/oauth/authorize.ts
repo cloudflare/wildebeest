@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/oauth/#authorize
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
@@ -23,8 +24,7 @@ export async function handleRequest(
 ): Promise<Response> {
 	if (request.method === 'OPTIONS') {
 		const headers = {
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Headers': 'content-type, authorization',
+			...cors(),
 			'content-type': 'application/json',
 		}
 		return new Response('', { headers })

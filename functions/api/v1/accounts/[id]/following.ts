@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/accounts/#following
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
@@ -39,9 +40,8 @@ export async function handleRequest(
 	}
 
 	const headers = {
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
 	}
 	return new Response(JSON.stringify(out), { headers })
 }

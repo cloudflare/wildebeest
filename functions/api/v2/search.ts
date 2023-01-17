@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/search/#v2
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { MastodonAccount } from 'wildebeest/backend/src/types/account'
@@ -8,9 +9,8 @@ import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/acc
 import { personFromRow } from 'wildebeest/backend/src/activitypub/actors'
 
 const headers = {
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
 type SearchResult = {

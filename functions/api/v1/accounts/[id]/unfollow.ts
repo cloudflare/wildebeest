@@ -1,4 +1,5 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
@@ -44,11 +45,11 @@ export async function handleRequest(
 	await removeFollowing(db, connectedActor, targetActor)
 
 	const res: Relationship = {
+		// FIXME: stub
 		id: '0',
 	}
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })

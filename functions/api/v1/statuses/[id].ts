@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#get
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { UUID } from 'wildebeest/backend/src/types'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { getMastodonStatusById } from 'wildebeest/backend/src/mastodon/status'
@@ -16,9 +17,8 @@ export async function handleRequest(db: D1Database, id: UUID): Promise<Response>
 	}
 
 	const headers = {
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
 	}
 	return new Response(JSON.stringify(status), { headers })
 }

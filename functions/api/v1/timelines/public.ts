@@ -1,10 +1,10 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { getPublicTimeline, LocalPreference } from 'wildebeest/backend/src/mastodon/timeline'
 
 const headers = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type',
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
 }
 

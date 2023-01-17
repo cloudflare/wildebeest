@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#boost
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
@@ -57,9 +58,8 @@ export async function handleRequest(
 	status.reblogged = true
 
 	const headers = {
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
 	}
 	return new Response(JSON.stringify(status), { headers })
 }

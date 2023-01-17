@@ -1,4 +1,5 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
@@ -16,9 +17,8 @@ import * as outbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 
 const headers = {
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {

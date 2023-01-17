@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/oauth/#token
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import * as errors from 'wildebeest/backend/src/errors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { readBody } from 'wildebeest/backend/src/utils/body'
@@ -15,8 +16,7 @@ export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
 
 export async function handleRequest(db: D1Database, request: Request): Promise<Response> {
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 
