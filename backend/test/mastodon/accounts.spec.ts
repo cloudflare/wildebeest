@@ -350,11 +350,13 @@ describe('Mastodon APIs', () => {
 			const data = await res.json<Array<any>>()
 			assert.equal(data.length, 2)
 
+			assert(!isUrlValid(data[0].id))
 			assert.equal(data[0].content, 'my second status')
 			assert.equal(data[0].account.acct, 'sven@' + domain)
 			assert.equal(data[0].favourites_count, 0)
 			assert.equal(data[0].reblogs_count, 1)
 
+			assert(!isUrlValid(data[1].id))
 			assert.equal(data[1].content, 'my first status')
 			assert.equal(data[1].favourites_count, 1)
 			assert.equal(data[1].reblogs_count, 0)

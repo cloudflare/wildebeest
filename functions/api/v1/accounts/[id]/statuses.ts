@@ -170,7 +170,7 @@ LIMIT ?
 			const account = await loadExternalMastodonAccount(acct, author)
 
 			out.push({
-				id: result.id,
+				id: result.mastodonId,
 				uri: objects.uri(domain, result.id),
 				created_at: new Date(result.cdate).toISOString(),
 				content: properties.content,
