@@ -543,5 +543,70 @@ describe('Mastodon APIs', () => {
 				assert.equal(deliveredActivity.object, originalObjectId)
 			})
 		})
+
+		test('create new status in reply to non existing status', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'my reply',
+				in_reply_to_id: 'hein',
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			assert.equal(res.status, 404)
+		})
+
+		test('create new status in reply to', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const note = await createPublicNote(domain, db, 'my first status', actor)
+
+			const body = {
+				status: 'my reply',
+				in_reply_to_id: note.mastodonId,
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+
+			{
+				const row = await db
+					.prepare(
+						`
+                    SELECT json_extract(properties, '$.inReplyTo') as inReplyTo
+                    FROM objects
+                    WHERE mastodon_id=?
+                `
+					)
+					.bind(data.id)
+					.first()
+				assert(row !== undefined)
+				assert.equal(row.inReplyTo, note.id.toString())
+			}
+
+			{
+				const row = await db.prepare('select * from actor_replies').first()
+				assert(row !== undefined)
+				assert.equal(row.actor_id, actor.id.toString())
+				assert.equal(row.in_reply_to_object_id, note.id.toString())
+			}
+		})
 	})
 })

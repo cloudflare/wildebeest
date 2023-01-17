@@ -1,6 +1,8 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
 
 import { cors } from 'wildebeest/backend/src/utils/cors'
+import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
@@ -17,12 +19,14 @@ import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/out
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { readBody } from 'wildebeest/backend/src/utils/body'
+import * as errors from 'wildebeest/backend/src/errors'
 
 type StatusCreate = {
 	status: string
 	visibility: string
 	sensitive: boolean
 	media_ids?: Array<string>
+	in_reply_to_id?: string
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
@@ -65,9 +69,28 @@ export async function handleRequest(
 		}
 	}
 
+	let inReplyToObject: Object | null = null
+
+	if (body.in_reply_to_id) {
+		inReplyToObject = await getObjectByMastodonId(db, body.in_reply_to_id)
+		if (inReplyToObject === null) {
+			return errors.statusNotFound()
+		}
+	}
+
+	const extraProperties: any = {}
+	if (inReplyToObject !== null) {
+		extraProperties.inReplyTo = inReplyToObject.id.toString()
+	}
+
 	const domain = new URL(request.url).hostname
-	const note = await createPublicNote(domain, db, body.status, connectedActor, mediaAttachments)
+	const note = await createPublicNote(domain, db, body.status, connectedActor, mediaAttachments, extraProperties)
 	await addObjectInOutbox(db, connectedActor, note)
+
+	if (inReplyToObject !== null) {
+		// after the status has been created, record the reply.
+		await insertReply(db, connectedActor, note, inReplyToObject)
+	}
 
 	const activity = activities.create(domain, connectedActor, note)
 	await deliverFollowers(db, userKEK, connectedActor, activity, queue)
