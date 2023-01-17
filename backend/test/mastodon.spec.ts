@@ -93,6 +93,9 @@ describe('Mastodon APIs', () => {
 			const request = new Request('https://example.com', {
 				method: 'POST',
 				body: '{"redirect_uris":"mastodon://joinmastodon.org/oauth","website":"https://app.joinmastodon.org/ios","client_name":"Mastodon for iOS","scopes":"read write follow push"}',
+				headers: {
+					'content-type': 'application/json',
+				},
 			})
 
 			const res = await apps.handleRequest(db, request, vapidKeys)
