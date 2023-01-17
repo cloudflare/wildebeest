@@ -48,7 +48,7 @@ describe('Mastodon APIs', () => {
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const body = {
-				status: 'my status',
+				status: 'my status <script>evil</script>',
 				visibility: 'public',
 			}
 			const req = new Request('https://example.com', {
@@ -87,7 +87,7 @@ describe('Mastodon APIs', () => {
         `
 				)
 				.first()
-			assert.equal(row.content, 'my status')
+			assert.equal(row.content, 'my status <p>evil</p>') // note the sanitization
 			assert.equal(row.original_actor_id.toString(), actor.id.toString())
 			assert.equal(row.original_object_id, null)
 		})
