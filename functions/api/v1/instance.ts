@@ -1,7 +1,6 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { DEFAULT_THUMBNAIL } from 'wildebeest/backend/src/config'
-
-const INSTANCE_VERSION = '4.0.2'
+import { getVersion } from 'wildebeest/config/versions'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain = new URL(request.url).hostname
@@ -24,7 +23,7 @@ export async function handleRequest(domain: string, env: Env) {
 	// The documentation is incorrect and registrations is a boolean.
 	res.registrations = false
 
-	res.version = INSTANCE_VERSION
+	res.version = getVersion()
 	res.rules = []
 	res.uri = domain
 	res.title = env.INSTANCE_TITLE
