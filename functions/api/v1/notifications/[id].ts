@@ -61,6 +61,7 @@ export async function handleRequest(
 			id: row.mastodon_id,
 			content: properties.content,
 			uri: row.id,
+			url: new URL('/statuses/' + row.mastodon_id, 'https://' + domain),
 			created_at: new Date(row.cdate).toISOString(),
 
 			emojis: [],

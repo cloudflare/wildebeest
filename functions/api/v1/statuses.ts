@@ -5,7 +5,6 @@ import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
-import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
@@ -20,10 +19,12 @@ import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { readBody } from 'wildebeest/backend/src/utils/body'
 import * as errors from 'wildebeest/backend/src/errors'
+import type { Visibility } from 'wildebeest/backend/src/types'
+import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
 
 type StatusCreate = {
 	status: string
-	visibility: string
+	visibility: Visibility
 	sensitive: boolean
 	media_ids?: Array<string>
 	in_reply_to_id?: string
@@ -118,22 +119,7 @@ export async function handleRequest(
 
 	await timeline.pregenerateTimelines(domain, db, cache, connectedActor)
 
-	const account = await loadLocalMastodonAccount(db, connectedActor)
-
-	const res: any = {
-		id: note.mastodonId,
-		uri: note.id,
-		url: new URL('/statuses/' + note.mastodonId, 'https://' + domain),
-		created_at: note.published,
-		account,
-		content: body.status,
-		visibility: body.visibility ? body.visibility : 'public',
-		emojis: [],
-		media_attachments: [],
-		tags: [],
-		mentions: [],
-		spoiler_text: '',
-	}
+	const res = await toMastodonStatusFromObject(db, note, domain)
 	const headers = {
 		...cors(),
 		'content-type': 'application/json; charset=utf-8',

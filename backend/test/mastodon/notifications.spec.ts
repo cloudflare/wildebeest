@@ -56,7 +56,7 @@ describe('Mastodon APIs', () => {
 			await sleep(10)
 			await createNotification(db, 'mention', connectedActor, fromActor, note)
 
-			const notifications: any = await getNotifications(db, connectedActor)
+			const notifications: any = await getNotifications(db, connectedActor, domain)
 
 			assert.equal(notifications[0].type, 'mention')
 			assert.equal(notifications[0].account.username, 'from')

@@ -323,7 +323,7 @@ describe('Mastodon APIs', () => {
 
 			const connectedActor: any = actor
 
-			const res = await statuses_favourite.handleRequest(db, 'mastodonid1', connectedActor, userKEK)
+			const res = await statuses_favourite.handleRequest(db, 'mastodonid1', connectedActor, userKEK, domain)
 			assert.equal(res.status, 200)
 
 			assert(deliveredActivity)
@@ -338,7 +338,7 @@ describe('Mastodon APIs', () => {
 
 			const connectedActor: any = actor
 
-			const res = await statuses_favourite.handleRequest(db, note.mastodonId!, connectedActor, userKEK)
+			const res = await statuses_favourite.handleRequest(db, note.mastodonId!, connectedActor, userKEK, domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -394,7 +394,7 @@ describe('Mastodon APIs', () => {
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
 
-			const res = await statuses_get.handleRequest(db, note.mastodonId!)
+			const res = await statuses_get.handleRequest(db, note.mastodonId!, domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -410,7 +410,7 @@ describe('Mastodon APIs', () => {
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
 			const note = await createPublicNote(domain, db, 'my first status', actor, mediaAttachments)
 
-			const res = await statuses_get.handleRequest(db, note.mastodonId!)
+			const res = await statuses_get.handleRequest(db, note.mastodonId!, domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -455,7 +455,7 @@ describe('Mastodon APIs', () => {
 				await insertReblog(db, actor2, note)
 				await insertReblog(db, actor3, note)
 
-				const res = await statuses_get.handleRequest(db, note.mastodonId!)
+				const res = await statuses_get.handleRequest(db, note.mastodonId!, domain)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
@@ -471,7 +471,7 @@ describe('Mastodon APIs', () => {
 
 				const connectedActor: any = actor
 
-				const res = await statuses_reblog.handleRequest(db, note.mastodonId!, connectedActor, userKEK, queue)
+				const res = await statuses_reblog.handleRequest(db, note.mastodonId!, connectedActor, userKEK, queue, domain)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
@@ -491,7 +491,7 @@ describe('Mastodon APIs', () => {
 
 				const connectedActor: any = actor
 
-				const res = await statuses_reblog.handleRequest(db, note.mastodonId!, connectedActor, userKEK, queue)
+				const res = await statuses_reblog.handleRequest(db, note.mastodonId!, connectedActor, userKEK, queue, domain)
 				assert.equal(res.status, 200)
 
 				const row = await db.prepare(`SELECT * FROM outbox_objects`).first()
@@ -534,7 +534,7 @@ describe('Mastodon APIs', () => {
 
 				const connectedActor: any = actor
 
-				const res = await statuses_reblog.handleRequest(db, 'mastodonid1', connectedActor, userKEK, queue)
+				const res = await statuses_reblog.handleRequest(db, 'mastodonid1', connectedActor, userKEK, queue, domain)
 				assert.equal(res.status, 200)
 
 				assert(deliveredActivity)

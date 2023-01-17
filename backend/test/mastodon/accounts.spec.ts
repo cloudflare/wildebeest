@@ -344,7 +344,7 @@ describe('Mastodon APIs', () => {
 			await insertReblog(db, actor, secondNode)
 
 			const req = new Request('https://' + domain)
-			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain, userKEK)
+			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<Array<any>>()
@@ -367,7 +367,7 @@ describe('Mastodon APIs', () => {
 			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			const req = new Request('https://' + domain + '?pinned=true')
-			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain, userKEK)
+			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<Array<any>>()
@@ -397,7 +397,7 @@ describe('Mastodon APIs', () => {
 			{
 				// Query statuses after object1, should only see object2.
 				const req = new Request('https://' + domain + '?max_id=object1')
-				const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain, userKEK)
+				const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<Array<any>>()
@@ -409,7 +409,7 @@ describe('Mastodon APIs', () => {
 			{
 				// Query statuses after object2, nothing is after.
 				const req = new Request('https://' + domain + '?max_id=object2')
-				const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain, userKEK)
+				const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<Array<any>>()
@@ -491,7 +491,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			const req = new Request('https://example.com')
-			const res = await accounts_statuses.handleRequest(req, db, 'someone@social.com', userKEK)
+			const res = await accounts_statuses.handleRequest(req, db, 'someone@social.com')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<Array<any>>()
@@ -569,7 +569,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			const req = new Request('https://example.com')
-			const res = await accounts_statuses.handleRequest(req, db, 'someone@social.com', userKEK)
+			const res = await accounts_statuses.handleRequest(req, db, 'someone@social.com')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<Array<any>>()

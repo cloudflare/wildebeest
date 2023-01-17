@@ -29,7 +29,11 @@ export function getMentions(input: string): Array<Handle> {
 	return mentions
 }
 
-export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Promise<MastodonStatus | null> {
+export async function toMastodonStatusFromObject(
+	db: D1Database,
+	obj: Note,
+	domain: string
+): Promise<MastodonStatus | null> {
 	if (obj.originalActorId === undefined) {
 		console.warn('missing `obj.originalActorId`')
 		return null
@@ -79,6 +83,7 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Pro
 		content: obj.content || '',
 		id: obj.mastodonId || '',
 		uri: obj.id,
+		url: new URL('/statuses/' + obj.mastodonId, 'https://' + domain),
 		created_at: obj.published || '',
 		account,
 
@@ -126,6 +131,7 @@ export async function toMastodonStatusFromRow(
 
 	const status: MastodonStatus = {
 		id: row.mastodon_id,
+		url: new URL('/statuses/' + row.mastodonId, 'https://' + domain),
 		uri: row.id,
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
@@ -170,10 +176,10 @@ export async function toMastodonStatusFromRow(
 	return status
 }
 
-export async function getMastodonStatusById(db: D1Database, id: UUID): Promise<MastodonStatus | null> {
+export async function getMastodonStatusById(db: D1Database, id: UUID, domain: string): Promise<MastodonStatus | null> {
 	const obj = await getObjectByMastodonId(db, id)
 	if (obj === null) {
 		return null
 	}
-	return toMastodonStatusFromObject(db, obj as Note)
+	return toMastodonStatusFromObject(db, obj as Note, domain)
 }
