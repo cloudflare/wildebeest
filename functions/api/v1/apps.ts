@@ -4,6 +4,7 @@ import { Env } from 'wildebeest/backend/src/types/env'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 import { getVAPIDKeys } from 'wildebeest/backend/src/config'
+import { readBody } from 'wildebeest/backend/src/utils/body'
 
 type AppsPost = {
 	redirect_uris: string
@@ -21,7 +22,7 @@ export async function handleRequest(db: D1Database, request: Request, vapidKeys:
 		return new Response('', { status: 400 })
 	}
 
-	const body = await request.json<AppsPost>()
+	const body = await readBody<AppsPost>(request)
 
 	const client = await createClient(db, body.client_name, body.redirect_uris, body.website, body.scopes)
 	const vapidKey = VAPIDPublicKey(vapidKeys)
