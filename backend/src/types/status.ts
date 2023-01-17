@@ -2,13 +2,14 @@ import type { MastodonAccount } from './account'
 import type { MediaAttachment } from './media'
 import type { UUID } from 'wildebeest/backend/src/types'
 
-type Visibility = 'public' | 'unlisted' | 'private' | 'direct'
+export type Visibility = 'public' | 'unlisted' | 'private' | 'direct'
 
 // https://docs.joinmastodon.org/entities/Status/
 // https://github.com/mastodon/mastodon-android/blob/master/mastodon/src/main/java/org/joinmastodon/android/model/Status.java
 export type MastodonStatus = {
 	id: UUID
 	uri: URL
+	url: URL
 	created_at: string
 	account: MastodonAccount
 	content: string
@@ -25,6 +26,8 @@ export type MastodonStatus = {
 	replies_count?: number
 	reblogged?: boolean
 	favourited?: boolean
+	in_reply_to_id?: string
+	in_reply_to_account_id?: string
 }
 
 // https://docs.joinmastodon.org/entities/Context/

@@ -169,7 +169,7 @@ async function sendNotification(db: D1Database, actor: Actor, message: WebPushMe
 	await Promise.allSettled(promises)
 }
 
-export async function getNotifications(db: D1Database, actor: Actor): Promise<Array<Notification>> {
+export async function getNotifications(db: D1Database, actor: Actor, domain: string): Promise<Array<Notification>> {
 	const query = `
     SELECT
         objects.*,
@@ -228,6 +228,7 @@ export async function getNotifications(db: D1Database, actor: Actor): Promise<Ar
 				id: result.mastodon_id,
 				content: properties.content,
 				uri: result.id,
+				url: new URL('/statuses/' + result.mastodon_id, 'https://' + domain),
 				created_at: new Date(result.cdate).toISOString(),
 
 				emojis: [],
@@ -249,7 +250,7 @@ export async function getNotifications(db: D1Database, actor: Actor): Promise<Ar
 	return out
 }
 
-export async function pregenerateNotifications(db: D1Database, cache: KVNamespace, actor: Actor) {
-	const notifications = await getNotifications(db, actor)
+export async function pregenerateNotifications(db: D1Database, cache: KVNamespace, actor: Actor, domain: string) {
+	const notifications = await getNotifications(db, actor, domain)
 	await cache.put(actor.id + '/notifications', JSON.stringify(notifications))
 }

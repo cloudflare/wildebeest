@@ -6,12 +6,13 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { getMastodonStatusById } from 'wildebeest/backend/src/mastodon/status'
 import type { Env } from 'wildebeest/backend/src/types/env'
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, env }) => {
-	return handleRequest(env.DATABASE, params.id as UUID)
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, env, request }) => {
+	const domain = new URL(request.url).hostname
+	return handleRequest(env.DATABASE, params.id as UUID, domain)
 }
 
-export async function handleRequest(db: D1Database, id: UUID): Promise<Response> {
-	const status = await getMastodonStatusById(db, id)
+export async function handleRequest(db: D1Database, id: UUID, domain: string): Promise<Response> {
+	const status = await getMastodonStatusById(db, id, domain)
 	if (status === null) {
 		return new Response('', { status: 404 })
 	}

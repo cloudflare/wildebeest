@@ -14,8 +14,9 @@ import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ env, data, params }) => {
-	return handleRequest(env.DATABASE, params.id as string, data.connectedActor, env.userKEK, env.QUEUE)
+export const onRequest: PagesFunction<Env, any, ContextData> = async ({ env, data, params, request }) => {
+	const domain = new URL(request.url).hostname
+	return handleRequest(env.DATABASE, params.id as string, data.connectedActor, env.userKEK, env.QUEUE, domain)
 }
 
 export async function handleRequest(
@@ -23,14 +24,15 @@ export async function handleRequest(
 	id: string,
 	connectedActor: Person,
 	userKEK: string,
-	queue: Queue<DeliverMessageBody>
+	queue: Queue<DeliverMessageBody>,
+	domain: string
 ): Promise<Response> {
 	const obj = await getObjectByMastodonId(db, id)
 	if (obj === null) {
 		return new Response('', { status: 404 })
 	}
 
-	const status = await toMastodonStatusFromObject(db, obj as Note)
+	const status = await toMastodonStatusFromObject(db, obj as Note, domain)
 	if (status === null) {
 		return new Response('', { status: 404 })
 	}

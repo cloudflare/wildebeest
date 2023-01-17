@@ -22,10 +22,10 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
-	return handleRequest(request, env.DATABASE, params.id as string, env.userKEK)
+	return handleRequest(request, env.DATABASE, params.id as string)
 }
 
-export async function handleRequest(request: Request, db: D1Database, id: string, userKEK: string): Promise<Response> {
+export async function handleRequest(request: Request, db: D1Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 	const domain = new URL(request.url).hostname
 
@@ -34,14 +34,13 @@ export async function handleRequest(request: Request, db: D1Database, id: string
 		return getLocalStatuses(request, db, handle)
 	} else if (handle.domain !== null) {
 		// Retrieve the statuses of a remote actor
-		return getRemoteStatuses(request, handle, db, userKEK)
+		return getRemoteStatuses(request, handle, db)
 	} else {
 		return new Response('', { status: 403 })
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use userKEK
-async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database, userKEK: string): Promise<Response> {
+async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database): Promise<Response> {
 	const url = new URL(request.url)
 	const domain = url.hostname
 	const isPinned = url.searchParams.get('pinned') === 'true'
@@ -72,7 +71,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 			const actorId = getActorAsId()
 			const originalObjectId = getObjectAsId()
 			const res = await objects.cacheObject(domain, db, activity.object, actorId, originalObjectId, false)
-			return toMastodonStatusFromObject(db, res.object as Note)
+			return toMastodonStatusFromObject(db, res.object as Note, domain)
 		}
 
 		if (activity.type === 'Announce') {
@@ -101,7 +100,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 				obj = localObject
 			}
 
-			return toMastodonStatusFromObject(db, obj)
+			return toMastodonStatusFromObject(db, obj, domain)
 		}
 
 		// FIXME: support other Activities, like Update.
@@ -172,6 +171,7 @@ LIMIT ?
 			out.push({
 				id: result.mastodonId,
 				uri: objects.uri(domain, result.id),
+				url: new URL('/statuses/' + result.mastodonId, 'https://' + domain),
 				created_at: new Date(result.cdate).toISOString(),
 				content: properties.content,
 				emojis: [],

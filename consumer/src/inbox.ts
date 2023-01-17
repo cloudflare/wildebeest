@@ -18,6 +18,6 @@ export async function handleInboxMessage(env: Env, actor: Actor, message: InboxM
 	// and notifications.
 	await Promise.all([
 		timeline.pregenerateTimelines(domain, db, cache, actor),
-		notification.pregenerateNotifications(db, cache, actor),
+		notification.pregenerateNotifications(db, cache, actor, domain),
 	])
 }
