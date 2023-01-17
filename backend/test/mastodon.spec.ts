@@ -45,6 +45,7 @@ describe('Mastodon APIs', () => {
 				assert.equal(data.title, 'a')
 				assert.equal(data.email, 'b')
 				assert.equal(data.description, 'c')
+				assert(data.version.includes('Wildebeest'))
 			}
 		})
 
@@ -82,6 +83,7 @@ describe('Mastodon APIs', () => {
 				assert.equal(data.title, 'a')
 				assert.equal(data.contact.email, 'b')
 				assert.equal(data.description, 'c')
+				assert(data.version.includes('Wildebeest'))
 			}
 		})
 	})
