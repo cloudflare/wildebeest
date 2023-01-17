@@ -19,11 +19,14 @@ export async function verifySignature(parsedSignature: ParsedSignature, key: Cry
 }
 
 export async function fetchKey(parsedSignature: ParsedSignature): Promise<CryptoKey> {
-	const response = await fetch(parsedSignature.keyId, {
-		method: 'GET',
+	const url = parsedSignature.keyId
+	const res = await fetch(url, {
 		headers: { Accept: 'application/activity+json' },
 	})
+	if (!res.ok) {
+		throw new Error(`failed to fetch keys from "${url}", returned ${res.status}: ${await res.text()}`)
+	}
 
-	const parsedResponse = (await response.json()) as Profile
+	const parsedResponse = (await res.json()) as Profile
 	return importPublicKey(parsedResponse.publicKey.publicKeyPem)
 }
