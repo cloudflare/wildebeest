@@ -28,7 +28,7 @@ export async function handleRequest(
 	const file = formData.get('file')! as any
 
 	const config = { accountId, apiToken }
-	const url = await media.uploadImage(file, config)
+	const url = await media.uploadUserContent(file, config)
 
 	const properties = {
 		url,

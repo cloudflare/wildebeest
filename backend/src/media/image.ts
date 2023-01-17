@@ -19,7 +19,15 @@ type UploadResult = {
 	uploaded: string
 }
 
-export async function uploadImage(file: File, config: Config): Promise<URL> {
+// https://docs.joinmastodon.org/user/profile/#avatar
+const AVATAR_VARIANT = 'avatar'
+
+// https://docs.joinmastodon.org/user/profile/#header
+const HEADER_VARIANT = 'header'
+
+const USER_CONTENT_VARIANT = 'usercontent'
+
+async function upload(file: File, config: Config): Promise<UploadResult> {
 	const formData = new FormData()
 	const url = `https://api.cloudflare.com/client/v4/accounts/${config.accountId}/images/v1`
 
@@ -43,7 +51,31 @@ export async function uploadImage(file: File, config: Config): Promise<URL> {
 		throw new Error(`Cloudflare Images returned ${res.status}: ${body}`)
 	}
 
-	// We assume there's only one variant for now.
-	const variant = data.result.variants[0]
-	return new URL(variant)
+	return data.result
+}
+
+function selectVariant(res: UploadResult, name: string): URL {
+	for (let i = 0, len = res.variants.length; i < len; i++) {
+		const variant = res.variants[i]
+		if (variant.endsWith(`/${name}`)) {
+			return new URL(variant)
+		}
+	}
+
+	throw new Error(`variant "${name}" not found`)
+}
+
+export async function uploadAvatar(file: File, config: Config): Promise<URL> {
+	const result = await upload(file, config)
+	return selectVariant(result, AVATAR_VARIANT)
+}
+
+export async function uploadHeader(file: File, config: Config): Promise<URL> {
+	const result = await upload(file, config)
+	return selectVariant(result, HEADER_VARIANT)
+}
+
+export async function uploadUserContent(file: File, config: Config): Promise<URL> {
+	const result = await upload(file, config)
+	return selectVariant(result, USER_CONTENT_VARIANT)
 }

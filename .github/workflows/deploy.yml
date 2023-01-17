@@ -45,6 +45,39 @@ jobs:
         with:
           node-version: 18
 
+      - name: Configure Cloudflare Images variants
+        run: |
+          curl -XPOST https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/images/v1/variants \
+              -d '{
+                  "id": "avatar",
+                  "options": {
+                      "metadata": "copyright",
+                      "width": 400,
+                      "height": 400
+                  }
+              }' \
+              -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}'
+
+          curl -XPOST https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/images/v1/variants \
+              -d '{
+                  "id": "header",
+                  "options": {
+                      "metadata": "copyright",
+                      "width": 1500,
+                      "height": 500
+                  }
+              }' \
+              -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}'
+
+          curl -XPOST https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/images/v1/variants \
+              -d '{
+                  "id": "usercontent",
+                  "options": {
+                      "metadata": "copyright"
+                  }
+              }' \
+              -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}'
+
       - name: Create D1 database
         uses: cloudflare/wrangler-action@2.0.0
         with:
@@ -192,7 +225,7 @@ jobs:
             echo "******"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          
+
       - name: Create Queue
         uses: cloudflare/wrangler-action@2.0.0
         with:
@@ -227,7 +260,7 @@ jobs:
           curl https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/pages/projects/wildebeest-${{ env.OWNER_LOWER }} \
               -XPATCH \
               -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}' \
-              -d  ' {
+              -d  '{
                   "deployment_configs": {
                     "production": {
                       "queue_producers": {
