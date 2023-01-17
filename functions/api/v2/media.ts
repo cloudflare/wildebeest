@@ -1,4 +1,5 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as media from 'wildebeest/backend/src/media/image'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
@@ -63,9 +64,7 @@ export async function handleRequest(
 	}
 
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
-		'Access-Control-Allow-Methods': 'POST',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })

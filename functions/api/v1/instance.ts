@@ -1,4 +1,5 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { DEFAULT_THUMBNAIL } from 'wildebeest/backend/src/config'
 import { getVersion } from 'wildebeest/config/versions'
 
@@ -9,8 +10,7 @@ export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 
 export async function handleRequest(domain: string, env: Env) {
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 

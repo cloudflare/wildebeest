@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/accounts/#relationships
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
@@ -54,8 +55,7 @@ export async function handleRequest(req: Request, db: D1Database, connectedActor
 	}
 
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })

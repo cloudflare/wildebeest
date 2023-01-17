@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/accounts/#update_credentials
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import * as errors from 'wildebeest/backend/src/errors'
 import * as activities from 'wildebeest/backend/src/activitypub/activities/update'
@@ -14,8 +15,7 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 
 const headers = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
 }
 

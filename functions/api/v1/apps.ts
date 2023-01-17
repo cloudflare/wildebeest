@@ -1,4 +1,5 @@
 import { ContextData } from 'wildebeest/backend/src/types/context'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { Env } from 'wildebeest/backend/src/types/env'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
@@ -38,8 +39,7 @@ export async function handleRequest(db: D1Database, request: Request, vapidKeys:
 		vapid_key: vapidKey,
 	}
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })

@@ -1,10 +1,10 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
 
 const headers = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type',
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
 }
 

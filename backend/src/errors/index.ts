@@ -1,11 +1,12 @@
+import { cors } from 'wildebeest/backend/src/utils/cors'
+
 type ErrorResponse = {
 	error: string
 	error_description?: string
 }
 
 const headers = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
+	...cors(),
 	'content-type': 'application/json',
 } as const
 

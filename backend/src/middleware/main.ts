@@ -2,6 +2,7 @@ import * as access from 'wildebeest/backend/src/access'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 
 async function loadContextData(db: D1Database, clientId: string, email: string, ctx: any): Promise<boolean> {
 	const query = `
@@ -38,9 +39,7 @@ async function loadContextData(db: D1Database, clientId: string, email: string, 
 export async function main(context: EventContext<Env, any, any>) {
 	if (context.request.method === 'OPTIONS') {
 		const headers = {
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Headers': 'content-type, authorization',
-			'Access-Control-Allow-Methods': 'GET, PUT, POST',
+			...cors(),
 			'content-type': 'application/json',
 		}
 		return new Response('', { headers })

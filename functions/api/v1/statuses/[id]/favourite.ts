@@ -1,6 +1,7 @@
 // https://docs.joinmastodon.org/methods/statuses/#favourite
 
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
@@ -48,9 +49,8 @@ export async function handleRequest(
 	status.favourited = true
 
 	const headers = {
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
 	}
 	return new Response(JSON.stringify(status), { headers })
 }

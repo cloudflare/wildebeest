@@ -1,4 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
+
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
@@ -110,8 +112,7 @@ export async function handleRequest(
 		spoiler_text: '',
 	}
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })
