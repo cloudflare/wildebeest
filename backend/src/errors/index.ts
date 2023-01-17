@@ -37,3 +37,7 @@ export function clientUnknown(): Response {
 export function internalServerError(): Response {
 	return generateErrorResponse('Internal Server Error', 500)
 }
+
+export function statusNotFound(): Response {
+	return generateErrorResponse('Status not found', 404)
+}

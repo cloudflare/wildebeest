@@ -38,13 +38,13 @@ export async function createPublicNote(
 		cc: [followersURL(actorId)],
 
 		// FIXME: stub values
-		inReplyTo: null,
 		replies: null,
 		sensitive: false,
 		summary: null,
 		tag: [],
 		attachment,
 
+		inReplyTo: null,
 		...extraProperties,
 	}
 
