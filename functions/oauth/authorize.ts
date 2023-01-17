@@ -74,8 +74,17 @@ export async function handleRequest(
 		url.pathname = '/first-login'
 		url.searchParams.set('email', identity.email)
 		url.searchParams.set('redirect_uri', encodeURIComponent(redirect_uri + '?code=' + code))
-		return Response.redirect(url.toString(), 302)
+		return URLsafeRedirect(url.toString())
 	}
 
-	return Response.redirect(redirect_uri + '?code=' + code, 302)
+	return URLsafeRedirect(redirect_uri + '?code=' + code)
+}
+
+// Workaround bug EW-7148, constructing an URL with unknown protocols
+// throws an error. This happens when using an Android or iOS based URLs.
+// `URLsafeRedirect` mimics `Response.redirect` but does not rely on the URL
+// class for parsing.
+function URLsafeRedirect(location: string): Response {
+	const headers = { location }
+	return new Response(`redirect to ${location}.`, { status: 302, headers })
 }

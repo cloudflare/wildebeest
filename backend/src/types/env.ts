@@ -10,7 +10,6 @@ export interface Env {
 	CF_API_TOKEN: string
 
 	// Configuration for Cloudflare Access
-	DOMAIN: string
 	ACCESS_AUD: string
 	ACCESS_AUTH_DOMAIN: string
 
@@ -19,6 +18,7 @@ export interface Env {
 	ADMIN_EMAIL: string
 	INSTANCE_DESCR: string
 	VAPID_JWK: string
+	DOMAIN: string
 
 	SENTRY_DSN: string
 	SENTRY_ACCESS_CLIENT_ID: string
