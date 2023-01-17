@@ -39,17 +39,17 @@ export async function createObject<Type extends Object>(
 ): Promise<Type> {
 	const uuid = crypto.randomUUID()
 	const apId = uri(domain, uuid).toString()
-	const sanitizedObject = await sanitizeObjectProperties(properties)
+	const sanitizedProperties = await sanitizeObjectProperties(properties)
 
 	const row: any = await db
 		.prepare(
 			'INSERT INTO objects(id, type, properties, original_actor_id, local, mastodon_id) VALUES(?, ?, ?, ?, ?, ?) RETURNING *'
 		)
-		.bind(apId, type, JSON.stringify(sanitizedObject), originalActorId.toString(), local ? 1 : 0, uuid)
+		.bind(apId, type, JSON.stringify(sanitizedProperties), originalActorId.toString(), local ? 1 : 0, uuid)
 		.first()
 
 	return {
-		...sanitizedObject,
+		...sanitizedProperties,
 		type,
 		id: new URL(row.id),
 		mastodonId: row.mastodon_id,
@@ -83,7 +83,7 @@ export async function cacheObject(
 	originalObjectId: URL,
 	local: boolean
 ): Promise<CacheObjectRes> {
-	const sanitizedObject = await sanitizeObjectProperties(properties)
+	const sanitizedProperties = await sanitizeObjectProperties(properties)
 
 	const cachedObject = await getObjectBy(db, 'original_object_id', originalObjectId.toString())
 	if (cachedObject !== null) {
@@ -102,8 +102,8 @@ export async function cacheObject(
 		)
 		.bind(
 			apId,
-			sanitizedObject.type,
-			JSON.stringify(sanitizedObject),
+			sanitizedProperties.type,
+			JSON.stringify(sanitizedProperties),
 			originalActorId.toString(),
 			originalObjectId.toString(),
 			local ? 1 : 0,
@@ -222,8 +222,8 @@ export async function sanitizeContent(unsafeContent: string): Promise<string> {
  *
  * This sanitization removes all HTML elements from the string leaving only the text content.
  */
-export async function sanitizeName(dirty: string): Promise<string> {
-	return await nameRewriter.transform(new Response(dirty)).text()
+export async function sanitizeName(unsafeName: string): Promise<string> {
+	return await nameRewriter.transform(new Response(unsafeName)).text()
 }
 
 const contentRewriter = new HTMLRewriter()
@@ -234,7 +234,7 @@ contentRewriter.on('*', {
 		}
 
 		if (el.hasAttribute('class')) {
-			const classes = el.getAttribute('class')!.split(' ')
+			const classes = el.getAttribute('class')!.split(/\s+/)
 			const sanitizedClasses = classes.filter((c) =>
 				/^(h|p|u|dt|e)-|^mention$|^hashtag$|^ellipsis$|^invisible$/.test(c)
 			)

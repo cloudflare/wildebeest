@@ -349,7 +349,7 @@ describe('ActivityPub', () => {
 						type: 'Note',
 						name: '<script>Dr Evil</script>',
 						content:
-							'<div><span class="bad h-10 p-100 u-22 dt-xi e-bam mention hashtag ellipsis invisible o-bad">foo</span><br/><p><a href="blah"><b>bold</b></a></p><script>alert("evil")</script></div>',
+							'<div><span class="bad h-10 p-100\tu-22\r\ndt-xi e-bam mention hashtag ellipsis invisible o-bad">foo</span><br/><p><a href="blah"><b>bold</b></a></p><script>alert("evil")</script></div>',
 					},
 				}
 
