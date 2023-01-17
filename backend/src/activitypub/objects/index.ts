@@ -29,33 +29,33 @@ export function uri(domain: string, id: string): URL {
 	return new URL('/ap/o/' + id, 'https://' + domain)
 }
 
-export async function createObject(
+export async function createObject<Type extends Object>(
 	domain: string,
 	db: D1Database,
 	type: string,
 	properties: any,
 	originalActorId: URL,
 	local: boolean
-): Promise<Object> {
+): Promise<Type> {
 	const uuid = crypto.randomUUID()
 	const apId = uri(domain, uuid).toString()
+	const sanitizedObject = await sanitizeObjectProperties(properties)
 
 	const row: any = await db
 		.prepare(
 			'INSERT INTO objects(id, type, properties, original_actor_id, local, mastodon_id) VALUES(?, ?, ?, ?, ?, ?) RETURNING *'
 		)
-		.bind(apId, type, JSON.stringify(properties), originalActorId.toString(), local ? 1 : 0, uuid)
+		.bind(apId, type, JSON.stringify(sanitizedObject), originalActorId.toString(), local ? 1 : 0, uuid)
 		.first()
 
 	return {
-		...properties,
-
+		...sanitizedObject,
 		type,
 		id: new URL(row.id),
 		mastodonId: row.mastodon_id,
 		published: new Date(row.cdate).toISOString(),
 		originalActorId: row.original_actor_id,
-	} as Object
+	} as Type
 }
 
 export async function get<T>(url: URL): Promise<T> {
@@ -78,11 +78,13 @@ type CacheObjectRes = {
 export async function cacheObject(
 	domain: string,
 	db: D1Database,
-	properties: any,
+	properties: unknown,
 	originalActorId: URL,
 	originalObjectId: URL,
 	local: boolean
 ): Promise<CacheObjectRes> {
+	const sanitizedObject = await sanitizeObjectProperties(properties)
+
 	const cachedObject = await getObjectBy(db, 'original_object_id', originalObjectId.toString())
 	if (cachedObject !== null) {
 		return {
@@ -100,8 +102,8 @@ export async function cacheObject(
 		)
 		.bind(
 			apId,
-			properties.type,
-			JSON.stringify(properties),
+			sanitizedObject.type,
+			JSON.stringify(sanitizedObject),
 			originalActorId.toString(),
 			originalObjectId.toString(),
 			local ? 1 : 0,
@@ -179,3 +181,71 @@ WHERE objects.${key}=?
 		originalObjectId: result.original_object_id,
 	} as Object
 }
+
+/** Is the given `value` an ActivityPub Object? */
+export function isObject(value: unknown): value is Object {
+	return value !== null && typeof value === 'object'
+}
+
+/** Sanitizes the ActivityPub Object `properties` prior to being stored in the DB. */
+export async function sanitizeObjectProperties(properties: unknown): Promise<Object> {
+	if (!isObject(properties)) {
+		throw new Error('Invalid object properties. Expected an object but got ' + JSON.stringify(properties))
+	}
+	const sanitized: Object = {
+		...properties,
+	}
+	if ('content' in properties) {
+		sanitized.content = await sanitizeContent(properties.content as string)
+	}
+	if ('name' in properties) {
+		sanitized.name = await sanitizeName(properties.name as string)
+	}
+	return sanitized
+}
+
+/**
+ * Sanitizes the given string as ActivityPub Object content.
+ *
+ * This sanitization follows that of Mastodon
+ *  - convert all elements to `<p>` unless they are recognized as one of `<p>`, `<span>`, `<br>` or `<a>`.
+ *  - remove all CSS classes that are not micro-formats or semantic.
+ *
+ * See https://docs.joinmastodon.org/spec/activitypub/#sanitization
+ */
+export async function sanitizeContent(unsafeContent: string): Promise<string> {
+	return await contentRewriter.transform(new Response(unsafeContent)).text()
+}
+
+/**
+ * Sanitizes given string as an ActivityPub Object name.
+ *
+ * This sanitization removes all HTML elements from the string leaving only the text content.
+ */
+export async function sanitizeName(dirty: string): Promise<string> {
+	return await nameRewriter.transform(new Response(dirty)).text()
+}
+
+const contentRewriter = new HTMLRewriter()
+contentRewriter.on('*', {
+	element(el) {
+		if (!['p', 'span', 'br', 'a'].includes(el.tagName)) {
+			el.tagName = 'p'
+		}
+
+		if (el.hasAttribute('class')) {
+			const classes = el.getAttribute('class')!.split(' ')
+			const sanitizedClasses = classes.filter((c) =>
+				/^(h|p|u|dt|e)-|^mention$|^hashtag$|^ellipsis$|^invisible$/.test(c)
+			)
+			el.setAttribute('class', sanitizedClasses.join(' '))
+		}
+	},
+})
+
+const nameRewriter = new HTMLRewriter()
+nameRewriter.on('*', {
+	element(el) {
+		el.removeAndKeepContent()
+	},
+})

@@ -231,7 +231,8 @@ describe('Mastodon APIs', () => {
 							id: 'https://social.com/someone',
 							url: 'https://social.com/@someone',
 							type: 'Person',
-							preferredUsername: 'sven',
+							preferredUsername: '<script>bad</script>sven',
+							name: 'Sven <i>Cool<i>',
 							outbox: 'https://social.com/someone/outbox',
 							following: 'https://social.com/someone/following',
 							followers: 'https://social.com/someone/followers',
@@ -283,7 +284,9 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
-			assert.equal(data.username, 'sven')
+			// Note the sanitization
+			assert.equal(data.username, 'badsven')
+			assert.equal(data.display_name, 'Sven Cool')
 			assert.equal(data.acct, 'sven@social.com')
 
 			assert(isUrlValid(data.url))

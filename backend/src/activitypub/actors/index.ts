@@ -1,6 +1,6 @@
 import { defaultImages } from 'wildebeest/config/accounts'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
-import type { Object } from '../objects'
+import { type Object, sanitizeContent, sanitizeName } from '../objects'
 
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
@@ -57,6 +57,16 @@ export async function get(url: string | URL): Promise<Actor> {
 	const data = await res.json<any>()
 	const actor: Actor = { ...data }
 	actor.id = new URL(data.id)
+
+	if (data.content) {
+		actor.content = await sanitizeContent(data.content)
+	}
+	if (data.name) {
+		actor.name = await sanitizeName(data.name)
+	}
+	if (data.preferredUsername) {
+		actor.preferredUsername = await sanitizeName(data.preferredUsername)
+	}
 
 	// This is mostly for testing where for convenience not all values
 	// are provided.

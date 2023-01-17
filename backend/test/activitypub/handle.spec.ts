@@ -335,6 +335,34 @@ describe('ActivityPub', () => {
 				const row = await db.prepare('SELECT * FROM outbox_objects').first()
 				assert.equal(row.target, 'some actor')
 			})
+
+			test('Object props get sanitized', async () => {
+				const db = await makeDB()
+				const person = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+				const activity = {
+					'@context': 'https://www.w3.org/ns/activitystreams',
+					type: 'Create',
+					actor: person,
+					object: {
+						id: 'https://example.com/note2',
+						type: 'Note',
+						name: '<script>Dr Evil</script>',
+						content:
+							'<div><span class="bad h-10 p-100 u-22 dt-xi e-bam mention hashtag ellipsis invisible o-bad">foo</span><br/><p><a href="blah"><b>bold</b></a></p><script>alert("evil")</script></div>',
+					},
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const row = await db.prepare(`SELECT * from objects`).first()
+				const { content, name } = JSON.parse(row.properties)
+				assert.equal(
+					content,
+					'<p><span class="h-10 p-100 u-22 dt-xi e-bam mention hashtag ellipsis invisible">foo</span><br/><p><a href="blah"><p>bold</p></a></p><p>alert("evil")</p></p>'
+				)
+				assert.equal(name, 'Dr Evil')
+			})
 		})
 
 		describe('Update', () => {
@@ -472,7 +500,7 @@ describe('ActivityPub', () => {
 				}
 				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
-				const object = await db.prepare('SELECT * FROM objects').bind(remoteActorId).first()
+				const object = await db.prepare('SELECT * FROM objects').first()
 				assert(object)
 				assert.equal(object.type, 'Note')
 				assert.equal(object.original_actor_id, remoteActorId)
