@@ -169,9 +169,9 @@ LIMIT ?
 			const account = await loadExternalMastodonAccount(acct, author)
 
 			out.push({
-				id: result.mastodonId,
-				uri: objects.uri(domain, result.id),
-				url: new URL('/statuses/' + result.mastodonId, 'https://' + domain),
+				id: result.mastodon_id,
+				uri: result.id,
+				url: new URL('/statuses/' + result.mastodon_id, 'https://' + domain),
 				created_at: new Date(result.cdate).toISOString(),
 				content: properties.content,
 				emojis: [],

@@ -11,7 +11,7 @@ import * as accounts_follow from 'wildebeest/functions/api/v1/accounts/[id]/foll
 import * as accounts_unfollow from 'wildebeest/functions/api/v1/accounts/[id]/unfollow'
 import * as accounts_statuses from 'wildebeest/functions/api/v1/accounts/[id]/statuses'
 import * as accounts_get from 'wildebeest/functions/api/v1/accounts/[id]'
-import { isUrlValid, makeDB, assertCORS, assertJSON, makeQueue } from '../utils'
+import { isUUID, isUrlValid, makeDB, assertCORS, assertJSON, makeQueue } from '../utils'
 import * as accounts_verify_creds from 'wildebeest/functions/api/v1/accounts/verify_credentials'
 import * as accounts_update_creds from 'wildebeest/functions/api/v1/accounts/update_credentials'
 import { createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
@@ -353,13 +353,15 @@ describe('Mastodon APIs', () => {
 			const data = await res.json<Array<any>>()
 			assert.equal(data.length, 2)
 
-			assert(!isUrlValid(data[0].id))
+			assert(isUUID(data[0].id))
 			assert.equal(data[0].content, 'my second status')
 			assert.equal(data[0].account.acct, 'sven@' + domain)
 			assert.equal(data[0].favourites_count, 0)
 			assert.equal(data[0].reblogs_count, 1)
+			assert.equal(new URL(data[0].uri).pathname, '/ap/o/' + data[0].id)
+			assert.equal(new URL(data[0].url).pathname, '/statuses/' + data[0].id)
 
-			assert(!isUrlValid(data[1].id))
+			assert(isUUID(data[1].id))
 			assert.equal(data[1].content, 'my first status')
 			assert.equal(data[1].favourites_count, 1)
 			assert.equal(data[1].reblogs_count, 0)

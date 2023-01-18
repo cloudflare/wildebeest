@@ -3,7 +3,9 @@ import type { UUID } from 'wildebeest/backend/src/types'
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
 export interface Object {
 	type: string
+	// ObjectId, URL used for federation. Called `uri` in Mastodon APIs.
 	id: URL
+	// Link to the HTML representation of the object
 	url: URL
 	published?: string
 	icon?: Object
