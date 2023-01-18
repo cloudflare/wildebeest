@@ -627,6 +627,33 @@ describe('Mastodon APIs', () => {
 
 			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
 			assert.equal(res.status, 400)
+			const data = await res.json<any>()
+			assert(data.error.includes('Limit exceeded'))
+		})
+
+		test('create new status sending multipart and too many image', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = new FormData()
+			body.append('status', 'my status')
+			body.append('visibility', 'public')
+			body.append('media_ids[]', 'id')
+			body.append('media_ids[]', 'id')
+			body.append('media_ids[]', 'id')
+			body.append('media_ids[]', 'id')
+			body.append('media_ids[]', 'id')
+
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				body,
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			assert.equal(res.status, 400)
+			const data = await res.json<any>()
+			assert(data.error.includes('Limit exceeded'))
 		})
 	})
 })

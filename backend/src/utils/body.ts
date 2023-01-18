@@ -22,7 +22,17 @@ export async function readBody<T>(request: Request): Promise<T> {
 	const out: any = {}
 
 	for (const [key, value] of form) {
-		out[key] = value
+		if (key.endsWith('[]')) {
+			// The `key[]` notiation is used when sending an array of values.
+
+			const key2 = key.replace('[]', '')
+			if (out[key2] === undefined) {
+				out[key2] = []
+			}
+			out[key2].push(value)
+		} else {
+			out[key] = value
+		}
 	}
 	return out as T
 }
