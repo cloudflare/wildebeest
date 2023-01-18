@@ -75,7 +75,22 @@ export async function uploadHeader(file: File, config: Config): Promise<URL> {
 	return selectVariant(result, HEADER_VARIANT)
 }
 
-export async function uploadUserContent(file: File, config: Config): Promise<URL> {
-	const result = await upload(file, config)
-	return selectVariant(result, USER_CONTENT_VARIANT)
+export async function uploadUserContent(request: Request, config: Config): Promise<URL> {
+	const url = `https://api.cloudflare.com/client/v4/accounts/${config.accountId}/images/v1`
+	const newRequest = new Request(url, request)
+	newRequest.headers.set('authorization', 'Bearer ' + config.apiToken)
+
+	const res = await fetch(newRequest)
+	if (!res.ok) {
+		const body = await res.text()
+		throw new Error(`Cloudflare Images returned ${res.status}: ${body}`)
+	}
+
+	const data = await res.json<APIResult<UploadResult>>()
+	if (!data.success) {
+		const body = await res.text()
+		throw new Error(`Cloudflare Images returned ${res.status}: ${body}`)
+	}
+
+	return selectVariant(data.result, USER_CONTENT_VARIANT)
 }

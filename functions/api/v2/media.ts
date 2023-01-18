@@ -5,13 +5,12 @@ import * as media from 'wildebeest/backend/src/media/image'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
-import { localFormDataParse } from 'wildebeest/backend/src/utils/body'
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, env.DATABASE, data.connectedActor, env.CF_ACCOUNT_ID, env.CF_API_TOKEN)
+export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
+	return handleRequestPost(request, env.DATABASE, data.connectedActor, env.CF_ACCOUNT_ID, env.CF_API_TOKEN)
 }
 
-export async function handleRequest(
+export async function handleRequestPost(
 	request: Request,
 	db: D1Database,
 	connectedActor: Person,
@@ -24,31 +23,13 @@ export async function handleRequest(
 		throw new Error('invalid request')
 	}
 
-	let formData = null
-
-	if (
-		contentType.includes('charset') &&
-		contentType.includes('multipart/form-data') &&
-		contentType.includes('boundary')
-	) {
-		formData = await localFormDataParse(request)
-	} else {
-		formData = await request.formData()
-	}
-	const domain = new URL(request.url).hostname
-
-	if (!formData.has('file')) {
-		return new Response('', { status: 400 })
-	}
-
-	const file = formData.get('file')! as any
-
 	const config = { accountId, apiToken }
-	const url = await media.uploadUserContent(file, config)
+	const url = await media.uploadUserContent(request, config)
 
 	const properties = {
 		url,
 	}
+	const domain = new URL(request.url).hostname
 	const image = await createImage(domain, db, connectedActor, properties)
 	console.log({ image })
 
