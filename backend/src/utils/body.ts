@@ -2,6 +2,7 @@
 // can be url encoded, form data or JSON. However, not working for formData
 // containing binary data (like File).
 export async function readBody<T>(request: Request): Promise<T> {
+	let form = null
 	const contentType = request.headers.get('content-type')
 	if (contentType === null) {
 		throw new Error('invalid request')
@@ -13,35 +14,41 @@ export async function readBody<T>(request: Request): Promise<T> {
 		contentType.includes('multipart/form-data') &&
 		contentType.includes('boundary')
 	) {
-		console.log('will attempt local parse of form data')
-		const rBody = await request.text()
-		const enc = new TextEncoder()
-		const bodyArr = enc.encode(rBody)
-		const boundary = getBoundary(contentType)
-		console.log(`Got boundary ${boundary}`)
-		const parts = parse(bodyArr, boundary)
-		console.log(`parsed ${parts.length} parts`)
-		const dec = new TextDecoder()
-		const form: FormData = new FormData()
-		for (const part of parts) {
-			const value = dec.decode(part.data)
-			form.append(part.name || 'null', value)
-		}
-
-		const out: any = {}
-		for (const [key, value] of form) {
-			out[key] = value
-		}
-		return out as T
+		form = await localFormDataParse(request)
 	} else {
-		const form = await request.formData()
-		const out: any = {}
-
-		for (const [key, value] of form) {
-			out[key] = value
-		}
-		return out as T
+		form = await request.formData()
 	}
+
+	const out: any = {}
+
+	for (const [key, value] of form) {
+		out[key] = value
+	}
+	return out as T
+}
+
+export async function localFormDataParse(request: Request): Promise<FormData> {
+	const contentType = request.headers.get('content-type')
+	if (contentType === null) {
+		throw new Error('invalid request')
+	}
+
+	console.log('will attempt local parse of form data')
+	const rBody = await request.text()
+	const enc = new TextEncoder()
+	const bodyArr = enc.encode(rBody)
+	const boundary = getBoundary(contentType)
+	console.log(`Got boundary ${boundary}`)
+	const parts = parse(bodyArr, boundary)
+	console.log(`parsed ${parts.length} parts`)
+	const dec = new TextDecoder()
+	const form: FormData = new FormData()
+	for (const part of parts) {
+		const value = dec.decode(part.data)
+		form.append(part.name || 'null', value)
+	}
+
+	return form
 }
 
 // temporary code to deal with EW bug
