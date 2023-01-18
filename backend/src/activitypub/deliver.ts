@@ -43,6 +43,10 @@ export async function deliverFollowers(
 	queue: Queue<DeliverMessageBody>
 ) {
 	const followers = await getFollowers(db, from)
+	if (followers.length === 0) {
+		// No one is following the user so no updates to send. Sad.
+		return
+	}
 
 	const messages: Array<MessageSendRequest<DeliverMessageBody>> = await Promise.all(
 		followers.map(async (id) => {
