@@ -19,7 +19,7 @@ describe('Mastodon APIs', () => {
 							success: true,
 							result: {
 								id: 'abcd',
-								variants: ['https://example.com/' + file.name],
+								variants: ['https://example.com/' + file.name + '/usercontent'],
 							},
 						})
 					)

@@ -172,7 +172,10 @@ describe('Mastodon APIs', () => {
 						JSON.stringify({
 							success: true,
 							result: {
-								variants: ['https://example.com/' + file.name],
+								variants: [
+									'https://example.com/' + file.name + '/avatar',
+									'https://example.com/' + file.name + '/header',
+								],
 							},
 						})
 					)
@@ -205,8 +208,8 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
-			assert.equal(data.avatar, 'https://example.com/selfie.jpg')
-			assert.equal(data.header, 'https://example.com/mountain.jpg')
+			assert.equal(data.avatar, 'https://example.com/selfie.jpg/avatar')
+			assert.equal(data.header, 'https://example.com/mountain.jpg/header')
 		})
 
 		test('get remote actor by id', async () => {

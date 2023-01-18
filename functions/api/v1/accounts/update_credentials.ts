@@ -70,7 +70,7 @@ export async function handleRequest(
 			const value = formData.get('avatar')! as any
 
 			const config = { accountId, apiToken }
-			const url = await images.uploadImage(value, config)
+			const url = await images.uploadAvatar(value, config)
 			await updateActorProperty(db, connectedActor.id, 'icon.url', url.toString())
 		}
 
@@ -78,7 +78,7 @@ export async function handleRequest(
 			const value = formData.get('header')! as any
 
 			const config = { accountId, apiToken }
-			const url = await images.uploadImage(value, config)
+			const url = await images.uploadHeader(value, config)
 			await updateActorProperty(db, connectedActor.id, 'image.url', url.toString())
 		}
 	}
