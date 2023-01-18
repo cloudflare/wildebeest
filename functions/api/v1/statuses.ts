@@ -48,8 +48,6 @@ export async function handleRequest(
 	if (request.method !== 'POST') {
 		return new Response('', { status: 400 })
 	}
-	const contentType = request.headers.get('content-type')
-	console.log({ contentType })
 
 	const body = await readBody<StatusCreate>(request)
 	console.log(body)
@@ -79,7 +77,7 @@ export async function handleRequest(
 	if (body.in_reply_to_id) {
 		inReplyToObject = await getObjectByMastodonId(db, body.in_reply_to_id)
 		if (inReplyToObject === null) {
-			return errors.statusNotFound()
+			return errors.statusNotFound(body.in_reply_to_id)
 		}
 	}
 
