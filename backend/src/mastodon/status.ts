@@ -131,7 +131,7 @@ export async function toMastodonStatusFromRow(
 
 	const status: MastodonStatus = {
 		id: row.mastodon_id,
-		url: new URL('/statuses/' + row.mastodonId, 'https://' + domain),
+		url: new URL('/statuses/' + row.mastodon_id, 'https://' + domain),
 		uri: row.id,
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],

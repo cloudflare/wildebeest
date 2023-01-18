@@ -1,4 +1,6 @@
 import { strict as assert } from 'node:assert/strict'
+import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
+import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
@@ -353,6 +355,8 @@ describe('Mastodon APIs', () => {
 			const data = await res.json<Array<any>>()
 			assert.equal(data.length, 2)
 
+			console.log({ data })
+
 			assert(isUUID(data[0].id))
 			assert.equal(data[0].content, 'my second status')
 			assert.equal(data[0].account.acct, 'sven@' + domain)
@@ -365,6 +369,52 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[1].content, 'my first status')
 			assert.equal(data[1].favourites_count, 1)
 			assert.equal(data[1].reblogs_count, 0)
+		})
+
+		test("get local actor statuses doesn't include replies", async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const note = await createPublicNote(domain, db, 'a post', actor)
+			await addObjectInOutbox(db, actor, note)
+			await sleep(10)
+
+			const inReplyTo = note.id
+			const reply = await createPublicNote(domain, db, 'a reply', actor, [], { inReplyTo })
+			await addObjectInOutbox(db, actor, reply)
+			await sleep(10)
+
+			await insertReply(db, actor, reply, note)
+
+			const req = new Request('https://' + domain)
+			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<Array<any>>()
+
+			// Only 1 post because the reply is hidden
+			assert.equal(data.length, 1)
+		})
+
+		test('get local actor statuses includes media attachements', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const properties = { url: 'https://example.com/image.jpg' }
+			const mediaAttachments = [await createImage(domain, db, actor, properties)]
+			const note = await createPublicNote(domain, db, 'status from actor', actor, mediaAttachments)
+			await addObjectInOutbox(db, actor, note)
+
+			const req = new Request('https://' + domain)
+			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<Array<any>>()
+
+			assert.equal(data.length, 1)
+			assert.equal(data[0].media_attachments.length, 1)
+			assert.equal(data[0].media_attachments[0].type, 'image')
+			assert.equal(data[0].media_attachments[0].url, properties.url)
 		})
 
 		test('get pinned statuses', async () => {
