@@ -5,7 +5,7 @@ import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/f
 import { createPublicNote, createPrivateNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import { makeDB, assertCORS, assertJSON } from '../utils'
+import { makeDB, assertCORS, assertJSON, makeCache } from '../utils'
 import * as timelines_home from 'wildebeest/functions/api/v1/timelines/home'
 import * as timelines_public from 'wildebeest/functions/api/v1/timelines/public'
 import * as timelines from 'wildebeest/backend/src/mastodon/timeline'
@@ -106,27 +106,20 @@ describe('Mastodon APIs', () => {
 		test('home returns cache', async () => {
 			const db = await makeDB()
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const kv_cache: any = {
-				async get(key: string) {
-					assert.equal(key, connectedActor.id + '/timeline/home')
-					return 'cached data'
-				},
-			}
+			const cache = makeCache()
+			await cache.put(connectedActor.id + '/timeline/home', 12345)
+
 			const req = new Request('https://' + domain)
-			const data = await timelines_home.handleRequest(req, kv_cache, connectedActor)
-			assert.equal(await data.text(), 'cached data')
+			const data = await timelines_home.handleRequest(req, cache, connectedActor)
+			assert.equal(await data.json(), 12345)
 		})
 
 		test('home returns empty if not in cache', async () => {
 			const db = await makeDB()
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const kv_cache: any = {
-				async get() {
-					return null
-				},
-			}
+			const cache = makeCache()
 			const req = new Request('https://' + domain)
-			const data = await timelines_home.handleRequest(req, kv_cache, connectedActor)
+			const data = await timelines_home.handleRequest(req, cache, connectedActor)
 			const posts = await data.json<Array<any>>()
 
 			assert.equal(posts.length, 0)

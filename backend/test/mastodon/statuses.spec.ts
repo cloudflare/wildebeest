@@ -12,7 +12,7 @@ import * as statuses_context from 'wildebeest/functions/api/v1/statuses/[id]/con
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
-import { isUrlValid, makeDB, assertJSON, streamToArrayBuffer, makeQueue } from '../utils'
+import { isUrlValid, makeDB, assertJSON, streamToArrayBuffer, makeQueue, makeCache } from '../utils'
 import * as activities from 'wildebeest/backend/src/activitypub/activities'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
@@ -20,9 +20,7 @@ import { MessageType } from 'wildebeest/backend/src/types/queue'
 const userKEK = 'test_kek4'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const domain = 'cloudflare.com'
-const kv_cache: any = {
-	async put() {},
-}
+const cache = makeCache()
 
 describe('Mastodon APIs', () => {
 	describe('statuses', () => {
@@ -38,7 +36,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor: any = {}
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, cache)
 			assert.equal(res.status, 400)
 		})
 
@@ -58,7 +56,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor = actor
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 			assertJSON(res)
 
@@ -96,14 +94,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const queue = makeQueue()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-			let cache = null
-			const kv_cache: any = {
-				async put(key: string, value: any) {
-					assert.equal(key, actor.id + '/timeline/home')
-					cache = value
-				},
-			}
+			const cache = makeCache()
 
 			const body = {
 				status: 'my status',
@@ -115,16 +106,17 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 			assertJSON(res)
 
 			const data = await res.json<any>()
 
-			assert(cache)
-			const timeline = JSON.parse(cache)
-			assert.equal(timeline.length, 1)
-			assert.equal(timeline[0].id, data.id)
+			const cachedData = await cache.get<any>(actor.id + '/timeline/home')
+			console.log({ cachedData })
+			assert(cachedData)
+			assert.equal(cachedData.length, 1)
+			assert.equal(cachedData[0].id, data.id)
 		})
 
 		test("create new status adds to Actor's outbox", async () => {
@@ -143,7 +135,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor = actor
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 
 			const row = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first()
@@ -171,7 +163,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 
 			assert.equal(queue.messages.length, 2)
@@ -250,7 +242,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const connectedActor = actor
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 
 			assert(deliveredNote)
@@ -281,7 +273,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -560,7 +552,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
 			assert.equal(res.status, 404)
 		})
 
@@ -581,7 +573,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -625,7 +617,7 @@ describe('Mastodon APIs', () => {
 				body: JSON.stringify(body),
 			})
 
-			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
 			assert.equal(res.status, 400)
 			const data = await res.json<any>()
 			assert(data.error.includes('Limit exceeded'))
@@ -650,7 +642,7 @@ describe('Mastodon APIs', () => {
 				body,
 			})
 
-			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
 			assert.equal(res.status, 400)
 			const data = await res.json<any>()
 			assert(data.error.includes('Limit exceeded'))

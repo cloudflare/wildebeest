@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
+import type { Cache } from 'wildebeest/backend/src/cache'
 import type { Queue } from 'wildebeest/backend/src/types/queue'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
 import type { Client } from 'wildebeest/backend/src/mastodon/client'
@@ -87,6 +88,24 @@ export function makeQueue(): TestQueue {
 			for (let i = 0, len = batch.length; i < len; i++) {
 				messages.push(batch[i].body)
 			}
+		},
+	}
+}
+
+export function makeCache(): Cache {
+	const cache: any = {}
+
+	return {
+		async get<T>(key: string): Promise<T | null> {
+			if (cache[key]) {
+				return cache[key] as T
+			} else {
+				return null
+			}
+		},
+
+		async put<T>(key: string, value: T): Promise<void> {
+			cache[key] = value
 		},
 	}
 }

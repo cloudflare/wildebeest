@@ -6,14 +6,15 @@ import type { Account, MastodonStatus } from 'wildebeest/frontend/src/types'
 
 const kek = 'test-kek'
 /* eslint-disable @typescript-eslint/no-empty-function */
-const queue = {
-	async send() {},
-	async sendBatch() {},
+const queue: unknown = {
+	send() {},
+	sendBatch() {},
 }
-const kv_cache = {
-	async put() {},
+/* eslint-disable @typescript-eslint/no-empty-function */
+const cache: unknown = {
+	get() {},
+	put() {},
 }
-/* eslint-enable @typescript-eslint/no-empty-function */
 
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
@@ -30,7 +31,7 @@ export async function init(domain: string, db: D1Database) {
 	const reblogger = await getOrCreatePerson(domain, db, rebloggerAccount)
 	// Reblog an arbitrary status with this reblogger
 	const statusToReblog = loadedStatuses[2]
-	await reblogStatus(db, reblogger, statusToReblog)
+	await reblogStatus(db, reblogger, statusToReblog, domain)
 }
 
 /**
@@ -49,7 +50,7 @@ async function createStatus(db: D1Database, actor: Person, status: string, visib
 		headers,
 		body: JSON.stringify(body),
 	})
-	const resp = await statusesAPI.handleRequest(req, db, actor, kek, queue, kv_cache as unknown as KVNamespace)
+	const resp = await statusesAPI.handleRequest(req, db, actor, kek, queue, cache)
 	return (await resp.json()) as MastodonStatus
 }
 
@@ -70,6 +71,6 @@ async function getOrCreatePerson(
 	return newPerson
 }
 
-async function reblogStatus(db: D1Database, actor: Person, status: MastodonStatus) {
-	await reblogAPI.handleRequest(db, status.id, actor, kek, queue)
+async function reblogStatus(db: D1Database, actor: Person, status: MastodonStatus, domain: string) {
+	await reblogAPI.handleRequest(db, status.id, actor, kek, queue, domain)
 }

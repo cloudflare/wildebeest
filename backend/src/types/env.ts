@@ -2,9 +2,10 @@ import type { Queue, MessageBody } from 'wildebeest/backend/src/types/queue'
 
 export interface Env {
 	DATABASE: D1Database
-	KV_CACHE: KVNamespace
+	// FIXME: shouldn't it be USER_KEY?
 	userKEK: string
 	QUEUE: Queue<MessageBody>
+	DO_CACHE: DurableObjectNamespace
 
 	CF_ACCOUNT_ID: string
 	CF_API_TOKEN: string

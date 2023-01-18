@@ -3,10 +3,11 @@ import { getFollowingId } from 'wildebeest/backend/src/mastodon/follow'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
 import { toMastodonStatusFromRow } from './status'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
+import type { Cache } from 'wildebeest/backend/src/cache'
 
-export async function pregenerateTimelines(domain: string, db: D1Database, cache: KVNamespace, actor: Actor) {
+export async function pregenerateTimelines(domain: string, db: D1Database, cache: Cache, actor: Actor) {
 	const timeline = await getHomeTimeline(domain, db, actor)
-	await cache.put(actor.id + '/timeline/home', JSON.stringify(timeline))
+	await cache.put(actor.id + '/timeline/home', timeline)
 }
 
 export async function getHomeTimeline(domain: string, db: D1Database, actor: Actor): Promise<Array<MastodonStatus>> {
