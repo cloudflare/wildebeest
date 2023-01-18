@@ -1,9 +1,9 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { makeGetActorAsId, makeGetObjectAsId } from 'wildebeest/backend/src/activitypub/activities/handle'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Handle } from 'wildebeest/backend/src/utils/parse'
@@ -15,6 +15,7 @@ import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import * as webfinger from 'wildebeest/backend/src/webfinger'
 import * as outbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { toMastodonStatusFromRow } from 'wildebeest/backend/src/mastodon/status'
 
 const headers = {
 	...cors(),
@@ -116,13 +117,23 @@ async function getLocalStatuses(request: Request, db: D1Database, handle: Handle
 
 	const QUERY = `
 SELECT objects.*,
+       actors.id as actor_id,
+       actors.cdate as actor_cdate,
+       actors.properties as actor_properties,
+       outbox_objects.actor_id as publisher_actor_id,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
-       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count
+       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count,
+       (SELECT count(*) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count
 FROM outbox_objects
-INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE outbox_objects.actor_id = ? AND outbox_objects.cdate > ? AND objects.type = 'Note'
-ORDER by outbox_objects.cdate DESC
-LIMIT ?
+INNER JOIN objects ON objects.id=outbox_objects.object_id
+INNER JOIN actors ON actors.id=outbox_objects.actor_id
+WHERE objects.type='Note'
+      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
+      AND outbox_objects.target = '${PUBLIC_GROUP}'
+      AND outbox_objects.actor_id = ?1
+      AND outbox_objects.cdate > ?2
+ORDER by outbox_objects.published_date DESC
+LIMIT ?3
 `
 
 	const DEFAULT_LIMIT = 20
@@ -154,38 +165,14 @@ LIMIT ?
 		throw new Error('SQL error: ' + error)
 	}
 
-	if (results && results.length > 0) {
-		for (let i = 0, len = results.length; i < len; i++) {
-			const result: any = results[i]
-			const properties = JSON.parse(result.properties)
+	if (!results) {
+		return new Response(JSON.stringify(out), { headers })
+	}
 
-			const author = await getPersonById(db, actorId)
-			if (author === null) {
-				console.error('note author is unknown')
-				continue
-			}
-
-			const acct = `${author.preferredUsername}@${domain}`
-			const account = await loadExternalMastodonAccount(acct, author)
-
-			out.push({
-				id: result.mastodon_id,
-				uri: result.id,
-				url: new URL('/statuses/' + result.mastodon_id, 'https://' + domain),
-				created_at: new Date(result.cdate).toISOString(),
-				content: properties.content,
-				emojis: [],
-				media_attachments: [],
-				tags: [],
-				mentions: [],
-				account,
-				favourites_count: result.favourites_count,
-				reblogs_count: result.reblogs_count,
-
-				// TODO: stub values
-				visibility: 'public',
-				spoiler_text: '',
-			})
+	for (let i = 0, len = results.length; i < len; i++) {
+		const status = await toMastodonStatusFromRow(domain, db, results[i])
+		if (status !== null) {
+			out.push(status)
 		}
 	}
 
