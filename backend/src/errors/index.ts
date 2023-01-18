@@ -41,3 +41,7 @@ export function internalServerError(): Response {
 export function statusNotFound(): Response {
 	return generateErrorResponse('Status not found', 404)
 }
+
+export function exceededLimit(detail: string): Response {
+	return generateErrorResponse('Limit exceeded', 400, detail)
+}

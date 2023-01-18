@@ -59,6 +59,10 @@ export async function handleRequest(
 
 	const mediaAttachments: Array<Document> = []
 	if (body.media_ids && body.media_ids.length > 0) {
+		if (body.media_ids.length > 4) {
+			return errors.exceededLimit('up to 4 images are allowed')
+		}
+
 		for (let i = 0, len = body.media_ids.length; i < len; i++) {
 			const id = body.media_ids[i]
 			const document = await getObjectByMastodonId(db, id)
