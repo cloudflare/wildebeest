@@ -14,6 +14,9 @@ import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
 	const parsedSignature = parseRequest(request)
 	const pubKey = await fetchKey(parsedSignature)
+	if (pubKey === null) {
+		return new Response('signature key not found', { status: 401 })
+	}
 	const valid = await verifySignature(parsedSignature, pubKey)
 	if (!valid) {
 		return new Response('invalid signature', { status: 401 })
