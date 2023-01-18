@@ -34,32 +34,9 @@ To activate **_Images_**, please login into your account, select **_Images_** on
 
 ![images subscription](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/fd07dede-a883-4372-b0cf-3afb6b2ab400/public)
 
-### API token
-
-Before we begin, you also need to create an API token in your Cloudflare account. To do that, [login](https://dash.cloudflare.com/) into your account, and press the **_Create Token_** button under **_My Profile (top right corner) / API Tokens_**.
-
-![create token](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/589e9e1b-5c50-4269-f039-3414454c4a00/public)
-
-Now press **_Create Custom Token_** and add the following permissions:
-
-- D1, account level, edit permission.
-- Cloudflare Pages, account level, edit permission.
-- Access: Apps and policies, account level, edit permission.
-- Access: Organizations, Identity Providers and Groups, account level, read permission.
-- Workers KV Storage, account level, edit permission.
-- DNS, zone level, edit permission.
-- Cloudflare Images, account level, edit permission.
-- Workers Scripts, account level, edit permission.
-
-![token permissions](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/c60327db-b651-4655-6c98-0f4e8c652600/public)
-
-You can limit the token to the specific zone where you will using Wildebeest if you want. Don't set a TTL.
-
-Now **_Continue to Summary_**, review your settings, and **_Create Token_**. Take note of your token and store it in your password manager, you're going to need it later.
-
 ### Zone and Account IDs
 
-You also need to take note of your Zone and Account IDs. To find them, [login](https://dash.cloudflare.com/) into your account and select the zone (domain) where you plan to use Wildebeest. Then, on the **_Overview_** page you will the following information:
+You need to take note of your Zone and Account IDs. To find them, [login](https://dash.cloudflare.com/) into your account and select the zone (domain) where you plan to use Wildebeest. Then, on the **_Overview_** page you will the following information:
 
 ![zone and account IDs](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/f595d8b7-6ce9-4ef7-7416-253efd012800/w=306)
 
@@ -71,7 +48,7 @@ Wildebeest uses [Deploy to Workers](https://deploy.workers.cloudflare.com/) to a
 
 **Click here to start the installation.**
 
-[<img src="https://deploy.workers.cloudflare.com/button"/>](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true&fields={%22name%22:%22Zone%20ID%22,%22secret%22:%22CF_ZONE_ID%22,%22descr%22:%22Get%20your%20Zone%20ID%20from%20the%20Cloudflare%20Dashboard%22}&fields={%22name%22:%22Domain%22,%22secret%22:%22CF_DEPLOY_DOMAIN%22,%22descr%22:%22Domain%20on%20which%20your%20instance%20will%20be%20running%22}&fields={%22name%22:%22Instance%20title%22,%22secret%22:%22INSTANCE_TITLE%22,%22descr%22:%22Title%20of%20your%20instance%22}&fields={%22name%22:%22Administrator%20Email%22,%22secret%22:%22ADMIN_EMAIL%22,%22descr%22:%22An%20Email%20address%20that%20can%20be%20messaged%20regarding%20inquiries%20or%20issues%22}&fields={%22name%22:%22Instance%20description%22,%22secret%22:%22INSTANCE_DESCR%22,%22descr%22:%22A%20short,%20plain-text%20description%20of%20your%20instance%22})
+[<img src="https://deploy.workers.cloudflare.com/button"/>](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true&fields={%22name%22:%22Zone%20ID%22,%22secret%22:%22CF_ZONE_ID%22,%22descr%22:%22Get%20your%20Zone%20ID%20from%20the%20Cloudflare%20Dashboard%22}&fields={%22name%22:%22Domain%22,%22secret%22:%22CF_DEPLOY_DOMAIN%22,%22descr%22:%22Domain%20on%20which%20your%20instance%20will%20be%20running%22}&fields={%22name%22:%22Instance%20title%22,%22secret%22:%22INSTANCE_TITLE%22,%22descr%22:%22Title%20of%20your%20instance%22}&fields={%22name%22:%22Administrator%20Email%22,%22secret%22:%22ADMIN_EMAIL%22,%22descr%22:%22An%20Email%20address%20that%20can%20be%20messaged%20regarding%20inquiries%20or%20issues%22}&fields={%22name%22:%22Instance%20description%22,%22secret%22:%22INSTANCE_DESCR%22,%22descr%22:%22A%20short,%20plain-text%20description%20of%20your%20instance%22}&apiTokenTmpl=[{%22key%22:%22d1%22,%22type%22:%22edit%22},{%22key%22:%22page%22,%22type%22:%22edit%22},{%22key%22:%22images%22,%22type%22:%22edit%22},{%22key%22:%22access%22,%22type%22:%22edit%22},{%22key%22:%22workers_kv_storage%22,%22type%22:%22edit%22},{%22key%22:%22access_acct%22,%22type%22:%22read%22},{%22key%22:%22dns%22,%22type%22:%22edit%22},{%22key%22:%22workers_script%22,%22type%22:%22edit%22}]&apiTokenName=Wildebeest)
 
 Please pay attention to all the steps involved in the installation process.
 
