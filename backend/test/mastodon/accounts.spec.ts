@@ -355,8 +355,6 @@ describe('Mastodon APIs', () => {
 			const data = await res.json<Array<any>>()
 			assert.equal(data.length, 2)
 
-			console.log({ data })
-
 			assert(isUUID(data[0].id))
 			assert.equal(data[0].content, 'my second status')
 			assert.equal(data[0].account.acct, 'sven@' + domain)
@@ -470,6 +468,13 @@ describe('Mastodon APIs', () => {
 				const data = await res.json<Array<any>>()
 				assert.equal(data.length, 0)
 			}
+		})
+
+		test('get local actor statuses with max_id poiting to unknown id', async () => {
+			const db = await makeDB()
+			const req = new Request('https://' + domain + '?max_id=object1')
+			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)
+			assert.equal(res.status, 404)
 		})
 
 		test('get remote actor statuses', async () => {

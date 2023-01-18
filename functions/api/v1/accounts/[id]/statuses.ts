@@ -1,5 +1,6 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
+import * as errors from 'wildebeest/backend/src/errors'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
@@ -154,9 +155,12 @@ LIMIT ?3
 		// Client asked to retrieve statuses after the max_id
 		// As opposed to Mastodon we don't use incremental ID but UUID, we need
 		// to retrieve the cdate of the max_id row and only show the newer statuses.
-		const maxId = url.searchParams.get('max_id')
+		const maxId = url.searchParams.get('max_id')!
 
 		const row: any = await db.prepare('SELECT cdate FROM outbox_objects WHERE object_id=?').bind(maxId).first()
+		if (!row) {
+			return errors.statusNotFound(maxId)
+		}
 		afterCdate = row.cdate
 	}
 

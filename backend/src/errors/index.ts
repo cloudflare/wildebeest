@@ -38,8 +38,8 @@ export function internalServerError(): Response {
 	return generateErrorResponse('Internal Server Error', 500)
 }
 
-export function statusNotFound(): Response {
-	return generateErrorResponse('Status not found', 404)
+export function statusNotFound(id: string): Response {
+	return generateErrorResponse('Resource not found', 404, `Status "${id}" not found`)
 }
 
 export function exceededLimit(detail: string): Response {
