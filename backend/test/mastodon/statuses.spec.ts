@@ -608,5 +608,25 @@ describe('Mastodon APIs', () => {
 				assert.equal(row.in_reply_to_object_id, note.id.toString())
 			}
 		})
+
+		test('create new status with too many image', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'my status',
+				media_ids: ['id', 'id', 'id', 'id', 'id'],
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, kv_cache)
+			assert.equal(res.status, 400)
+		})
 	})
 })
