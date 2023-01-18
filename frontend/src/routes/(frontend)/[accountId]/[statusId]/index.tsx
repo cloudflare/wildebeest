@@ -4,6 +4,7 @@ import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
+import * as contextAPI from 'wildebeest/functions/api/v1/statuses/[id]/context'
 import { Link, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { Avatar } from '~/components/avatar'
@@ -11,13 +12,20 @@ import { Avatar } from '~/components/avatar'
 export const statusLoader = loader$<
 	{ DATABASE: D1Database; domain: string },
 	Promise<{ status: MastodonStatus; context: StatusContext }>
->(async ({ redirect, platform, params }) => {
-	const response = await statusAPI.handleRequest(platform.DATABASE, params.statusId)
-	const results = await response.text()
-	if (!results) {
+>(async ({ request, redirect, platform, params }) => {
+	const domain = new URL(request.url).hostname
+	const statusResponse = await statusAPI.handleRequest(platform.DATABASE, params.statusId, domain)
+	const statusText = await statusResponse.text()
+	if (!statusText) {
 		throw redirect(303, '/not-found')
 	}
-	return { status: JSON.parse(results), context: { ancestors: [], descendants: [] } }
+	const contextResponse = await contextAPI.handleRequest(domain, platform.DATABASE, params.statusId)
+	const contextText = await contextResponse.text()
+	const context = JSON.parse(contextText ?? null) as StatusContext | null
+	if (!context) {
+		throw new Error(`No context present for status with ${params.statusId}`)
+	}
+	return { status: JSON.parse(statusText), context }
 })
 
 export default component$(() => {
