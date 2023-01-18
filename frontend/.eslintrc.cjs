@@ -30,7 +30,7 @@ module.exports = {
 		'@typescript-eslint/ban-ts-comment': 'error',
 		'prefer-spread': 'error',
 		'no-case-declarations': 'error',
-		'no-console': 'error',
+		'no-console': ['error', { allow: ['warn', 'error']} ],
 		'@typescript-eslint/no-unused-vars': ['error'],
 		'prefer-const': 'error',
 	},
