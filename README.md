@@ -51,7 +51,9 @@ Now press **_Create Custom Token_** and add the following permissions:
 - Cloudflare Images, account level, edit permission.
 - Workers Scripts, account level, edit permission.
 
-![token permissions](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/c60327db-b651-4655-6c98-0f4e8c652600/public)
+Note: You can simply click [this shortcut URL](https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=%5B%7B%22key%22%3A%22access%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22access_acct%22%2C%22type%22%3A%22read%22%7D%2C%7B%22key%22%3A%22d1%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22dns%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22images%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22page%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22workers_kv_storage%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22workers_scripts%22%2C%22type%22%3A%22edit%22%7D%5D&name=Wildebeest) to prefill this custom token.
+
+![token permissions](https://user-images.githubusercontent.com/874059/213063544-248d2e5b-8ac6-4933-b8ad-9855c6483759.png)
 
 You can limit the token to the specific zone where you will using Wildebeest if you want. Don't set a TTL.
 
