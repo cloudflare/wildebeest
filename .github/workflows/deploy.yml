@@ -166,6 +166,20 @@ jobs:
             echo "VAPID keys generated"
           fi
 
+      - name: Publish DO
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          command: publish --config do/wrangler.toml
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+      - name: Retrieve DO namespace
+        run: |
+          curl https://api.cloudflare.com/client/v4/accounts/${{ secrets.CF_ACCOUNT_ID }}/workers/durable_objects/namespaces \
+              -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}' \
+              | jq -r '.result[] | select( .script == "wildebeest-do" ) | .id' | awk '{print "do_cache_id="$1}' >> $GITHUB_ENV
+
       - name: Configure
         run: terraform plan && terraform apply -auto-approve
         continue-on-error: true
@@ -177,6 +191,7 @@ jobs:
           TF_VAR_cloudflare_deploy_domain: ${{ vars.CF_DEPLOY_DOMAIN }}
           TF_VAR_gh_username: ${{ env.OWNER_LOWER }}
           TF_VAR_d1_id: ${{ env.d1_id }}
+          TF_VAR_do_cache_id: ${{ env.do_cache_id }}
           TF_VAR_access_auth_domain: ${{ env.auth_domain }}
           TF_VAR_wd_instance_title: ${{ vars.INSTANCE_TITLE }}
           TF_VAR_wd_admin_email: ${{ vars.ADMIN_EMAIL }}
@@ -214,18 +229,6 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
-      - name: retrieve Wildebeest cache KV namespace
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          command: kv:namespace list | jq -r '.[] | select( .title == "wildebeest-${{ env.OWNER_LOWER }}-cache" ) | .id' | awk '{print "cache_kv="$1}' >> $GITHUB_ENV
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          preCommands: |
-            echo "*** pre commands ***"
-            apt-get update && apt-get -y install jq
-            echo "******"
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-
       - name: Create Queue
         uses: cloudflare/wrangler-action@2.0.0
         with:
@@ -243,9 +246,10 @@ jobs:
             echo "*** pre commands ***"
             echo -e "[[d1_databases]]\nbinding=\"DATABASE\"\ndatabase_name=\"wildebeest-${{ env.OWNER_LOWER }}\"\ndatabase_id=\"${{ env.d1_id }}\"\n" >> consumer/wrangler.toml
 
-            echo -e "[[kv_namespaces]]\n" >> consumer/wrangler.toml
-            echo -e "binding=\"KV_CACHE\"\n" >> consumer/wrangler.toml
-            echo -e "id=\"${{ env.cache_kv }}\"\n" >> consumer/wrangler.toml
+            echo -e "[durable_objects]\n" >> consumer/wrangler.toml
+            echo -e "bindings=[" >> consumer/wrangler.toml
+            echo -e "{name=\"DO_CACHE\",class_name=\"WildebeestCache\",script_name=\"wildebeest-do\"}," >> consumer/wrangler.toml
+            echo -e "]" >> consumer/wrangler.toml
 
             echo -e "[vars]\n" >> consumer/wrangler.toml
             echo -e "DOMAIN=\"${{ vars.CF_DEPLOY_DOMAIN }}\"\n" >> consumer/wrangler.toml

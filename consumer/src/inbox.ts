@@ -2,6 +2,7 @@ import type { MessageBody, InboxMessageBody } from 'wildebeest/backend/src/types
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import * as notification from 'wildebeest/backend/src/mastodon/notification'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
+import { cacheFromEnv } from 'wildebeest/backend/src/cache'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from './'
 
@@ -9,7 +10,7 @@ export async function handleInboxMessage(env: Env, actor: Actor, message: InboxM
 	const domain = env.DOMAIN
 	const db = env.DATABASE
 	const adminEmail = env.ADMIN_EMAIL
-	const cache = env.KV_CACHE
+	const cache = cacheFromEnv(env)
 	const activity = message.activity
 
 	await activityHandler.handle(domain, activity, db, message.userKEK, adminEmail, message.vapidKeys)

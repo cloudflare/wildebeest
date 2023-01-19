@@ -10,6 +10,7 @@ import { WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { NotificationType, Notification } from 'wildebeest/backend/src/types/notification'
 import { getSubscriptionForAllClients } from 'wildebeest/backend/src/mastodon/subscription'
+import type { Cache } from 'wildebeest/backend/src/cache'
 
 export async function createNotification(
 	db: D1Database,
@@ -250,7 +251,7 @@ export async function getNotifications(db: D1Database, actor: Actor, domain: str
 	return out
 }
 
-export async function pregenerateNotifications(db: D1Database, cache: KVNamespace, actor: Actor, domain: string) {
+export async function pregenerateNotifications(db: D1Database, cache: Cache, actor: Actor, domain: string) {
 	const notifications = await getNotifications(db, actor, domain)
-	await cache.put(actor.id + '/notifications', JSON.stringify(notifications))
+	await cache.put(actor.id + '/notifications', notifications)
 }

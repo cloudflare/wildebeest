@@ -4,7 +4,7 @@ import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/not
 import { createNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import * as notifications from 'wildebeest/functions/api/v1/notifications'
-import { makeDB, assertJSON, createTestClient } from '../utils'
+import { makeCache, makeDB, assertJSON, createTestClient } from '../utils'
 import { strict as assert } from 'node:assert/strict'
 import { sendLikeNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createSubscription } from 'wildebeest/backend/src/mastodon/subscription'
@@ -32,15 +32,13 @@ describe('Mastodon APIs', () => {
 		test('returns notifications stored in KV cache', async () => {
 			const db = await makeDB()
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const kv_cache: any = {
-				async get(key: string) {
-					assert.equal(key, connectedActor.id + '/notifications')
-					return 'cached data'
-				},
-			}
+			const cache = makeCache()
+
+			await cache.put(connectedActor.id + '/notifications', 12345)
+
 			const req = new Request('https://' + domain)
-			const data = await notifications.handleRequest(req, kv_cache, connectedActor)
-			assert.equal(await data.text(), 'cached data')
+			const data = await notifications.handleRequest(req, cache, connectedActor)
+			assert.equal(await data.json(), 12345)
 		})
 
 		test('returns notifications stored in db', async () => {

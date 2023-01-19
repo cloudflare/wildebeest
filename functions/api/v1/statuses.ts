@@ -21,6 +21,8 @@ import { readBody } from 'wildebeest/backend/src/utils/body'
 import * as errors from 'wildebeest/backend/src/errors'
 import type { Visibility } from 'wildebeest/backend/src/types'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
+import type { Cache } from 'wildebeest/backend/src/cache'
+import { cacheFromEnv } from 'wildebeest/backend/src/cache'
 
 type StatusCreate = {
 	status: string
@@ -31,7 +33,7 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK, env.QUEUE, env.KV_CACHE)
+	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK, env.QUEUE, cacheFromEnv(env))
 }
 
 // FIXME: add tests for delivery to followers and mentions to a specific Actor.
@@ -41,7 +43,7 @@ export async function handleRequest(
 	connectedActor: Person,
 	userKEK: string,
 	queue: Queue<DeliverMessageBody>,
-	cache: KVNamespace
+	cache: Cache
 ): Promise<Response> {
 	// TODO: implement Idempotency-Key
 

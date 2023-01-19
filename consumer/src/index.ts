@@ -12,7 +12,7 @@ export type Env = {
 	DATABASE: D1Database
 	DOMAIN: string
 	ADMIN_EMAIL: string
-	KV_CACHE: KVNamespace
+	DO_CACHE: DurableObjectNamespace
 }
 
 export default {
