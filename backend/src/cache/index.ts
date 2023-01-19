@@ -13,6 +13,10 @@ export function cacheFromEnv(env: any): Cache {
 
 			const res = await stub.fetch('http://cache/' + key)
 			if (!res.ok) {
+				if (res.status === 404) {
+					return null
+				}
+
 				throw new Error(`DO cache returned ${res.status}: ${await res.text()}`)
 			}
 
