@@ -638,10 +638,82 @@ describe('Mastodon APIs', () => {
 
 		test('get remote actor followers', async () => {
 			const db = await makeDB()
-			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+
+			globalThis.fetch = async (input: any) => {
+				if (input.toString() === 'https://example.com/.well-known/webfinger?resource=acct%3Asven%40example.com') {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: 'https://example.com/users/sven',
+								},
+							],
+						})
+					)
+				}
+
+				if (input.toString() === 'https://example.com/users/sven') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://example.com/users/sven',
+							type: 'Person',
+							followers: 'https://example.com/users/sven/followers',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://example.com/users/sven/followers') {
+					return new Response(
+						JSON.stringify({
+							'@context': 'https://www.w3.org/ns/activitystreams',
+							id: 'https://example.com/users/sven/followers',
+							type: 'OrderedCollection',
+							totalItems: 3,
+							first: 'https://example.com/users/sven/followers/1',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://example.com/users/sven/followers/1') {
+					return new Response(
+						JSON.stringify({
+							'@context': 'https://www.w3.org/ns/activitystreams',
+							id: 'https://example.com/users/sven/followers/1',
+							type: 'OrderedCollectionPage',
+							totalItems: 3,
+							partOf: 'https://example.com/users/sven/followers',
+							orderedItems: [
+								actorA.id.toString(), // local user
+								'https://example.com/users/b', // remote user
+							],
+						})
+					)
+				}
+
+				if (input.toString() === 'https://example.com/users/b') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://example.com/users/b',
+							type: 'Person',
+						})
+					)
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
 			const req = new Request(`https://${domain}`)
-			const res = await accounts_followers.handleRequest(req, db, 'sven@example.com', connectedActor)
-			assert.equal(res.status, 403)
+			const res = await accounts_followers.handleRequest(req, db, 'sven@example.com')
+			assert.equal(res.status, 200)
+
+			const data = await res.json<Array<any>>()
+			assert.equal(data.length, 2)
+
+			assert.equal(data[0].acct, 'a@cloudflare.com')
+			assert.equal(data[1].acct, 'b@example.com')
 		})
 
 		test('get local actor followers', async () => {
@@ -664,9 +736,8 @@ describe('Mastodon APIs', () => {
 			await addFollowing(db, actor2, actor, 'sven@' + domain)
 			await acceptFollowing(db, actor2, actor)
 
-			const connectedActor = actor
 			const req = new Request(`https://${domain}`)
-			const res = await accounts_followers.handleRequest(req, db, 'sven', connectedActor)
+			const res = await accounts_followers.handleRequest(req, db, 'sven')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<Array<any>>()
@@ -693,9 +764,8 @@ describe('Mastodon APIs', () => {
 			await addFollowing(db, actor, actor2, 'sven@' + domain)
 			await acceptFollowing(db, actor, actor2)
 
-			const connectedActor = actor
 			const req = new Request(`https://${domain}`)
-			const res = await accounts_following.handleRequest(req, db, 'sven', connectedActor)
+			const res = await accounts_following.handleRequest(req, db, 'sven')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<Array<any>>()
@@ -704,11 +774,82 @@ describe('Mastodon APIs', () => {
 
 		test('get remote actor following', async () => {
 			const db = await makeDB()
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 
-			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			globalThis.fetch = async (input: any) => {
+				if (input.toString() === 'https://example.com/.well-known/webfinger?resource=acct%3Asven%40example.com') {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: 'https://example.com/users/sven',
+								},
+							],
+						})
+					)
+				}
+
+				if (input.toString() === 'https://example.com/users/sven') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://example.com/users/sven',
+							type: 'Person',
+							following: 'https://example.com/users/sven/following',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://example.com/users/sven/following') {
+					return new Response(
+						JSON.stringify({
+							'@context': 'https://www.w3.org/ns/activitystreams',
+							id: 'https://example.com/users/sven/following',
+							type: 'OrderedCollection',
+							totalItems: 3,
+							first: 'https://example.com/users/sven/following/1',
+						})
+					)
+				}
+
+				if (input.toString() === 'https://example.com/users/sven/following/1') {
+					return new Response(
+						JSON.stringify({
+							'@context': 'https://www.w3.org/ns/activitystreams',
+							id: 'https://example.com/users/sven/following/1',
+							type: 'OrderedCollectionPage',
+							totalItems: 3,
+							partOf: 'https://example.com/users/sven/following',
+							orderedItems: [
+								actorA.id.toString(), // local user
+								'https://example.com/users/b', // remote user
+							],
+						})
+					)
+				}
+
+				if (input.toString() === 'https://example.com/users/b') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://example.com/users/b',
+							type: 'Person',
+						})
+					)
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
 			const req = new Request(`https://${domain}`)
-			const res = await accounts_following.handleRequest(req, db, 'sven@example.com', connectedActor)
-			assert.equal(res.status, 403)
+			const res = await accounts_following.handleRequest(req, db, 'sven@example.com')
+			assert.equal(res.status, 200)
+
+			const data = await res.json<Array<any>>()
+			assert.equal(data.length, 2)
+
+			assert.equal(data[0].acct, 'a@cloudflare.com')
+			assert.equal(data[1].acct, 'b@example.com')
 		})
 
 		test('get remote actor featured_tags', async () => {

@@ -42,14 +42,14 @@ function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
 // Load an external user, using ActivityPub queries, and return it as a MastodonAccount
 export async function loadExternalMastodonAccount(
 	acct: string,
-	res: Actor,
+	actor: Actor,
 	loadStats: boolean = false
 ): Promise<MastodonAccount> {
-	const account = toMastodonAccount(acct, res)
+	const account = toMastodonAccount(acct, actor)
 	if (loadStats === true) {
-		account.statuses_count = (await apOutbox.getMetadata(res)).totalItems
-		account.followers_count = (await apFollow.getFollowersMetadata(res)).totalItems
-		account.following_count = (await apFollow.getFollowingMetadata(res)).totalItems
+		account.statuses_count = await apOutbox.countStatuses(actor)
+		account.followers_count = await apFollow.countFollowers(actor)
+		account.following_count = await apFollow.countFollowing(actor)
 	}
 	return account
 }
