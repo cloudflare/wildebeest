@@ -29,6 +29,10 @@ describe('Toot details', () => {
 		const response = await fetch(`http://0.0.0.0:6868/${tootPath}`)
 		expect(response.status).toBe(200)
 		const body = await response.text()
+		// validate the toot content itself
 		expect(body).toContain('We did it!')
+		// validate replies
+		expect(body).toContain('Yes we did!')
+		expect(body).toContain('Yes you guys did it!')
 	})
 })
