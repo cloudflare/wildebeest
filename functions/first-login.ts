@@ -3,17 +3,41 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
+import { parse } from 'cookie'
+import * as errors from 'wildebeest/backend/src/errors'
+import * as access from 'wildebeest/backend/src/access'
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
-	return handlePostRequest(request, env.DATABASE, env.userKEK)
+	return handlePostRequest(request, env.DATABASE, env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
-// FIXME: move this behind Cloudflare Access. We can find the JWT in the cookies
-export async function handlePostRequest(request: Request, db: D1Database, userKEK: string): Promise<Response> {
+export async function handlePostRequest(
+	request: Request,
+	db: D1Database,
+	userKEK: string,
+	accessDomain: string,
+	accessAud: string
+): Promise<Response> {
 	const url = new URL(request.url)
-	// TODO: email is in the JWT, should be parsed, verified and passed in the
-	// request context.
-	const email = url.searchParams.get('email') || ''
+	const cookie = parse(request.headers.get('Cookie') || '')
+
+	const jwt = cookie['CF_Authorization']
+	if (!jwt) {
+		return errors.notAuthorized('missing CF_Authorization')
+	}
+
+	const payload = access.getPayload(jwt)
+	if (!payload.email) {
+		return errors.notAuthorized('missing email')
+	}
+
+	const validatate = access.generateValidator({
+		jwt,
+		domain: accessDomain,
+		aud: accessAud,
+	})
+	await validatate(request)
+
 	const domain = url.hostname
 
 	const formData = await request.formData()
@@ -27,7 +51,7 @@ export async function handlePostRequest(request: Request, db: D1Database, userKE
 		properties.name = formData.get('name') || ''
 	}
 
-	await createPerson(domain, db, userKEK, email, properties)
+	await createPerson(domain, db, userKEK, payload.email, properties)
 
 	if (!url.searchParams.has('redirect_uri')) {
 		return new Response('', { status: 400 })

@@ -104,12 +104,11 @@ describe('Mastodon APIs', () => {
 			assert.equal(count, 0)
 		})
 
-		test('first login creates the user and redirects', async () => {
+		test('first login is protected by Access', async () => {
 			const db = await makeDB()
 
 			const params = new URLSearchParams({
 				redirect_uri: 'https://redirect.com/a',
-				email: 'a@cloudflare.com',
 			})
 
 			const formData = new FormData()
@@ -120,7 +119,29 @@ describe('Mastodon APIs', () => {
 				method: 'POST',
 				body: formData,
 			})
-			const res = await first_login.handlePostRequest(req, db, userKEK)
+			const res = await first_login.handlePostRequest(req, db, userKEK, accessDomain, accessAud)
+			assert.equal(res.status, 401)
+		})
+
+		test('first login creates the user and redirects', async () => {
+			const db = await makeDB()
+
+			const params = new URLSearchParams({
+				redirect_uri: 'https://redirect.com/a',
+			})
+
+			const formData = new FormData()
+			formData.set('username', 'username')
+			formData.set('name', 'name')
+
+			const req = new Request('https://example.com/first-login?' + params, {
+				method: 'POST',
+				body: formData,
+				headers: {
+					cookie: `CF_Authorization=${TEST_JWT}`,
+				},
+			})
+			const res = await first_login.handlePostRequest(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 302)
 
 			const location = res.headers.get('location')
@@ -129,7 +150,7 @@ describe('Mastodon APIs', () => {
 			const actor = await db.prepare('SELECT * FROM actors').first()
 			const properties = JSON.parse(actor.properties)
 
-			assert.equal(actor.email, 'a@cloudflare.com')
+			assert.equal(actor.email, 'sven@cloudflare.com')
 			assert.equal(properties.preferredUsername, 'username')
 			assert.equal(properties.name, 'name')
 			assert(isUrlValid(actor.id))
