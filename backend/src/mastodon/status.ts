@@ -1,7 +1,7 @@
 import type { Handle } from '../utils/parse'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { UUID } from 'wildebeest/backend/src/types'
-import { getObjectByMastodonId, getObjectById } from 'wildebeest/backend/src/activitypub/objects'
+import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
@@ -51,22 +51,10 @@ export async function toMastodonStatusFromObject(
 	// const favourites = await getLikes(db, obj)
 	// const reblogs = await getReblogs(db, obj)
 
-	const mediaAttachments: Array<MediaAttachment> = []
+	let mediaAttachments: Array<MediaAttachment> = []
 
 	if (Array.isArray(obj.attachment)) {
-		for (let i = 0, len = obj.attachment.length; i < len; i++) {
-			if (obj.attachment[i].id) {
-				const document = await getObjectById(db, obj.attachment[i].id)
-				if (document === null) {
-					console.warn('missing attachment object: ' + obj.attachment[i].id)
-					continue
-				}
-
-				mediaAttachments.push(media.fromObject(document))
-			} else {
-				console.warn('attachment has no id')
-			}
-		}
+		mediaAttachments = obj.attachment.map(media.fromObject)
 	}
 
 	return {

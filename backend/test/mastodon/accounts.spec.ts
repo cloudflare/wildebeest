@@ -533,6 +533,26 @@ describe('Mastodon APIs', () => {
 										id: 'https://example.com/object1',
 										type: 'Note',
 										content: '<p>p</p>',
+										attachment: [
+											{
+												type: 'Document',
+												mediaType: 'image/jpeg',
+												url: 'https://example.com/image',
+												name: null,
+												blurhash: 'U48;V;_24mx[_1~p.7%MW9?a-;xtxvWBt6ad',
+												width: 1080,
+												height: 894,
+											},
+											{
+												type: 'Document',
+												mediaType: 'video/mp4',
+												url: 'https://example.com/video',
+												name: null,
+												blurhash: 'UB9jfvtT0gO^N5tSX4XV9uR%^Ni]D%Rj$*nf',
+												width: 1080,
+												height: 616,
+											},
+										],
 									},
 								},
 								{
@@ -558,6 +578,10 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.length, 2)
 			assert.equal(data[0].content, '<p>p</p>')
 			assert.equal(data[0].account.username, 'someone')
+
+			assert.equal(data[0].media_attachments.length, 2)
+			assert.equal(data[0].media_attachments[0].type, 'image')
+			assert.equal(data[0].media_attachments[1].type, 'video')
 
 			// Statuses were imported locally and once was a reblog of an already
 			// existing local object.
