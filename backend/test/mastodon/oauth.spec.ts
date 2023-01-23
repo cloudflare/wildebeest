@@ -5,7 +5,7 @@ import * as oauth_token from 'wildebeest/functions/oauth/token'
 import { isUrlValid, makeDB, assertCORS, assertJSON, createTestClient } from '../utils'
 import { TEST_JWT, ACCESS_CERTS } from '../test-data'
 import { strict as assert } from 'node:assert/strict'
-import { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 
 const userKEK = 'test_kek3'
 const accessDomain = 'access.com'
