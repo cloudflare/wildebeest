@@ -1,4 +1,4 @@
-import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { toMastodonStatusFromRow } from './status'
 import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import type { MastodonStatus } from 'wildebeest/backend/src/types/status'

@@ -4,8 +4,7 @@ import type { Account, MastodonStatus } from 'wildebeest/frontend/src/types'
 import { createPublicNote, Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
-import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
-
+import { createReply as createReplyInBackend } from 'wildebeest/backend/test/shared.utils'
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
  */
@@ -54,10 +53,8 @@ async function createReply(
 		return
 	}
 
-	const inReplyTo = originalStatus.note.mastodonId
 	const actor = await getOrCreatePerson(domain, db, reply.account)
-	const replyNote = await createPublicNote(domain, db, reply.content, actor, [], { inReplyTo })
-	await insertReply(db, actor, replyNote, originalStatus.note)
+	await createReplyInBackend(domain, db, actor, originalStatus.note, reply.content)
 }
 
 async function getOrCreatePerson(

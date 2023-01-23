@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
-import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
+import { createReply } from 'wildebeest/backend/test/shared.utils'
 import { getMentions } from 'wildebeest/backend/src/mastodon/status'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPublicNote, type Note } from 'wildebeest/backend/src/activitypub/objects/note'
@@ -425,12 +425,7 @@ describe('Mastodon APIs', () => {
 			await addObjectInOutbox(db, actor, note)
 			await sleep(10)
 
-			const inReplyTo = note.id
-			const reply = await createPublicNote(domain, db, 'a reply', actor, [], { inReplyTo })
-			await addObjectInOutbox(db, actor, reply)
-			await sleep(10)
-
-			await insertReply(db, actor, reply, note)
+			await createReply(domain, db, actor, note, 'a reply')
 
 			const res = await statuses_context.handleRequest(domain, db, note.mastodonId!)
 			assert.equal(res.status, 200)
