@@ -2,13 +2,16 @@ import type { Handle } from '../utils/parse'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { UUID } from 'wildebeest/backend/src/types'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
-import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createPublicNote, type Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import * as media from 'wildebeest/backend/src/media/'
 import type { MastodonStatus } from 'wildebeest/backend/src/types'
 import { parseHandle } from '../utils/parse'
 import { urlToHandle } from '../utils/handle'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import { addObjectInOutbox } from '../activitypub/actors/outbox'
+import type { Object as ActivityPubObject } from 'wildebeest/backend/src/activitypub/objects'
 
 export function getMentions(input: string): Array<Handle> {
 	const mentions: Array<Handle> = []
@@ -170,4 +173,28 @@ export async function getMastodonStatusById(db: D1Database, id: UUID, domain: st
 		return null
 	}
 	return toMastodonStatusFromObject(db, obj as Note, domain)
+}
+
+/**
+ * Creates a status object in the given actor's outbox.
+ *
+ * @param domain the domain to use
+ * @param db D1Database
+ * @param actor Author of the reply
+ * @param content content of the reply
+ * @param attachments optional attachments for the status
+ * @param extraProperties optional extra properties for the status
+ * @returns the created Note for the status
+ */
+export async function createStatus(
+	domain: string,
+	db: D1Database,
+	actor: Person,
+	content: string,
+	attachments?: ActivityPubObject[],
+	extraProperties?: any
+) {
+	const note = await createPublicNote(domain, db, content, actor, attachments, extraProperties)
+	await addObjectInOutbox(db, actor, note)
+	return note
 }

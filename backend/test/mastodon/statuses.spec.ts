@@ -1,8 +1,7 @@
 import { strict as assert } from 'node:assert/strict'
-import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
-import { getMentions } from 'wildebeest/backend/src/mastodon/status'
-import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
-import { createPublicNote, Note } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createReply } from 'wildebeest/backend/test/shared.utils'
+import { createStatus, getMentions } from 'wildebeest/backend/src/mastodon/status'
+import { createPublicNote, type Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as statuses from 'wildebeest/functions/api/v1/statuses'
 import * as statuses_get from 'wildebeest/functions/api/v1/statuses/[id]'
@@ -421,16 +420,10 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const note = await createPublicNote(domain, db, 'a post', actor)
-			await addObjectInOutbox(db, actor, note)
+			const note = await createStatus(domain, db, actor, 'a post')
 			await sleep(10)
 
-			const inReplyTo = note.id
-			const reply = await createPublicNote(domain, db, 'a reply', actor, [], { inReplyTo })
-			await addObjectInOutbox(db, actor, reply)
-			await sleep(10)
-
-			await insertReply(db, actor, reply, note)
+			await createReply(domain, db, actor, note, 'a reply')
 
 			const res = await statuses_context.handleRequest(domain, db, note.mastodonId!)
 			assert.equal(res.status, 200)

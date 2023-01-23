@@ -2,8 +2,7 @@
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Env } from 'wildebeest/backend/src/types/env'
-import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
-import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
+import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { deliverToActor, deliverFollowers } from 'wildebeest/backend/src/activitypub/deliver'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
@@ -56,7 +55,7 @@ export async function handleRequest(
 		])
 	}
 
-	await Promise.all([addObjectInOutbox(db, connectedActor, obj), insertReblog(db, connectedActor, obj)])
+	await createReblog(db, connectedActor, obj)
 	status.reblogged = true
 
 	const headers = {

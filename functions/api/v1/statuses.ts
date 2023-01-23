@@ -5,16 +5,14 @@ import type { Object } from 'wildebeest/backend/src/activitypub/objects'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
-import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
-import { getMentions } from 'wildebeest/backend/src/mastodon/status'
+import { createStatus, getMentions } from 'wildebeest/backend/src/mastodon/status'
 import * as activities from 'wildebeest/backend/src/activitypub/activities/create'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import { deliverFollowers, deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
-import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { readBody } from 'wildebeest/backend/src/utils/body'
@@ -89,8 +87,7 @@ export async function handleRequest(
 	}
 
 	const domain = new URL(request.url).hostname
-	const note = await createPublicNote(domain, db, body.status, connectedActor, mediaAttachments, extraProperties)
-	await addObjectInOutbox(db, connectedActor, note)
+	const note = await createStatus(domain, db, connectedActor, body.status, mediaAttachments, extraProperties)
 
 	if (inReplyToObject !== null) {
 		// after the status has been created, record the reply.
