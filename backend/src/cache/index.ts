@@ -1,3 +1,5 @@
+import type { Env } from 'wildebeest/consumer/src'
+
 const CACHE_DO_NAME = 'cachev1'
 
 export interface Cache {
@@ -5,7 +7,7 @@ export interface Cache {
 	put<T>(key: string, value: T): Promise<void>
 }
 
-export function cacheFromEnv(env: any): Cache {
+export function cacheFromEnv(env: Env): Cache {
 	return {
 		async get<T>(key: string): Promise<T | null> {
 			const id = env.DO_CACHE.idFromName(CACHE_DO_NAME)

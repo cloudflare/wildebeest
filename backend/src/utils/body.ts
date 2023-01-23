@@ -26,10 +26,8 @@ export async function readBody<T>(request: Request): Promise<T> {
 			// The `key[]` notiation is used when sending an array of values.
 
 			const key2 = key.replace('[]', '')
-			if (out[key2] === undefined) {
-				out[key2] = []
-			}
-			out[key2].push(value)
+			const outArr: unknown[] = (out[key2] ??= [])
+			outArr.push(value)
 		} else {
 			out[key] = value
 		}

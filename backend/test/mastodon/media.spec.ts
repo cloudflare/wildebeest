@@ -12,8 +12,9 @@ const domain = 'cloudflare.com'
 describe('Mastodon APIs', () => {
 	describe('media', () => {
 		test('upload image creates object', async () => {
-			globalThis.fetch = async (input: any) => {
-				if (input.url.toString() === 'https://api.cloudflare.com/client/v4/accounts/testaccountid/images/v1') {
+			globalThis.fetch = async (input: RequestInfo) => {
+				const request = new Request(input)
+				if (request.url.toString() === 'https://api.cloudflare.com/client/v4/accounts/testaccountid/images/v1') {
 					return new Response(
 						JSON.stringify({
 							success: true,
@@ -24,7 +25,7 @@ describe('Mastodon APIs', () => {
 						})
 					)
 				}
-				throw new Error('unexpected request to ' + input.url)
+				throw new Error('unexpected request to ' + request.url)
 			}
 
 			const db = await makeDB()

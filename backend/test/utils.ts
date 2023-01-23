@@ -18,7 +18,7 @@ export function isUrlValid(s: string) {
 	return url.protocol === 'https:'
 }
 
-export async function makeDB(): Promise<any> {
+export async function makeDB(): Promise<D1Database> {
 	const db = new Database(':memory:')
 	const db2 = new BetaDatabase(db)!
 
@@ -27,10 +27,10 @@ export async function makeDB(): Promise<any> {
 
 	for (let i = 0, len = migrations.length; i < len; i++) {
 		const content = await fs.readFile(path.join('migrations', migrations[i]), 'utf-8')
-		await db.exec(content)
+		db.exec(content)
 	}
 
-	return db2
+	return db2 as unknown as D1Database
 }
 
 export function assertCORS(response: Response) {
