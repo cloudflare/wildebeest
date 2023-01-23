@@ -17,9 +17,9 @@ Cloudflare will continue to evolve this open-source project with additional feat
 
 ## Requirements
 
-Wildebeest is a full-stack app running on top of Cloudflare Pages using [Pages Functions](https://developers.cloudflare.com/pages/platform/functions/). We are of course assuming that you have a Cloudflare account (click [here](https://dash.cloudflare.com/sign-up) if you don't) and have at least one [zone](https://www.cloudflare.com/en-gb/learning/dns/glossary/dns-zone/) using Cloudflare. If you don't have a zone, you can use [Cloudflare Registrar](https://www.cloudflare.com/en-gb/products/registrar/) to register new a new domain or [transfer](https://developers.cloudflare.com/registrar/get-started/transfer-domain-to-cloudflare/) an existing one.
+Wildebeest is a full-stack app running on top of Cloudflare Pages using [Pages Functions](https://developers.cloudflare.com/pages/platform/functions/). We are of course assuming that you have a Cloudflare account (click [here](https://dash.cloudflare.com/sign-up) if you don't) and have at least one [zone](https://www.cloudflare.com/en-gb/learning/dns/glossary/dns-zone/) using Cloudflare. If you don't have a zone, you can use [Cloudflare Registrar](https://www.cloudflare.com/en-gb/products/registrar/) to register a new domain or [transfer](https://developers.cloudflare.com/registrar/get-started/transfer-domain-to-cloudflare/) an existing one.
 
-Some features, like data persistence, access controls, media storage, are handled by other Cloudflare products:
+Some features like data persistence, access controls, and media storage are handled by other Cloudflare products:
 
 - [D1](https://developers.cloudflare.com/d1/) for the database.
 - [Workers KV](https://developers.cloudflare.com/workers/learning/how-kv-works/) for object caching.
@@ -36,7 +36,7 @@ To activate **_Images_**, please login into your account, select **_Images_** on
 
 ### Zone and Account IDs
 
-You need to take note of your Zone and Account IDs. To find them, [login](https://dash.cloudflare.com/) into your account and select the zone (domain) where you plan to use Wildebeest. Then, on the **_Overview_** page you will the following information:
+You need to take note of your Zone and Account IDs. To find them, [login](https://dash.cloudflare.com/) into your account and select the zone (domain) where you plan to use Wildebeest. Then, on the **_Overview_** page you will enter the following information:
 
 ![zone and account IDs](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/f595d8b7-6ce9-4ef7-7416-253efd012800/w=306)
 
