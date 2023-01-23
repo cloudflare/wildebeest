@@ -1,7 +1,6 @@
 import { strict as assert } from 'node:assert/strict'
 import { createReply } from 'wildebeest/backend/test/shared.utils'
-import { getMentions } from 'wildebeest/backend/src/mastodon/status'
-import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
+import { createStatus, getMentions } from 'wildebeest/backend/src/mastodon/status'
 import { createPublicNote, type Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as statuses from 'wildebeest/functions/api/v1/statuses'
@@ -421,8 +420,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const note = await createPublicNote(domain, db, 'a post', actor)
-			await addObjectInOutbox(db, actor, note)
+			const note = await createStatus(domain, db, actor, 'a post')
 			await sleep(10)
 
 			await createReply(domain, db, actor, note, 'a reply')

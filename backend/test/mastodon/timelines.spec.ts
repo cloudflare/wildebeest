@@ -11,6 +11,7 @@ import * as timelines_public from 'wildebeest/functions/api/v1/timelines/public'
 import * as timelines from 'wildebeest/backend/src/mastodon/timeline'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
+import { createStatus } from 'wildebeest/backend/src/mastodon/status'
 
 const userKEK = 'test_kek6'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -29,12 +30,11 @@ describe('Mastodon APIs', () => {
 			await acceptFollowing(db, actor, actor2)
 
 			// Actor 2 is posting
-			const firstNoteFromActor2 = await createPublicNote(domain, db, 'first status from actor2', actor2)
-			await addObjectInOutbox(db, actor2, firstNoteFromActor2)
+			const firstNoteFromActor2 = await createStatus(domain, db, actor2, 'first status from actor2')
 			await sleep(10)
-			await addObjectInOutbox(db, actor2, await createPublicNote(domain, db, 'second status from actor2', actor2))
+			await createStatus(domain, db, actor2, 'second status from actor2')
 			await sleep(10)
-			await addObjectInOutbox(db, actor3, await createPublicNote(domain, db, 'first status from actor3', actor3))
+			await createStatus(domain, db, actor3, 'first status from actor3')
 			await sleep(10)
 
 			await insertLike(db, actor, firstNoteFromActor2)
@@ -92,7 +92,7 @@ describe('Mastodon APIs', () => {
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
 			// Actor is posting
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'status from myself', actor))
+			await createStatus(domain, db, actor, 'status from myself')
 
 			// Actor should only see posts from actor2 in the timeline
 			const connectedActor = actor
@@ -130,10 +130,9 @@ describe('Mastodon APIs', () => {
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 
-			const statusFromActor = await createPublicNote(domain, db, 'status from actor', actor)
-			await addObjectInOutbox(db, actor, statusFromActor)
+			const statusFromActor = await createStatus(domain, db, actor, 'status from actor')
 			await sleep(10)
-			await addObjectInOutbox(db, actor2, await createPublicNote(domain, db, 'status from actor2', actor2))
+			await createStatus(domain, db, actor2, 'status from actor2')
 
 			await insertLike(db, actor, statusFromActor)
 			await insertReblog(db, actor, statusFromActor)
@@ -172,8 +171,7 @@ describe('Mastodon APIs', () => {
 
 			const properties = { url: 'https://example.com/image.jpg' }
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
-			const note = await createPublicNote(domain, db, 'status from actor', actor, mediaAttachments)
-			await addObjectInOutbox(db, actor, note)
+			await createStatus(domain, db, actor, 'status from actor', mediaAttachments)
 
 			const res = await timelines_public.handleRequest(domain, db)
 			assert.equal(res.status, 200)
@@ -209,8 +207,8 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const note = await createPublicNote(domain, db, 'a post', actor)
-			await addObjectInOutbox(db, actor, note)
+			const note = await createStatus(domain, db, actor, 'a post')
+
 			await sleep(10)
 
 			await createReply(domain, db, actor, note, 'a reply')
@@ -236,8 +234,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const note = await createPublicNote(domain, db, 'a post', actor)
-			await addObjectInOutbox(db, actor, note)
+			const note = await createStatus(domain, db, actor, 'a post')
 			await insertReblog(db, actor, note)
 
 			const connectedActor: any = actor
@@ -251,8 +248,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const note = await createPublicNote(domain, db, 'a post', actor)
-			await addObjectInOutbox(db, actor, note)
+			const note = await createStatus(domain, db, actor, 'a post')
 			await insertLike(db, actor, note)
 
 			const connectedActor: any = actor

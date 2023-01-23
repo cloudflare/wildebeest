@@ -2,7 +2,6 @@ import { strict as assert } from 'node:assert/strict'
 import { createReply } from 'wildebeest/backend/test/shared.utils'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
-import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as accounts_following from 'wildebeest/functions/api/v1/accounts/[id]/following'
 import * as accounts_featured_tags from 'wildebeest/functions/api/v1/accounts/[id]/featured_tags'
@@ -21,6 +20,7 @@ import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/f
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import * as filters from 'wildebeest/functions/api/v1/filters'
+import { createStatus } from 'wildebeest/backend/src/mastodon/status'
 
 const userKEK = 'test_kek2'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -320,8 +320,7 @@ describe('Mastodon APIs', () => {
 			await addFollowing(db, actor3, actor, 'sven@' + domain)
 			await acceptFollowing(db, actor3, actor)
 
-			const firstNote = await createPublicNote(domain, db, 'my first status', actor)
-			await addObjectInOutbox(db, actor, firstNote)
+			await createStatus(domain, db, actor, 'my first status')
 
 			const res = await accounts_get.handleRequest(domain, 'sven', db)
 			assert.equal(res.status, 200)
@@ -340,13 +339,11 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const firstNote = await createPublicNote(domain, db, 'my first status', actor)
-			await addObjectInOutbox(db, actor, firstNote)
+			const firstNote = await createStatus(domain, db, actor, 'my first status')
 			await insertLike(db, actor, firstNote)
 			await sleep(10)
-			const secondNode = await createPublicNote(domain, db, 'my second status', actor)
-			await addObjectInOutbox(db, actor, secondNode)
-			await insertReblog(db, actor, secondNode)
+			const secondNote = await createStatus(domain, db, actor, 'my second status')
+			await insertReblog(db, actor, secondNote)
 
 			const req = new Request('https://' + domain)
 			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)
@@ -373,8 +370,8 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const note = await createPublicNote(domain, db, 'a post', actor)
-			await addObjectInOutbox(db, actor, note)
+			const note = await createStatus(domain, db, actor, 'a post')
+
 			await sleep(10)
 
 			await createReply(domain, db, actor, note, 'a reply')
@@ -395,8 +392,7 @@ describe('Mastodon APIs', () => {
 
 			const properties = { url: 'https://example.com/image.jpg' }
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
-			const note = await createPublicNote(domain, db, 'status from actor', actor, mediaAttachments)
-			await addObjectInOutbox(db, actor, note)
+			await createStatus(domain, db, actor, 'status from actor', mediaAttachments)
 
 			const req = new Request('https://' + domain)
 			const res = await accounts_statuses.handleRequest(req, db, 'sven@' + domain)

@@ -1,10 +1,10 @@
 import { createPerson, getPersonByEmail, type Person } from 'wildebeest/backend/src/activitypub/actors'
 import { replies, statuses } from 'wildebeest/frontend/src/dummyData'
 import type { Account, MastodonStatus } from 'wildebeest/frontend/src/types'
-import { createPublicNote, Note } from 'wildebeest/backend/src/activitypub/objects/note'
-import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
+import { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { createReply as createReplyInBackend } from 'wildebeest/backend/test/shared.utils'
+import { createStatus } from 'wildebeest/backend/src/mastodon/status'
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
  */
@@ -22,15 +22,6 @@ export async function init(domain: string, db: D1Database) {
 	for (const reply of replies) {
 		await createReply(domain, db, reply, loadedStatuses)
 	}
-}
-
-/**
- * Create a status object in the given actor's outbox.
- */
-async function createStatus(domain: string, db: D1Database, actor: Person, content: string) {
-	const note = await createPublicNote(domain, db, content, actor)
-	await addObjectInOutbox(db, actor, note)
-	return note
 }
 
 /**

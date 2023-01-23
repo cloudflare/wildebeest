@@ -2,7 +2,7 @@ import { makeDB, isUrlValid } from './utils'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import { createPublicNote, createPrivateNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createPrivateNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
 import { cacheObject } from 'wildebeest/backend/src/activitypub/objects/'
@@ -10,6 +10,7 @@ import * as ap_users from 'wildebeest/functions/ap/users/[id]'
 import * as ap_outbox from 'wildebeest/functions/ap/users/[id]/outbox'
 import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
 import * as ap_outbox_page from 'wildebeest/functions/ap/users/[id]/outbox/page'
+import { createStatus } from '../src/mastodon/status'
 
 const userKEK = 'test_kek5'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -55,8 +56,8 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my first status', actor))
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my second status', actor))
+			await createStatus(domain, db, actor, 'my first status')
+			await createStatus(domain, db, actor, 'my second status')
 
 			const res = await ap_outbox.handleRequest(domain, db, 'sven', userKEK)
 			assert.equal(res.status, 200)
@@ -70,9 +71,9 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my first status', actor))
+			await createStatus(domain, db, actor, 'my first status')
 			await sleep(10)
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my second status', actor))
+			await createStatus(domain, db, actor, 'my second status')
 
 			const res = await ap_outbox_page.handleRequest(domain, db, 'sven')
 			assert.equal(res.status, 200)
