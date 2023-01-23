@@ -8,6 +8,7 @@ import * as contextAPI from 'wildebeest/functions/api/v1/statuses/[id]/context'
 import { Link, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { Avatar } from '~/components/avatar'
+import { MediaGallery } from '~/components/MediaGallery.tsx'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database; domain: string },
@@ -30,7 +31,6 @@ export const statusLoader = loader$<
 
 export default component$(() => {
 	const { status, context } = statusLoader.use().value
-	const mediaAttachment = (status.media_attachments && status.media_attachments[0]) || null
 
 	return (
 		<>
@@ -44,14 +44,9 @@ export default component$(() => {
 			</StickyHeader>
 			<div class="bg-wildebeest-700 p-4">
 				<AccountCard status={status} />
-
 				<div class="leading-normal status-content text-lg" dangerouslySetInnerHTML={status.content} />
 
-				{mediaAttachment && (
-					<div class="flex justify-center" style={{ height: `${mediaAttachment.meta.small.height}px` }}>
-						{mediaAttachment.preview_url && <img class="rounded" src={mediaAttachment.preview_url} />}
-					</div>
-				)}
+				<MediaGallery medias={status.media_attachments} />
 
 				<InfoTray status={status} />
 			</div>

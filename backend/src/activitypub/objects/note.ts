@@ -25,7 +25,7 @@ export async function createPublicNote(
 	db: D1Database,
 	content: string,
 	actor: Actor,
-	attachment: Array<objects.APObject> = [],
+	attachments: Array<objects.APObject> = [],
 	extraProperties: any = {}
 ): Promise<Note> {
 	const actorId = new URL(actor.id)
@@ -41,8 +41,8 @@ export async function createPublicNote(
 		sensitive: false,
 		summary: null,
 		tag: [],
-		attachment,
 
+		attachment: attachments,
 		inReplyTo: null,
 		...extraProperties,
 	}
