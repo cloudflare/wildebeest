@@ -26,13 +26,21 @@ Some features like data persistence, access controls, and media storage are hand
 - [Zero Trust Access](https://www.cloudflare.com/en-gb/products/zero-trust/access/) to handle user authentication and SSO on [any identity provider](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/).
 - [Images](https://www.cloudflare.com/en-gb/products/cloudflare-images/) for media handling.
 
-Most of our products offer a [generous free plan](https://www.cloudflare.com/en-gb/plans/) that allows our users to try them for personal or hobby projects that aren’t business-critical. However the **_Images_** one doesn't have a free tier, so for setting up your instance you need to activate one of the paid **_Images_** plans.
+Most of our products offer a [generous free plan](https://www.cloudflare.com/en-gb/plans/) that allows our users to try them for personal or hobby projects that aren’t business-critical. However the **_Images_** one doesn't have a free tier, so for setting up your instance you need to activate one of the paid **_Images_** plans. Furthermore, the **Durable Objects** that are needed are also only available on the paid workers plans.
 
 ### Images plan
 
 To activate **_Images_**, please login into your account, select **_Images_** on the left menu, and then select the plan that best fits your needs.
 
 ![images subscription](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/fd07dede-a883-4372-b0cf-3afb6b2ab400/public)
+
+### Workers plan for Durable Objects
+
+Please login into your account, select **_Workers_** on the left menu, go to *_Plans_* and then select the "Pay-as-you-go" plan.
+
+![workers subscription](https://user-images.githubusercontent.com/104389/214390552-40c1527c-b38e-443f-ac84-03651a5f0c46.png)
+
+After activating the paid plan, go to `https://dash.cloudflare.com/***/workers/overview?enable-durable-objects`, replacing the `***` with the Account ID from your dashboard and enable Durable Objects.
 
 ### Zone and Account IDs
 
@@ -47,6 +55,8 @@ We're all set now, let's start the installation process.
 Wildebeest uses [Deploy to Workers](https://deploy.workers.cloudflare.com/) to automate the installation process.
 
 **Click here to start the installation.**
+
+_Note: the API permissions are missing several scopes, see https://github.com/cloudflare/wildebeest/issues/149#issuecomment-1402125492 for details._
 
 [<img src="https://deploy.workers.cloudflare.com/button"/>](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/wildebeest&authed=true&fields={%22name%22:%22Zone%20ID%22,%22secret%22:%22CF_ZONE_ID%22,%22descr%22:%22Get%20your%20Zone%20ID%20from%20the%20Cloudflare%20Dashboard%22}&fields={%22name%22:%22Domain%22,%22secret%22:%22CF_DEPLOY_DOMAIN%22,%22descr%22:%22Domain%20on%20which%20your%20instance%20will%20be%20running%22}&fields={%22name%22:%22Instance%20title%22,%22secret%22:%22INSTANCE_TITLE%22,%22descr%22:%22Title%20of%20your%20instance%22}&fields={%22name%22:%22Administrator%20Email%22,%22secret%22:%22ADMIN_EMAIL%22,%22descr%22:%22An%20Email%20address%20that%20can%20be%20messaged%20regarding%20inquiries%20or%20issues%22}&fields={%22name%22:%22Instance%20description%22,%22secret%22:%22INSTANCE_DESCR%22,%22descr%22:%22A%20short,%20plain-text%20description%20of%20your%20instance%22}&apiTokenTmpl=[{%22key%22:%22d1%22,%22type%22:%22edit%22},{%22key%22:%22page%22,%22type%22:%22edit%22},{%22key%22:%22images%22,%22type%22:%22edit%22},{%22key%22:%22access%22,%22type%22:%22edit%22},{%22key%22:%22workers_kv_storage%22,%22type%22:%22edit%22},{%22key%22:%22access_acct%22,%22type%22:%22read%22},{%22key%22:%22dns%22,%22type%22:%22edit%22},{%22key%22:%22workers_script%22,%22type%22:%22edit%22}]&apiTokenName=Wildebeest)
 
