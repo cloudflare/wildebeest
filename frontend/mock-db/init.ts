@@ -40,7 +40,9 @@ async function createReply(
 
 	const originalStatus = loadedStatuses.find(({ status: { id } }) => id === reply.in_reply_to_id)
 	if (!originalStatus) {
-		console.warn(`Ignoring reply since no status matching the in_reply_to_id ${reply.id} has been found`)
+		console.warn(
+			`Ignoring reply with id ${reply.id} since no status matching the in_reply_to_id ${reply.in_reply_to_id} has been found`
+		)
 		return
 	}
 
