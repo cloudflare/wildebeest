@@ -1,6 +1,6 @@
 // Also known as boost.
 
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { getResultsField } from './utils'
 import { addObjectInOutbox } from '../activitypub/actors/outbox'
@@ -10,13 +10,13 @@ import { addObjectInOutbox } from '../activitypub/actors/outbox'
  *
  * @param db D1Database
  * @param actor Reblogger
- * @param obj Object to reblog
+ * @param obj ActivityPub object to reblog
  */
-export async function createReblog(db: D1Database, actor: Actor, obj: Object) {
+export async function createReblog(db: D1Database, actor: Actor, obj: APObject) {
 	await Promise.all([addObjectInOutbox(db, actor, obj), insertReblog(db, actor, obj)])
 }
 
-export async function insertReblog(db: D1Database, actor: Actor, obj: Object) {
+export async function insertReblog(db: D1Database, actor: Actor, obj: APObject) {
 	const id = crypto.randomUUID()
 
 	const query = `
@@ -30,7 +30,7 @@ export async function insertReblog(db: D1Database, actor: Actor, obj: Object) {
 	}
 }
 
-export function getReblogs(db: D1Database, obj: Object): Promise<Array<string>> {
+export function getReblogs(db: D1Database, obj: APObject): Promise<Array<string>> {
 	const query = `
 		SELECT actor_id FROM actor_reblogs WHERE object_id=?
 	`

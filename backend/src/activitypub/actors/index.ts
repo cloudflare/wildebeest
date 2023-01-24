@@ -1,6 +1,6 @@
 import { defaultImages } from 'wildebeest/config/accounts'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
-import { type Object, sanitizeContent, sanitizeName } from '../objects'
+import { type APObject, sanitizeContent, sanitizeName } from '../objects'
 
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
@@ -27,7 +27,7 @@ export function followersURL(id: URL): URL {
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
-export interface Actor extends Object {
+export interface Actor extends APObject {
 	inbox: URL
 	outbox: URL
 	following: URL

@@ -1,15 +1,15 @@
 import type { UUID } from 'wildebeest/backend/src/types'
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
-export interface Object {
+export interface APObject {
 	type: string
 	// ObjectId, URL used for federation. Called `uri` in Mastodon APIs.
 	id: URL
 	// Link to the HTML representation of the object
 	url: URL
 	published?: string
-	icon?: Object
-	image?: Object
+	icon?: APObject
+	image?: APObject
 	summary?: string
 	name?: string
 	mediaType?: string
@@ -25,13 +25,13 @@ export interface Object {
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-document
-export interface Document extends Object {}
+export interface Document extends APObject {}
 
 export function uri(domain: string, id: string): URL {
 	return new URL('/ap/o/' + id, 'https://' + domain)
 }
 
-export async function createObject<Type extends Object>(
+export async function createObject<Type extends APObject>(
 	domain: string,
 	db: D1Database,
 	type: string,
@@ -74,7 +74,7 @@ export async function get<T>(url: URL): Promise<T> {
 
 type CacheObjectRes = {
 	created: boolean
-	object: Object
+	object: APObject
 }
 
 export async function cacheObject(
@@ -124,7 +124,7 @@ export async function cacheObject(
 			mastodonId: row.mastodon_id,
 			originalActorId: row.original_actor_id,
 			originalObjectId: row.original_object_id,
-		} as Object
+		} as APObject
 
 		return { object, created: true }
 	}
@@ -142,15 +142,15 @@ export async function updateObject(db: D1Database, properties: any, id: URL): Pr
 	return true
 }
 
-export async function getObjectById(db: D1Database, id: string | URL): Promise<Object | null> {
+export async function getObjectById(db: D1Database, id: string | URL): Promise<APObject | null> {
 	return getObjectBy(db, 'id', id.toString())
 }
 
-export async function getObjectByOriginalId(db: D1Database, id: string | URL): Promise<Object | null> {
+export async function getObjectByOriginalId(db: D1Database, id: string | URL): Promise<APObject | null> {
 	return getObjectBy(db, 'original_object_id', id.toString())
 }
 
-export async function getObjectByMastodonId(db: D1Database, id: UUID): Promise<Object | null> {
+export async function getObjectByMastodonId(db: D1Database, id: UUID): Promise<APObject | null> {
 	return getObjectBy(db, 'mastodon_id', id)
 }
 
@@ -181,20 +181,20 @@ WHERE objects.${key}=?
 		mastodonId: result.mastodon_id,
 		originalActorId: result.original_actor_id,
 		originalObjectId: result.original_object_id,
-	} as Object
+	} as APObject
 }
 
 /** Is the given `value` an ActivityPub Object? */
-export function isObject(value: unknown): value is Object {
+export function isAPObject(value: unknown): value is APObject {
 	return value !== null && typeof value === 'object'
 }
 
 /** Sanitizes the ActivityPub Object `properties` prior to being stored in the DB. */
-export async function sanitizeObjectProperties(properties: unknown): Promise<Object> {
-	if (!isObject(properties)) {
+export async function sanitizeObjectProperties(properties: unknown): Promise<APObject> {
+	if (!isAPObject(properties)) {
 		throw new Error('Invalid object properties. Expected an object but got ' + JSON.stringify(properties))
 	}
-	const sanitized: Object = {
+	const sanitized: APObject = {
 		...properties,
 	}
 	if ('content' in properties) {

@@ -14,7 +14,7 @@ import {
 	insertFollowNotification,
 	sendReblogNotification,
 } from 'wildebeest/backend/src/mastodon/notification'
-import { type Object, updateObject } from 'wildebeest/backend/src/activitypub/objects'
+import { type APObject, updateObject } from 'wildebeest/backend/src/activitypub/objects'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
@@ -331,11 +331,11 @@ export async function handle(
 
 async function cacheObject(
 	domain: string,
-	obj: Object,
+	obj: APObject,
 	db: D1Database,
 	originalActorId: URL,
 	originalObjectId: URL
-): Promise<{ created: boolean; object: Object } | null> {
+): Promise<{ created: boolean; object: APObject } | null> {
 	switch (obj.type) {
 		case 'Note': {
 			return objects.cacheObject(domain, db, obj, originalActorId, originalObjectId, false)

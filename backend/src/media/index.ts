@@ -1,9 +1,9 @@
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { IMAGE } from 'wildebeest/backend/src/activitypub/objects/image'
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 
-export function fromObject(obj: Object): MediaAttachment {
+export function fromObject(obj: APObject): MediaAttachment {
 	if (obj.type === IMAGE) {
 		return fromObjectImage(obj)
 	} else if (obj.type === 'Document') {
@@ -55,7 +55,7 @@ export function fromObjectDocument(obj: Document): MediaAttachment {
 	}
 }
 
-function fromObjectImage(obj: Object): MediaAttachment {
+function fromObjectImage(obj: APObject): MediaAttachment {
 	return {
 		url: new URL(obj.url),
 		id: obj.mastodonId || obj.url.toString(),
