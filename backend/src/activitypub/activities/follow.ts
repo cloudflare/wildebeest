@@ -1,10 +1,10 @@
-import type { Object } from '../objects'
+import type { APObject } from '../objects'
 import type { Actor } from '../actors'
 import type { Activity } from '.'
 
 const FOLLOW = 'Follow'
 
-export function create(actor: Actor, object: Object): Activity {
+export function create(actor: Actor, object: APObject): Activity {
 	return {
 		'@context': 'https://www.w3.org/ns/activitystreams',
 		type: FOLLOW,

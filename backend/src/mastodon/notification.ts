@@ -1,4 +1,4 @@
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
@@ -21,7 +21,7 @@ export async function createNotification(
 	type: NotificationType,
 	actor: Actor,
 	fromActor: Actor,
-	obj: Object
+	obj: APObject
 ): Promise<string> {
 	const query = `
           INSERT INTO actor_notifications (type, actor_id, from_actor_id, object_id)

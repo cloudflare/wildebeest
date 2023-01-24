@@ -1,4 +1,4 @@
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { OrderedCollection } from 'wildebeest/backend/src/activitypub/objects/collection'
@@ -8,7 +8,7 @@ import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 export async function addObjectInOutbox(
 	db: D1Database,
 	actor: Actor,
-	obj: Object,
+	obj: APObject,
 	published_date?: string,
 	target: string = PUBLIC_GROUP
 ) {

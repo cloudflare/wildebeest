@@ -11,7 +11,7 @@ import { parseHandle } from '../utils/parse'
 import { urlToHandle } from '../utils/handle'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { addObjectInOutbox } from '../activitypub/actors/outbox'
-import type { Object as ActivityPubObject } from 'wildebeest/backend/src/activitypub/objects'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 
 export function getMentions(input: string): Array<Handle> {
 	const mentions: Array<Handle> = []
@@ -191,7 +191,7 @@ export async function createStatus(
 	db: D1Database,
 	actor: Person,
 	content: string,
-	attachments?: ActivityPubObject[],
+	attachments?: APObject[],
 	extraProperties?: any
 ) {
 	const note = await createPublicNote(domain, db, content, actor, attachments, extraProperties)

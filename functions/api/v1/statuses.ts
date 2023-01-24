@@ -1,7 +1,7 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
 
 import { cors } from 'wildebeest/backend/src/utils/cors'
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
@@ -72,7 +72,7 @@ export async function handleRequest(
 		}
 	}
 
-	let inReplyToObject: Object | null = null
+	let inReplyToObject: APObject | null = null
 
 	if (body.in_reply_to_id) {
 		inReplyToObject = await getObjectByMastodonId(db, body.in_reply_to_id)

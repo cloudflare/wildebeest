@@ -8,14 +8,14 @@ import * as objects from '.'
 const NOTE = 'Note'
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
-export interface Note extends objects.Object {
+export interface Note extends objects.APObject {
 	content: string
 	attributedTo?: string
 	summary?: string
 	inReplyTo?: string
 	replies?: string
 	to: Array<string>
-	attachment: Array<objects.Object>
+	attachment: Array<objects.APObject>
 	cc?: Array<string>
 	tag?: Array<string>
 }
@@ -25,7 +25,7 @@ export async function createPublicNote(
 	db: D1Database,
 	content: string,
 	actor: Actor,
-	attachment: Array<objects.Object> = [],
+	attachment: Array<objects.APObject> = [],
 	extraProperties: any = {}
 ): Promise<Note> {
 	const actorId = new URL(actor.id)
@@ -56,7 +56,7 @@ export async function createPrivateNote(
 	content: string,
 	actor: Actor,
 	targetActor: Actor,
-	attachment: Array<objects.Object> = [],
+	attachment: Array<objects.APObject> = [],
 	extraProperties: any = {}
 ): Promise<Note> {
 	const actorId = new URL(actor.id)
