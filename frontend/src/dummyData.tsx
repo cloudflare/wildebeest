@@ -1,6 +1,7 @@
 import { MastodonLink, MastodonStatus, TagDetails } from './types'
 
-export const statuses: MastodonStatus[] = [
+// Raw statuses taken directly from mastodon
+const mastodonRawStatuses: MastodonStatus[] = [
 	{
 		id: '109632280734155646',
 		created_at: '2023-01-04T17:53:39.000Z',
@@ -1469,7 +1470,7 @@ export const statuses: MastodonStatus[] = [
 			url: 'https://techcommunity.microsoft.com/t5/discussions/how-to-disable-writing-assistance-via-group-policy/td-p/3648422',
 			title: 'How to disable writing assistance via Group Policy',
 			description:
-				'Hello,   new Edge version 106 has got settings "Use writing assistance". I look for matching settings in group policy for Edge but with not succes. I use the latest adml and admx files.  Group setting Disable spellcheck will help but only for Edge 104 (and lower). Edge 106 has replaced settings Spel...',
+				'Hello,   new Edge version 106 has got settings "Use writing assistance". I look for matching settings in group policy for Edge but with not succes. I use the latest adml and admx files.  Group setting Disable spellcheck will help but only for Edge 104 (and lower). Edge 106 has replaced settings Spel...',
 			type: 'link',
 			author_name: '',
 			author_url: '',
@@ -1555,7 +1556,244 @@ export const statuses: MastodonStatus[] = [
 		card: null,
 		poll: null,
 	},
+	{
+		id: '109734788115874319',
+		created_at: '2023-01-22T20:39:44.678Z',
+		in_reply_to_id: null,
+		in_reply_to_account_id: null,
+		sensitive: false,
+		spoiler_text: '',
+		visibility: 'public',
+		language: 'en',
+		uri: 'https://mastodon.design/users/rafa/statuses/109734788115874319',
+		url: 'https://mastodon.design/@rafa/109734788115874319',
+		replies_count: 43,
+		reblogs_count: 256,
+		favourites_count: 537,
+		edited_at: null,
+		content:
+			'\u003cp\u003eHi, meet HiDock!\u003c/p\u003e\u003cp\u003eIt\u0026#39;s a free Mac app that lets you set different Dock settings for different display configurations\u003c/p\u003e\u003cp\u003e\u003ca href="https://hidock.app" target="_blank" rel="nofollow noopener noreferrer"\u003e\u003cspan class="invisible"\u003ehttps://\u003c/span\u003e\u003cspan class=""\u003ehidock.app\u003c/span\u003e\u003cspan class="invisible"\u003e\u003c/span\u003e\u003c/a\u003e →\u003c/p\u003e',
+		reblog: null,
+		application: {
+			name: 'Web',
+			website: null,
+		},
+		account: {
+			id: '11932',
+			username: 'rafa',
+			acct: 'rafa',
+			display_name: 'Rafa',
+			locked: false,
+			bot: false,
+			discoverable: true,
+			group: false,
+			created_at: '2018-08-21T00:00:00.000Z',
+			note: '\u003cp\u003eI’m a designer and app developer, currently working on Sketch, and Hand Mirror for Mac\u003c/p\u003e',
+			url: 'https://mastodon.design/@rafa',
+			avatar: 'https://cdn.masto.host/mastodondesign/accounts/avatars/000/011/932/original/8f601be03c98b2e8.png',
+			avatar_static: 'https://cdn.masto.host/mastodondesign/accounts/avatars/000/011/932/original/8f601be03c98b2e8.png',
+			header: 'https://cdn.masto.host/mastodondesign/accounts/headers/000/011/932/original/668f6d32abb54252.jpeg',
+			header_static:
+				'https://cdn.masto.host/mastodondesign/accounts/headers/000/011/932/original/668f6d32abb54252.jpeg',
+			followers_count: 2511,
+			following_count: 437,
+			statuses_count: 1115,
+			last_status_at: '2023-01-23',
+			noindex: false,
+			emojis: [],
+			fields: [
+				{
+					name: 'Website',
+					value:
+						'\u003ca href="https://rafa.design" target="_blank" rel="nofollow noopener noreferrer me"\u003e\u003cspan class="invisible"\u003ehttps://\u003c/span\u003e\u003cspan class=""\u003erafa.design\u003c/span\u003e\u003cspan class="invisible"\u003e\u003c/span\u003e\u003c/a\u003e',
+					verified_at: '2022-11-06T16:49:24.339+00:00',
+				},
+				{
+					name: 'App',
+					value:
+						'\u003ca href="http://handmirror.app" target="_blank" rel="nofollow noopener noreferrer me"\u003e\u003cspan class="invisible"\u003ehttp://\u003c/span\u003e\u003cspan class=""\u003ehandmirror.app\u003c/span\u003e\u003cspan class="invisible"\u003e\u003c/span\u003e\u003c/a\u003e',
+					verified_at: null,
+				},
+				{
+					name: 'Podcast',
+					value:
+						'\u003ca href="http://layout.fm" target="_blank" rel="nofollow noopener noreferrer me"\u003e\u003cspan class="invisible"\u003ehttp://\u003c/span\u003e\u003cspan class=""\u003elayout.fm\u003c/span\u003e\u003cspan class="invisible"\u003e\u003c/span\u003e\u003c/a\u003e',
+					verified_at: null,
+				},
+				{
+					name: 'Pronouns',
+					value: 'He/Them',
+					verified_at: null,
+				},
+			],
+		},
+		media_attachments: [
+			{
+				id: '109734774350200717',
+				type: 'image',
+				url: 'https://cdn.masto.host/mastodondesign/media_attachments/files/109/734/774/350/200/717/original/51054ec255c7a366.png',
+				preview_url:
+					'https://cdn.masto.host/mastodondesign/media_attachments/files/109/734/774/350/200/717/small/51054ec255c7a366.png',
+				remote_url: null,
+				preview_remote_url: null,
+				text_url: null,
+				meta: {
+					original: {
+						width: 1821,
+						height: 1138,
+						size: '1821x1138',
+						aspect: 1.6001757469244289,
+					},
+					small: {
+						width: 606,
+						height: 379,
+						size: '606x379',
+						aspect: 1.5989445910290236,
+					},
+					focus: {
+						x: 0.0,
+						y: 0.0,
+					},
+				},
+				description:
+					'App icon for the app HiDock, against the default macOS Ventura background. The icon resembles an old school Apple display, with a aluminum frame, glossy black bezels, and what looks like the Snow Leopard wallpaper with a dock highlighted',
+				blurhash: 'UIQsS4?R}zRh%_$wKP-4-xt11mwwu0xUMmr?',
+			},
+			{
+				id: '109734775049506533',
+				type: 'image',
+				url: 'https://cdn.masto.host/mastodondesign/media_attachments/files/109/734/775/049/506/533/original/b6c22d380e50cd11.png',
+				preview_url:
+					'https://cdn.masto.host/mastodondesign/media_attachments/files/109/734/775/049/506/533/small/b6c22d380e50cd11.png',
+				remote_url: null,
+				preview_remote_url: null,
+				text_url: null,
+				meta: {
+					original: {
+						width: 1821,
+						height: 1138,
+						size: '1821x1138',
+						aspect: 1.6001757469244289,
+					},
+					small: {
+						width: 606,
+						height: 379,
+						size: '606x379',
+						aspect: 1.5989445910290236,
+					},
+					focus: {
+						x: 0.0,
+						y: 0.0,
+					},
+				},
+				description:
+					'Screenshot of HiDock, and with a subtitle that reads "Set different Docks settings for different displays"',
+				blurhash: 'UaQ@*F%HqsadyWxVNGw[QkobPCo0%1n#Rls:',
+			},
+			{
+				id: '109734775691562296',
+				type: 'image',
+				url: 'https://cdn.masto.host/mastodondesign/media_attachments/files/109/734/775/691/562/296/original/266c1740f6e4cdc1.png',
+				preview_url:
+					'https://cdn.masto.host/mastodondesign/media_attachments/files/109/734/775/691/562/296/small/266c1740f6e4cdc1.png',
+				remote_url: null,
+				preview_remote_url: null,
+				text_url: null,
+				meta: {
+					original: {
+						width: 1821,
+						height: 1138,
+						size: '1821x1138',
+						aspect: 1.6001757469244289,
+					},
+					small: {
+						width: 606,
+						height: 379,
+						size: '606x379',
+						aspect: 1.5989445910290236,
+					},
+					focus: {
+						x: 0.0,
+						y: 0.0,
+					},
+				},
+				description:
+					'Screenshot of HiDock, now in dark mode, with a caption that reads "Customize Size, Position, and Hidden Preference"',
+				blurhash: 'UgIB[UxW}Aox=Y$#xYs,sos-FdbFwJsmS4n+',
+			},
+			{
+				id: '109734776307839727',
+				type: 'image',
+				url: 'https://cdn.masto.host/mastodondesign/media_attachments/files/109/734/776/307/839/727/original/6085716d5f865ce1.png',
+				preview_url:
+					'https://cdn.masto.host/mastodondesign/media_attachments/files/109/734/776/307/839/727/small/6085716d5f865ce1.png',
+				remote_url: null,
+				preview_remote_url: null,
+				text_url: null,
+				meta: {
+					original: {
+						width: 1821,
+						height: 1138,
+						size: '1821x1138',
+						aspect: 1.6001757469244289,
+					},
+					small: {
+						width: 606,
+						height: 379,
+						size: '606x379',
+						aspect: 1.5989445910290236,
+					},
+					focus: {
+						x: 0.0,
+						y: 0.0,
+					},
+				},
+				description:
+					'Another screenshot of HiDock, this time you can see a "Meet the Developer section", with a caption that reads "Runs in the background, no clutter or extra icons"',
+				blurhash: 'UiH+IDxW}Toc-6xWxWs-xGs-F0bGwJsnS5n%',
+			},
+		],
+		mentions: [],
+		tags: [],
+		emojis: [],
+		card: {
+			url: 'https://hidock.app/',
+			title: 'HiDock, for Mac',
+			description: 'Custom Dock settings for different displays',
+			type: 'link',
+			author_name: '',
+			author_url: '',
+			provider_name: 'HiDock, for Mac',
+			provider_url: '',
+			html: '',
+			width: 400,
+			height: 200,
+			image:
+				'https://cdn.masto.host/mastodondesign/cache/preview_cards/images/001/081/966/original/f9d41b35290d4ddf.jpg',
+			embed_url: '',
+			blurhash: 'UHIV*-iwxuIU0}mlBp9|V@gNiws:FxpIVsw^',
+		},
+		poll: null,
+	},
 ]
+
+export const statuses: MastodonStatus[] = mastodonRawStatuses.map((rawStatus) => ({
+	...rawStatus,
+	media_attachments: rawStatus.media_attachments.map((mediaAttachment) => ({
+		...mediaAttachment,
+		type: getStandardMediaType(mediaAttachment.type),
+	})),
+}))
+
+function getStandardMediaType(mediaAttachmentMastodonType: string): string {
+	switch (mediaAttachmentMastodonType) {
+		case 'image':
+			return 'Image'
+		case 'video':
+			return 'Video'
+	}
+	return mediaAttachmentMastodonType
+}
 
 export const replies: MastodonStatus[] = [
 	{

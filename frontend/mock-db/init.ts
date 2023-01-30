@@ -5,6 +5,8 @@ import { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { createReply as createReplyInBackend } from 'wildebeest/backend/test/shared.utils'
 import { createStatus } from 'wildebeest/backend/src/mastodon/status'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
  */
@@ -12,7 +14,13 @@ export async function init(domain: string, db: D1Database) {
 	const loadedStatuses: { status: MastodonStatus; note: Note }[] = []
 	for (const status of statuses) {
 		const actor = await getOrCreatePerson(domain, db, status.account)
-		const note = await createStatus(domain, db, actor, status.content)
+		const note = await createStatus(
+			domain,
+			db,
+			actor,
+			status.content,
+			status.media_attachments as unknown as APObject[]
+		)
 		loadedStatuses.push({ status, note })
 	}
 

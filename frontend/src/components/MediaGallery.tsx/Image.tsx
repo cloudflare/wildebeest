@@ -37,7 +37,7 @@ export default component$<Props>(({ mediaAttachment }) => {
 
 	return (
 		<>
-			<div class="h-60">
+			<div class={`${store.isModalOpen ? '' : 'cursor-zoom-in'} w-full h-full`}>
 				<img
 					class="object-cover w-full h-full rounded"
 					style={{

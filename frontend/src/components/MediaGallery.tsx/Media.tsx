@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik'
-import Image from './ImageGallery'
+import Image from './Image'
 import Video from './Video'
 import { MediaAttachment } from '~/types'
 

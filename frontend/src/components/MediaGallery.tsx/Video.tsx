@@ -7,8 +7,8 @@ type Props = {
 
 export default component$<Props>(({ mediaAttachment }) => {
 	return (
-		<div class="h-60">
-			<video class="object-cover w-full h-full rounded">
+		<div class="h-full">
+			<video controls class="object-cover w-full h-full rounded">
 				<source src={mediaAttachment.preview_url || mediaAttachment.url} type="video/mp4" />
 			</video>
 		</div>
