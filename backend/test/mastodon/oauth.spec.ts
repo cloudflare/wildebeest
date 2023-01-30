@@ -35,11 +35,11 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 
 			let req = new Request('https://example.com/oauth/authorize')
-			let res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			let res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 
 			req = new Request('https://example.com/oauth/authorize?scope=foobar')
-			res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 		})
 
@@ -53,7 +53,7 @@ describe('Mastodon APIs', () => {
 			})
 
 			const req = new Request('https://example.com/oauth/authorize?' + params)
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 		})
 
@@ -72,7 +72,7 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize?' + params, {
 				headers,
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 403)
 		})
 
@@ -91,7 +91,7 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize?' + params, {
 				headers,
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 302)
 
 			const location = new URL(res.headers.get('location') || '')
@@ -223,7 +223,7 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize', {
 				method: 'OPTIONS',
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 		})

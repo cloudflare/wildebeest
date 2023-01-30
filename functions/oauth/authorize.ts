@@ -11,11 +11,11 @@ import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
 // Extract the JWT token sent by Access (running before us).
 const extractJWTFromRequest = (request: Request) => request.headers.get('Cf-Access-Jwt-Assertion') || ''
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
-	return handleRequest(request, env.DATABASE, env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
+export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
+	return handleRequestPost(request, env.DATABASE, env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
-export async function handleRequest(
+export async function handleRequestPost(
 	request: Request,
 	db: D1Database,
 	userKEK: string,
