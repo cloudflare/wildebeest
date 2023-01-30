@@ -182,7 +182,6 @@ jobs:
 
       - name: Configure
         run: terraform plan && terraform apply -auto-approve
-        continue-on-error: true
         working-directory: ./tf
         env:
           TF_VAR_cloudflare_account_id: ${{ secrets.CF_ACCOUNT_ID }}
