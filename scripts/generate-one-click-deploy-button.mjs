@@ -36,7 +36,7 @@ const API_TOKEN_TEMPLATE = JSON.stringify([
 	{ key: 'workers_kv_storage', type: 'edit' },
 	{ key: 'access_acct', type: 'read' },
 	{ key: 'dns', type: 'edit' },
-	{ key: 'workers_script', type: 'edit' },
+	{ key: 'workers_scripts', type: 'edit' },
 ])
 
 const fields = FIELDS.map((x) => JSON.stringify(x))
