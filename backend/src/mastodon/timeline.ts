@@ -1,5 +1,4 @@
 import type { MastodonStatus } from 'wildebeest/backend/src/types/status'
-import { getFollowingId } from 'wildebeest/backend/src/mastodon/follow'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
 import { toMastodonStatusFromRow } from './status'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
@@ -11,9 +10,38 @@ export async function pregenerateTimelines(domain: string, db: D1Database, cache
 }
 
 export async function getHomeTimeline(domain: string, db: D1Database, actor: Actor): Promise<Array<MastodonStatus>> {
-	const following = await getFollowingId(db, actor)
+	const { results: following } = await db
+		.prepare(
+			`
+            SELECT
+                actor_following.target_actor_id as id,
+                json_extract(actors.properties, '$.followers') as actorFollowersURL
+            FROM actor_following
+            INNER JOIN actors ON actors.id = actor_following.target_actor_id
+            WHERE actor_id=? AND state='accepted'
+        `
+		)
+		.bind(actor.id.toString())
+		.all<{ id: string; actorFollowersURL: string | null }>()
+
+	let followingIds: string[] = []
+	let followingFollowersURLs: string[] = []
+
+	if (following) {
+		followingIds = following.map((row) => row.id)
+		followingFollowersURLs = following.map((row) => {
+			if (row.actorFollowersURL) {
+				return row.actorFollowersURL
+			} else {
+				// We don't have the Actor's followers URL stored, we'll guess
+				// one.
+				return row.id + '/followers'
+			}
+		})
+	}
+
 	// follow ourself to see our statuses in the our home timeline
-	following.push(actor.id.toString())
+	followingIds.push(actor.id.toString())
 
 	const QUERY = `
 SELECT objects.*,
@@ -24,24 +52,24 @@ SELECT objects.*,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
        (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count,
        (SELECT count(*) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count,
-       (SELECT count(*) > 0 FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id AND actor_reblogs.actor_id=?) as reblogged,
-       (SELECT count(*) > 0 FROM actor_favourites WHERE actor_favourites.object_id=objects.id AND actor_favourites.actor_id=?) as favourited
+       (SELECT count(*) > 0 FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id AND actor_reblogs.actor_id=?1) as reblogged,
+       (SELECT count(*) > 0 FROM actor_favourites WHERE actor_favourites.object_id=objects.id AND actor_favourites.actor_id=?1) as favourited
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
 INNER JOIN actors ON actors.id = outbox_objects.actor_id
 WHERE
      objects.type = 'Note'
-     AND outbox_objects.actor_id IN (SELECT value FROM json_each(?))
+     AND outbox_objects.actor_id IN (SELECT value FROM json_each(?2))
      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
-     AND outbox_objects.target = '${PUBLIC_GROUP}'
+     AND (outbox_objects.target = '${PUBLIC_GROUP}' OR outbox_objects.target IN (SELECT value FROM json_each(?3)))
 ORDER by outbox_objects.published_date DESC
-LIMIT ?
+LIMIT ?4
 `
 	const DEFAULT_LIMIT = 20
 
 	const { success, error, results } = await db
 		.prepare(QUERY)
-		.bind(actor.id.toString(), actor.id.toString(), JSON.stringify(following), DEFAULT_LIMIT)
+		.bind(actor.id.toString(), JSON.stringify(followingIds), JSON.stringify(followingFollowersURLs), DEFAULT_LIMIT)
 		.all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)

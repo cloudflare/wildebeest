@@ -74,6 +74,25 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.length, 0)
 		})
 
+		test("home returns Notes sent to Actor's followers", async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+
+			// Actor is following actor2
+			await addFollowing(db, actor, actor2, 'not needed')
+			await acceptFollowing(db, actor, actor2)
+
+			// Actor 2 is posting
+			const note = await createPublicNote(domain, db, 'test post', actor2)
+			await addObjectInOutbox(db, actor2, note, undefined, actor2.followers.toString())
+
+			// Actor should only see posts from actor2 in the timeline
+			const data = await timelines.getHomeTimeline(domain, db, actor)
+			assert.equal(data.length, 1)
+			assert.equal(data[0].content, 'test post')
+		})
+
 		test("public doesn't show private Notes", async () => {
 			const db = await makeDB()
 			const actor1 = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
