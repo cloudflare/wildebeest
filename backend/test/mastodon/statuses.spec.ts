@@ -2,10 +2,9 @@ import { strict as assert } from 'node:assert/strict'
 import { createReply } from 'wildebeest/backend/test/shared.utils'
 import { createStatus, getMentions } from 'wildebeest/backend/src/mastodon/status'
 import { createPublicNote, type Note } from 'wildebeest/backend/src/activitypub/objects/note'
-import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as statuses from 'wildebeest/functions/api/v1/statuses'
-import * as statuses_get from 'wildebeest/functions/api/v1/statuses/[id]'
+import * as statuses_id from 'wildebeest/functions/api/v1/statuses/[id]'
 import * as statuses_favourite from 'wildebeest/functions/api/v1/statuses/[id]/favourite'
 import * as statuses_reblog from 'wildebeest/functions/api/v1/statuses/[id]/reblog'
 import * as statuses_context from 'wildebeest/functions/api/v1/statuses/[id]/context'
@@ -17,7 +16,7 @@ import * as activities from 'wildebeest/backend/src/activitypub/activities'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 import { MastodonStatus } from 'wildebeest/backend/src/types'
-import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { mastodonIdSymbol, getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 
 const userKEK = 'test_kek4'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -537,7 +536,7 @@ describe('Mastodon APIs', () => {
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
 
-			const res = await statuses_get.handleRequest(db, note[mastodonIdSymbol]!, domain)
+			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -553,7 +552,7 @@ describe('Mastodon APIs', () => {
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
 			const note = await createPublicNote(domain, db, 'my first status', actor, mediaAttachments)
 
-			const res = await statuses_get.handleRequest(db, note[mastodonIdSymbol]!, domain)
+			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -592,7 +591,7 @@ describe('Mastodon APIs', () => {
 				await insertReblog(db, actor2, note)
 				await insertReblog(db, actor3, note)
 
-				const res = await statuses_get.handleRequest(db, note[mastodonIdSymbol]!, domain)
+				const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
@@ -809,6 +808,42 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 400)
 			const data = await res.json<{ error: string }>()
 			assert(data.error.includes('Limit exceeded'))
+		})
+
+		test('delete non-existing status', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const mastodonId = 'abcd'
+			const res = await statuses_id.handleRequestDelete(db, mastodonId, actor, domain)
+			assert.equal(res.status, 404)
+		})
+
+		test('delete status from a different actor', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+			const note = await createPublicNote(domain, db, 'note from actor2', actor2)
+
+			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain)
+			assert.equal(res.status, 404)
+		})
+
+		test('delete status', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const note = await createPublicNote(domain, db, 'note from actor', actor)
+
+			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain)
+			assert.equal(res.status, 200)
+
+			{
+				const { count } = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first<any>()
+				assert.equal(count, 0)
+			}
+			{
+				const { count } = await db.prepare(`SELECT count(*) as count FROM objects`).first<any>()
+				assert.equal(count, 0)
+			}
 		})
 	})
 })
