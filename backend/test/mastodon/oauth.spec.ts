@@ -84,6 +84,7 @@ describe('Mastodon APIs', () => {
 				redirect_uri: client.redirect_uris,
 				response_type: 'code',
 				client_id: client.id,
+				state: 'mock-state',
 			})
 
 			const headers = { 'Cf-Access-Jwt-Assertion': TEST_JWT }
@@ -97,7 +98,7 @@ describe('Mastodon APIs', () => {
 			const location = new URL(res.headers.get('location') || '')
 			assert.equal(
 				location.searchParams.get('redirect_uri'),
-				encodeURIComponent(`${client.redirect_uris}?code=${client.id}.${TEST_JWT}`)
+				encodeURIComponent(`${client.redirect_uris}?code=${client.id}.${TEST_JWT}&state=mock-state`)
 			)
 
 			// actor isn't created yet
