@@ -58,6 +58,8 @@ export async function handleRequestPost(
 		return new Response('', { status: 403 })
 	}
 
+	const state = url.searchParams.get('state')
+
 	const jwt = extractJWTFromRequest(request)
 	const validate = access.generateValidator({ jwt, domain: accessDomain, aud: accessAud })
 	await validate(request)
@@ -69,15 +71,17 @@ export async function handleRequestPost(
 
 	const code = `${client.id}.${jwt}`
 
+	const redirect = redirect_uri + `?code=${code}` + (state ? `&state=${state}` : '')
+
 	const person = await getPersonByEmail(db, identity.email)
 	if (person === null) {
 		url.pathname = '/first-login'
 		url.searchParams.set('email', identity.email)
-		url.searchParams.set('redirect_uri', encodeURIComponent(redirect_uri + '?code=' + code))
+		url.searchParams.set('redirect_uri', encodeURIComponent(redirect))
 		return URLsafeRedirect(url.toString())
 	}
 
-	return URLsafeRedirect(redirect_uri + '?code=' + code)
+	return URLsafeRedirect(redirect)
 }
 
 // Workaround bug EW-7148, constructing an URL with unknown protocols
