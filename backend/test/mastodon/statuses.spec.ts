@@ -85,7 +85,7 @@ describe('Mastodon APIs', () => {
         `
 				)
 				.first<{ content: string; original_actor_id: URL; original_object_id: unknown }>()
-			assert.equal(row.content, 'my status <p>evil</p>') // note the sanitization
+			assert.equal(row.content, '<p>my status <p>evil</p></p>') // note the sanitization
 			assert.equal(row.original_actor_id.toString(), actor.id.toString())
 			assert.equal(row.original_object_id, null)
 		})

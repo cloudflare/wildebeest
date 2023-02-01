@@ -11,6 +11,7 @@ import { makeDB, assertCORS, assertJSON, assertCache, createTestClient } from '.
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { createSubscription } from '../src/mastodon/subscription'
 import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
+import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
 
 const userKEK = 'test_kek'
 const domain = 'cloudflare.com'
@@ -280,5 +281,22 @@ describe('Mastodon APIs', () => {
 
 		const data = await res.json<any>()
 		assert.equal(data.length, 0)
+	})
+
+	describe('Microformats', () => {
+		test('convert mentions to HTML', () => {
+			const status = 'hey @test@example.com hi'
+
+			assert.equal(
+				enrichStatus(status),
+				'<p>hey <span class="h-card"><a href="https://example.com/@test" class="u-url mention">@<span>test</span></a></span> hi</p>'
+			)
+		})
+
+		test('convert links to HTML', () => {
+			const status = 'hey https://cloudflare.com/abc hi'
+
+			assert.equal(enrichStatus(status), '<p>hey <a href="https://cloudflare.com/abc">cloudflare.com/abc</a> hi</p>')
+		})
 	})
 })
