@@ -2,10 +2,11 @@ import { makeDB, isUrlValid } from './utils'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import { createPrivateNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createPrivateNote, createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
 import { cacheObject } from 'wildebeest/backend/src/activitypub/objects/'
+import * as ap_objects from 'wildebeest/functions/ap/o/[id]'
 import * as ap_users from 'wildebeest/functions/ap/users/[id]'
 import * as ap_outbox from 'wildebeest/functions/ap/users/[id]/outbox'
 import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
@@ -155,6 +156,24 @@ describe('ActivityPub', () => {
 
 			result = await db.prepare('SELECT count(*) as count from objects').first()
 			assert.equal(result.count, 1)
+		})
+
+		test('serve unknown object', async () => {
+			const db = await makeDB()
+			const res = await ap_objects.handleRequest(domain, db, 'unknown id')
+			assert.equal(res.status, 404)
+		})
+
+		test('serve object', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const note = await createPublicNote(domain, db, 'content', actor)
+
+			const res = await ap_objects.handleRequest(domain, db, note.mastodonId!)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.content, 'content')
 		})
 	})
 
