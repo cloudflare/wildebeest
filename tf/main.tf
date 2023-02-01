@@ -167,6 +167,6 @@ resource "cloudflare_access_application" "wildebeest_access" {
   name                      = "wildebeest-${lower(var.gh_username)}"
   domain                    = "${trimspace(var.cloudflare_deploy_domain)}/oauth/authorize"
   type                      = "self_hosted"
-  session_duration          = "168h"
+  session_duration          = "730h"
   auto_redirect_to_identity = false
 }
