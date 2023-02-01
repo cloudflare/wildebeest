@@ -9,66 +9,38 @@ function tag(name: string, content: string, attrs: Record<string, string> = {}):
 	return `<${name}${htmlAttrs}>${content}</${name}>`
 }
 
+const mentionedEmailRegex = /\s@([^@\s]+@[^.\s]+\.[^.\s]+)\s/g
+const linkRegex = /\s(https?:\/\/[^.\s]+\.[^.\s]+(?:\/[^.\s/]+)*)\s/g
+
 /// Transform a text status into a HTML status; enriching it with links / mentions.
 export function enrichStatus(status: string): string {
-	let out = ''
-	let state = 'normal'
-	let buffer = ''
+	const enrichedStatus = status
+		.replace(mentionedEmailRegex, (_, email: string) => ` ${getMentionSpan(email)} `)
+		.replace(linkRegex, (_, link: string) => ` ${getLinkAnchor(link)} `)
 
-	for (let i = 0, len = status.length; i < len; i++) {
-		const char = status[i]
-		if (char === '@') {
-			state = 'mention'
-		}
+	return tag('p', enrichedStatus)
+}
 
-		if (status.slice(i, i + 5) === 'http:' || status.slice(i, i + 6) === 'https:') {
-			state = 'link'
-		}
+function getMentionSpan(mentionedEmail: string) {
+	const handle = parseHandle(mentionedEmail)
 
-		if (state === 'link') {
-			if (char === ' ') {
-				try {
-					const url = new URL(buffer)
-					buffer = ''
+	// TODO: the link to the profile is a guess, we could rely on
+	// the cached Actors to find the right link.
+	const linkToProfile = `https://${handle.domain}/@${handle.localPart}`
 
-					out += tag('a', url.hostname + url.pathname, { href: url.href })
-				} catch (err: unknown) {
-					console.warn('failed to parse link', err)
-					out += buffer
-				}
+	const mention = `@${tag('span', handle.localPart)}`
+	return tag('span', tag('a', mention, { href: linkToProfile, class: 'u-url mention' }), {
+		class: 'h-card',
+	})
+}
 
-				out += char
-				state = 'normal'
-			} else {
-				buffer += char
-			}
-			continue
-		}
+function getLinkAnchor(link: string) {
+	try {
+		const url = new URL(link)
 
-		if (state === 'mention') {
-			if (char === ' ') {
-				const handle = parseHandle(buffer)
-				buffer = ''
-
-				// TODO: the link to the profile is a guess, we could rely on
-				// the cached Actors to find the right link.
-				const linkToProfile = `https://${handle.domain}/@${handle.localPart}`
-
-				const mention = '@' + tag('span', handle.localPart)
-				out += tag('span', tag('a', mention, { href: linkToProfile, class: 'u-url mention' }), { class: 'h-card' })
-				out += char
-				state = 'normal'
-			} else {
-				buffer += char
-			}
-			continue
-		}
-
-		if (state === 'normal') {
-			out += char
-			continue
-		}
+		return tag('a', url.hostname + url.pathname, { href: url.href })
+	} catch (err: unknown) {
+		console.warn('failed to parse link', err)
+		return link
 	}
-
-	return tag('p', out)
 }
