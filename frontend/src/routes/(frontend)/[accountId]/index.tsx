@@ -1,12 +1,13 @@
 import { component$ } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
+import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 
-export const accountLoader = loader$(({ redirect, request }) => {
+export const accountLoader = loader$(({ request, html }) => {
 	const params = new URL(request.url).searchParams
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const accountId = params.get('accountId')
 
-	redirect(303, '/not-found')
+	html(404, getNotFoundHtml())
 
 	// TODO: retrieve the account details from the backend
 	const accountDetails = null
