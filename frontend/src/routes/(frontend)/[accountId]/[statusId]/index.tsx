@@ -9,16 +9,17 @@ import { Link, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { Avatar } from '~/components/avatar'
 import { MediaGallery } from '~/components/MediaGallery.tsx'
+import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database; domain: string },
 	Promise<{ status: MastodonStatus; context: StatusContext }>
->(async ({ request, redirect, platform, params }) => {
+>(async ({ request, html, platform, params }) => {
 	const domain = new URL(request.url).hostname
 	const statusResponse = await statusAPI.handleRequest(platform.DATABASE, params.statusId, domain)
 	const statusText = await statusResponse.text()
 	if (!statusText) {
-		throw redirect(303, '/not-found')
+		throw html(404, getNotFoundHtml())
 	}
 	const contextResponse = await contextAPI.handleRequest(domain, platform.DATABASE, params.statusId)
 	const contextText = await contextResponse.text()
