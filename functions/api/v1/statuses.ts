@@ -21,6 +21,7 @@ import type { Visibility } from 'wildebeest/backend/src/types'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
 import type { Cache } from 'wildebeest/backend/src/cache'
 import { cacheFromEnv } from 'wildebeest/backend/src/cache'
+import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
 
 type StatusCreate = {
 	status: string
@@ -87,7 +88,8 @@ export async function handleRequest(
 	}
 
 	const domain = new URL(request.url).hostname
-	const note = await createStatus(domain, db, connectedActor, body.status, mediaAttachments, extraProperties)
+	const content = enrichStatus(body.status)
+	const note = await createStatus(domain, db, connectedActor, content, mediaAttachments, extraProperties)
 
 	if (inReplyToObject !== null) {
 		// after the status has been created, record the reply.
