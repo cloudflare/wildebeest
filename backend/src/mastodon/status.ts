@@ -1,4 +1,4 @@
-import type { Handle } from '../utils/parse'
+import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { UUID } from 'wildebeest/backend/src/types'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
@@ -12,9 +12,10 @@ import { urlToHandle } from '../utils/handle'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { addObjectInOutbox } from '../activitypub/actors/outbox'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 
-export function getMentions(input: string): Array<Handle> {
-	const mentions: Array<Handle> = []
+export async function getMentions(input: string, instanceDomain: string): Promise<Array<Actor>> {
+	const mentions: Array<Actor> = []
 
 	for (let i = 0, len = input.length; i < len; i++) {
 		if (input[i] === '@') {
@@ -25,7 +26,15 @@ export function getMentions(input: string): Array<Handle> {
 				i++
 			}
 
-			mentions.push(parseHandle(buffer))
+			const handle = parseHandle(buffer)
+			const domain = handle.domain ? handle.domain : instanceDomain
+			const acct = `${handle.localPart}@${domain}`
+			const targetActor = await queryAcct(domain!, acct)
+			if (targetActor === null) {
+				console.warn(`actor ${acct} not found`)
+				continue
+			}
+			mentions.push(targetActor)
 		}
 	}
 

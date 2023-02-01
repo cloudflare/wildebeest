@@ -11,7 +11,6 @@ import { createStatus, getMentions } from 'wildebeest/backend/src/mastodon/statu
 import * as activities from 'wildebeest/backend/src/activitypub/activities/create'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
-import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import { deliverFollowers, deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
@@ -89,6 +88,11 @@ export async function handleRequest(
 
 	const domain = new URL(request.url).hostname
 	const content = enrichStatus(body.status)
+	const mentions = await getMentions(body.status, domain)
+	if (mentions.length > 0) {
+		extraProperties.tag = mentions
+	}
+
 	const note = await createStatus(domain, db, connectedActor, content, mediaAttachments, extraProperties)
 
 	if (inReplyToObject !== null) {
@@ -101,19 +105,9 @@ export async function handleRequest(
 
 	{
 		// If the status is mentioning other persons, we need to delivery it to them.
-		const mentions = getMentions(body.status)
 		for (let i = 0, len = mentions.length; i < len; i++) {
-			if (mentions[i].domain === null) {
-				// Only deliver the note for remote actors
-				continue
-			}
-			const acct = `${mentions[i].localPart}@${mentions[i].domain}`
-			const targetActor = await queryAcct(mentions[i].domain!, acct)
-			if (targetActor === null) {
-				console.warn(`actor ${acct} not found`)
-				continue
-			}
-			note.to.push(targetActor.id.toString())
+			const targetActor = mentions[i]
+			note.cc.push(targetActor.id.toString())
 			const activity = activities.create(domain, connectedActor, note)
 			const signingKey = await getSigningKey(userKEK, db, connectedActor)
 			await deliverToActor(signingKey, connectedActor, targetActor, activity)
