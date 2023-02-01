@@ -16,8 +16,8 @@ export interface Note extends objects.APObject {
 	replies?: string
 	to: Array<string>
 	attachment: Array<objects.APObject>
-	cc?: Array<string>
-	tag?: Array<string>
+	cc: Array<string>
+	tag: Array<objects.APObject>
 }
 
 export async function createPublicNote(

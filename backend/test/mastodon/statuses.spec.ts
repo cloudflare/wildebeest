@@ -2,6 +2,7 @@ import { strict as assert } from 'node:assert/strict'
 import { createReply } from 'wildebeest/backend/test/shared.utils'
 import { createStatus, getMentions } from 'wildebeest/backend/src/mastodon/status'
 import { createPublicNote, type Note } from 'wildebeest/backend/src/activitypub/objects/note'
+import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import * as statuses from 'wildebeest/functions/api/v1/statuses'
 import * as statuses_get from 'wildebeest/functions/api/v1/statuses/[id]'
@@ -254,7 +255,63 @@ describe('Mastodon APIs', () => {
 			)
 			assert.equal((deliveredNote as { object: { type: string } }).object.type, 'Note')
 			assert((deliveredNote as { object: { to: string[] } }).object.to.includes(activities.PUBLIC_GROUP))
-			assert.equal((deliveredNote as { object: { cc: string[] } }).object.cc.length, 1)
+			assert.equal((deliveredNote as { object: { cc: string[] } }).object.cc.length, 2)
+		})
+
+		test('create new status with mention add tags on Note', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			// @ts-ignore
+			globalThis.fetch = async (input: any) => {
+				if (
+					(input as RequestInfo).toString() ===
+					'https://cloudflare.com/.well-known/webfinger?resource=acct%3Asven%40cloudflare.com'
+				) {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: actor.id,
+								},
+							],
+						})
+					)
+				}
+
+				if (input === actor.id.toString()) {
+					return new Response(JSON.stringify(actor))
+				}
+
+				if (input.url === actor.inbox.toString()) {
+					return new Response()
+				}
+
+				throw new Error('unexpected request to ' + JSON.stringify(input))
+			}
+
+			const body = {
+				status: 'my status @sven@' + domain,
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const connectedActor = actor
+			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, cache)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+
+			const note = (await getObjectByMastodonId(db, data.id)) as unknown as Note
+			assert.equal(note.tag.length, 1)
+			assert.equal(note.tag[0].id, actor.id.toString())
 		})
 
 		test('create new status with image', async () => {
@@ -345,38 +402,126 @@ describe('Mastodon APIs', () => {
 			assert.equal(row.object_id, note.id.toString())
 		})
 
-		test('get mentions from status', () => {
+		test('get mentions from status', async () => {
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === 'https://instance.horse/.well-known/webfinger?resource=acct%3Asven%40instance.horse') {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: 'https://instance.horse/users/sven',
+								},
+							],
+						})
+					)
+				}
+				if (input.toString() === 'https://cloudflare.com/.well-known/webfinger?resource=acct%3Asven%40cloudflare.com') {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: 'https://cloudflare.com/users/sven',
+								},
+							],
+						})
+					)
+				}
+				if (input.toString() === 'https://cloudflare.com/.well-known/webfinger?resource=acct%3Aa%40cloudflare.com') {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: 'https://cloudflare.com/users/a',
+								},
+							],
+						})
+					)
+				}
+				if (input.toString() === 'https://cloudflare.com/.well-known/webfinger?resource=acct%3Ab%40cloudflare.com') {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: 'https://cloudflare.com/users/b',
+								},
+							],
+						})
+					)
+				}
+
+				if (input.toString() === 'https://instance.horse/users/sven') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://instance.horse/users/sven',
+						})
+					)
+				}
+				if (input.toString() === 'https://cloudflare.com/users/sven') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://cloudflare.com/users/sven',
+						})
+					)
+				}
+				if (input.toString() === 'https://cloudflare.com/users/a') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://cloudflare.com/users/a',
+						})
+					)
+				}
+				if (input.toString() === 'https://cloudflare.com/users/b') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://cloudflare.com/users/b',
+						})
+					)
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
 			{
-				const mentions = getMentions('test status')
+				const mentions = await getMentions('test status', domain)
 				assert.equal(mentions.length, 0)
 			}
 
 			{
-				const mentions = getMentions('@sven@instance.horse test status')
+				const mentions = await getMentions('unknown@actor.com', domain)
+				assert.equal(mentions.length, 0)
+			}
+
+			{
+				const mentions = await getMentions('@sven@instance.horse test status', domain)
 				assert.equal(mentions.length, 1)
-				assert.equal(mentions[0].localPart, 'sven')
-				assert.equal(mentions[0].domain, 'instance.horse')
+				assert.equal(mentions[0].id.toString(), 'https://instance.horse/users/sven')
 			}
 
 			{
-				const mentions = getMentions('@sven test status')
+				const mentions = await getMentions('@sven test status', domain)
 				assert.equal(mentions.length, 1)
-				assert.equal(mentions[0].localPart, 'sven')
-				assert.equal(mentions[0].domain, null)
+				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/sven')
 			}
 
 			{
-				const mentions = getMentions('@sven @james @pete')
-				assert.deepEqual(mentions, [
-					{ localPart: 'sven', domain: null },
-					{ localPart: 'james', domain: null },
-					{ localPart: 'pete', domain: null },
-				])
+				const mentions = await getMentions('@a @b', domain)
+				assert.equal(mentions.length, 2)
+				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/a')
+				assert.equal(mentions[1].id.toString(), 'https://' + domain + '/users/b')
 			}
 
 			{
-				const mentions = getMentions('<p>@sven</p>')
-				assert.deepEqual(mentions, [{ localPart: 'sven', domain: null }])
+				const mentions = await getMentions('<p>@sven</p>', domain)
+				assert.equal(mentions.length, 1)
+				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/sven')
 			}
 		})
 
