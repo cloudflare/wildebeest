@@ -5,6 +5,7 @@ import * as media from 'wildebeest/backend/src/media/image'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
 	return handleRequestPost(request, env.DATABASE, data.connectedActor, env.CF_ACCOUNT_ID, env.CF_API_TOKEN)
@@ -34,7 +35,7 @@ export async function handleRequestPost(
 	console.log({ image })
 
 	const res: MediaAttachment = {
-		id: image.mastodonId!,
+		id: image[mastodonIdSymbol]!,
 		url: image.url,
 		preview_url: image.url,
 		type: 'image',

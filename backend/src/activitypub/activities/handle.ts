@@ -24,6 +24,7 @@ import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
+import { originalActorIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 function extractID(domain: string, s: string | URL): string {
 	return s.toString().replace(`https://${domain}/ap/users/`, '')
@@ -112,7 +113,7 @@ export async function handle(
 				throw new Error(`object ${objectId} does not exist`)
 			}
 
-			if (actorId.toString() !== object.originalActorId) {
+			if (actorId.toString() !== object[originalActorIdSymbol]) {
 				throw new Error('actorid mismatch when updating object')
 			}
 
@@ -278,7 +279,7 @@ export async function handle(
 			const fromActor = await actors.getAndCache(actorId, db)
 
 			// notify the user
-			const targetActor = await actors.getPersonById(db, new URL(obj.originalActorId))
+			const targetActor = await actors.getPersonById(db, new URL(obj[originalActorIdSymbol]))
 			if (targetActor === null) {
 				console.warn('object actor not found')
 				break
@@ -300,13 +301,13 @@ export async function handle(
 			const objectId = getObjectAsId()
 
 			const obj = await objects.getObjectById(db, objectId)
-			if (obj === null || !obj.originalActorId) {
+			if (obj === null || !obj[originalActorIdSymbol]) {
 				console.warn('unknown object')
 				break
 			}
 
 			const fromActor = await actors.getAndCache(actorId, db)
-			const targetActor = await actors.getPersonById(db, new URL(obj.originalActorId))
+			const targetActor = await actors.getPersonById(db, new URL(obj[originalActorIdSymbol]))
 			if (targetActor === null) {
 				console.warn('object actor not found')
 				break

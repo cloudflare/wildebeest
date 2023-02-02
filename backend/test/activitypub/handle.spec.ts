@@ -7,6 +7,7 @@ import { addFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { ObjectsRow } from 'wildebeest/backend/src/types/objects'
+import { originalObjectIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 const adminEmail = 'admin@example.com'
 const domain = 'cloudflare.com'
@@ -337,11 +338,11 @@ describe('ActivityPub', () => {
 
 				const obj: any = await getObjectById(db, entry.object_id)
 				assert(obj)
-				assert.equal(obj.originalObjectId, 'https://example.com/note2')
+				assert.equal(obj[originalObjectIdSymbol], 'https://example.com/note2')
 
 				const inReplyTo: any = await getObjectById(db, entry.in_reply_to_object_id)
 				assert(inReplyTo)
-				assert.equal(inReplyTo.originalObjectId, 'https://example.com/note1')
+				assert.equal(inReplyTo[originalObjectIdSymbol], 'https://example.com/note1')
 			})
 
 			test('preserve Note sent with `to`', async () => {
