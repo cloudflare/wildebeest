@@ -311,7 +311,8 @@ describe('Mastodon APIs', () => {
 
 			const note = (await getObjectByMastodonId(db, data.id)) as unknown as Note
 			assert.equal(note.tag.length, 1)
-			assert.equal(note.tag[0].id, actor.id.toString())
+			assert.equal(note.tag[0].href, actor.id.toString())
+			assert.equal(note.tag[0].name, 'sven@' + domain)
 		})
 
 		test('create new status with image', async () => {

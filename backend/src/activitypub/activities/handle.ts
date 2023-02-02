@@ -100,7 +100,6 @@ export async function handle(
 	const getObjectAsId = makeGetObjectAsId(activity)
 	const getActorAsId = makeGetActorAsId(activity)
 
-	console.log(activity)
 	switch (activity.type) {
 		case 'Update': {
 			requireComplexObject()
