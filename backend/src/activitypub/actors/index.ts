@@ -1,6 +1,7 @@
 import { defaultImages } from 'wildebeest/config/accounts'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
 import { type APObject, sanitizeContent, sanitizeName } from '../objects'
+import { addPeer } from 'wildebeest/backend/src/activitypub/peers'
 
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
@@ -111,6 +112,12 @@ export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
 		.run()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
+	}
+
+	// Add peer
+	{
+		const domain = actor.id.host
+		await addPeer(db, domain)
 	}
 	return actor
 }

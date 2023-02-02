@@ -1,4 +1,5 @@
 import type { UUID } from 'wildebeest/backend/src/types'
+import { addPeer } from 'wildebeest/backend/src/activitypub/peers'
 
 export const originalActorIdSymbol = Symbol()
 export const originalObjectIdSymbol = Symbol()
@@ -117,6 +118,12 @@ export async function cacheObject(
 			uuid
 		)
 		.first()
+
+	// Add peer
+	{
+		const domain = originalObjectId.host
+		await addPeer(db, domain)
+	}
 
 	{
 		const properties = JSON.parse(row.properties)
