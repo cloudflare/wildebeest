@@ -84,7 +84,7 @@ export async function handleRequest(
 
 	const extraProperties: any = {}
 	if (inReplyToObject !== null) {
-		extraProperties.inReplyTo = inReplyToObject.id.toString()
+		extraProperties.inReplyTo = inReplyToObject.originalObjectId || inReplyToObject.id.toString()
 	}
 
 	const domain = new URL(request.url).hostname
