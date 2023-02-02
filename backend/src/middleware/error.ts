@@ -14,7 +14,7 @@ export async function errorHandling(context: EventContext<Env, any, any>) {
 		if (sentry !== null) {
 			sentry.captureException(err)
 		}
-		console.error(err.stack)
+		console.error(err.stack, err.cause)
 		return internalServerError()
 	}
 }
