@@ -231,7 +231,7 @@ export async function sanitizeObjectProperties(properties: unknown): Promise<APO
  * See https://docs.joinmastodon.org/spec/activitypub/#sanitization
  */
 export async function sanitizeContent(unsafeContent: string): Promise<string> {
-	return await contentRewriter.transform(new Response(unsafeContent)).text()
+	return await getContentRewriter().transform(new Response(unsafeContent)).text()
 }
 
 /**
@@ -240,29 +240,35 @@ export async function sanitizeContent(unsafeContent: string): Promise<string> {
  * This sanitization removes all HTML elements from the string leaving only the text content.
  */
 export async function sanitizeName(unsafeName: string): Promise<string> {
-	return await nameRewriter.transform(new Response(unsafeName)).text()
+	return await getNameRewriter().transform(new Response(unsafeName)).text()
 }
 
-const contentRewriter = new HTMLRewriter()
-contentRewriter.on('*', {
-	element(el) {
-		if (!['p', 'span', 'br', 'a'].includes(el.tagName)) {
-			el.tagName = 'p'
-		}
+function getContentRewriter() {
+	const contentRewriter = new HTMLRewriter()
+	contentRewriter.on('*', {
+		element(el) {
+			if (!['p', 'span', 'br', 'a'].includes(el.tagName)) {
+				el.tagName = 'p'
+			}
 
-		if (el.hasAttribute('class')) {
-			const classes = el.getAttribute('class')!.split(/\s+/)
-			const sanitizedClasses = classes.filter((c) =>
-				/^(h|p|u|dt|e)-|^mention$|^hashtag$|^ellipsis$|^invisible$/.test(c)
-			)
-			el.setAttribute('class', sanitizedClasses.join(' '))
-		}
-	},
-})
+			if (el.hasAttribute('class')) {
+				const classes = el.getAttribute('class')!.split(/\s+/)
+				const sanitizedClasses = classes.filter((c) =>
+					/^(h|p|u|dt|e)-|^mention$|^hashtag$|^ellipsis$|^invisible$/.test(c)
+				)
+				el.setAttribute('class', sanitizedClasses.join(' '))
+			}
+		},
+	})
+	return contentRewriter
+}
 
-const nameRewriter = new HTMLRewriter()
-nameRewriter.on('*', {
-	element(el) {
-		el.removeAndKeepContent()
-	},
-})
+function getNameRewriter() {
+	const nameRewriter = new HTMLRewriter()
+	nameRewriter.on('*', {
+		element(el) {
+			el.removeAndKeepContent()
+		},
+	})
+	return nameRewriter
+}

@@ -1,14 +1,9 @@
 // https://docs.joinmastodon.org/methods/accounts/#get
 
 import { cors } from 'wildebeest/backend/src/utils/cors'
-import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
-import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
-import { parseHandle } from 'wildebeest/backend/src/utils/parse'
-import type { Handle } from 'wildebeest/backend/src/utils/parse'
-import { queryAcct } from 'wildebeest/backend/src/webfinger/index'
-import { loadExternalMastodonAccount, loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
+import { getAccount } from 'wildebeest/backend/src/accounts/getAccount'
 
 const headers = {
 	...cors(),
@@ -21,41 +16,11 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 }
 
 export async function handleRequest(domain: string, id: string, db: D1Database): Promise<Response> {
-	const handle = parseHandle(id)
+	const account = await getAccount(domain, id, db)
 
-	if (handle.domain === null || (handle.domain !== null && handle.domain === domain)) {
-		// Retrieve the statuses from a local user
-		return getLocalAccount(domain, db, handle)
-	} else if (handle.domain !== null) {
-		// Retrieve the statuses of a remote actor
-		const acct = `${handle.localPart}@${handle.domain}`
-		return getRemoteAccount(handle, acct)
+	if (account) {
+		return new Response(JSON.stringify(account), { headers })
 	} else {
-		return new Response('', { status: 403 })
-	}
-}
-
-async function getRemoteAccount(handle: Handle, acct: string): Promise<Response> {
-	// TODO: using webfinger isn't the optimal implementation. We could cache
-	// the object in D1 and directly query the remote API, indicated by the actor's
-	// url field. For now, let's keep it simple.
-	const actor = await queryAcct(handle.domain!, acct)
-	if (actor === null) {
 		return new Response('', { status: 404 })
 	}
-
-	const res = await loadExternalMastodonAccount(acct, actor, true)
-	return new Response(JSON.stringify(res), { headers })
-}
-
-async function getLocalAccount(domain: string, db: D1Database, handle: Handle): Promise<Response> {
-	const actorId = actorURL(domain, handle.localPart)
-
-	const actor = await getActorById(db, actorId)
-	if (actor === null) {
-		return new Response('', { status: 404 })
-	}
-
-	const res = await loadLocalMastodonAccount(db, actor)
-	return new Response(JSON.stringify(res), { headers })
 }

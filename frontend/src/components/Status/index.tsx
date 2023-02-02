@@ -3,7 +3,7 @@ import { Link, useNavigate } from '@builder.io/qwik-city'
 import { formatTimeAgo } from '~/utils/dateTime'
 import { Avatar } from '../avatar'
 import type { Account, MastodonStatus } from '~/types'
-import styles from './index.scss?inline'
+import styles from '../../utils/innerHtmlContent.scss?inline'
 import { MediaGallery } from '../MediaGallery.tsx'
 
 type Props = {
@@ -45,7 +45,7 @@ export default component$((props: Props) => {
 						</div>
 					</Link>
 				</div>
-				<div class="leading-relaxed status-content" dangerouslySetInnerHTML={status.content} />
+				<div class="leading-relaxed inner-html-content" dangerouslySetInnerHTML={status.content} />
 			</div>
 
 			<MediaGallery medias={status.media_attachments} />
