@@ -17,6 +17,7 @@ import * as activities from 'wildebeest/backend/src/activitypub/activities'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 import { MastodonStatus } from 'wildebeest/backend/src/types'
+import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 const userKEK = 'test_kek4'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -325,7 +326,7 @@ describe('Mastodon APIs', () => {
 
 			const body = {
 				status: 'my status',
-				media_ids: [image.mastodonId],
+				media_ids: [image[mastodonIdSymbol]],
 				visibility: 'public',
 			}
 			const req = new Request('https://example.com', {
@@ -392,7 +393,7 @@ describe('Mastodon APIs', () => {
 
 			const connectedActor: any = actor
 
-			const res = await statuses_favourite.handleRequest(db, note.mastodonId!, connectedActor, userKEK, domain)
+			const res = await statuses_favourite.handleRequest(db, note[mastodonIdSymbol]!, connectedActor, userKEK, domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -536,7 +537,7 @@ describe('Mastodon APIs', () => {
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
 
-			const res = await statuses_get.handleRequest(db, note.mastodonId!, domain)
+			const res = await statuses_get.handleRequest(db, note[mastodonIdSymbol]!, domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -552,7 +553,7 @@ describe('Mastodon APIs', () => {
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
 			const note = await createPublicNote(domain, db, 'my first status', actor, mediaAttachments)
 
-			const res = await statuses_get.handleRequest(db, note.mastodonId!, domain)
+			const res = await statuses_get.handleRequest(db, note[mastodonIdSymbol]!, domain)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -571,7 +572,7 @@ describe('Mastodon APIs', () => {
 
 			await createReply(domain, db, actor, note, 'a reply')
 
-			const res = await statuses_context.handleRequest(domain, db, note.mastodonId!)
+			const res = await statuses_context.handleRequest(domain, db, note[mastodonIdSymbol]!)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -591,7 +592,7 @@ describe('Mastodon APIs', () => {
 				await insertReblog(db, actor2, note)
 				await insertReblog(db, actor3, note)
 
-				const res = await statuses_get.handleRequest(db, note.mastodonId!, domain)
+				const res = await statuses_get.handleRequest(db, note[mastodonIdSymbol]!, domain)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
@@ -607,7 +608,14 @@ describe('Mastodon APIs', () => {
 
 				const connectedActor: any = actor
 
-				const res = await statuses_reblog.handleRequest(db, note.mastodonId!, connectedActor, userKEK, queue, domain)
+				const res = await statuses_reblog.handleRequest(
+					db,
+					note[mastodonIdSymbol]!,
+					connectedActor,
+					userKEK,
+					queue,
+					domain
+				)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
@@ -627,7 +635,14 @@ describe('Mastodon APIs', () => {
 
 				const connectedActor: any = actor
 
-				const res = await statuses_reblog.handleRequest(db, note.mastodonId!, connectedActor, userKEK, queue, domain)
+				const res = await statuses_reblog.handleRequest(
+					db,
+					note[mastodonIdSymbol]!,
+					connectedActor,
+					userKEK,
+					queue,
+					domain
+				)
 				assert.equal(res.status, 200)
 
 				const row = await db.prepare(`SELECT * FROM outbox_objects`).first<{ actor_id: string; object_id: string }>()
@@ -709,7 +724,7 @@ describe('Mastodon APIs', () => {
 
 			const body = {
 				status: 'my reply',
-				in_reply_to_id: note.mastodonId,
+				in_reply_to_id: note[mastodonIdSymbol],
 				visibility: 'public',
 			}
 			const req = new Request('https://example.com', {

@@ -1,7 +1,11 @@
 import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { UUID } from 'wildebeest/backend/src/types'
-import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
+import {
+	getObjectByMastodonId,
+	mastodonIdSymbol,
+	originalActorIdSymbol,
+} from 'wildebeest/backend/src/activitypub/objects'
 import { createPublicNote, type Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
@@ -46,12 +50,12 @@ export async function toMastodonStatusFromObject(
 	obj: Note,
 	domain: string
 ): Promise<MastodonStatus | null> {
-	if (obj.originalActorId === undefined) {
+	if (obj[originalActorIdSymbol] === undefined) {
 		console.warn('missing `obj.originalActorId`')
 		return null
 	}
 
-	const actorId = new URL(obj.originalActorId)
+	const actorId = new URL(obj[originalActorIdSymbol])
 	const actor = await actors.getAndCache(actorId, db)
 
 	const acct = urlToHandle(actorId)
@@ -81,9 +85,9 @@ export async function toMastodonStatusFromObject(
 
 		media_attachments: mediaAttachments,
 		content: obj.content || '',
-		id: obj.mastodonId || '',
+		id: obj[mastodonIdSymbol] || '',
 		uri: obj.id,
-		url: new URL('/statuses/' + obj.mastodonId, 'https://' + domain),
+		url: new URL('/statuses/' + obj[mastodonIdSymbol], 'https://' + domain),
 		created_at: obj.published || '',
 		account,
 

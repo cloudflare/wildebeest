@@ -1,5 +1,9 @@
 import type { UUID } from 'wildebeest/backend/src/types'
 
+export const originalActorIdSymbol = Symbol()
+export const originalObjectIdSymbol = Symbol()
+export const mastodonIdSymbol = Symbol()
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
 export interface APObject {
 	type: string
@@ -19,9 +23,9 @@ export interface APObject {
 	// Extension
 	preferredUsername?: string
 	// Internal
-	originalActorId?: string
-	originalObjectId?: string
-	mastodonId?: UUID
+	[originalActorIdSymbol]?: string
+	[originalObjectIdSymbol]?: string
+	[mastodonIdSymbol]?: UUID
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-document
@@ -54,9 +58,10 @@ export async function createObject<Type extends APObject>(
 		...sanitizedProperties,
 		type,
 		id: new URL(row.id),
-		mastodonId: row.mastodon_id,
 		published: new Date(row.cdate).toISOString(),
-		originalActorId: row.original_actor_id,
+
+		[mastodonIdSymbol]: row.mastodon_id,
+		[originalActorIdSymbol]: row.original_actor_id,
 	} as Type
 }
 
@@ -121,9 +126,10 @@ export async function cacheObject(
 
 			type: row.type,
 			id: new URL(row.id),
-			mastodonId: row.mastodon_id,
-			originalActorId: row.original_actor_id,
-			originalObjectId: row.original_object_id,
+
+			[mastodonIdSymbol]: row.mastodon_id,
+			[originalActorIdSymbol]: row.original_actor_id,
+			[originalObjectIdSymbol]: row.original_object_id,
 		} as APObject
 
 		return { object, created: true }
@@ -178,9 +184,10 @@ WHERE objects.${key}=?
 
 		type: result.type,
 		id: new URL(result.id),
-		mastodonId: result.mastodon_id,
-		originalActorId: result.original_actor_id,
-		originalObjectId: result.original_object_id,
+
+		[mastodonIdSymbol]: result.mastodon_id,
+		[originalActorIdSymbol]: result.original_actor_id,
+		[originalObjectIdSymbol]: result.original_object_id,
 	} as APObject
 }
 

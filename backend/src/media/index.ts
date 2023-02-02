@@ -2,6 +2,7 @@ import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { IMAGE } from 'wildebeest/backend/src/activitypub/objects/image'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 export function fromObject(obj: APObject): MediaAttachment {
 	if (obj.type === IMAGE) {
@@ -28,7 +29,7 @@ export function fromObjectDocument(obj: Document): MediaAttachment {
 function fromObjectImage(obj: APObject): MediaAttachment {
 	return {
 		url: new URL(obj.url),
-		id: obj.mastodonId || obj.url.toString(),
+		id: obj[mastodonIdSymbol] || obj.url.toString(),
 		preview_url: new URL(obj.url),
 		type: 'image',
 		meta: {

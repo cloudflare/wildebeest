@@ -3,6 +3,7 @@ import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { strict as assert } from 'node:assert/strict'
 import { makeDB, assertJSON, isUrlValid } from '../utils'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
+import { mastodonIdSymbol, originalActorIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 const userKEK = 'test_kek10'
 const CF_ACCOUNT_ID = 'testaccountid'
@@ -51,9 +52,9 @@ describe('Mastodon APIs', () => {
 
 			const obj = await objects.getObjectByMastodonId(db, data.id)
 			assert(obj)
-			assert(obj.mastodonId)
+			assert(obj[mastodonIdSymbol])
 			assert.equal(obj.type, 'Image')
-			assert.equal(obj.originalActorId, connectedActor.id.toString())
+			assert.equal(obj[originalActorIdSymbol], connectedActor.id.toString())
 		})
 	})
 })

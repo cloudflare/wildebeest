@@ -12,6 +12,7 @@ import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/object
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
+import { originalObjectIdSymbol, originalActorIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ env, data, params, request }) => {
 	const domain = new URL(request.url).hostname
@@ -35,14 +36,14 @@ export async function handleRequest(
 		return new Response('', { status: 404 })
 	}
 
-	if (obj.originalObjectId && obj.originalActorId) {
+	if (obj[originalObjectIdSymbol] && obj[originalActorIdSymbol]) {
 		// Liking an external object delivers the like activity
-		const targetActor = await actors.getAndCache(new URL(obj.originalActorId), db)
+		const targetActor = await actors.getAndCache(new URL(obj[originalActorIdSymbol]), db)
 		if (!targetActor) {
-			return new Response(`target Actor ${obj.originalActorId} not found`, { status: 404 })
+			return new Response(`target Actor ${obj[originalActorIdSymbol]} not found`, { status: 404 })
 		}
 
-		const activity = like.create(connectedActor, new URL(obj.originalObjectId))
+		const activity = like.create(connectedActor, new URL(obj[originalObjectIdSymbol]))
 		const signingKey = await getSigningKey(userKEK, db, connectedActor)
 		await deliverToActor(signingKey, connectedActor, targetActor, activity)
 	}

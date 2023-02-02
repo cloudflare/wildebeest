@@ -10,6 +10,7 @@ import { sendLikeNotification } from 'wildebeest/backend/src/mastodon/notificati
 import { createSubscription } from 'wildebeest/backend/src/mastodon/subscription'
 import { arrayBufferToBase64 } from 'wildebeest/backend/src/utils/key-ops'
 import { getNotifications } from 'wildebeest/backend/src/mastodon/notification'
+import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 const userKEK = 'test_kek15'
 const domain = 'cloudflare.com'
@@ -58,11 +59,11 @@ describe('Mastodon APIs', () => {
 
 			assert.equal(notifications[0].type, 'mention')
 			assert.equal(notifications[0].account.username, 'from')
-			assert.equal(notifications[0].status.id, note.mastodonId)
+			assert.equal(notifications[0].status.id, note[mastodonIdSymbol])
 
 			assert.equal(notifications[1].type, 'favourite')
 			assert.equal(notifications[1].account.username, 'from')
-			assert.equal(notifications[1].status.id, note.mastodonId)
+			assert.equal(notifications[1].status.id, note[mastodonIdSymbol])
 			assert.equal(notifications[1].status.account.username, 'sven')
 
 			assert.equal(notifications[2].type, 'follow')

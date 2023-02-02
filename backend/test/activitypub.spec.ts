@@ -12,6 +12,7 @@ import * as ap_outbox from 'wildebeest/functions/ap/users/[id]/outbox'
 import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
 import * as ap_outbox_page from 'wildebeest/functions/ap/users/[id]/outbox/page'
 import { createStatus } from '../src/mastodon/status'
+import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 const userKEK = 'test_kek5'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -169,7 +170,7 @@ describe('ActivityPub', () => {
 			const actor = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const note = await createPublicNote(domain, db, 'content', actor)
 
-			const res = await ap_objects.handleRequest(domain, db, note.mastodonId!)
+			const res = await ap_objects.handleRequest(domain, db, note[mastodonIdSymbol]!)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()

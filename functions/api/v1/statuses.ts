@@ -22,6 +22,7 @@ import type { Cache } from 'wildebeest/backend/src/cache'
 import { cacheFromEnv } from 'wildebeest/backend/src/cache'
 import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
 import { newMention } from 'wildebeest/backend/src/activitypub/objects/mention'
+import { originalObjectIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 type StatusCreate = {
 	status: string
@@ -84,7 +85,7 @@ export async function handleRequest(
 
 	const extraProperties: any = {}
 	if (inReplyToObject !== null) {
-		extraProperties.inReplyTo = inReplyToObject.originalObjectId || inReplyToObject.id.toString()
+		extraProperties.inReplyTo = inReplyToObject[originalObjectIdSymbol] || inReplyToObject.id.toString()
 	}
 
 	const domain = new URL(request.url).hostname
