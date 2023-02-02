@@ -2,6 +2,7 @@ import { makeDB, isUrlValid } from './utils'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { createPrivateNote, createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
@@ -128,6 +129,38 @@ describe('ActivityPub', () => {
 		})
 	})
 
+	describe('Actors', () => {
+		test('getAndCache adds peer', async () => {
+			const actorId = new URL('https://example.com/user/foo')
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === actorId.toString()) {
+					return new Response(
+						JSON.stringify({
+							id: actorId,
+							type: 'Person',
+							preferredUsername: 'sven',
+							name: 'sven ssss',
+
+							icon: { url: 'icon.jpg' },
+							image: { url: 'image.jpg' },
+						})
+					)
+				}
+
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const db = await makeDB()
+
+			await actors.getAndCache(actorId, db)
+
+			const { results } = (await db.prepare('SELECT domain from peers').all()) as any
+			assert.equal(results.length, 1)
+			assert.equal(results[0].domain, 'example.com')
+		})
+	})
+
 	describe('Objects', () => {
 		test('cacheObject deduplicates object', async () => {
 			const db = await makeDB()
@@ -157,6 +190,19 @@ describe('ActivityPub', () => {
 
 			result = await db.prepare('SELECT count(*) as count from objects').first()
 			assert.equal(result.count, 1)
+		})
+
+		test('cacheObject adds peer', async () => {
+			const db = await makeDB()
+			const properties = { type: 'Note', a: 1, b: 2 }
+			const actor = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const originalObjectId = new URL('https://example.com/object1')
+
+			await cacheObject(domain, db, properties, actor.id, originalObjectId, false)
+
+			const { results } = (await db.prepare('SELECT domain from peers').all()) as any
+			assert.equal(results.length, 1)
+			assert.equal(results[0].domain, 'example.com')
 		})
 
 		test('serve unknown object', async () => {
