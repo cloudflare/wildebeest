@@ -1,6 +1,7 @@
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
 
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import type { Link } from 'wildebeest/backend/src/activitypub/objects/link'
 import { followersURL } from 'wildebeest/backend/src/activitypub/actors'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import * as objects from '.'
@@ -17,7 +18,7 @@ export interface Note extends objects.APObject {
 	to: Array<string>
 	attachment: Array<objects.APObject>
 	cc: Array<string>
-	tag: Array<objects.APObject>
+	tag: Array<Link>
 }
 
 export async function createPublicNote(

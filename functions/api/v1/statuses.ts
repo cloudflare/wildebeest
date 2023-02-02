@@ -21,6 +21,7 @@ import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/stat
 import type { Cache } from 'wildebeest/backend/src/cache'
 import { cacheFromEnv } from 'wildebeest/backend/src/cache'
 import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
+import { newMention } from 'wildebeest/backend/src/activitypub/objects/mention'
 
 type StatusCreate = {
 	status: string
@@ -90,7 +91,7 @@ export async function handleRequest(
 	const content = enrichStatus(body.status)
 	const mentions = await getMentions(body.status, domain)
 	if (mentions.length > 0) {
-		extraProperties.tag = mentions
+		extraProperties.tag = mentions.map(newMention)
 	}
 
 	const note = await createStatus(domain, db, connectedActor, content, mediaAttachments, extraProperties)
