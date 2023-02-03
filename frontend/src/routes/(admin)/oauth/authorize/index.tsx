@@ -5,11 +5,17 @@ import { getClientById } from 'wildebeest/backend/src/mastodon/client'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import { WildebeestLogo } from '~/components/MastodonLogo'
 import { Avatar } from '~/components/avatar'
-import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
+import { getPersonByEmail, Person } from 'wildebeest/backend/src/activitypub/actors'
+import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
-export const clientLoader = loader$<{ DATABASE: D1Database }, Promise<Client>>(async ({ platform, query }) => {
+export const clientLoader = loader$<{ DATABASE: D1Database }, Promise<Client>>(async ({ platform, query, html }) => {
 	const client_id = query.get('client_id') || ''
-	const client = await getClientById(platform.DATABASE, client_id)
+	let client: Client | null = null
+	try {
+		client = await getClientById(platform.DATABASE, client_id)
+	} catch {
+		throw html(500, getErrorHtml('An error occurred while trying to fetch the client data, please try again later'))
+	}
 	if (client === null) {
 		throw new Error('client not found')
 	}
@@ -19,10 +25,10 @@ export const clientLoader = loader$<{ DATABASE: D1Database }, Promise<Client>>(a
 export const userLoader = loader$<
 	{ DATABASE: D1Database; domain: string },
 	Promise<{ email: string; avatar: URL; name: string; url: URL }>
->(async ({ cookie, platform }) => {
+>(async ({ cookie, platform, html }) => {
 	const jwt = cookie.get('CF_Authorization')
 	if (jwt === null) {
-		throw new Error('missing authorization')
+		throw html(500, getErrorHtml('Missing Authorization'))
 	}
 	let payload: access.JWTPayload
 	try {
@@ -31,16 +37,22 @@ export const userLoader = loader$<
 		payload = access.getPayload(jwt.value)
 	} catch (err: unknown) {
 		console.warn((err as { stack: unknown }).stack)
-		throw new Error('failed to validate Access JWT')
+		throw html(500, getErrorHtml('Failed to validate Access JWT'))
 	}
 
 	if (!payload.email) {
-		throw new Error("The Access JWT doesn't contain an email")
+		throw html(500, getErrorHtml("The Access JWT doesn't contain an email"))
 	}
 
-	const person = await getPersonByEmail(platform.DATABASE, payload.email)
-	if (!person) {
-		throw new Error(`Failed to fetch a person from the provided email (${payload.email})`)
+	let person: Person | null = null
+
+	try {
+		person = await getPersonByEmail(platform.DATABASE, payload.email)
+		if (!person) {
+			throw new Error('Person not found')
+		}
+	} catch {
+		throw html(500, getErrorHtml(`Failed to fetch a person for the provided email (${payload.email})`))
 	}
 
 	const name = person.name
@@ -48,7 +60,7 @@ export const userLoader = loader$<
 	const url = person.url
 
 	if (!name || !avatar) {
-		throw new Error(`The person associated with the Access JWT does't include a name or avatar`)
+		throw html(500, getErrorHtml("Error: The person associated with the Access JWT doesn't include a name or avatar"))
 	}
 
 	return { email: payload.email, avatar, name, url }

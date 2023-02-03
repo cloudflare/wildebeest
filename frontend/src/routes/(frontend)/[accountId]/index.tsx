@@ -3,31 +3,31 @@ import { loader$, useNavigate } from '@builder.io/qwik-city'
 import { MastodonAccount } from 'wildebeest/backend/src/types'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { formatDateTime } from '~/utils/dateTime'
-import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { formatRoundedNumber } from '~/utils/numbers'
 import styles from '../../../utils/innerHtmlContent.scss?inline'
 import { getAccount } from 'wildebeest/backend/src/accounts/getAccount'
-
-export async function getAccountDetails(
-	domain: string,
-	db: D1Database,
-	accountId: string
-): Promise<MastodonAccount | null> {
-	return await getAccount(domain, accountId, db)
-}
+import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
+import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
 export const accountLoader = loader$<{ DATABASE: D1Database }, Promise<MastodonAccount>>(
 	async ({ platform, request, html }) => {
-		const url = new URL(request.url)
-		const domain = url.hostname
-		const accountId = url.pathname.split('/')[1]
+		let account: MastodonAccount | null = null
+		try {
+			const url = new URL(request.url)
+			const domain = url.hostname
+			const accountId = url.pathname.split('/')[1]
 
-		const account = await getAccountDetails(domain, platform.DATABASE, accountId)
+			account = await getAccount(domain, accountId, platform.DATABASE)
+		} catch {
+			throw html(
+				500,
+				getErrorHtml(`An error happened when trying to retrieve the account's details, please try again later`)
+			)
+		}
 
 		if (!account) {
 			throw html(404, getNotFoundHtml())
 		}
-
 		return account
 	}
 )

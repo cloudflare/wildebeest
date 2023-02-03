@@ -3,19 +3,20 @@ import { loader$ } from '@builder.io/qwik-city'
 import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
 import Status from '~/components/Status'
 import type { MastodonStatus } from '~/types'
+import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
 export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<MastodonStatus[]>>(
-	async ({ platform }) => {
+	async ({ platform, html }) => {
 		try {
 			// TODO: use the "trending" API endpoint here.
 			const response = await timelines.handleRequest(platform.domain, platform.DATABASE)
 			const results = await response.text()
 			// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
 			return JSON.parse(results) as MastodonStatus[]
-		} catch (err: Error & { stack: string }) {
-			// eslint-disable-next-line no-console
-			console.log(err.stack, err.cause)
-			return []
+		} catch (e: unknown) {
+			const error = e as { stack: string; cause: string }
+			console.warn(error.stack, error.cause)
+			throw html(500, getErrorHtml('The timeline is unavailable, please try again later'))
 		}
 	}
 )
