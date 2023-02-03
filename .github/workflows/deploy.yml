@@ -238,7 +238,7 @@ jobs:
       - name: Create Queue
         uses: cloudflare/wrangler-action@2.0.0
         with:
-          command: queues create wildebeest
+          command: queues create wildebeest-${{ env.NAME_SUFFIX }}
           apiToken: ${{ secrets.CF_API_TOKEN }}
         continue-on-error: true
         env:
@@ -250,6 +250,14 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           preCommands: |
             echo "*** pre commands ***"
+            echo -e "name = \"wildebeest-consumer-${{ env.NAME_SUFFIX }}\"\n" >> consumer/wrangler.toml
+
+            echo -e "[[queues.consumers]]\n" >> consumer/wrangler.toml
+            echo -e "max_batch_size = 10\n" >> consumer/wrangler.toml
+            echo -e "max_batch_timeout = 30\n" >> consumer/wrangler.toml
+            echo -e "max_retries = 10\n" >> consumer/wrangler.toml
+            echo -e "queue = \"wildebeest-${{ env.NAME_SUFFIX }}\"\n" >> consumer/wrangler.toml
+
             echo -e "[[d1_databases]]\nbinding=\"DATABASE\"\ndatabase_name=\"wildebeest-${{ env.NAME_SUFFIX }}\"\ndatabase_id=\"${{ env.d1_id }}\"\n" >> consumer/wrangler.toml
 
             echo -e "[durable_objects]\n" >> consumer/wrangler.toml
@@ -275,7 +283,7 @@ jobs:
                     "production": {
                       "queue_producers": {
                         "QUEUE": {
-                          "name": "wildebeest"
+                          "name": "wildebeest-${{ env.NAME_SUFFIX }}"
                         }
                       }
                     }
