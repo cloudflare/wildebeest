@@ -48,21 +48,19 @@ export async function deliverFollowers(
 		return
 	}
 
-	const messages: Array<MessageSendRequest<DeliverMessageBody>> = await Promise.all(
-		followers.map(async (id) => {
-			const body = {
-				// Make sure the object is supported by `structuredClone()`, ie
-				// removing the URL objects as they aren't clonabled.
-				activity: JSON.parse(JSON.stringify(activity)),
+	const messages: Array<MessageSendRequest<DeliverMessageBody>> = followers.map((id) => {
+		const body = {
+			// Make sure the object is supported by `structuredClone()`, ie
+			// removing the URL objects as they aren't clonabled.
+			activity: JSON.parse(JSON.stringify(activity)),
 
-				actorId: from.id.toString(),
-				toActorId: id,
-				type: MessageType.Deliver,
-				userKEK,
-			}
-			return { body }
-		})
-	)
+			actorId: from.id.toString(),
+			toActorId: id,
+			type: MessageType.Deliver,
+			userKEK,
+		}
+		return { body }
+	})
 
 	await queue.sendBatch(messages)
 }
