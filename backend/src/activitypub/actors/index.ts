@@ -88,10 +88,13 @@ export async function get(url: string | URL): Promise<Actor> {
 	return actor
 }
 
+// Get and cache the Actor locally
 export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
-	const person = await getPersonById(db, url)
-	if (person !== null) {
-		return person
+	{
+		const actor = await getActorById(db, url)
+		if (actor !== null) {
+			return actor
+		}
 	}
 
 	const actor = await get(url)
@@ -197,8 +200,8 @@ export async function updateActorProperty(db: D1Database, actorId: URL, key: str
 	}
 }
 
-export async function getPersonById(db: D1Database, id: URL): Promise<Person | null> {
-	const stmt = db.prepare('SELECT * FROM actors WHERE id=? AND type=?').bind(id.toString(), PERSON)
+export async function getActorById(db: D1Database, id: URL): Promise<Actor | null> {
+	const stmt = db.prepare('SELECT * FROM actors WHERE id=?').bind(id.toString())
 	const { results } = await stmt.all()
 	if (!results || results.length === 0) {
 		return null

@@ -159,6 +159,56 @@ describe('ActivityPub', () => {
 			assert.equal(results.length, 1)
 			assert.equal(results[0].domain, 'example.com')
 		})
+
+		test('getAndCache supports any Actor types', async () => {
+			// While Actor ObjectID MUST be globally unique, the Object can
+			// change type and Mastodon uses this behavior as a feature.
+			// We need to make sure our caching works with Actor that change
+			// types.
+
+			const actorId = new URL('https://example.com/user/foo')
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === actorId.toString()) {
+					return new Response(
+						JSON.stringify({
+							id: actorId,
+							type: 'Service',
+							preferredUsername: 'sven',
+							name: 'sven ssss',
+
+							icon: { url: 'icon.jpg' },
+							image: { url: 'image.jpg' },
+						})
+					)
+				}
+
+				if (input.toString() === actorId.toString()) {
+					return new Response(
+						JSON.stringify({
+							id: actorId,
+							type: 'Person',
+							preferredUsername: 'sven',
+							name: 'sven ssss',
+
+							icon: { url: 'icon.jpg' },
+							image: { url: 'image.jpg' },
+						})
+					)
+				}
+
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const db = await makeDB()
+
+			await actors.getAndCache(actorId, db)
+
+			const { results } = (await db.prepare('SELECT * FROM actors').all()) as any
+			assert.equal(results.length, 1)
+			assert.equal(results[0].id, actorId.toString())
+			assert.equal(results[0].type, 'Service')
+		})
 	})
 
 	describe('Objects', () => {

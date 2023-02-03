@@ -18,7 +18,7 @@ export type Env = {
 export default {
 	async queue(batch: MessageBatch<MessageBody>, env: Env, ctx: ExecutionContext) {
 		for (const message of batch.messages) {
-			const actor = await actors.getPersonById(env.DATABASE, new URL(message.body.actorId))
+			const actor = await actors.getActorById(env.DATABASE, new URL(message.body.actorId))
 			if (actor === null) {
 				console.warn(`actor ${message.body.actorId} is missing`)
 				return

@@ -2,7 +2,7 @@ import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
@@ -30,7 +30,7 @@ export async function handleRequest(domain: string, db: D1Database, id: string):
 	}
 
 	const actorId = actorURL(domain, handle.localPart)
-	const actor = await getPersonById(db, actorId)
+	const actor = await getActorById(db, actorId)
 	if (actor === null) {
 		return new Response('', { status: 404 })
 	}

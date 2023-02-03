@@ -2,7 +2,7 @@
 
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
@@ -51,7 +51,7 @@ async function getRemoteAccount(handle: Handle, acct: string): Promise<Response>
 async function getLocalAccount(domain: string, db: D1Database, handle: Handle): Promise<Response> {
 	const actorId = actorURL(domain, handle.localPart)
 
-	const actor = await getPersonById(db, actorId)
+	const actor = await getActorById(db, actorId)
 	if (actor === null) {
 		return new Response('', { status: 404 })
 	}

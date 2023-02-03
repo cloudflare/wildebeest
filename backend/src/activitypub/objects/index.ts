@@ -9,6 +9,7 @@ export const mastodonIdSymbol = Symbol()
 export interface APObject {
 	type: string
 	// ObjectId, URL used for federation. Called `uri` in Mastodon APIs.
+	// https://www.w3.org/TR/activitypub/#obj-id
 	id: URL
 	// Link to the HTML representation of the object
 	url: URL

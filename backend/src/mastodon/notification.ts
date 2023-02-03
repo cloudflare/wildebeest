@@ -4,7 +4,7 @@ import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { generateWebPushMessage } from 'wildebeest/backend/src/webpush'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import type { WebPushInfos, WebPushMessage } from 'wildebeest/backend/src/webpush/webpushinfos'
 import { WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
@@ -206,7 +206,7 @@ export async function getNotifications(db: D1Database, actor: Actor, domain: str
 		const properties = JSON.parse(result.properties)
 		const notifFromActorId = new URL(result.notif_from_actor_id)
 
-		const notifFromActor = await getPersonById(db, notifFromActorId)
+		const notifFromActor = await getActorById(db, notifFromActorId)
 		if (!notifFromActor) {
 			console.warn('unknown actor')
 			continue
