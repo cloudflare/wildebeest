@@ -107,6 +107,11 @@ export async function handle(
 			const actorId = getActorAsId()
 			const objectId = getObjectAsId()
 
+			if (!['Note', 'Person', 'Service'].includes(activity.object.type)) {
+				console.warn('unsupported Update for Object type: ' + activity.object.type)
+				return
+			}
+
 			// check current object
 			const object = await objects.getObjectBy(db, 'original_object_id', objectId.toString())
 			if (object === null) {
