@@ -12,7 +12,7 @@ import { MediaGallery } from '~/components/MediaGallery.tsx'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 
 export const statusLoader = loader$<
-	{ DATABASE: D1Database; domain: string },
+	{ DATABASE: D1Database },
 	Promise<{ status: MastodonStatus; context: StatusContext }>
 >(async ({ request, html, platform, params }) => {
 	const domain = new URL(request.url).hostname
