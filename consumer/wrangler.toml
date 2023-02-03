@@ -1,10 +1,3 @@
-name = "wildebeest-consumer"
 compatibility_date = "2023-01-09"
 main = "./src/index.ts"
 usage_model = "unbound"
-
-[[queues.consumers]]
-  queue = "wildebeest"
-  max_batch_size = 10
-  max_batch_timeout = 30
-  max_retries = 10
