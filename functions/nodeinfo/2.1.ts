@@ -14,7 +14,7 @@ export async function handleRequest(): Promise<Response> {
 	const res = {
 		version: '2.1',
 		software: {
-			name: 'Wildebeest',
+			name: 'wildebeest',
 			version: WILDEBEEST_VERSION,
 			repository: 'https://github.com/cloudflare/wildebeest',
 		},

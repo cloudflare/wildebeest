@@ -13,7 +13,7 @@ export const onRequest: PagesFunction<Env, any> = async () => {
 export async function handleRequest(): Promise<Response> {
 	const res = {
 		version: '2.0',
-		software: { name: 'Wildebeest', version: WILDEBEEST_VERSION },
+		software: { name: 'wildebeest', version: WILDEBEEST_VERSION },
 		protocols: ['activitypub'],
 		services: { outbound: [], inbound: [] },
 		usage: { users: {} },
