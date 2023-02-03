@@ -188,7 +188,7 @@ export async function handle(
 					continue
 				}
 
-				const person = await actors.getPersonById(db, actorURL(domain, handle.localPart))
+				const person = await actors.getActorById(db, actorURL(domain, handle.localPart))
 				if (person === null) {
 					console.warn(`person ${recipients[i]} not found`)
 					continue
@@ -210,7 +210,7 @@ export async function handle(
 			requireComplexObject()
 			const actorId = getActorAsId()
 
-			const actor = await actors.getPersonById(db, activity.object.actor)
+			const actor = await actors.getActorById(db, activity.object.actor)
 			if (actor !== null) {
 				const follower = await actors.getAndCache(new URL(actorId), db)
 				await acceptFollowing(db, actor, follower)
@@ -226,7 +226,7 @@ export async function handle(
 			const objectId = getObjectAsId()
 			const actorId = getActorAsId()
 
-			const receiver = await actors.getPersonById(db, objectId)
+			const receiver = await actors.getActorById(db, objectId)
 			if (receiver !== null) {
 				const originalActor = await actors.getAndCache(new URL(actorId), db)
 				const receiverAcct = `${receiver.preferredUsername}@${domain}`
@@ -279,7 +279,7 @@ export async function handle(
 			const fromActor = await actors.getAndCache(actorId, db)
 
 			// notify the user
-			const targetActor = await actors.getPersonById(db, new URL(obj[originalActorIdSymbol]))
+			const targetActor = await actors.getActorById(db, new URL(obj[originalActorIdSymbol]))
 			if (targetActor === null) {
 				console.warn('object actor not found')
 				break
@@ -307,7 +307,7 @@ export async function handle(
 			}
 
 			const fromActor = await actors.getAndCache(actorId, db)
-			const targetActor = await actors.getPersonById(db, new URL(obj[originalActorIdSymbol]))
+			const targetActor = await actors.getActorById(db, new URL(obj[originalActorIdSymbol]))
 			if (targetActor === null) {
 				console.warn('object actor not found')
 				break

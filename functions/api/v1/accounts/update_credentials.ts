@@ -85,7 +85,7 @@ export async function handleRequest(
 
 	// reload the current user and sent back updated infos
 	{
-		const actor = await actors.getPersonById(db, connectedActor.id)
+		const actor = await actors.getActorById(db, connectedActor.id)
 		if (actor === null) {
 			return errors.notAuthorized('user not found')
 		}

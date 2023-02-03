@@ -2,7 +2,7 @@
 
 import type { Notification, NotificationsQueryResult } from 'wildebeest/backend/src/types/notification'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
@@ -39,7 +39,7 @@ export async function handleRequest(
 	const row = await db.prepare(query).bind(id, connectedActor.id.toString()).first<NotificationsQueryResult>()
 
 	const from_actor_id = new URL(row.from_actor_id)
-	const fromActor = await getPersonById(db, from_actor_id)
+	const fromActor = await getActorById(db, from_actor_id)
 	if (!fromActor) {
 		throw new Error('unknown from actor')
 	}

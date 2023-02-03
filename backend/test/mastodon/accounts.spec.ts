@@ -15,7 +15,7 @@ import * as accounts_get from 'wildebeest/functions/api/v1/accounts/[id]'
 import { isUUID, isUrlValid, makeDB, assertCORS, assertJSON, makeQueue } from '../utils'
 import * as accounts_verify_creds from 'wildebeest/functions/api/v1/accounts/verify_credentials'
 import * as accounts_update_creds from 'wildebeest/functions/api/v1/accounts/update_credentials'
-import { createPerson, getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { createPerson, getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
@@ -125,7 +125,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(data.display_name, 'newsven')
 			assert.equal(data.note, 'hein')
 
-			const updatedActor: any = await getPersonById(db, connectedActor.id)
+			const updatedActor: any = await getActorById(db, connectedActor.id)
 			assert(updatedActor)
 			assert.equal(updatedActor.name, 'newsven')
 			assert.equal(updatedActor.summary, 'hein')
