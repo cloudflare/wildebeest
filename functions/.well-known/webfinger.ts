@@ -55,5 +55,5 @@ export async function handleRequest(request: Request, db: D1Database): Promise<R
 		],
 	}
 
-	return new Response(JSON.stringify(res), { status: 200, headers })
+	return new Response(JSON.stringify(res), { headers })
 }
