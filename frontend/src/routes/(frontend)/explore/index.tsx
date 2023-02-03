@@ -6,11 +6,17 @@ import type { MastodonStatus } from '~/types'
 
 export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<MastodonStatus[]>>(
 	async ({ platform }) => {
-		// TODO: use the "trending" API endpoint here.
-		const response = await timelines.handleRequest(platform.domain, platform.DATABASE)
-		const results = await response.text()
-		// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
-		return JSON.parse(results) as MastodonStatus[]
+		try {
+			// TODO: use the "trending" API endpoint here.
+			const response = await timelines.handleRequest(platform.domain, platform.DATABASE)
+			const results = await response.text()
+			// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
+			return JSON.parse(results) as MastodonStatus[]
+		} catch (err: Error & { stack: string }) {
+			// eslint-disable-next-line no-console
+			console.log(err.stack, err.cause)
+			return []
+		}
 	}
 )
 
