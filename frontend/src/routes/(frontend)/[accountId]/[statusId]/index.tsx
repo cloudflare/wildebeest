@@ -1,4 +1,4 @@
-import { component$, Slot } from '@builder.io/qwik'
+import { component$, Slot, useStyles$ } from '@builder.io/qwik'
 import { MastodonStatus, StatusContext } from '~/types'
 import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
@@ -10,6 +10,7 @@ import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { Avatar } from '~/components/avatar'
 import { MediaGallery } from '~/components/MediaGallery.tsx'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
+import styles from '../../../../utils/innerHtmlContent.scss?inline'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database },
@@ -31,6 +32,8 @@ export const statusLoader = loader$<
 })
 
 export default component$(() => {
+	useStyles$(styles)
+
 	const { status, context } = statusLoader.use().value
 
 	return (
@@ -45,7 +48,7 @@ export default component$(() => {
 			</StickyHeader>
 			<div class="bg-wildebeest-700 p-4">
 				<AccountCard status={status} />
-				<div class="leading-normal status-content text-lg" dangerouslySetInnerHTML={status.content} />
+				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={status.content} />
 
 				<MediaGallery medias={status.media_attachments} />
 
