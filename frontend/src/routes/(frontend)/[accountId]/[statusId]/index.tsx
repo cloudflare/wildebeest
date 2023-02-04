@@ -10,6 +10,7 @@ import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { Avatar } from '~/components/avatar'
 import { MediaGallery } from '~/components/MediaGallery.tsx'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
+import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import styles from '../../../../utils/innerHtmlContent.scss?inline'
 
 export const statusLoader = loader$<
@@ -17,18 +18,27 @@ export const statusLoader = loader$<
 	Promise<{ status: MastodonStatus; context: StatusContext }>
 >(async ({ request, html, platform, params }) => {
 	const domain = new URL(request.url).hostname
-	const statusResponse = await statusAPI.handleRequest(platform.DATABASE, params.statusId, domain)
-	const statusText = await statusResponse.text()
+	let statusText = ''
+	try {
+		const statusResponse = await statusAPI.handleRequest(platform.DATABASE, params.statusId, domain)
+		statusText = await statusResponse.text()
+	} catch {
+		throw html(500, getErrorHtml('An error occurred whilst retrieving the status data, please try again later'))
+	}
 	if (!statusText) {
 		throw html(404, getNotFoundHtml())
 	}
-	const contextResponse = await contextAPI.handleRequest(domain, platform.DATABASE, params.statusId)
-	const contextText = await contextResponse.text()
-	const context = JSON.parse(contextText ?? null) as StatusContext | null
-	if (!context) {
-		throw new Error(`No context present for status with ${params.statusId}`)
+	try {
+		const contextResponse = await contextAPI.handleRequest(domain, platform.DATABASE, params.statusId)
+		const contextText = await contextResponse.text()
+		const context = JSON.parse(contextText ?? null) as StatusContext | null
+		if (!context) {
+			throw new Error(`No context present for status with ${params.statusId}`)
+		}
+		return { status: JSON.parse(statusText), context }
+	} catch {
+		throw html(500, getErrorHtml('No context for the status has been found, please try again later'))
 	}
-	return { status: JSON.parse(statusText), context }
 })
 
 export default component$(() => {

@@ -12,16 +12,20 @@ import { InstanceConfigContext } from '~/utils/instanceConfig'
 export const instanceLoader = loader$<
 	{ DATABASE: D1Database; INSTANCE_TITLE: string; INSTANCE_DESCR: string; ADMIN_EMAIL: string },
 	Promise<InstanceConfig>
->(async ({ platform }) => {
+>(async ({ platform, html }) => {
 	const env = {
 		INSTANCE_DESCR: platform.INSTANCE_DESCR,
 		INSTANCE_TITLE: platform.INSTANCE_TITLE,
 		ADMIN_EMAIL: platform.ADMIN_EMAIL,
 	} as Env
-	const response = await instance.handleRequest('', env)
-	const results = await response.text()
-	const json = JSON.parse(results) as InstanceConfig
-	return json
+	try {
+		const response = await instance.handleRequest('', env)
+		const results = await response.text()
+		const json = JSON.parse(results) as InstanceConfig
+		return json
+	} catch {
+		throw html(500, 'An error occurred whilst retrieving the instance details')
+	}
 })
 
 export default component$(() => {

@@ -6,12 +6,16 @@ import { loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 
 export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<MastodonStatus[]>>(
-	async ({ platform }) => {
-		// TODO: use the "trending" API endpoint here.
-		const response = await timelines.handleRequest(platform.domain, platform.DATABASE)
-		const results = await response.text()
-		// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
-		return JSON.parse(results) as MastodonStatus[]
+	async ({ platform, html }) => {
+		try {
+			// TODO: use the "trending" API endpoint here.
+			const response = await timelines.handleRequest(platform.domain, platform.DATABASE)
+			const results = await response.text()
+			// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
+			return JSON.parse(results) as MastodonStatus[]
+		} catch {
+			throw html(500, 'The public timeline is unavailable')
+		}
 	}
 )
 
