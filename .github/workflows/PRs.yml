@@ -28,25 +28,6 @@ jobs:
       - name: Run API tests
         run: yarn test
 
-  test-ui:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
-
-      - name: Install
-        run: yarn && yarn --cwd frontend
-
-      - name: Initialize local database
-        run: yarn database:create-mock
-
-      - name: Run UI tests
-        run: yarn test:ui
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -72,3 +53,26 @@ jobs:
       - name: Check frontend linting
         run: yarn lint:frontend
 
+  test-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.x
+      - name: Install dependencies
+        run: yarn
+      - name: Run App in the background
+        run: yarn ci-dev-test-ui &
+      - name: Install Playwright Browsers
+        run: yarn playwright install --with-deps
+      - name: Run Playwright tests
+        run: yarn playwright test
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30

@@ -8,6 +8,7 @@
 		"@cloudflare/workers-types": "^4.20221111.1",
 		"@databases/split-sql-query": "1.0.3",
 		"@databases/sql": "3.2.0",
+		"@playwright/test": "^1.30.0",
 		"@types/jest": "^29.2.4",
 		"@types/node": "^18.11.11",
 		"@typescript-eslint/eslint-plugin": "^5.46.1",
@@ -37,7 +38,7 @@
 		"database:migrate": "yarn d1 migrations apply DATABASE",
 		"database:create-mock": "rm -f .wrangler/state/d1/DATABASE.sqlite3 && yarn database:migrate --local && node ./frontend/mock-db/run.mjs",
 		"dev": "export COMMIT_HASH=$(git rev-parse HEAD) && yarn build && yarn database:migrate --local && yarn pages dev frontend/dist --d1 DATABASE --persist --compatibility-date=2022-12-20 --live-reload",
-		"test:ui": "yarn build && yarn database:create-mock && concurrently --success command-1 --kill-others \"yarn pages dev frontend/dist --d1 DATABASE --persist --port 6868 --compatibility-date=2022-12-20 || true\" \"yarn --cwd frontend jest --verbose\"",
+		"ci-dev-test-ui": "yarn build && yarn database:create-mock && yarn pages dev frontend/dist --d1 DATABASE --persist --port 8788 --compatibility-date=2022-12-20",
 		"deploy:init": "yarn pages project create wildebeest && yarn d1 create wildebeest",
 		"deploy": "yarn build && yarn database:migrate && yarn pages publish frontend/dist --project-name=wildebeest"
 	},

@@ -7,7 +7,7 @@
 	},
 	"private": true,
 	"scripts": {
-		"lint": "eslint src mock-db test adaptors",
+		"lint": "eslint src mock-db adaptors",
 		"build": "vite build && vite build -c adaptors/cloudflare-pages/vite.config.ts",
 		"dev": "vite --mode ssr",
 		"watch": "concurrently \"vite build -w\" \"vite build -w -c adaptors/cloudflare-pages/vite.config.ts\""
