@@ -108,7 +108,7 @@ export default component$(() => {
 						</div>
 					))}
 				</dl>
-				<div class="pb-4 flex flex-wrap gap-5">
+				<div data-testid="stats" class="pb-4 flex flex-wrap gap-5">
 					{stats.map(({ name, value }) => (
 						<div class="flex gap-1" key={name}>
 							<span class="font-semibold">{value}</span>
