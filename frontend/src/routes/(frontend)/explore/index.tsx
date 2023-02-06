@@ -68,15 +68,21 @@ export const StatusesPanel = component$(({ initialStatuses }: StatusesPanelProps
 
 	return (
 		<>
-			{statuses.value.map((status, i) => {
-				const isLastStatus = i === statuses.value.length - 1
-				const divProps = isLastStatus ? { ref: lastStatusRef } : {}
-				return (
-					<div key={status.id} {...divProps}>
-						<Status status={status} />
-					</div>
-				)
-			})}
+			{statuses.value.length > 0 ? (
+				statuses.value.map((status, i) => {
+					const isLastStatus = i === statuses.value.length - 1
+					const divProps = isLastStatus ? { ref: lastStatusRef } : {}
+					return (
+						<div key={status.id} {...divProps}>
+							<Status status={status} />
+						</div>
+					)
+				})
+			) : (
+				<div class="flex-1 grid place-items-center bg-wildebeest-600 text-center">
+					<p>Nothing to see right now. Check back later!</p>
+				</div>
+			)}
 		</>
 	)
 })

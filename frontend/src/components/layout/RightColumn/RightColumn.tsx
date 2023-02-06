@@ -41,9 +41,9 @@ export default component$(() => {
 		<div class="bg-wildebeest-600 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-wildebeest-200 flex-1">
 			<div class="sticky top-[3.9rem] xl:top-0">
 				<div class="xl:p-4">
-					<a class="no-underline hidden xl:flex items-center" aria-label="Wildebeest Home" href="/">
+					<Link class="no-underline hidden xl:flex items-center" aria-label="Wildebeest Home" href={'/'}>
 						<WildebeestLogo size="medium" />
-					</a>
+					</Link>
 				</div>
 				<hr class="hidden xl:block border-t border-wildebeest-700 my-3" />
 				{links.map((link) => renderNavLink(link))}

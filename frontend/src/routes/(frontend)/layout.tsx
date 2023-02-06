@@ -1,6 +1,6 @@
 import { component$, Slot, useContextProvider } from '@builder.io/qwik'
 import type { Env } from 'wildebeest/backend/src/types/env'
-import { DocumentHead, loader$ } from '@builder.io/qwik-city'
+import { DocumentHead, Link, loader$ } from '@builder.io/qwik-city'
 import * as instance from 'wildebeest/functions/api/v1/instance'
 import type { InstanceConfig } from 'wildebeest/backend/src/types/configs'
 import LeftColumn from '~/components/layout/LeftColumn/LeftColumn'
@@ -35,9 +35,9 @@ export default component$(() => {
 	return (
 		<>
 			<header class="h-[3.9rem] z-50 sticky top-0 bg-wildebeest-600 p-3 w-full border-b border-wildebeest-700 xl:hidden">
-				<a class="no-underline flex items-center w-max" aria-label="Wildebeest Home" href="/">
+				<Link class="no-underline flex items-center w-max" aria-label="Wildebeest Home" href={'/'}>
 					<WildebeestLogo size="small" />
-				</a>
+				</Link>
 			</header>
 			<main class="flex-1 flex justify-center top-[3.9rem]">
 				<div class="w-fit md:w-72 hidden xl:block mx-2.5">
@@ -45,8 +45,8 @@ export default component$(() => {
 						<LeftColumn />
 					</div>
 				</div>
-				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent">
-					<div class="bg-wildebeest-600 rounded">
+				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent flex flex-col">
+					<div class="bg-wildebeest-600 rounded flex flex-1 flex-col">
 						<Slot />
 					</div>
 				</div>
