@@ -352,7 +352,7 @@ describe('ActivityPub', () => {
 				const activity = {
 					type: 'Create',
 					actor: actor.id.toString(),
-					to: ['some actor'],
+					to: ['https://example.com/some-actor'],
 					cc: [],
 					object: {
 						id: 'https://example.com/note1',
@@ -363,7 +363,7 @@ describe('ActivityPub', () => {
 				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
 				const row = await db.prepare('SELECT * FROM outbox_objects').first<{ target: string }>()
-				assert.equal(row.target, 'some actor')
+				assert.equal(row.target, 'https://example.com/some-actor')
 			})
 
 			test('Object props get sanitized', async () => {
