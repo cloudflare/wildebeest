@@ -62,6 +62,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.13.x
+      - name: Update azure source
+        run: sudo sed -i 's/azure\.//' /etc/apt/sources.list
+      - name: Update
+        run: sudo apt-get update
       - name: Install dependencies
         run: yarn
       - name: Run App in the background
