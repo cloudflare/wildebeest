@@ -15,21 +15,12 @@ export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ requ
 	return handleRequestPost(request, env.DATABASE, env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
-export async function handleRequestPost(
-	request: Request,
+export async function buildRedirect(
 	db: D1Database,
-	userKEK: string,
-	accessDomain: string,
-	accessAud: string
+	request: Request,
+	isFirstLogin: boolean,
+	jwt: string
 ): Promise<Response> {
-	if (request.method === 'OPTIONS') {
-		const headers = {
-			...cors(),
-			'content-type': 'application/json',
-		}
-		return new Response('', { headers })
-	}
-
 	const url = new URL(request.url)
 
 	if (
@@ -47,6 +38,8 @@ export async function handleRequestPost(
 		return new Response('', { status: 400 })
 	}
 
+	const state = url.searchParams.get('state')
+
 	const clientId = url.searchParams.get('client_id') || ''
 	const client = await getClientById(db, clientId)
 	if (client === null) {
@@ -58,9 +51,36 @@ export async function handleRequestPost(
 		return new Response('', { status: 403 })
 	}
 
-	const state = url.searchParams.get('state')
+	const code = `${client.id}.${jwt}`
+	const redirect = redirect_uri + `?code=${code}` + (state ? `&state=${state}` : '')
+
+	if (isFirstLogin) {
+		url.pathname = '/first-login'
+		url.searchParams.set('redirect_uri', encodeURIComponent(redirect))
+		return URLsafeRedirect(url.toString())
+	}
+	return URLsafeRedirect(redirect)
+}
+
+export async function handleRequestPost(
+	request: Request,
+	db: D1Database,
+	userKEK: string,
+	accessDomain: string,
+	accessAud: string
+): Promise<Response> {
+	if (request.method === 'OPTIONS') {
+		const headers = {
+			...cors(),
+			'content-type': 'application/json',
+		}
+		return new Response('', { headers })
+	}
 
 	const jwt = extractJWTFromRequest(request)
+	if (!jwt) {
+		return new Response('', { status: 401 })
+	}
 	const validate = access.generateValidator({ jwt, domain: accessDomain, aud: accessAud })
 	await validate(request)
 
@@ -69,19 +89,9 @@ export async function handleRequestPost(
 		return new Response('', { status: 401 })
 	}
 
-	const code = `${client.id}.${jwt}`
+	const isFirstLogin = (await getPersonByEmail(db, identity.email)) === null
 
-	const redirect = redirect_uri + `?code=${code}` + (state ? `&state=${state}` : '')
-
-	const person = await getPersonByEmail(db, identity.email)
-	if (person === null) {
-		url.pathname = '/first-login'
-		url.searchParams.set('email', identity.email)
-		url.searchParams.set('redirect_uri', encodeURIComponent(redirect))
-		return URLsafeRedirect(url.toString())
-	}
-
-	return URLsafeRedirect(redirect)
+	return buildRedirect(db, request, isFirstLogin, jwt)
 }
 
 // Workaround bug EW-7148, constructing an URL with unknown protocols
