@@ -285,18 +285,46 @@ describe('Mastodon APIs', () => {
 
 	describe('Microformats', () => {
 		test('convert mentions to HTML', () => {
-			const status = 'hey @test@example.com hi'
+			assert.equal(
+				enrichStatus('@sven2@example.com hein'),
+				'<p><span class="h-card"><a href="https://example.com/@sven2" class="u-url mention">@<span>sven2</span></a></span> hein</p>'
+			)
 
 			assert.equal(
-				enrichStatus(status),
+				enrichStatus('    @sven2@example.com hein'),
+				'<p>    <span class="h-card"><a href="https://example.com/@sven2" class="u-url mention">@<span>sven2</span></a></span> hein</p>'
+			)
+
+			assert.equal(
+				enrichStatus('@sven2@example.com\n\thein'),
+				'<p><span class="h-card"><a href="https://example.com/@sven2" class="u-url mention">@<span>sven2</span></a></span>\n\thein</p>'
+			)
+
+			assert.equal(
+				enrichStatus('hey @test@example.com hi'),
 				'<p>hey <span class="h-card"><a href="https://example.com/@test" class="u-url mention">@<span>test</span></a></span> hi</p>'
+			)
+
+			assert.equal(
+				enrichStatus('hello @test@example.com'),
+				'<p>hello <span class="h-card"><a href="https://example.com/@test" class="u-url mention">@<span>test</span></a></span></p>'
 			)
 		})
 
-		test('convert links to HTML', () => {
-			const status = 'hey https://cloudflare.com/abc hi'
+		test('handle invalid mention', () => {
+			assert.equal(enrichStatus('hey @#-...@example.com'), '<p>hey @#-...@example.com</p>')
+		})
 
-			assert.equal(enrichStatus(status), '<p>hey <a href="https://cloudflare.com/abc">cloudflare.com/abc</a> hi</p>')
+		test('convert links to HTML', () => {
+			assert.equal(
+				enrichStatus('hey https://cloudflare.com/abc hi'),
+				'<p>hey <a href="https://cloudflare.com/abc">cloudflare.com/abc</a> hi</p>'
+			)
+
+			assert.equal(
+				enrichStatus('hey https://cloudflare.com/abc'),
+				'<p>hey <a href="https://cloudflare.com/abc">cloudflare.com/abc</a></p>'
+			)
 		})
 	})
 })
