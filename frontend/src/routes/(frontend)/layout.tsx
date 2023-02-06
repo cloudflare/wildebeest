@@ -35,7 +35,7 @@ export default component$(() => {
 	return (
 		<>
 			<header class="h-[3.9rem] z-50 sticky top-0 bg-wildebeest-600 p-3 w-full border-b border-wildebeest-700 xl:hidden">
-				<Link class="no-underline flex items-center w-max" aria-label="Wildebeest Home" href="/">
+				<Link class="no-underline flex items-center w-max" aria-label="Wildebeest Home" href={'/'}>
 					<WildebeestLogo size="small" />
 				</Link>
 			</header>
@@ -45,8 +45,8 @@ export default component$(() => {
 						<LeftColumn />
 					</div>
 				</div>
-				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent">
-					<div class="bg-wildebeest-600 rounded">
+				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent flex flex-col">
+					<div class="bg-wildebeest-600 rounded flex flex-1 flex-col">
 						<Slot />
 					</div>
 				</div>

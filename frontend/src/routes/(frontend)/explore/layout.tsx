@@ -40,7 +40,7 @@ export default component$(() => {
 	// ]
 
 	return (
-		<div class="explore-wrapper flex flex-col">
+		<div class="flex flex-col flex-1">
 			<StickyHeader>
 				<h2 class="text-reg text-md m-0 p-4 flex bg-wildebeest-700 xl:rounded-t">
 					<i class="fa fa-hashtag fa-fw mr-3 w-5 leading-tight inline-block" />
@@ -48,7 +48,7 @@ export default component$(() => {
 				</h2>
 			</StickyHeader>
 			{/* <div class="bg-wildebeest-800 flex justify-around">{links.map((link) => renderNavLink(link))}</div> */}
-			<div class="flex-auto">
+			<div class="flex-auto flex flex-col">
 				<Slot />
 			</div>
 		</div>

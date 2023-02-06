@@ -30,9 +30,13 @@ export default component$(() => {
 					<span>Federated timeline</span>
 				</div>
 			</StickyHeader>
-			{statuses.value.map((status) => (
-				<Status status={status} />
-			))}
+			{statuses.value.length > 0 ? (
+				statuses.value.map((status) => <Status status={status} />)
+			) : (
+				<div class="flex-1 grid place-items-center bg-wildebeest-600 text-center">
+					<p>Nothing to see right now. Check back later!</p>
+				</div>
+			)}
 		</>
 	)
 })
