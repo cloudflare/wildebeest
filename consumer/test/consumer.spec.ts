@@ -29,6 +29,8 @@ describe('Consumer', () => {
 				}
 
 				if (input.url.toString() === 'https://example.com/inbox') {
+					assert(input.headers.get('accept').includes('json'))
+					assert(input.headers.get('user-agent').includes('Wildebeest'))
 					assert.equal(input.method, 'POST')
 					receivedActivity = await input.json()
 					return new Response('')
