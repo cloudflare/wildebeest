@@ -5,6 +5,7 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from './'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
 import { signRequest } from 'wildebeest/backend/src/utils/http-signing'
+import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 
 const headers = {
 	'content-type': 'application/activity+json',
@@ -18,26 +19,6 @@ export async function handleDeliverMessage(env: Env, actor: Actor, message: Deli
 		return
 	}
 
-	const body = JSON.stringify(message.activity)
-
-	const req = new Request(targetActor.inbox, {
-		method: 'POST',
-		body,
-		headers,
-	})
-	const digest = await generateDigestHeader(body)
-	req.headers.set('Digest', digest)
 	const signingKey = await getSigningKey(message.userKEK, env.DATABASE, actor)
-	await signRequest(req, signingKey, actor.id)
-
-	const res = await fetch(req)
-	if (!res.ok) {
-		const body = await res.text()
-		console.error(`delivery to ${targetActor.inbox} returned ${res.status}: ${body}`)
-		return
-	}
-	{
-		const body = await res.text()
-		console.log(`${targetActor.inbox} returned 200: ${body}`)
-	}
+	await deliverToActor(signingKey, actor, targetActor, message.activity)
 }

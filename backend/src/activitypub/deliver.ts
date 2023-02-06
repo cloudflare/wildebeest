@@ -7,12 +7,14 @@ import type { Actor } from './actors'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
 import { signRequest } from 'wildebeest/backend/src/utils/http-signing'
 import { getFollowers } from 'wildebeest/backend/src/mastodon/follow'
-
-const headers = {
-	'content-type': 'application/activity+json',
-}
+import { WILDEBEEST_VERSION, MASTODON_API_VERSION } from 'wildebeest/config/versions'
 
 export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Actor, activity: Activity) {
+	const headers = {
+		Accept: 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
+		'User-Agent': `Wildebeest/${WILDEBEEST_VERSION} Mastodon/${MASTODON_API_VERSION}`,
+	}
+
 	const body = JSON.stringify(activity)
 	console.log({ body })
 	const req = new Request(to.inbox, {
@@ -29,10 +31,7 @@ export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Act
 		const body = await res.text()
 		throw new Error(`delivery to ${to.inbox} returned ${res.status}: ${body}`)
 	}
-	{
-		const body = await res.text()
-		console.log(`${to.inbox} returned 200: ${body}`)
-	}
+	console.log(`${to.inbox} returned 200`)
 }
 
 export async function deliverFollowers(
