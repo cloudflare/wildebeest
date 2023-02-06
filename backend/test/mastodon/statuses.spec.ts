@@ -17,6 +17,7 @@ import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/f
 import { MessageType } from 'wildebeest/backend/src/types/queue'
 import { MastodonStatus } from 'wildebeest/backend/src/types'
 import { mastodonIdSymbol, getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
+import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 
 const userKEK = 'test_kek4'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -832,6 +833,7 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const note = await createPublicNote(domain, db, 'note from actor', actor)
+			await addObjectInOutbox(db, actor, note)
 
 			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain)
 			assert.equal(res.status, 200)
