@@ -10,7 +10,7 @@ function tag(name: string, content: string, attrs: Record<string, string> = {}):
 }
 
 const linkRegex = /(^|\s|\b)(https?:\/\/[^.\s]+\.[^.\s]+(?:\/[^.\s/]+)*)(\b|\s|$)/g
-const mentionedEmailRegex = /(^|\s|\b)@([^@\s\W]+@[^.\W\s]+\.[^.\s]+)(\b|\s|$)/g
+const mentionedEmailRegex = /(^|\s|\b)@(\w+(?:[.-]?\w+)+@\w+(?:[.-]?\w+)+(?:\.\w{2,3})+)(\b|\s|$)/g
 
 /// Transform a text status into a HTML status; enriching it with links / mentions.
 export function enrichStatus(status: string): string {
