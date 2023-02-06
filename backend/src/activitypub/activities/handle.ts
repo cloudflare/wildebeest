@@ -187,6 +187,12 @@ export async function handle(
 			await addObjectInOutbox(db, fromActor, obj, activity.published, target)
 
 			for (let i = 0, len = recipients.length; i < len; i++) {
+				const url = new URL(recipients[i])
+				if (url.hostname !== domain) {
+					console.warn('recipients is not for this instance')
+					continue
+				}
+
 				const handle = parseHandle(extractID(domain, recipients[i]))
 				if (handle.domain !== null && handle.domain !== domain) {
 					console.warn('activity not for current instance')
