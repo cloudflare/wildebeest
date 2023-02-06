@@ -38,10 +38,18 @@ export async function handleRequestGet(db: D1Database, id: UUID, domain: string)
 // schema directly into D1, which D1 disallows at the moment.
 // Some context at: https://stackoverflow.com/questions/13150075/add-on-delete-cascade-behavior-to-an-sqlite3-table-after-it-has-been-created
 async function deleteNote(db: D1Database, note: Note) {
-	const deleteOutboxObject = db.prepare('DELETE FROM outbox_objects WHERE id=?').bind(note.id.toString())
-	const deleteObject = db.prepare('DELETE FROM objects WHERE id=?').bind(note.id.toString())
+	const nodeId = note.id.toString()
+	const batch = [
+		db.prepare('DELETE FROM outbox_objects WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM inbox_objects WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM actor_notifications WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM actor_favourites WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM actor_reblogs WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM actor_replies WHERE object_id=?1 OR in_reply_to_object_id=?1').bind(nodeId),
+		db.prepare('DELETE FROM objects WHERE id=?').bind(nodeId),
+	]
 
-	const res = await db.batch([deleteOutboxObject, deleteObject])
+	const res = await db.batch(batch)
 
 	for (let i = 0, len = res.length; i < len; i++) {
 		if (!res[i].success) {
