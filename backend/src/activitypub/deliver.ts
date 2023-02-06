@@ -9,6 +9,8 @@ import { signRequest } from 'wildebeest/backend/src/utils/http-signing'
 import { getFollowers } from 'wildebeest/backend/src/mastodon/follow'
 import { WILDEBEEST_VERSION, MASTODON_API_VERSION } from 'wildebeest/config/versions'
 
+const MAX_BATCH_SIZE = 100
+
 export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Actor, activity: Activity) {
 	const headers = {
 		Accept: 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
@@ -61,5 +63,14 @@ export async function deliverFollowers(
 		return { body }
 	})
 
-	await queue.sendBatch(messages)
+	const promises = []
+
+	// Send the messages as batch in the queue. Since queue support up to 100
+	// messages per batch, send multiple batches.
+	while (messages.length > 0) {
+		const batch = messages.splice(0, MAX_BATCH_SIZE)
+		promises.push(queue.sendBatch(batch))
+	}
+
+	await Promise.allSettled(promises)
 }
