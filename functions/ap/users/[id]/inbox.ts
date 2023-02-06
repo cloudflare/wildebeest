@@ -12,14 +12,19 @@ import { fetchKey, verifySignature } from 'wildebeest/backend/src/utils/httpsigj
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
-	const parsedSignature = parseRequest(request)
-	const pubKey = await fetchKey(parsedSignature)
-	if (pubKey === null) {
-		return new Response('signature key not found', { status: 401 })
-	}
-	const valid = await verifySignature(parsedSignature, pubKey)
-	if (!valid) {
-		return new Response('invalid signature', { status: 401 })
+	try {
+		const parsedSignature = parseRequest(request)
+		const pubKey = await fetchKey(parsedSignature)
+		if (pubKey === null) {
+			return new Response('signature key not found', { status: 401 })
+		}
+		const valid = await verifySignature(parsedSignature, pubKey)
+		if (!valid) {
+			return new Response('invalid signature', { status: 401 })
+		}
+	} catch (err: unknown) {
+		console.warn((err as any).stack)
+		return new Response('signature verification failed', { status: 401 })
 	}
 
 	const body = await request.text()
