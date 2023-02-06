@@ -36,9 +36,17 @@ describe('Mastodon APIs', () => {
 
 			let req = new Request('https://example.com/oauth/authorize')
 			let res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
+			assert.equal(res.status, 401)
+
+			const headers = {
+				'Cf-Access-Jwt-Assertion': TEST_JWT,
+			}
+
+			req = new Request('https://example.com/oauth/authorize', { headers })
+			res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 
-			req = new Request('https://example.com/oauth/authorize?scope=foobar')
+			req = new Request('https://example.com/oauth/authorize?scope=foobar', { headers })
 			res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 		})
@@ -46,13 +54,17 @@ describe('Mastodon APIs', () => {
 		test('authorize unsupported response_type', async () => {
 			const db = await makeDB()
 
+			const headers = {
+				'Cf-Access-Jwt-Assertion': TEST_JWT,
+			}
+
 			const params = new URLSearchParams({
 				redirect_uri: 'https://example.com',
 				response_type: 'hein',
 				client_id: 'client_id',
 			})
 
-			const req = new Request('https://example.com/oauth/authorize?' + params)
+			const req = new Request('https://example.com/oauth/authorize?' + params, { headers })
 			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 		})

@@ -5,8 +5,9 @@ import { getClientById } from 'wildebeest/backend/src/mastodon/client'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import { WildebeestLogo } from '~/components/MastodonLogo'
 import { Avatar } from '~/components/avatar'
-import { getPersonByEmail, Person } from 'wildebeest/backend/src/activitypub/actors'
+import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
+import { buildRedirect } from 'wildebeest/functions/oauth/authorize'
 
 export const clientLoader = loader$<{ DATABASE: D1Database }, Promise<Client>>(async ({ platform, query, html }) => {
 	const client_id = query.get('client_id') || ''
@@ -25,7 +26,7 @@ export const clientLoader = loader$<{ DATABASE: D1Database }, Promise<Client>>(a
 export const userLoader = loader$<
 	{ DATABASE: D1Database; domain: string },
 	Promise<{ email: string; avatar: URL; name: string; url: URL }>
->(async ({ cookie, platform, html }) => {
+>(async ({ cookie, platform, html, request, redirect, text }) => {
 	const jwt = cookie.get('CF_Authorization')
 	if (jwt === null) {
 		throw html(500, getErrorHtml('Missing Authorization'))
@@ -44,15 +45,15 @@ export const userLoader = loader$<
 		throw html(500, getErrorHtml("The Access JWT doesn't contain an email"))
 	}
 
-	let person: Person | null = null
-
-	try {
-		person = await getPersonByEmail(platform.DATABASE, payload.email)
-		if (!person) {
-			throw new Error('Person not found')
+	const person = await getPersonByEmail(platform.DATABASE, payload.email)
+	if (person === null) {
+		const isFirstLogin = true
+		const res = await buildRedirect(platform.DATABASE, request as Request, isFirstLogin, jwt.value)
+		if (res.status === 302) {
+			throw redirect(302, res.headers.get('location') || '')
+		} else {
+			throw text(res.status, await res.body.text())
 		}
-	} catch {
-		throw html(500, getErrorHtml(`Failed to fetch a person for the provided email (${payload.email})`))
 	}
 
 	const name = person.name
@@ -60,7 +61,7 @@ export const userLoader = loader$<
 	const url = person.url
 
 	if (!name || !avatar) {
-		throw html(500, getErrorHtml("Error: The person associated with the Access JWT doesn't include a name or avatar"))
+		throw html(500, getErrorHtml("The person associated with the Access JWT doesn't include a name or avatar"))
 	}
 
 	return { email: payload.email, avatar, name, url }
