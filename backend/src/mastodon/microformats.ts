@@ -19,7 +19,7 @@ export function enrichStatus(status: string): string {
 	let state = 'normal'
 	let buffer = ''
 
-	for (let i = 0, len = status.length; true; i++) {
+	for (let i = 0; true; i++) {
 		const char = status[i]
 		const eof = char === undefined
 		const write = (s: string) => {

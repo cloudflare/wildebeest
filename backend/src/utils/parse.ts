@@ -15,7 +15,7 @@ export function parseHandle(query: string): Handle {
 	const parts = query.split('@')
 	const localPart = parts[0]
 
-	if (!/^[\w-\.]+$/.test(localPart)) {
+	if (!/^[\w-.]+$/.test(localPart)) {
 		throw new Error('invalid handle: localPart: ' + localPart)
 	}
 
