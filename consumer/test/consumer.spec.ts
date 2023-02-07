@@ -31,6 +31,7 @@ describe('Consumer', () => {
 				if (input.url.toString() === 'https://example.com/inbox') {
 					assert(input.headers.get('accept').includes('json'))
 					assert(input.headers.get('user-agent').includes('Wildebeest'))
+					assert(input.headers.get('user-agent').includes(domain))
 					assert.equal(input.method, 'POST')
 					receivedActivity = await input.json()
 					return new Response('')
@@ -60,6 +61,7 @@ describe('Consumer', () => {
 
 			const env = {
 				DATABASE: db,
+				DOMAIN: domain,
 			} as any
 			await handleDeliverMessage(env, actor, message)
 

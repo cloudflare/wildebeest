@@ -45,7 +45,7 @@ export async function handleRequest(
 
 		const activity = like.create(connectedActor, new URL(obj[originalObjectIdSymbol]))
 		const signingKey = await getSigningKey(userKEK, db, connectedActor)
-		await deliverToActor(signingKey, connectedActor, targetActor, activity)
+		await deliverToActor(signingKey, connectedActor, targetActor, activity, domain)
 	}
 
 	await insertLike(db, connectedActor, obj)

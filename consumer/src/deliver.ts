@@ -20,5 +20,5 @@ export async function handleDeliverMessage(env: Env, actor: Actor, message: Deli
 	}
 
 	const signingKey = await getSigningKey(message.userKEK, env.DATABASE, actor)
-	await deliverToActor(signingKey, actor, targetActor, message.activity)
+	await deliverToActor(signingKey, actor, targetActor, message.activity, env.DOMAIN)
 }

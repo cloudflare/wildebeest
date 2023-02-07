@@ -24,7 +24,7 @@ export async function handleRequest(
 	if (request.method !== 'POST') {
 		return new Response('', { status: 400 })
 	}
-
+	const domain = new URL(request.url).hostname
 	const handle = parseHandle(id)
 
 	// Only allow to unfollow remote users
@@ -41,7 +41,7 @@ export async function handleRequest(
 
 	const activity = unfollow.create(connectedActor, targetActor)
 	const signingKey = await getSigningKey(userKEK, db, connectedActor)
-	await deliverToActor(signingKey, connectedActor, targetActor, activity)
+	await deliverToActor(signingKey, connectedActor, targetActor, activity, domain)
 	await removeFollowing(db, connectedActor, targetActor)
 
 	const res: Relationship = {

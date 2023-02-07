@@ -127,7 +127,7 @@ export async function handleRequest(
 			note.cc.push(targetActor.id.toString())
 			const activity = activities.create(domain, connectedActor, note)
 			const signingKey = await getSigningKey(userKEK, db, connectedActor)
-			await deliverToActor(signingKey, connectedActor, targetActor, activity)
+			await deliverToActor(signingKey, connectedActor, targetActor, activity, domain)
 		}
 	}
 

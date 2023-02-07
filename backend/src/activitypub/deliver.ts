@@ -7,14 +7,20 @@ import type { Actor } from './actors'
 import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-cavage'
 import { signRequest } from 'wildebeest/backend/src/utils/http-signing'
 import { getFollowers } from 'wildebeest/backend/src/mastodon/follow'
-import { WILDEBEEST_VERSION, MASTODON_API_VERSION } from 'wildebeest/config/versions'
+import { getFederationUA } from 'wildebeest/config/ua'
 
 const MAX_BATCH_SIZE = 100
 
-export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Actor, activity: Activity) {
+export async function deliverToActor(
+	signingKey: CryptoKey,
+	from: Actor,
+	to: Actor,
+	activity: Activity,
+	domain: string
+) {
 	const headers = {
 		Accept: 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
-		'User-Agent': `Wildebeest/${WILDEBEEST_VERSION} Mastodon/${MASTODON_API_VERSION}`,
+		'User-Agent': getFederationUA(domain),
 	}
 
 	const body = JSON.stringify(activity)
