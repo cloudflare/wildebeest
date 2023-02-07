@@ -115,7 +115,6 @@ describe('Mastodon APIs', () => {
 			const data = await res.json<any>()
 
 			const cachedData = await cache.get<any>(actor.id + '/timeline/home')
-			console.log({ cachedData })
 			assert(cachedData)
 			assert.equal(cachedData.length, 1)
 			assert.equal(cachedData[0].id, data.id)
@@ -874,6 +873,45 @@ describe('Mastodon APIs', () => {
 			assert.equal(queue.messages[1].activity.type, 'Delete')
 			assert.equal(queue.messages[1].actorId, actor.id.toString())
 			assert.equal(queue.messages[1].toActorId, actor3.id.toString())
+		})
+
+		test('create duplicate statuses idempotency', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const idempotencyKey = 'abcd'
+
+			const body = { status: 'my status', visibility: 'public' }
+			const req = () =>
+				new Request('https://example.com', {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/json',
+						'idempotency-key': idempotencyKey,
+					},
+					body: JSON.stringify(body),
+				})
+
+			const res1 = await statuses.handleRequest(req(), db, actor, userKEK, queue, cache)
+			assert.equal(res1.status, 200)
+			const data1 = await res1.json()
+
+			const res2 = await statuses.handleRequest(req(), db, actor, userKEK, queue, cache)
+			assert.equal(res2.status, 200)
+			const data2 = await res2.json()
+
+			assert.deepEqual(data1, data2)
+
+			{
+				const row = await db.prepare(`SELECT count(*) as count FROM objects`).first<{ count: number }>()
+				assert.equal(row.count, 1)
+			}
+
+			{
+				const row = await db.prepare(`SELECT count(*) as count FROM idempotency_keys`).first<{ count: number }>()
+				assert.equal(row.count, 1)
+			}
 		})
 	})
 })

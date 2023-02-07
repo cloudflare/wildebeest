@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#create
 
+import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
@@ -21,6 +22,7 @@ import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/stat
 import type { Cache } from 'wildebeest/backend/src/cache'
 import { cacheFromEnv } from 'wildebeest/backend/src/cache'
 import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
+import * as idempotency from 'wildebeest/backend/src/mastodon/idempotency'
 import { newMention } from 'wildebeest/backend/src/activitypub/objects/mention'
 import { originalObjectIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
@@ -45,10 +47,24 @@ export async function handleRequest(
 	queue: Queue<DeliverMessageBody>,
 	cache: Cache
 ): Promise<Response> {
-	// TODO: implement Idempotency-Key
-
 	if (request.method !== 'POST') {
 		return new Response('', { status: 400 })
+	}
+
+	const domain = new URL(request.url).hostname
+	const headers = {
+		...cors(),
+		'content-type': 'application/json; charset=utf-8',
+	}
+
+	const idempotencyKey = request.headers.get('Idempotency-Key')
+
+	if (idempotencyKey !== null) {
+		const maybeObject = await idempotency.hasKey(db, idempotencyKey)
+		if (maybeObject !== null) {
+			const res = await toMastodonStatusFromObject(db, maybeObject as Note, domain)
+			return new Response(JSON.stringify(res), { headers })
+		}
 	}
 
 	const body = await readBody<StatusCreate>(request)
@@ -88,7 +104,6 @@ export async function handleRequest(
 		extraProperties.inReplyTo = inReplyToObject[originalObjectIdSymbol] || inReplyToObject.id.toString()
 	}
 
-	const domain = new URL(request.url).hostname
 	const content = enrichStatus(body.status)
 	const mentions = await getMentions(body.status, domain)
 	if (mentions.length > 0) {
@@ -116,12 +131,12 @@ export async function handleRequest(
 		}
 	}
 
+	if (idempotencyKey !== null) {
+		await idempotency.insertKey(db, idempotencyKey, note)
+	}
+
 	await timeline.pregenerateTimelines(domain, db, cache, connectedActor)
 
 	const res = await toMastodonStatusFromObject(db, note, domain)
-	const headers = {
-		...cors(),
-		'content-type': 'application/json; charset=utf-8',
-	}
 	return new Response(JSON.stringify(res), { headers })
 }
