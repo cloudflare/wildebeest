@@ -20,7 +20,7 @@ export const statusLoader = loader$<
 	const domain = new URL(request.url).hostname
 	let statusText = ''
 	try {
-		const statusResponse = await statusAPI.handleRequest(platform.DATABASE, params.statusId, domain)
+		const statusResponse = await statusAPI.handleRequestGet(platform.DATABASE, params.statusId, domain)
 		statusText = await statusResponse.text()
 	} catch {
 		throw html(500, getErrorHtml('An error occurred whilst retrieving the status data, please try again later'))
