@@ -42,7 +42,7 @@ export default component$(() => {
 	return (
 		<div class="flex flex-col flex-1">
 			<StickyHeader>
-				<h2 class="text-reg text-md m-0 p-4 flex bg-wildebeest-700 xl:rounded-t">
+				<h2 class="text-reg text-md m-0 p-4 flex bg-wildebeest-700">
 					<i class="fa fa-hashtag fa-fw mr-3 w-5 leading-tight inline-block" />
 					<span>Explore</span>
 				</h2>

@@ -1,5 +1,5 @@
-import { $, component$, useStyles$ } from '@builder.io/qwik'
-import { loader$, useNavigate } from '@builder.io/qwik-city'
+import { component$, useStyles$ } from '@builder.io/qwik'
+import { loader$ } from '@builder.io/qwik-city'
 import { MastodonAccount } from 'wildebeest/backend/src/types'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { formatDateTime } from '~/utils/dateTime'
@@ -34,17 +34,8 @@ export const accountLoader = loader$<{ DATABASE: D1Database }, Promise<MastodonA
 
 export default component$(() => {
 	useStyles$(styles)
-	const nav = useNavigate()
 
 	const accountDetails = accountLoader.use().value
-
-	const goBack = $(() => {
-		if (window.history.length > 1) {
-			window.history.back()
-		} else {
-			nav('/explore')
-		}
-	})
 
 	const fields = [
 		{
@@ -73,14 +64,7 @@ export default component$(() => {
 
 	return (
 		<div>
-			<StickyHeader>
-				<div class="flex justify-between items-center xl:rounded-t header bg-wildebeest-700">
-					<button class="text-semi no-underline text-wildebeest-vibrant-400 bg-transparent p-4" onClick$={goBack}>
-						<i class="fa fa-chevron-left mr-2 w-3 inline-block" />
-						<span class="hover:underline">Back</span>
-					</button>
-				</div>
-			</StickyHeader>
+			<StickyHeader withBackButton />
 			<div class="relative mb-16">
 				<img
 					src={accountDetails.header}

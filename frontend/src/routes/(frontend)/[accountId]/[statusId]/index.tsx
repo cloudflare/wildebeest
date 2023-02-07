@@ -48,14 +48,7 @@ export default component$(() => {
 
 	return (
 		<>
-			<StickyHeader>
-				<div class="flex justify-between items-center xl:rounded-t header bg-wildebeest-700">
-					<Link class="text-semi no-underline text-wildebeest-vibrant-400 bg-transparent p-4" href="/explore">
-						<i class="fa fa-chevron-left mr-2 w-3 inline-block" />
-						<span class="hover:underline">Back</span>
-					</Link>
-				</div>
-			</StickyHeader>
+			<StickyHeader withBackButton />
 			<div class="bg-wildebeest-700 p-4">
 				<AccountCard status={loaderData.status} />
 				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={loaderData.status.content} />
