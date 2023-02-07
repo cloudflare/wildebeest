@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#get
 
+import type { Cache } from 'wildebeest/backend/src/cache'
 import { type Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as activities from 'wildebeest/backend/src/activitypub/activities/delete'
 import { cors } from 'wildebeest/backend/src/utils/cors'
@@ -13,6 +14,8 @@ import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/object
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { deliverFollowers } from 'wildebeest/backend/src/activitypub/deliver'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
+import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
+import { cacheFromEnv } from 'wildebeest/backend/src/cache'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ params, env, request }) => {
 	const domain = new URL(request.url).hostname
@@ -21,7 +24,15 @@ export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ param
 
 export const onRequestDelete: PagesFunction<Env, any, ContextData> = async ({ params, env, request, data }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequestDelete(env.DATABASE, params.id as UUID, data.connectedActor, domain, env.userKEK, env.QUEUE)
+	return handleRequestDelete(
+		env.DATABASE,
+		params.id as UUID,
+		data.connectedActor,
+		domain,
+		env.userKEK,
+		env.QUEUE,
+		cacheFromEnv(env)
+	)
 }
 
 export async function handleRequestGet(db: D1Database, id: UUID, domain: string): Promise<Response> {
@@ -68,7 +79,8 @@ export async function handleRequestDelete(
 	connectedActor: Person,
 	domain: string,
 	userKEK: string,
-	queue: Queue<DeliverMessageBody>
+	queue: Queue<DeliverMessageBody>,
+	cache: Cache
 ): Promise<Response> {
 	const obj = (await getObjectByMastodonId(db, id)) as Note
 	if (obj === null) {
@@ -88,6 +100,8 @@ export async function handleRequestDelete(
 	// FIXME: deliver a Delete message to our peers
 	const activity = activities.create(domain, connectedActor, obj)
 	await deliverFollowers(db, userKEK, connectedActor, activity, queue)
+
+	await timeline.pregenerateTimelines(domain, db, cache, connectedActor)
 
 	const headers = {
 		...cors(),

@@ -815,7 +815,7 @@ describe('Mastodon APIs', () => {
 			const queue = makeQueue()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const mastodonId = 'abcd'
-			const res = await statuses_id.handleRequestDelete(db, mastodonId, actor, domain, userKEK, queue)
+			const res = await statuses_id.handleRequestDelete(db, mastodonId, actor, domain, userKEK, queue, cache)
 			assert.equal(res.status, 404)
 		})
 
@@ -826,7 +826,15 @@ describe('Mastodon APIs', () => {
 			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 			const note = await createPublicNote(domain, db, 'note from actor2', actor2)
 
-			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain, userKEK, queue)
+			const res = await statuses_id.handleRequestDelete(
+				db,
+				note[mastodonIdSymbol]!,
+				actor,
+				domain,
+				userKEK,
+				queue,
+				cache
+			)
 			assert.equal(res.status, 404)
 		})
 
@@ -837,7 +845,15 @@ describe('Mastodon APIs', () => {
 			const note = await createPublicNote(domain, db, 'note from actor', actor)
 			await addObjectInOutbox(db, actor, note)
 
-			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain, userKEK, queue)
+			const res = await statuses_id.handleRequestDelete(
+				db,
+				note[mastodonIdSymbol]!,
+				actor,
+				domain,
+				userKEK,
+				queue,
+				cache
+			)
 			assert.equal(res.status, 200)
 
 			{
@@ -848,6 +864,35 @@ describe('Mastodon APIs', () => {
 				const { count } = await db.prepare(`SELECT count(*) as count FROM objects`).first<any>()
 				assert.equal(count, 0)
 			}
+		})
+
+		test('delete status regenerates the timeline', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const cache = makeCache()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const note = await createPublicNote(domain, db, 'note from actor', actor)
+			await addObjectInOutbox(db, actor, note)
+
+			// Poison the timeline
+			await cache.put(actor.id.toString() + '/timeline/home', 'funny value')
+
+			const res = await statuses_id.handleRequestDelete(
+				db,
+				note[mastodonIdSymbol]!,
+				actor,
+				domain,
+				userKEK,
+				queue,
+				cache
+			)
+			assert.equal(res.status, 200)
+
+			// ensure that timeline has been regenerated after the deletion
+			// and that timeline is empty
+			const timeline = await cache.get<Array<any>>(actor.id.toString() + '/timeline/home')
+			assert(timeline)
+			assert.equal(timeline!.length, 0)
 		})
 
 		test('delete status sends to followers', async () => {
@@ -863,7 +908,15 @@ describe('Mastodon APIs', () => {
 			await addFollowing(db, actor3, actor, 'not needed')
 			await acceptFollowing(db, actor3, actor)
 
-			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain, userKEK, queue)
+			const res = await statuses_id.handleRequestDelete(
+				db,
+				note[mastodonIdSymbol]!,
+				actor,
+				domain,
+				userKEK,
+				queue,
+				cache
+			)
 			assert.equal(res.status, 200)
 
 			assert.equal(queue.messages.length, 2)
