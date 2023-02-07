@@ -1,6 +1,7 @@
 // https://docs.joinmastodon.org/methods/statuses/#get
 
 import { type Note } from 'wildebeest/backend/src/activitypub/objects/note'
+import * as activities from 'wildebeest/backend/src/activitypub/activities/delete'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { UUID } from 'wildebeest/backend/src/types'
@@ -10,6 +11,8 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import { deliverFollowers } from 'wildebeest/backend/src/activitypub/deliver'
+import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ params, env, request }) => {
 	const domain = new URL(request.url).hostname
@@ -18,7 +21,7 @@ export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ param
 
 export const onRequestDelete: PagesFunction<Env, any, ContextData> = async ({ params, env, request, data }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequestDelete(env.DATABASE, params.id as UUID, data.connectedActor, domain)
+	return handleRequestDelete(env.DATABASE, params.id as UUID, data.connectedActor, domain, env.userKEK, env.QUEUE)
 }
 
 export async function handleRequestGet(db: D1Database, id: UUID, domain: string): Promise<Response> {
@@ -62,7 +65,9 @@ export async function handleRequestDelete(
 	db: D1Database,
 	id: UUID,
 	connectedActor: Person,
-	domain: string
+	domain: string,
+	userKEK: string,
+	queue: Queue<DeliverMessageBody>
 ): Promise<Response> {
 	const obj = (await getObjectByMastodonId(db, id)) as Note
 	if (obj === null) {
@@ -79,7 +84,9 @@ export async function handleRequestDelete(
 
 	await deleteNote(db, obj)
 
-	// FIXME: deliver a Delete message to the Actor followers and our peers
+	// FIXME: deliver a Delete message to our peers
+	const activity = activities.create(domain, connectedActor, obj)
+	await deliverFollowers(db, userKEK, connectedActor, activity, queue)
 
 	const headers = {
 		...cors(),

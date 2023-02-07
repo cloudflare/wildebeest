@@ -813,29 +813,32 @@ describe('Mastodon APIs', () => {
 
 		test('delete non-existing status', async () => {
 			const db = await makeDB()
+			const queue = makeQueue()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const mastodonId = 'abcd'
-			const res = await statuses_id.handleRequestDelete(db, mastodonId, actor, domain)
+			const res = await statuses_id.handleRequestDelete(db, mastodonId, actor, domain, userKEK, queue)
 			assert.equal(res.status, 404)
 		})
 
 		test('delete status from a different actor', async () => {
 			const db = await makeDB()
+			const queue = makeQueue()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 			const note = await createPublicNote(domain, db, 'note from actor2', actor2)
 
-			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain)
+			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain, userKEK, queue)
 			assert.equal(res.status, 404)
 		})
 
-		test('delete status', async () => {
+		test('delete status remove DB rows', async () => {
 			const db = await makeDB()
+			const queue = makeQueue()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 			const note = await createPublicNote(domain, db, 'note from actor', actor)
 			await addObjectInOutbox(db, actor, note)
 
-			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain)
+			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain, userKEK, queue)
 			assert.equal(res.status, 200)
 
 			{
@@ -846,6 +849,31 @@ describe('Mastodon APIs', () => {
 				const { count } = await db.prepare(`SELECT count(*) as count FROM objects`).first<any>()
 				assert.equal(count, 0)
 			}
+		})
+
+		test('delete status sends to followers', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+			const actor3 = await createPerson(domain, db, userKEK, 'sven3@cloudflare.com')
+			const note = await createPublicNote(domain, db, 'note from actor', actor)
+
+			await addFollowing(db, actor2, actor, 'not needed')
+			await acceptFollowing(db, actor2, actor)
+			await addFollowing(db, actor3, actor, 'not needed')
+			await acceptFollowing(db, actor3, actor)
+
+			const res = await statuses_id.handleRequestDelete(db, note[mastodonIdSymbol]!, actor, domain, userKEK, queue)
+			assert.equal(res.status, 200)
+
+			assert.equal(queue.messages.length, 2)
+			assert.equal(queue.messages[0].activity.type, 'Delete')
+			assert.equal(queue.messages[0].actorId, actor.id.toString())
+			assert.equal(queue.messages[0].toActorId, actor2.id.toString())
+			assert.equal(queue.messages[1].activity.type, 'Delete')
+			assert.equal(queue.messages[1].actorId, actor.id.toString())
+			assert.equal(queue.messages[1].toActorId, actor3.id.toString())
 		})
 	})
 })
