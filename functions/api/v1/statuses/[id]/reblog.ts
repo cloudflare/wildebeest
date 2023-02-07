@@ -50,7 +50,7 @@ export async function handleRequest(
 
 		await Promise.all([
 			// Delivers the announce activity to the post author.
-			deliverToActor(signingKey, connectedActor, targetActor, activity),
+			deliverToActor(signingKey, connectedActor, targetActor, activity, domain),
 			// Share reblogged by delivering the announce activity to followers
 			deliverFollowers(db, userKEK, connectedActor, activity, queue),
 		])

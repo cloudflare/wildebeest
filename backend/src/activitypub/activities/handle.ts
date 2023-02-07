@@ -248,7 +248,7 @@ export async function handle(
 				await acceptFollowing(db, originalActor, receiver)
 				const reply = accept.create(receiver, activity)
 				const signingKey = await getSigningKey(userKEK, db, receiver)
-				await deliverToActor(signingKey, receiver, originalActor, reply)
+				await deliverToActor(signingKey, receiver, originalActor, reply, domain)
 
 				// Notify the user
 				const notifId = await insertFollowNotification(db, receiver, originalActor)
