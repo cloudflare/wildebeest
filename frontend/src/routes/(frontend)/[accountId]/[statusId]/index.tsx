@@ -44,7 +44,7 @@ export const statusLoader = loader$<
 export default component$(() => {
 	useStyles$(styles)
 
-	const { status, context } = statusLoader.use().value
+	const loaderData = statusLoader.use().value
 
 	return (
 		<>
@@ -57,15 +57,15 @@ export default component$(() => {
 				</div>
 			</StickyHeader>
 			<div class="bg-wildebeest-700 p-4">
-				<AccountCard status={status} />
-				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={status.content} />
+				<AccountCard status={loaderData.status} />
+				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={loaderData.status.content} />
 
-				<MediaGallery medias={status.media_attachments} />
+				<MediaGallery medias={loaderData.status.media_attachments} />
 
-				<InfoTray status={status} />
+				<InfoTray status={loaderData.status} />
 			</div>
 			<div>
-				{context.descendants.map((status) => {
+				{loaderData.context.descendants.map((status) => {
 					return <Status status={status} />
 				})}
 			</div>

@@ -18,3 +18,29 @@ test('Navigation to and view of an individual toot', async ({ page }) => {
 	})
 	await expect(tootContentLocator).toBeVisible()
 })
+
+test('Navigation to and view of a reply toot', async ({ page }) => {
+	await page.goto('http://127.0.0.1:8788/explore')
+
+	await page
+		.locator('article')
+		.filter({ hasText: 'Bethany Black' })
+		.filter({
+			hasText: 'We did it! *wipes tear from eye*',
+		})
+		.locator('i.fa-globe + span')
+		.click()
+
+	await page
+		.locator('article')
+		.filter({ hasText: 'Zach Weinersmith' })
+		.filter({
+			hasText: 'Yes we did!',
+		})
+		.locator('i.fa-globe + span')
+		.click()
+
+	await expect(page.getByRole('link', { name: 'Avatar of Zach Weinersmith' })).toBeVisible()
+	await expect(page.getByRole('link', { name: 'Zach Weinersmith', exact: true })).toBeVisible()
+	await expect(page.getByText('Yes we did!')).toBeVisible()
+})
