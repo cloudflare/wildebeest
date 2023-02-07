@@ -36,6 +36,9 @@ export async function deliverToActor(signingKey: CryptoKey, from: Actor, to: Act
 	console.log(`${to.inbox} returned 200`)
 }
 
+// TODO: eventually move this to the queue worker, the backend can send a message
+// to a collection (followers) and the worker creates the indivual messages. More
+// reliable and scalable.
 export async function deliverFollowers(
 	db: D1Database,
 	userKEK: string,
