@@ -4,7 +4,7 @@ test('Navigation to and view of an individual toot', async ({ page }) => {
 	await page.goto('http://127.0.0.1:8788/explore')
 	await page.locator('article').filter({ hasText: 'Ken White' }).locator('i.fa-globe + span').click()
 
-	const backButtonLocator = page.locator('a', { hasText: 'Back' })
+	const backButtonLocator = page.getByRole('button', { name: 'Back' })
 	await expect(backButtonLocator).toBeVisible()
 
 	const avatarLocator = page.locator('img[alt="Avatar of Ken White"]')
@@ -19,7 +19,7 @@ test('Navigation to and view of an individual toot', async ({ page }) => {
 	await expect(tootContentLocator).toBeVisible()
 })
 
-test('Navigation to and view of a reply toot', async ({ page }) => {
+test("Navigation to and view of a toot's replies", async ({ page }) => {
 	await page.goto('http://127.0.0.1:8788/explore')
 
 	await page
@@ -43,4 +43,19 @@ test('Navigation to and view of a reply toot', async ({ page }) => {
 	await expect(page.getByRole('link', { name: 'Avatar of Zach Weinersmith' })).toBeVisible()
 	await expect(page.getByRole('link', { name: 'Zach Weinersmith', exact: true })).toBeVisible()
 	await expect(page.getByText('Yes we did!')).toBeVisible()
+
+	await page.getByRole('button', { name: 'Back' }).click()
+
+	await page
+		.locator('article')
+		.filter({ hasText: 'nixCraft' })
+		.filter({
+			hasText: 'Yes you guys did it!',
+		})
+		.locator('i.fa-globe + span')
+		.click()
+
+	await expect(page.getByRole('link', { name: 'Avatar of nixCraft' })).toBeVisible()
+	await expect(page.getByRole('link', { name: 'nixCraft 🐧', exact: true })).toBeVisible()
+	await expect(page.getByText('Yes you guys did it!')).toBeVisible()
 })
