@@ -35,7 +35,11 @@ export default component$(() => {
 	return (
 		<>
 			<header class="h-[3.9rem] z-50 sticky top-0 bg-wildebeest-600 p-3 w-full border-b border-wildebeest-700 xl:hidden">
-				<Link class="no-underline flex items-center w-max" aria-label="Wildebeest Home" href={'/'}>
+				<Link
+					class="no-underline flex items-center w-max"
+					aria-label="Wildebeest Home"
+					href="https://cloudflare.social/"
+				>
 					<WildebeestLogo size="small" />
 				</Link>
 			</header>
