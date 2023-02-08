@@ -24,7 +24,7 @@ import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
-import { originalActorIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { originalActorIdSymbol, deleteObject } from 'wildebeest/backend/src/activitypub/objects'
 import { hasReblog } from 'wildebeest/backend/src/mastodon/reblog'
 
 function extractID(domain: string, s: string | URL): string {
@@ -339,6 +339,25 @@ export async function handle(
 			])
 
 			await sendLikeNotification(db, fromActor, targetActor, notifId, adminEmail, vapidKeys)
+			break
+		}
+
+		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-delete
+		case 'Delete': {
+			const objectId = getObjectAsId()
+
+			const obj = await objects.getObjectById(db, objectId)
+			if (obj === null) {
+				console.warn('unknown object')
+				break
+			}
+
+			if (!['Note'].includes(obj.type)) {
+				console.warn('unsupported Update for Object type: ' + activity.object.type)
+				return
+			}
+
+			await deleteObject(db, obj)
 			break
 		}
 

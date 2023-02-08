@@ -272,3 +272,28 @@ function getNameRewriter() {
 	})
 	return nameRewriter
 }
+
+// TODO: eventually use SQLite's `ON DELETE CASCADE` but requires writing the DB
+// schema directly into D1, which D1 disallows at the moment.
+// Some context at: https://stackoverflow.com/questions/13150075/add-on-delete-cascade-behavior-to-an-sqlite3-table-after-it-has-been-created
+export async function deleteObject<T extends APObject>(db: D1Database, note: T) {
+	const nodeId = note.id.toString()
+	const batch = [
+		db.prepare('DELETE FROM outbox_objects WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM inbox_objects WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM actor_notifications WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM actor_favourites WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM actor_reblogs WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM actor_replies WHERE object_id=?1 OR in_reply_to_object_id=?1').bind(nodeId),
+		db.prepare('DELETE FROM idempotency_keys WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM objects WHERE id=?').bind(nodeId),
+	]
+
+	const res = await db.batch(batch)
+
+	for (let i = 0, len = res.length; i < len; i++) {
+		if (!res[i].success) {
+			throw new Error('SQL error: ' + res[i].error)
+		}
+	}
+}

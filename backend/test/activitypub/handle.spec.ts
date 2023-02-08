@@ -593,5 +593,69 @@ describe('ActivityPub', () => {
 				assert.equal(count, 1)
 			})
 		})
+
+		describe('Delete', () => {
+			test('delete Note', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+
+				const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id,
+					to: [],
+					cc: [],
+					object: note.id,
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
+				assert.equal(count, 0)
+			})
+
+			test('delete Tombstone', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+
+				const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id,
+					to: [],
+					cc: [],
+					object: {
+						type: 'Tombstone',
+						id: note.id,
+					},
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
+				assert.equal(count, 0)
+			})
+
+			test('delete Actor', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id,
+					to: [],
+					cc: [],
+					object: actorA.id,
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				// Ensure that we didn't actually delete the actor
+				const { count } = await db.prepare('SELECT count(*) as count FROM actors').first<{ count: number }>()
+				assert.equal(count, 1)
+			})
+		})
 	})
 })
