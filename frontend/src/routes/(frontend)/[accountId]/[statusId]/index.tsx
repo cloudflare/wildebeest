@@ -12,6 +12,7 @@ import { MediaGallery } from '~/components/MediaGallery.tsx'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import styles from '../../../../utils/innerHtmlContent.scss?inline'
+import { useAccountUrl } from '~/utils/useAccountUrl'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database },
@@ -67,7 +68,7 @@ export default component$(() => {
 })
 
 export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) => {
-	const accountUrl = `/@${status.account.username}`
+	const accountUrl = useAccountUrl(status.account)
 
 	return (
 		<div class="flex">
