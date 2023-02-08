@@ -52,7 +52,7 @@ export const userLoader = loader$<
 		if (res.status === 302) {
 			throw redirect(302, res.headers.get('location') || '')
 		} else {
-			throw text(res.status, await res.body.text())
+			throw text(res.status, await res.text())
 		}
 	}
 
