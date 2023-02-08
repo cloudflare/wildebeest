@@ -25,6 +25,7 @@ import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import { originalActorIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { hasReblog } from 'wildebeest/backend/src/mastodon/reblog'
 
 function extractID(domain: string, s: string | URL): string {
 	return s.toString().replace(`https://${domain}/ap/users/`, '')
@@ -288,6 +289,12 @@ export async function handle(
 			}
 
 			const fromActor = await actors.getAndCache(actorId, db)
+
+			if (await hasReblog(db, fromActor, obj)) {
+				// A reblog already exists. To avoid dulicated reblog we ignore.
+				console.warn('probably duplicated Announce message')
+				break
+			}
 
 			// notify the user
 			const targetActor = await actors.getActorById(db, new URL(obj[originalActorIdSymbol]))
