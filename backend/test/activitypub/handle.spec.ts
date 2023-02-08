@@ -545,6 +545,53 @@ describe('ActivityPub', () => {
 				assert(outbox_object)
 				assert.equal(outbox_object.actor_id, remoteActorId)
 			})
+
+			test('duplicated announce', async () => {
+				const remoteActorId = 'https://example.com/actor'
+				const objectId = 'https://example.com/some-object'
+				globalThis.fetch = async (input: RequestInfo) => {
+					if (input.toString() === remoteActorId) {
+						return new Response(
+							JSON.stringify({
+								id: remoteActorId,
+								icon: { url: 'img.com' },
+								type: 'Person',
+							})
+						)
+					}
+
+					if (input.toString() === objectId) {
+						return new Response(
+							JSON.stringify({
+								id: objectId,
+								type: 'Note',
+								content: 'foo',
+							})
+						)
+					}
+
+					throw new Error('unexpected request to ' + input)
+				}
+
+				const db = await makeDB()
+				await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+				const activity: any = {
+					type: 'Announce',
+					actor: remoteActorId,
+					to: [],
+					cc: [],
+					object: objectId,
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				// Handle the same Activity
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				// Ensure only one reblog is kept
+				const { count } = await db.prepare('SELECT count(*) as count FROM outbox_objects').first<{ count: number }>()
+				assert.equal(count, 1)
+			})
 		})
 	})
 })

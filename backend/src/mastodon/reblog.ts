@@ -39,3 +39,12 @@ export function getReblogs(db: D1Database, obj: APObject): Promise<Array<string>
 
 	return getResultsField(statement, 'actor_id')
 }
+
+export async function hasReblog(db: D1Database, actor: Actor, obj: APObject): Promise<boolean> {
+	const query = `
+		SELECT count(*) as count FROM actor_reblogs WHERE object_id=?1 AND actor_id=?2
+	`
+
+	const { count } = await db.prepare(query).bind(obj.id.toString(), actor.id.toString()).first<{ count: number }>()
+	return count > 0
+}
