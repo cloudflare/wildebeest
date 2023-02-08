@@ -331,15 +331,24 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('convert links to HTML', () => {
-			assert.equal(
-				enrichStatus('hey https://cloudflare.com/abc hi'),
-				'<p>hey <a href="https://cloudflare.com/abc">cloudflare.com/abc</a> hi</p>'
-			)
-
-			assert.equal(
-				enrichStatus('hey https://cloudflare.com/abc'),
-				'<p>hey <a href="https://cloudflare.com/abc">cloudflare.com/abc</a></p>'
-			)
+			const linksToTest = [
+				'https://cloudflare.com/abc',
+				'https://cloudflare.com/abc/def',
+				'https://www.cloudflare.com/123',
+				'http://www.cloudflare.co.uk',
+				'http://www.cloudflare.co.uk?test=test@123',
+				'http://www.cloudflare.com/.com/?test=test@~123&a=b',
+				'https://developers.cloudflare.com/workers/runtime-apis/request/#background',
+			]
+			linksToTest.forEach((link) => {
+				const url = new URL(link)
+				const urlDisplayText = `${url.hostname}${url.pathname}`
+				assert.equal(enrichStatus(`hey ${link} hi`), `<p>hey <a href="${link}">${urlDisplayText}</a> hi</p>`)
+				assert.equal(enrichStatus(`${link} hi`), `<p><a href="${link}">${urlDisplayText}</a> hi</p>`)
+				assert.equal(enrichStatus(`hey ${link}`), `<p>hey <a href="${link}">${urlDisplayText}</a></p>`)
+				assert.equal(enrichStatus(`${link}`), `<p><a href="${link}">${urlDisplayText}</a></p>`)
+				assert.equal(enrichStatus(`@!@£${link}!!!`), `<p>@!@£<a href="${link}">${urlDisplayText}</a>!!!</p>`)
+			})
 		})
 	})
 })
