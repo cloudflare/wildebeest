@@ -25,7 +25,7 @@ export const clientLoader = loader$<{ DATABASE: D1Database }, Promise<Client>>(a
 
 export const userLoader = loader$<
 	{ DATABASE: D1Database; domain: string },
-	Promise<{ email: string; avatar: URL; name: string; url: URL }>
+	Promise<{ email: string; avatar: URL; name: string; url: URL; accountId: string }>
 >(async ({ cookie, platform, html, request, redirect, text }) => {
 	const jwt = cookie.get('CF_Authorization')
 	if (jwt === null) {
@@ -59,17 +59,18 @@ export const userLoader = loader$<
 	const name = person.name
 	const avatar = person.icon?.url
 	const url = person.url
+	const accountId = person.id.toString()
 
 	if (!name || !avatar) {
 		throw html(500, getErrorHtml("The person associated with the Access JWT doesn't include a name or avatar"))
 	}
 
-	return { email: payload.email, avatar, name, url }
+	return { email: payload.email, avatar, name, url, accountId }
 })
 
 export default component$(() => {
 	const client = clientLoader.use().value
-	const { email, avatar, name: display_name, url } = userLoader.use().value
+	const { email, avatar, name: display_name, url, accountId } = userLoader.use().value
 	return (
 		<div class="flex flex-col p-4 items-center">
 			<h1 class="text-center mt-3 mb-5 flex items-center">
@@ -82,6 +83,7 @@ export default component$(() => {
 						<div class="row-span-2 mr-4">
 							<Avatar
 								primary={{
+									id: accountId,
 									avatar: avatar.toString(),
 									display_name,
 									url: url.toString(),
