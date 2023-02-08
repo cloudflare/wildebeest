@@ -346,10 +346,16 @@ export async function handle(
 		case 'Delete': {
 			const objectId = getObjectAsId()
 
-			const obj = await objects.getObjectByOriginalId(db, objectId)
+			let obj = await objects.getObjectByOriginalId(db, objectId)
 			if (obj === null) {
-				console.warn('unknown object')
-				break
+				// Not a remote object that we cached, try with a local object.
+
+				obj = await objects.getObjectById(db, objectId)
+				if (obj === null) {
+					// No local object either; bail out.
+					console.warn('unknown object')
+					break
+				}
 			}
 
 			if (!['Note'].includes(obj.type)) {
