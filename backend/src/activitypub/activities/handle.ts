@@ -346,7 +346,7 @@ export async function handle(
 		case 'Delete': {
 			const objectId = getObjectAsId()
 
-			const obj = await objects.getObjectById(db, objectId)
+			const obj = await objects.getObjectByOriginalId(db, objectId)
 			if (obj === null) {
 				console.warn('unknown object')
 				break
