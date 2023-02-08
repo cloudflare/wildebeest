@@ -598,15 +598,28 @@ describe('ActivityPub', () => {
 			test('delete Note', async () => {
 				const db = await makeDB()
 				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+				const originalObjectId = 'https://example.com/note123'
 
-				const note = await createPublicNote(domain, db, 'my first status', actorA)
+				await db
+					.prepare(
+						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
+					)
+					.bind(
+						'https://example.com/object1',
+						'Note',
+						JSON.stringify({ content: 'my first status' }),
+						actorA.id.toString(),
+						originalObjectId,
+						'mastodonid1'
+					)
+					.run()
 
 				const activity: any = {
 					type: 'Delete',
 					actor: actorA.id,
 					to: [],
 					cc: [],
-					object: note.id,
+					object: originalObjectId,
 				}
 
 				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
@@ -618,8 +631,21 @@ describe('ActivityPub', () => {
 			test('delete Tombstone', async () => {
 				const db = await makeDB()
 				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+				const originalObjectId = 'https://example.com/note456'
 
-				const note = await createPublicNote(domain, db, 'my first status', actorA)
+				await db
+					.prepare(
+						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
+					)
+					.bind(
+						'https://example.com/object1',
+						'Note',
+						JSON.stringify({ content: 'my first status' }),
+						actorA.id.toString(),
+						originalObjectId,
+						'mastodonid1'
+					)
+					.run()
 
 				const activity: any = {
 					type: 'Delete',
@@ -628,7 +654,7 @@ describe('ActivityPub', () => {
 					cc: [],
 					object: {
 						type: 'Tombstone',
-						id: note.id,
+						id: originalObjectId,
 					},
 				}
 
@@ -638,7 +664,7 @@ describe('ActivityPub', () => {
 				assert.equal(count, 0)
 			})
 
-			test('delete Actor', async () => {
+			test('ignore deletion of an Actor', async () => {
 				const db = await makeDB()
 				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 
@@ -654,6 +680,29 @@ describe('ActivityPub', () => {
 
 				// Ensure that we didn't actually delete the actor
 				const { count } = await db.prepare('SELECT count(*) as count FROM actors').first<{ count: number }>()
+				assert.equal(count, 1)
+			})
+
+			test('ignore deletion of a local Note', async () => {
+				// Deletion of local Note should only be done using Mastodon API
+				// (ie ActivityPub client-to-server).
+
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+
+				const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id,
+					to: [],
+					cc: [],
+					object: note.id,
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
 				assert.equal(count, 1)
 			})
 		})

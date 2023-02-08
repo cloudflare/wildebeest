@@ -346,6 +346,8 @@ export async function handle(
 		case 'Delete': {
 			const objectId = getObjectAsId()
 
+			// FIXME: check that Actor is the author of the Note.
+
 			const obj = await objects.getObjectByOriginalId(db, objectId)
 			if (obj === null) {
 				console.warn('unknown object')
