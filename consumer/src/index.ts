@@ -1,10 +1,7 @@
 import type { MessageBody, InboxMessageBody, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
-import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
-import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
-import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import { MessageType } from 'wildebeest/backend/src/types/queue'
-
+import { initSentryQueue } from './sentry'
 import { handleInboxMessage } from './inbox'
 import { handleDeliverMessage } from './deliver'
 
@@ -13,29 +10,42 @@ export type Env = {
 	DOMAIN: string
 	ADMIN_EMAIL: string
 	DO_CACHE: DurableObjectNamespace
+
+	SENTRY_DSN: string
+	SENTRY_ACCESS_CLIENT_ID: string
+	SENTRY_ACCESS_CLIENT_SECRET: string
 }
 
 export default {
 	async queue(batch: MessageBatch<MessageBody>, env: Env, ctx: ExecutionContext) {
-		for (const message of batch.messages) {
-			const actor = await actors.getActorById(env.DATABASE, new URL(message.body.actorId))
-			if (actor === null) {
-				console.warn(`actor ${message.body.actorId} is missing`)
-				return
-			}
+		const sentry = initSentryQueue(env, ctx)
 
-			switch (message.body.type) {
-				case MessageType.Inbox: {
-					await handleInboxMessage(env, actor, message.body as InboxMessageBody)
-					break
+		try {
+			for (const message of batch.messages) {
+				const actor = await actors.getActorById(env.DATABASE, new URL(message.body.actorId))
+				if (actor === null) {
+					console.warn(`actor ${message.body.actorId} is missing`)
+					return
 				}
-				case MessageType.Deliver: {
-					await handleDeliverMessage(env, actor, message.body as DeliverMessageBody)
-					break
+
+				switch (message.body.type) {
+					case MessageType.Inbox: {
+						await handleInboxMessage(env, actor, message.body as InboxMessageBody)
+						break
+					}
+					case MessageType.Deliver: {
+						await handleDeliverMessage(env, actor, message.body as DeliverMessageBody)
+						break
+					}
+					default:
+						throw new Error('unsupported message type: ' + message.body.type)
 				}
-				default:
-					throw new Error('unsupported message type: ' + message.body.type)
 			}
+		} catch (err: any) {
+			if (sentry !== null) {
+				sentry.captureException(err)
+			}
+			console.error(err.stack, err.cause)
 		}
 	},
 }
