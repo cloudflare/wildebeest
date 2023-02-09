@@ -10,7 +10,7 @@ import * as timelines_home from 'wildebeest/functions/api/v1/timelines/home'
 import * as timelines_public from 'wildebeest/functions/api/v1/timelines/public'
 import * as timelines from 'wildebeest/backend/src/mastodon/timeline'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
-import { insertReblog } from 'wildebeest/backend/src/mastodon/reblog'
+import { insertReblog, createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { createStatus } from 'wildebeest/backend/src/mastodon/status'
 
 const userKEK = 'test_kek6'
@@ -275,6 +275,24 @@ describe('Mastodon APIs', () => {
 			const data = await timelines.getHomeTimeline(domain, db, connectedActor)
 			assert.equal(data.length, 1)
 			assert.equal(data[0].favourited, true)
+		})
+
+		test('show unique Notes', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actorA = await createPerson(domain, db, userKEK, 'svenA@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'svenB@cloudflare.com')
+
+			// Actor posts
+			const note = await createStatus(domain, db, actor, 'a post')
+
+			// ActorA and B reblog the post
+			await createReblog(db, actorA, note)
+			await createReblog(db, actorB, note)
+
+			const data = await timelines.getPublicTimeline(domain, db, timelines.LocalPreference.NotSet)
+			assert.equal(data.length, 1)
+			assert.equal(data[0].content, 'a post')
 		})
 	})
 })

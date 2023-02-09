@@ -62,6 +62,7 @@ WHERE
      AND outbox_objects.actor_id IN (SELECT value FROM json_each(?2))
      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
      AND (outbox_objects.target = '${PUBLIC_GROUP}' OR outbox_objects.target IN (SELECT value FROM json_each(?3)))
+GROUP BY objects.id
 ORDER by outbox_objects.published_date DESC
 LIMIT ?4
 `
@@ -129,6 +130,7 @@ WHERE objects.type='Note'
       AND ${localPreferenceQuery(localPreference)}
       AND json_extract(objects.properties, '$.inReplyTo') IS NULL
       AND outbox_objects.target = '${PUBLIC_GROUP}'
+GROUP BY objects.id
 ORDER by outbox_objects.published_date DESC
 LIMIT ?1 OFFSET ?2
 `
