@@ -1,12 +1,12 @@
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
-import { IMAGE } from 'wildebeest/backend/src/activitypub/objects/image'
+import { IMAGE, type Image } from 'wildebeest/backend/src/activitypub/objects/image'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 export function fromObject(obj: APObject): MediaAttachment {
 	if (obj.type === IMAGE) {
-		return fromObjectImage(obj)
+		return fromObjectImage(obj as Image)
 	} else if (obj.type === 'Video') {
 		return fromObjectVideo(obj)
 	} else if (obj.type === 'Document') {
@@ -26,7 +26,7 @@ export function fromObjectDocument(obj: Document): MediaAttachment {
 	}
 }
 
-function fromObjectImage(obj: APObject): MediaAttachment {
+function fromObjectImage(obj: Image): MediaAttachment {
 	return {
 		url: new URL(obj.url),
 		id: obj[mastodonIdSymbol] || obj.url.toString(),
@@ -50,7 +50,7 @@ function fromObjectImage(obj: APObject): MediaAttachment {
 				y: 0.51,
 			},
 		},
-		description: 'test media description',
+		description: obj.description || '',
 		blurhash: 'UFBWY:8_0Jxv4mx]t8t64.%M-:IUWGWAt6M}',
 	}
 }
