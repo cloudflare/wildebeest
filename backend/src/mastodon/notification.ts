@@ -1,4 +1,5 @@
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import { defaultImages } from 'wildebeest/config/accounts'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
@@ -55,11 +56,16 @@ export async function sendFollowNotification(
 	adminEmail: string,
 	vapidKeys: JWK
 ) {
+	let icon = new URL(defaultImages.avatar)
+	if (follower.icon) {
+		icon = follower.icon.url
+	}
+
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'follow',
 		notification_id: notificationId,
-		icon: follower.icon!.url,
+		icon,
 		title: 'New follower',
 		body: `${follower.name} is now following you`,
 	}
@@ -82,11 +88,16 @@ export async function sendLikeNotification(
 	adminEmail: string,
 	vapidKeys: JWK
 ) {
+	let icon = new URL(defaultImages.avatar)
+	if (fromActor.icon) {
+		icon = fromActor.icon.url
+	}
+
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'favourite',
 		notification_id: notificationId,
-		icon: fromActor.icon!.url,
+		icon,
 		title: 'New favourite',
 		body: `${fromActor.name} favourited your status`,
 	}
@@ -109,11 +120,16 @@ export async function sendMentionNotification(
 	adminEmail: string,
 	vapidKeys: JWK
 ) {
+	let icon = new URL(defaultImages.avatar)
+	if (fromActor.icon) {
+		icon = fromActor.icon.url
+	}
+
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'mention',
 		notification_id: notificationId,
-		icon: fromActor.icon!.url,
+		icon,
 		title: 'New mention',
 		body: `You were mentioned by ${fromActor.name}`,
 	}
@@ -136,11 +152,16 @@ export async function sendReblogNotification(
 	adminEmail: string,
 	vapidKeys: JWK
 ) {
+	let icon = new URL(defaultImages.avatar)
+	if (fromActor.icon) {
+		icon = fromActor.icon.url
+	}
+
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'reblog',
 		notification_id: notificationId,
-		icon: fromActor.icon!.url,
+		icon,
 		title: 'New boost',
 		body: `${fromActor.name} boosted your status`,
 	}
