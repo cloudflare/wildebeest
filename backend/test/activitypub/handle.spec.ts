@@ -3,11 +3,12 @@ import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/not
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { strict as assert } from 'node:assert/strict'
 import { cacheObject, getObjectById } from 'wildebeest/backend/src/activitypub/objects/'
-import { addFollowing } from 'wildebeest/backend/src/mastodon/follow'
+import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { ObjectsRow } from 'wildebeest/backend/src/types/objects'
 import { originalObjectIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { getHomeTimeline } from 'wildebeest/backend/src/mastodon/timeline'
 
 const adminEmail = 'admin@example.com'
 const domain = 'cloudflare.com'
@@ -392,6 +393,44 @@ describe('ActivityPub', () => {
 					'<p><span class="h-10 p-100 u-22 dt-xi e-bam mention hashtag ellipsis invisible">foo</span><br/><p><a href="blah"><p>bold</p></a></p><p>alert("evil")</p></p>'
 				)
 				assert.equal(name, 'Dr Evil')
+			})
+
+			test.only('Note sent to follower collection adds to Actor timelines', async () => {
+				const db = await makeDB()
+				const remoteActor = "https://example.com/users/remote-actor"
+                const noteId = 'https://example.com/note/1'
+
+				globalThis.fetch = async (input: RequestInfo) => {
+					throw new Error('unexpected request to ' + input)
+                }
+
+				const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+
+				// actor2 follows remoteActor
+				await db
+					.prepare(
+						'INSERT INTO actor_following (id, actor_id, target_actor_id, target_actor_acct) VALUES (?1, ?2, ?3, \'accepted\')'
+					)
+					.bind(
+						'id1',
+                        actor2.id.toString(),
+                        remoteActor,
+                        'not needed',
+					)
+					.run()
+
+				// actor send the notes to its followers
+				const activity = {
+					type: 'Create',
+					actor: remoteActor,
+					to: ['https://www.w3.org/ns/activitystreams#Public'],
+					cc: [remoteActor + '/followers'],
+					object: noteId,
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+                const timeline = await getHomeTimeline(domain, db, actor2)
+                console.log({ timeline });
 			})
 		})
 

@@ -4,6 +4,7 @@ import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
+import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import * as accept from 'wildebeest/backend/src/activitypub/activities/accept'
 import { addObjectInInbox } from 'wildebeest/backend/src/activitypub/actors/inbox'
 import {
@@ -29,6 +30,54 @@ import { hasReblog } from 'wildebeest/backend/src/mastodon/reblog'
 
 function extractID(domain: string, s: string | URL): string {
 	return s.toString().replace(`https://${domain}/ap/users/`, '')
+}
+
+// Find the actor for this recipient
+async function findActorFromReceipient(db: D1Database, domain: string, recipient: URL): Promise<Actor | null> {
+	if (recipient.hostname !== domain) {
+		// Actor isn't in our instance
+		return null
+	}
+	try {
+		const handle = parseHandle(extractID(domain, recipient))
+
+		const actor = await actors.getActorById(db, actorURL(domain, handle.localPart))
+		if (actor === null) {
+			console.warn(`local actor ${recipient} not found`)
+			return null
+		}
+
+		return actor
+	} catch (err: any) {
+		console.warn('failed to parse handle: ' + recipient)
+		return null
+	}
+}
+
+async function findActorsFromCollection(db: D1Database, domain: string, collection: URL): Promise<Array<Actor | null>> {
+	if (collection.hostname !== domain) {
+		console.warn('findActorsFromCollection not implemented yet for collection: ' + collection)
+		return []
+	}
+
+	// Try to resolve the collection assumin it's a followers collection
+	const query = `
+        SELECT actor_id
+        FROM actor_following
+        WHERE target_actor_id=(SELECT id FROM actors WHERE json_extract(properties, '$.followers') = ?1)
+    `
+
+	const { results, success, error } = await db.prepare(query).bind(collection.toString()).all<{ actor_id: string }>()
+    console.log({ results });
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+	if (!results || results.length === 0) {
+		return []
+	}
+
+	// TODO: suboptimal implementation, resulting in many D1 queries for a large collection
+	return Promise.all(results.map(({ actor_id }) => actors.getActorById(db, new URL(actor_id))))
 }
 
 export function makeGetObjectAsId(activity: Activity) {
@@ -188,30 +237,28 @@ export async function handle(
 			await addObjectInOutbox(db, fromActor, obj, activity.published, target)
 
 			for (let i = 0, len = recipients.length; i < len; i++) {
-				const url = new URL(recipients[i])
-				if (url.hostname !== domain) {
-					console.warn('recipients is not for this instance')
-					continue
+				const recipient = new URL(recipients[i])
+
+				// Recipient is a local actor
+				{
+					const actor = await findActorFromReceipient(db, domain, recipient)
+
+					if (actor !== null) {
+						// FIXME: check if the actor is in the mentions/tags
+						const notifId = await createNotification(db, 'mention', actor, fromActor, obj)
+						await Promise.all([
+							await addObjectInInbox(db, actor, obj),
+							await sendMentionNotification(db, fromActor, actor, notifId, adminEmail, vapidKeys),
+						])
+						continue
+					}
 				}
 
-				const handle = parseHandle(extractID(domain, recipients[i]))
-				if (handle.domain !== null && handle.domain !== domain) {
-					console.warn('activity not for current instance')
-					continue
+				// Recipient is a collection
+				{
+					const actors = await findActorsFromCollection(db, domain, recipient)
+					console.log({ actors, recipient })
 				}
-
-				const person = await actors.getActorById(db, actorURL(domain, handle.localPart))
-				if (person === null) {
-					console.warn(`person ${recipients[i]} not found`)
-					continue
-				}
-
-				// FIXME: check if the actor mentions the person
-				const notifId = await createNotification(db, 'mention', person, fromActor, obj)
-				await Promise.all([
-					await addObjectInInbox(db, person, obj),
-					await sendMentionNotification(db, fromActor, person, notifId, adminEmail, vapidKeys),
-				])
 			}
 
 			break
