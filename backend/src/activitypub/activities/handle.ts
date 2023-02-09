@@ -345,13 +345,17 @@ export async function handle(
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-delete
 		case 'Delete': {
 			const objectId = getObjectAsId()
-
-			// FIXME: check that Actor is the author of the Note.
+			const actorId = getActorAsId()
 
 			const obj = await objects.getObjectByOriginalId(db, objectId)
-			if (obj === null) {
-				console.warn('unknown object')
+			if (obj === null || !obj[originalActorIdSymbol]) {
+				console.warn('unknown object or missing originalActorId')
 				break
+			}
+
+			if (actorId.toString() !== obj[originalActorIdSymbol]) {
+				console.warn(`authorized Delete (${actorId} vs ${obj[originalActorIdSymbol]})`)
+				return
 			}
 
 			if (!['Note'].includes(obj.type)) {

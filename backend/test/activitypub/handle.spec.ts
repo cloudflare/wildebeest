@@ -664,6 +664,43 @@ describe('ActivityPub', () => {
 				assert.equal(count, 0)
 			})
 
+			test('reject Note deletion from another Actor', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+				const originalObjectId = 'https://example.com/note123'
+
+				// ActorB creates a Note
+				await db
+					.prepare(
+						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
+					)
+					.bind(
+						'https://example.com/object1',
+						'Note',
+						JSON.stringify({ content: 'my first status' }),
+						actorB.id.toString(),
+						originalObjectId,
+						'mastodonid1'
+					)
+					.run()
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id, // ActorA attempts to delete
+					to: [],
+					cc: [],
+					object: actorA.id,
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				// Ensure that we didn't actually delete the object
+				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
+				assert.equal(count, 1)
+			})
+
 			test('ignore deletion of an Actor', async () => {
 				const db = await makeDB()
 				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
