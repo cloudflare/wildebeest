@@ -156,6 +156,16 @@ export async function updateObject(db: D1Database, properties: any, id: URL): Pr
 	return true
 }
 
+export async function updateObjectProperty(db: D1Database, obj: APObject, key: string, value: string) {
+	const { success, error } = await db
+		.prepare(`UPDATE objects SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
+		.bind(value, obj.id.toString())
+		.run()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+}
+
 export async function getObjectById(db: D1Database, id: string | URL): Promise<APObject | null> {
 	return getObjectBy(db, 'id', id.toString())
 }
