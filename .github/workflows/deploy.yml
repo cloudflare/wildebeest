@@ -147,7 +147,6 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-        continue-on-error: true
         if: ${{ env.tfstate_kv != '' }}
 
       - name: download VAPID keys
