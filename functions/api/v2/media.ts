@@ -57,7 +57,7 @@ export async function handleRequestPost(
 				y: 0.51,
 			},
 		},
-		description: 'test media description',
+		description: image.description || '',
 		blurhash: 'UFBWY:8_0Jxv4mx]t8t64.%M-:IUWGWAt6M}',
 	}
 
