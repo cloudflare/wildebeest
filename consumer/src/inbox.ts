@@ -1,4 +1,4 @@
-import type { MessageBody, InboxMessageBody } from 'wildebeest/backend/src/types/queue'
+import type { InboxMessageBody } from 'wildebeest/backend/src/types/queue'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
 import * as notification from 'wildebeest/backend/src/mastodon/notification'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'

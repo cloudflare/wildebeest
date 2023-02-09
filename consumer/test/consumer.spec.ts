@@ -16,7 +16,7 @@ describe('Consumer', () => {
 
 			let receivedActivity: any = null
 
-			globalThis.fetch = async (input: any) => {
+			globalThis.fetch = async (input: RequestInfo | Request) => {
 				if (input.toString() === 'https://example.com/users/a') {
 					return new Response(
 						JSON.stringify({
@@ -28,10 +28,13 @@ describe('Consumer', () => {
 					)
 				}
 
+				// Make TypeScript happy
+				input = input as Request
+
 				if (input.url.toString() === 'https://example.com/inbox') {
-					assert(input.headers.get('accept').includes('json'))
-					assert(input.headers.get('user-agent').includes('Wildebeest'))
-					assert(input.headers.get('user-agent').includes(domain))
+					assert(input.headers.get('accept')!.includes('json'))
+					assert(input.headers.get('user-agent')!.includes('Wildebeest'))
+					assert(input.headers.get('user-agent')!.includes(domain))
 					assert.equal(input.method, 'POST')
 					receivedActivity = await input.json()
 					return new Response('')
