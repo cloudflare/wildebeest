@@ -171,20 +171,20 @@ resource "cloudflare_access_application" "wildebeest_access" {
   auto_redirect_to_identity = false
 }
 
-resource "cloudflare_ruleset" "wildebeest_inbox" {
-  zone_id     = trimspace(var.cloudflare_zone_id)
-  name        = "Wildebeest"
-  description = "Ruleset for Wildebeest"
-  kind        = "zone"
-  phase       = "http_request_firewall_managed"
+# resource "cloudflare_ruleset" "wildebeest_inbox" {
+#   zone_id     = trimspace(var.cloudflare_zone_id)
+#   name        = "Wildebeest"
+#   description = "Ruleset for Wildebeest"
+#   kind        = "zone"
+#   phase       = "http_request_firewall_managed"
 
-  rules {
-    action      = "skip"
-    action_parameters {
-      phases = ["http_request_firewall_managed"]
-    }
-    expression  = "(http.host eq \"${var.cloudflare_deploy_domain}\" and http.request.uri.path contains \"/ap/users/\" and http.request.uri.path contains \"inbox\")"
-    description = "Bypass firewall for Wildebeest Inbox"
-    enabled     = true
-  }
-}
+#   rules {
+#     action      = "skip"
+#     action_parameters {
+#       phases = ["http_request_firewall_managed"]
+#     }
+#     expression  = "(http.host eq \"${var.cloudflare_deploy_domain}\" and http.request.uri.path contains \"/ap/users/\" and http.request.uri.path contains \"inbox\")"
+#     description = "Bypass firewall for Wildebeest Inbox"
+#     enabled     = true
+#   }
+# }
