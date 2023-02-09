@@ -280,6 +280,9 @@ describe('ActivityPub', () => {
 
 			const queue = {
 				async send() {},
+				async sendBatch() {
+					throw new Error('unimplemented')
+				},
 			}
 
 			const activity: any = {}
@@ -296,6 +299,9 @@ describe('ActivityPub', () => {
 			const queue = {
 				async send(v: any) {
 					msg = v
+				},
+				async sendBatch() {
+					throw new Error('unimplemented')
 				},
 			}
 
