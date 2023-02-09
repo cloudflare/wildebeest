@@ -9,7 +9,7 @@ export const onRequest: PagesFunction<Env, any> = async ({ params, request, env 
 
 const headers = {
 	...cors(),
-	'content-type': 'application/json; charset=utf-8',
+	'content-type': 'application/activity+json; charset=utf-8',
 }
 
 export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {
