@@ -1,4 +1,6 @@
 import * as media from 'wildebeest/functions/api/v2/media'
+import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
+import * as media_id from 'wildebeest/functions/api/v2/media/[id]'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { strict as assert } from 'node:assert/strict'
 import { makeDB, assertJSON, isUrlValid } from '../utils'
@@ -55,6 +57,33 @@ describe('Mastodon APIs', () => {
 			assert(obj[mastodonIdSymbol])
 			assert.equal(obj.type, 'Image')
 			assert.equal(obj[originalActorIdSymbol], connectedActor.id.toString())
+		})
+
+		test('update image description', async () => {
+			const db = await makeDB()
+			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const properties = {
+				url: 'https://cloudflare.com/image.jpg',
+				description: 'foo bar',
+			}
+			const image = await createImage(domain, db, connectedActor, properties)
+
+			const request = new Request('https://' + domain, {
+				method: 'PUT',
+				body: JSON.stringify({ description: 'new foo bar' }),
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+
+			const res = await media_id.handleRequestPut(db, image[mastodonIdSymbol]!, request)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.description, 'new foo bar')
+
+			const newImage = (await objects.getObjectByMastodonId(db, image[mastodonIdSymbol]!)) as any
+			assert.equal(newImage.description, 'new foo bar')
 		})
 	})
 })
