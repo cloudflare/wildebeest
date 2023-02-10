@@ -1,5 +1,5 @@
 import { component$, useStyles$ } from '@builder.io/qwik'
-import { loader$ } from '@builder.io/qwik-city'
+import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import { MastodonAccount } from 'wildebeest/backend/src/types'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { formatDateTime } from '~/utils/dateTime'
@@ -8,29 +8,36 @@ import styles from '../../../utils/innerHtmlContent.scss?inline'
 import { getAccount } from 'wildebeest/backend/src/accounts/getAccount'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
+import { getDocumentHead } from '~/utils/getDocumentHead'
 
-export const accountLoader = loader$<{ DATABASE: D1Database }, Promise<MastodonAccount>>(
-	async ({ platform, request, html }) => {
-		let account: MastodonAccount | null = null
-		try {
-			const url = new URL(request.url)
-			const domain = url.hostname
-			const accountId = url.pathname.split('/')[1]
+export const accountLoader = loader$<
+	{ DATABASE: D1Database },
+	Promise<{ account: MastodonAccount; accountHandle: string }>
+>(async ({ platform, request, html }) => {
+	let account: MastodonAccount | null = null
+	try {
+		const url = new URL(request.url)
+		const domain = url.hostname
+		const accountId = url.pathname.split('/')[1]
 
-			account = await getAccount(domain, accountId, platform.DATABASE)
-		} catch {
-			throw html(
-				500,
-				getErrorHtml(`An error happened when trying to retrieve the account's details, please try again later`)
-			)
-		}
-
-		if (!account) {
-			throw html(404, getNotFoundHtml())
-		}
-		return account
+		account = await getAccount(domain, accountId, platform.DATABASE)
+	} catch {
+		throw html(
+			500,
+			getErrorHtml(`An error happened when trying to retrieve the account's details, please try again later`)
+		)
 	}
-)
+
+	if (!account) {
+		throw html(404, getNotFoundHtml())
+	}
+
+	const accountDomain = getAccountDomain(account)
+
+	const accountHandle = `@${account.acct}${accountDomain ? `@${accountDomain}` : ''}`
+
+	return { account, accountHandle }
+})
 
 export default component$(() => {
 	useStyles$(styles)
@@ -40,50 +47,45 @@ export default component$(() => {
 	const fields = [
 		{
 			name: 'Joined',
-			value: formatDateTime(accountDetails.created_at, false),
+			value: formatDateTime(accountDetails.account.created_at, false),
 		},
-		...accountDetails.fields,
+		...accountDetails.account.fields,
 	]
 
 	const stats = [
 		{
 			name: 'Posts',
-			value: formatRoundedNumber(accountDetails.statuses_count),
+			value: formatRoundedNumber(accountDetails.account.statuses_count),
 		},
 		{
 			name: 'Following',
-			value: formatRoundedNumber(accountDetails.following_count),
+			value: formatRoundedNumber(accountDetails.account.following_count),
 		},
 		{
 			name: 'Followers',
-			value: formatRoundedNumber(accountDetails.followers_count),
+			value: formatRoundedNumber(accountDetails.account.followers_count),
 		},
 	]
-
-	const accountDomain = getAccountDomain(accountDetails)
 
 	return (
 		<div>
 			<StickyHeader withBackButton />
 			<div class="relative mb-16">
 				<img
-					src={accountDetails.header}
-					alt={`Header of ${accountDetails.display_name}`}
+					src={accountDetails.account.header}
+					alt={`Header of ${accountDetails.account.display_name}`}
 					class="w-full h-40 object-cover bg-wildebeest-500"
 				/>
 				<img
 					class="rounded h-24 w-24 absolute bottom-[-3rem] left-5 border-2 border-wildebeest-600"
-					src={accountDetails.avatar}
-					alt={`Avatar of ${accountDetails.display_name}`}
+					src={accountDetails.account.avatar}
+					alt={`Avatar of ${accountDetails.account.display_name}`}
 				/>
 			</div>
 			<div class="px-5">
-				<h2 class="font-bold">{accountDetails.display_name}</h2>
-				<span class="block my-1 text-wildebeest-400">
-					@{accountDetails.acct}
-					{accountDomain && `@${accountDomain}`}
-				</span>
-				<div class="inner-html-content my-5" dangerouslySetInnerHTML={accountDetails.note} />
+				<h2 class="font-bold">{accountDetails.account.display_name}</h2>
+				<span class="block my-1 text-wildebeest-400">{accountDetails.accountHandle}</span>
+				<div class="inner-html-content my-5" dangerouslySetInnerHTML={accountDetails.account.note} />
 				<dl class="mb-6 flex flex-col bg-wildebeest-800 border border-wildebeest-600 rounded-md">
 					{fields.map(({ name, value }) => (
 						<div class="border-b border-wildebeest-600 p-3 text-sm" key={name}>
@@ -112,4 +114,18 @@ export function getAccountDomain(account: MastodonAccount): string | null {
 	} catch {
 		return null
 	}
+}
+
+export const head: DocumentHead = ({ getData }) => {
+	const { account, accountHandle } = getData(accountLoader)
+
+	return getDocumentHead({
+		title: `${account.display_name} (${accountHandle}) - Wildebeest`,
+		description: `${account.display_name} account page - Wildebeest`,
+		og: {
+			url: account.url,
+			type: 'article',
+			image: account.avatar,
+		},
+	})
 }

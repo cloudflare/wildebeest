@@ -1,6 +1,6 @@
 import { defaultImages } from 'wildebeest/config/accounts'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
-import { type APObject, sanitizeContent, sanitizeName } from '../objects'
+import { type APObject, sanitizeContent, getTextContent } from '../objects'
 import { addPeer } from 'wildebeest/backend/src/activitypub/peers'
 
 const PERSON = 'Person'
@@ -63,10 +63,10 @@ export async function get(url: string | URL): Promise<Actor> {
 		actor.content = await sanitizeContent(data.content)
 	}
 	if (data.name) {
-		actor.name = await sanitizeName(data.name)
+		actor.name = await getTextContent(data.name)
 	}
 	if (data.preferredUsername) {
-		actor.preferredUsername = await sanitizeName(data.preferredUsername)
+		actor.preferredUsername = await getTextContent(data.preferredUsername)
 	}
 
 	// This is mostly for testing where for convenience not all values

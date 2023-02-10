@@ -8,6 +8,7 @@ import RightColumn from '~/components/layout/RightColumn/RightColumn'
 import { WildebeestLogo } from '~/components/MastodonLogo'
 import { getCommitHash } from '~/utils/getCommitHash'
 import { InstanceConfigContext } from '~/utils/instanceConfig'
+import { getDocumentHead } from '~/utils/getDocumentHead'
 
 export const instanceLoader = loader$<
 	{ DATABASE: D1Database; INSTANCE_TITLE: string; INSTANCE_DESCR: string; ADMIN_EMAIL: string },
@@ -63,15 +64,18 @@ export default component$(() => {
 	)
 })
 
-export const head: DocumentHead = (props) => {
-	const config = props.getData(instanceLoader)
-	return {
-		title: config.short_description,
-		meta: [
-			{
-				name: 'description',
-				content: config.description,
+export const head: DocumentHead = ({ getData, head }) => {
+	const instance = getData(instanceLoader)
+
+	return getDocumentHead(
+		{
+			description: instance.short_description ?? instance.description,
+			og: {
+				type: 'website',
+				url: instance.uri,
+				image: instance.thumbnail,
 			},
-		],
-	}
+		},
+		head
+	)
 }

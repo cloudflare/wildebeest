@@ -923,7 +923,7 @@ const mastodonRawStatuses: MastodonStatus[] = [
 		favourites_count: 537,
 		edited_at: null,
 		content:
-			'\u003cp\u003eHi, meet HiDock!\u003c/p\u003e\u003cp\u003eIt\u0026#39;s a free Mac app that lets you set different Dock settings for different display configurations\u003c/p\u003e\u003cp\u003e\u003ca href="https://hidock.app" target="_blank" rel="nofollow noopener noreferrer"\u003e\u003cspan class="invisible"\u003ehttps://\u003c/span\u003e\u003cspan class=""\u003ehidock.app\u003c/span\u003e\u003cspan class="invisible"\u003e\u003c/span\u003e\u003c/a\u003e →\u003c/p\u003e',
+			'\u003cp\u003eHi, meet HiDock!\u003c/p\u003e\u003cp\u003eIt\'s a free Mac app that lets you set different Dock settings for different display configurations\u003c/p\u003e\u003cp\u003e\u003ca href="https://hidock.app" target="_blank" rel="nofollow noopener noreferrer"\u003e\u003cspan class="invisible"\u003ehttps://\u003c/span\u003e\u003cspan class=""\u003ehidock.app\u003c/span\u003e\u003cspan class="invisible"\u003e\u003c/span\u003e\u003c/a\u003e →\u003c/p\u003e',
 		reblog: null,
 		application: {
 			name: 'Web',
