@@ -18,7 +18,7 @@ Please pay attention to all the steps involved in the installation process.
 
 - Authorize Workers to use your GitHub account.
 - Enter your **Account ID** (from the previous section)
-- Press the **Create token** button first, to create it, it will redirect you to a token template with all the required permissions pre-configured. Then rnter the **API token** in the form.
+- Press the **Create token** button first, to create it, it will redirect you to a token template with all the required permissions pre-configured. Then enter the **API token** in the form.
 - Enter the **Zone ID**, **Domain**, **Title**, **Admin Email** and **Description** for your instance.
 - Fork the repository into your personal GitHub account.
 - Enable GitHub Actions.
