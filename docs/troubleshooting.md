@@ -21,7 +21,7 @@ You can now start a clean install.
 
 ### Error 1102
 
-Wildebeest runs cryptographical functions and can process lots of data internally, depending on the size of the instance and social graph. It's possible that, in some cases, a request exceeds the Worker's resource limits in the free plan.
+Wildebeest runs cryptographic functions and can process lots of data internally, depending on the size of the instance and social graph. It's possible that, in some cases, a request exceeds the Worker's resource limits in the free plan.
 
 We will keep optimizing our code to run as fast as possible, but if you start seeing 1102 errors when using your Wildebeest pages and APIs, you might need to upgrade to Workers Unbound, which provides much higher limits, as mentioned in the [requirements](requirements.md):
 
