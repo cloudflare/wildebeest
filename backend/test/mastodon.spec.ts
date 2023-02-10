@@ -324,6 +324,16 @@ describe('Mastodon APIs', () => {
 				enrichStatus('hi @test.a.b.c-d@example.eng.co.uk.....'),
 				'<p>hi <span class="h-card"><a href="https://example.eng.co.uk/@test.a.b.c-d" class="u-url mention">@<span>test.a.b.c-d</span></a></span>.....</p>'
 			)
+
+			assert.equal(
+				enrichStatus(`@testey@123456.abcdef, hi!`),
+				'<p><span class="h-card"><a href="https://123456.abcdef/@testey" class="u-url mention">@<span>testey</span></a></span>, hi!</p>'
+			)
+
+			assert.equal(
+				enrichStatus(`@testey@123456.test.testey.abcdef`),
+				'<p><span class="h-card"><a href="https://123456.test.testey.abcdef/@testey" class="u-url mention">@<span>testey</span></a></span></p>'
+			)
 		})
 
 		test('handle invalid mention', () => {
