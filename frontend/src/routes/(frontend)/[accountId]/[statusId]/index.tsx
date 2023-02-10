@@ -5,17 +5,19 @@ import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
 import * as contextAPI from 'wildebeest/functions/api/v1/statuses/[id]/context'
-import { Link, loader$ } from '@builder.io/qwik-city'
+import { DocumentHead, Link, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { Avatar } from '~/components/avatar'
 import { MediaGallery } from '~/components/MediaGallery.tsx'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import styles from '../../../../utils/innerHtmlContent.scss?inline'
+import { getTextContent } from 'wildebeest/backend/src/activitypub/objects'
+import { getDocumentHead } from '~/utils/getDocumentHead'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database },
-	Promise<{ status: MastodonStatus; context: StatusContext }>
+	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>
 >(async ({ request, html, platform, params }) => {
 	const domain = new URL(request.url).hostname
 	let statusText = ''
@@ -28,6 +30,9 @@ export const statusLoader = loader$<
 	if (!statusText) {
 		throw html(404, getNotFoundHtml())
 	}
+	const status: MastodonStatus = JSON.parse(statusText)
+	const statusTextContent = await getTextContent(status.content)
+
 	try {
 		const contextResponse = await contextAPI.handleRequest(domain, platform.DATABASE, params.statusId)
 		const contextText = await contextResponse.text()
@@ -35,7 +40,7 @@ export const statusLoader = loader$<
 		if (!context) {
 			throw new Error(`No context present for status with ${params.statusId}`)
 		}
-		return { status: JSON.parse(statusText), context }
+		return { status, statusTextContent, context }
 	} catch {
 		throw html(500, getErrorHtml('No context for the status has been found, please try again later'))
 	}
@@ -124,3 +129,21 @@ export const Info = component$<{ href: string | null }>(({ href }) => {
 		</>
 	)
 })
+
+export const head: DocumentHead = ({ getData }) => {
+	const { status, statusTextContent } = getData(statusLoader)
+
+	const title = `${status.account.display_name}: ${statusTextContent.substring(0, 30)}${
+		statusTextContent.length > 30 ? '…' : ''
+	} - Wildebeest`
+
+	return getDocumentHead({
+		title,
+		description: statusTextContent,
+		og: {
+			type: 'article',
+			url: status.url,
+			image: status.account.avatar,
+		},
+	})
+}
