@@ -36,7 +36,7 @@ After you change your Pages project to Unbound, you need to redeploy it. Go to G
 
 If your zone is on Free plan, you do not need to worry about false positives. We have crafted [free WAF rules](https://blog.cloudflare.com/waf-for-everyone/) covering targeted high severity vulnerabilities.
 
-If your zone is on Pro plan or above, **and** if you have deployed [WAF managed rules](https://developers.cloudflare.com/waf/managed-rules/) in this zone, there is a chance a few incoming messages are blocked as malicious, such as messages containing code examples. When this happens, you may miss these messages in your feeds. These blocking events can be examined further using [Security Events](https://developers.cloudflare.com/waf/security-events/) where matching [ruleset and rule](https://developers.cloudflare.com/waf/managed-rules/reference/) is logged.
+If your zone is on Pro plan or above **and** you have deployed [WAF managed rules](https://developers.cloudflare.com/waf/managed-rules/) in this zone, there is a chance a few incoming messages are blocked as malicious, such as messages containing code examples. When this happens, you may miss these messages in your feeds. These blocking events can be examined further using [Security Events](https://developers.cloudflare.com/waf/security-events/) where matching [ruleset and rule](https://developers.cloudflare.com/waf/managed-rules/reference/) is logged.
 
 <details>
 <summary>Block event example</summary>
@@ -44,10 +44,10 @@ If your zone is on Pro plan or above, **and** if you have deployed [WAF managed 
 ![Block event example screenshot](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/ea58f6e2-a320-4322-9b13-9f747f5e6300/public)
 </details>
 
-Depending on your existing set-up, you can:
+Depending on your existing setup, you can:
 
 - Lower OWASP ruleset's [sensitivity](https://developers.cloudflare.com/waf/managed-rules/reference/owasp-core-ruleset/#configure-in-the-dashboard)
-- [Skip](https://developers.cloudflare.com/waf/managed-rules/waf-exceptions/) (part of) managed rules, matching hostname `social.example` with path contains `/ap/users/` and `/inbox`
+- [Skip](https://developers.cloudflare.com/waf/managed-rules/waf-exceptions/) (part of) managed rules, matching hostname `social.example` which path contains `/ap/users/` and `/inbox`
 	<details>
 	<summary>Skip rule example</summary>
 
