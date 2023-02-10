@@ -9,7 +9,7 @@ Some features, like data persistence, access controls, media storage, are handle
 - [D1](https://developers.cloudflare.com/d1/) for the database.
 - [Workers KV](https://developers.cloudflare.com/workers/learning/how-kv-works/) for terraform state storage.
 - [Durable Objects](https://developers.cloudflare.com/workers/learning/using-durable-objects/) for strong-consistency object caching.
-- [Queues](https://developers.cloudflare.com/queues/) for asyncronous jobs.
+- [Queues](https://developers.cloudflare.com/queues/) for asynchronous jobs.
 - [Zero Trust Access](https://www.cloudflare.com/en-gb/products/zero-trust/access/) to handle user authentication and SSO on [any identity provider](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/).
 - [Images](https://www.cloudflare.com/en-gb/products/cloudflare-images/) for media handling.
 
