@@ -1,17 +1,25 @@
-import type { Handle } from '../utils/parse'
+import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { UUID } from 'wildebeest/backend/src/types'
-import { getObjectByMastodonId, getObjectById } from 'wildebeest/backend/src/activitypub/objects'
-import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
+import {
+	getObjectByMastodonId,
+	mastodonIdSymbol,
+	originalActorIdSymbol,
+} from 'wildebeest/backend/src/activitypub/objects'
+import { createPublicNote, type Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import * as media from 'wildebeest/backend/src/media/'
 import type { MastodonStatus } from 'wildebeest/backend/src/types'
 import { parseHandle } from '../utils/parse'
 import { urlToHandle } from '../utils/handle'
+import type { Person } from 'wildebeest/backend/src/activitypub/actors'
+import { addObjectInOutbox } from '../activitypub/actors/outbox'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 
-export function getMentions(input: string): Array<Handle> {
-	const mentions: Array<Handle> = []
+export async function getMentions(input: string, instanceDomain: string): Promise<Array<Actor>> {
+	const mentions: Array<Actor> = []
 
 	for (let i = 0, len = input.length; i < len; i++) {
 		if (input[i] === '@') {
@@ -22,20 +30,32 @@ export function getMentions(input: string): Array<Handle> {
 				i++
 			}
 
-			mentions.push(parseHandle(buffer))
+			const handle = parseHandle(buffer)
+			const domain = handle.domain ? handle.domain : instanceDomain
+			const acct = `${handle.localPart}@${domain}`
+			const targetActor = await queryAcct(domain!, acct)
+			if (targetActor === null) {
+				console.warn(`actor ${acct} not found`)
+				continue
+			}
+			mentions.push(targetActor)
 		}
 	}
 
 	return mentions
 }
 
-export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Promise<MastodonStatus | null> {
-	if (obj.originalActorId === undefined) {
+export async function toMastodonStatusFromObject(
+	db: D1Database,
+	obj: Note,
+	domain: string
+): Promise<MastodonStatus | null> {
+	if (obj[originalActorIdSymbol] === undefined) {
 		console.warn('missing `obj.originalActorId`')
 		return null
 	}
 
-	const actorId = new URL(obj.originalActorId)
+	const actorId = new URL(obj[originalActorIdSymbol])
 	const actor = await actors.getAndCache(actorId, db)
 
 	const acct = urlToHandle(actorId)
@@ -47,22 +67,10 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Pro
 	// const favourites = await getLikes(db, obj)
 	// const reblogs = await getReblogs(db, obj)
 
-	const mediaAttachments: Array<MediaAttachment> = []
+	let mediaAttachments: Array<MediaAttachment> = []
 
 	if (Array.isArray(obj.attachment)) {
-		for (let i = 0, len = obj.attachment.length; i < len; i++) {
-			if (obj.attachment[i].id) {
-				const document = await getObjectById(db, obj.attachment[i].id)
-				if (document === null) {
-					console.warn('missing attachment object: ' + obj.attachment[i].id)
-					continue
-				}
-
-				mediaAttachments.push(media.fromObject(document))
-			} else {
-				console.warn('attachment has no id')
-			}
-		}
+		mediaAttachments = obj.attachment.map(media.fromObject)
 	}
 
 	return {
@@ -77,8 +85,9 @@ export async function toMastodonStatusFromObject(db: D1Database, obj: Note): Pro
 
 		media_attachments: mediaAttachments,
 		content: obj.content || '',
-		id: obj.mastodonId || '',
+		id: obj[mastodonIdSymbol] || '',
 		uri: obj.id,
+		url: new URL('/statuses/' + obj[mastodonIdSymbol], 'https://' + domain),
 		created_at: obj.published || '',
 		account,
 
@@ -126,6 +135,7 @@ export async function toMastodonStatusFromRow(
 
 	const status: MastodonStatus = {
 		id: row.mastodon_id,
+		url: new URL('/statuses/' + row.mastodon_id, 'https://' + domain),
 		uri: row.id,
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
@@ -170,10 +180,34 @@ export async function toMastodonStatusFromRow(
 	return status
 }
 
-export async function getMastodonStatusById(db: D1Database, id: UUID): Promise<MastodonStatus | null> {
+export async function getMastodonStatusById(db: D1Database, id: UUID, domain: string): Promise<MastodonStatus | null> {
 	const obj = await getObjectByMastodonId(db, id)
 	if (obj === null) {
 		return null
 	}
-	return toMastodonStatusFromObject(db, obj as Note)
+	return toMastodonStatusFromObject(db, obj as Note, domain)
+}
+
+/**
+ * Creates a status object in the given actor's outbox.
+ *
+ * @param domain the domain to use
+ * @param db D1Database
+ * @param actor Author of the reply
+ * @param content content of the reply
+ * @param attachments optional attachments for the status
+ * @param extraProperties optional extra properties for the status
+ * @returns the created Note for the status
+ */
+export async function createStatus(
+	domain: string,
+	db: D1Database,
+	actor: Person,
+	content: string,
+	attachments?: APObject[],
+	extraProperties?: any
+) {
+	const note = await createPublicNote(domain, db, content, actor, attachments, extraProperties)
+	await addObjectInOutbox(db, actor, note)
+	return note
 }

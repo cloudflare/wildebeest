@@ -1,13 +1,16 @@
+import type { Queue, MessageBody } from 'wildebeest/backend/src/types/queue'
+
 export interface Env {
 	DATABASE: D1Database
-	KV_CACHE: KVNamespace
+	// FIXME: shouldn't it be USER_KEY?
 	userKEK: string
+	QUEUE: Queue<MessageBody>
+	DO_CACHE: DurableObjectNamespace
 
 	CF_ACCOUNT_ID: string
 	CF_API_TOKEN: string
 
 	// Configuration for Cloudflare Access
-	DOMAIN: string
 	ACCESS_AUD: string
 	ACCESS_AUTH_DOMAIN: string
 
@@ -16,6 +19,7 @@ export interface Env {
 	ADMIN_EMAIL: string
 	INSTANCE_DESCR: string
 	VAPID_JWK: string
+	DOMAIN: string
 
 	SENTRY_DSN: string
 	SENTRY_ACCESS_CLIENT_ID: string

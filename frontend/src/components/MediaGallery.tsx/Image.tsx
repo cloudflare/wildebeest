@@ -1,8 +1,9 @@
-import { component$, useStore, $ } from '@builder.io/qwik'
+import { component$, useStore, PropFunction } from '@builder.io/qwik'
 import { MediaAttachment } from '~/types'
 
 type Props = {
 	mediaAttachment: MediaAttachment
+	onOpenImagesModal$: PropFunction<(id: string) => void>
 }
 
 export const focusToObjectFit = (focus: { x: number; y: number }) => {
@@ -15,7 +16,7 @@ export const focusToObjectFit = (focus: { x: number; y: number }) => {
 	return { x: Math.floor(x2 * 100) / 100, y: Math.floor(y2 * 100) / 100 }
 }
 
-export default component$<Props>(({ mediaAttachment }) => {
+export default component$<Props>(({ mediaAttachment, onOpenImagesModal$ }) => {
 	const store = useStore({
 		isModalOpen: false,
 	})
@@ -25,35 +26,17 @@ export default component$<Props>(({ mediaAttachment }) => {
 		objectFit = focusToObjectFit(mediaAttachment.meta.focus)
 	}
 
-	const onPreviewClick = $(() => {
-		document.body.style.overflowY = 'hidden'
-		store.isModalOpen = true
-	})
-
-	const onModalClose = $(() => {
-		document.body.style.overflowY = 'scroll'
-		store.isModalOpen = false
-	})
-
 	return (
 		<>
-			<div class="h-60">
+			<div class={`${store.isModalOpen ? '' : 'cursor-zoom-in'} w-full h-full`}>
 				<img
-					class="object-cover w-full h-full rounded"
+					class="object-cover w-full h-full rounded cursor-pointer"
 					style={{
 						...(objectFit && { 'object-position': `${objectFit.x}% ${objectFit.y}%` }),
 					}}
 					src={mediaAttachment.preview_url || mediaAttachment.url}
-					onClick$={onPreviewClick}
+					onClick$={() => onOpenImagesModal$(mediaAttachment.id)}
 				/>
-				{store.isModalOpen && (
-					<div class="relative pointer-events-auto z-50">
-						<div class="overlay inset-0 fixed z-60 bg-black opacity-70"></div>
-						<div class="fixed z-70 inset-0 grid place-items-center" onClick$={onModalClose}>
-							<img src={mediaAttachment.url} />
-						</div>
-					</div>
-				)}
 			</div>
 		</>
 	)

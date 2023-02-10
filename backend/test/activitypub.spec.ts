@@ -1,22 +1,24 @@
 import { makeDB, isUrlValid } from './utils'
+import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
-import { addFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
-import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { createPrivateNote, createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
 import { cacheObject } from 'wildebeest/backend/src/activitypub/objects/'
-
+import * as ap_objects from 'wildebeest/functions/ap/o/[id]'
 import * as ap_users from 'wildebeest/functions/ap/users/[id]'
 import * as ap_outbox from 'wildebeest/functions/ap/users/[id]/outbox'
+import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
 import * as ap_outbox_page from 'wildebeest/functions/ap/users/[id]/outbox/page'
+import { createStatus } from '../src/mastodon/status'
+import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 const userKEK = 'test_kek5'
-const vapidKeys = {} as JWK
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const vapidKeys = {} as JWK
 const domain = 'cloudflare.com'
-const adminEmail = 'admin@example.com'
 
 describe('ActivityPub', () => {
 	test('fetch non-existant user by id', async () => {
@@ -52,175 +54,13 @@ describe('ActivityPub', () => {
 		assert.equal(data.publicKey.publicKeyPem, pubKey)
 	})
 
-	describe('Accept', () => {
-		beforeEach(() => {
-			globalThis.fetch = async (input: RequestInfo) => {
-				throw new Error('unexpected request to ' + input)
-			}
-		})
-
-		test('Accept follow request stores in db', async () => {
-			const db = await makeDB()
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
-			await addFollowing(db, actor, actor2, 'not needed')
-
-			const activity = {
-				'@context': 'https://www.w3.org/ns/activitystreams',
-				type: 'Accept',
-				actor: { id: 'https://' + domain + '/ap/users/sven2' },
-				object: {
-					type: 'Follow',
-					actor: actor.id,
-					object: 'https://' + domain + '/ap/users/sven2',
-				},
-			}
-
-			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-			const row = await db
-				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
-				.bind(actor.id.toString())
-				.first()
-			assert(row)
-			assert.equal(row.target_actor_id, 'https://' + domain + '/ap/users/sven2')
-			assert.equal(row.state, 'accepted')
-		})
-
-		test('Object must be an object', async () => {
-			const db = await makeDB()
-			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-			const activity = {
-				'@context': 'https://www.w3.org/ns/activitystreams',
-				type: 'Accept',
-				actor: 'https://example.com/actor',
-				object: 'a',
-			}
-
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
-				message: '`activity.object` must be of type object',
-			})
-		})
-	})
-
-	describe('Create', () => {
-		test('Object must be an object', async () => {
-			const db = await makeDB()
-			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-			const activity = {
-				'@context': 'https://www.w3.org/ns/activitystreams',
-				type: 'Create',
-				actor: 'https://example.com/actor',
-				object: 'a',
-			}
-
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
-				message: '`activity.object` must be of type object',
-			})
-		})
-	})
-
-	describe('Update', () => {
-		test('Object must be an object', async () => {
-			const db = await makeDB()
-
-			const activity = {
-				'@context': 'https://www.w3.org/ns/activitystreams',
-				type: 'Update',
-				actor: 'https://example.com/actor',
-				object: 'a',
-			}
-
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
-				message: '`activity.object` must be of type object',
-			})
-		})
-
-		test('Object must exist', async () => {
-			const db = await makeDB()
-
-			const activity = {
-				'@context': 'https://www.w3.org/ns/activitystreams',
-				type: 'Update',
-				actor: 'https://example.com/actor',
-				object: {
-					id: 'https://example.com/note2',
-					type: 'Note',
-					content: 'test note',
-				},
-			}
-
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
-				message: 'object https://example.com/note2 does not exist',
-			})
-		})
-
-		test('Object must have the same origin', async () => {
-			const db = await makeDB()
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const object = {
-				id: 'https://example.com/note2',
-				type: 'Note',
-				content: 'test note',
-			}
-
-			const obj = await cacheObject(domain, db, object, actor.id, new URL(object.id), false)
-			assert.notEqual(obj, null, 'could not create object')
-
-			const activity = {
-				'@context': 'https://www.w3.org/ns/activitystreams',
-				type: 'Update',
-				actor: 'https://example.com/actor',
-				object: object,
-			}
-
-			await assert.rejects(activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys), {
-				message: 'actorid mismatch when updating object',
-			})
-		})
-
-		test('Object is updated', async () => {
-			const db = await makeDB()
-			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const object = {
-				id: 'https://example.com/note2',
-				type: 'Note',
-				content: 'test note',
-			}
-
-			const obj = await cacheObject(domain, db, object, actor.id, new URL(object.id), false)
-			assert.notEqual(obj, null, 'could not create object')
-
-			const newObject = {
-				id: 'https://example.com/note2',
-				type: 'Note',
-				content: 'new test note',
-			}
-
-			const activity = {
-				'@context': 'https://www.w3.org/ns/activitystreams',
-				type: 'Update',
-				actor: actor.id,
-				object: newObject,
-			}
-
-			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-			const updatedObject = await db.prepare('SELECT * FROM objects WHERE original_object_id=?').bind(object.id).first()
-			assert(updatedObject)
-			assert.equal(JSON.parse(updatedObject.properties).content, newObject.content)
-		})
-	})
-
 	describe('Outbox', () => {
 		test('return outbox', async () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my first status', actor))
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my second status', actor))
+			await createStatus(domain, db, actor, 'my first status')
+			await createStatus(domain, db, actor, 'my second status')
 
 			const res = await ap_outbox.handleRequest(domain, db, 'sven', userKEK)
 			assert.equal(res.status, 200)
@@ -234,11 +74,11 @@ describe('ActivityPub', () => {
 			const db = await makeDB()
 			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my first status', actor))
+			await createStatus(domain, db, actor, 'my first status')
 			await sleep(10)
-			await addObjectInOutbox(db, actor, await createPublicNote(domain, db, 'my second status', actor))
+			await createStatus(domain, db, actor, 'my second status')
 
-			const res = await ap_outbox_page.handleRequest(domain, db, 'sven', userKEK)
+			const res = await ap_outbox_page.handleRequest(domain, db, 'sven')
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -247,59 +87,127 @@ describe('ActivityPub', () => {
 			assert.equal(data.orderedItems[0].object.content, 'my second status')
 			assert.equal(data.orderedItems[1].object.content, 'my first status')
 		})
+
+		test("doesn't show private notes to anyone", async () => {
+			const db = await makeDB()
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+			const note = await createPrivateNote(domain, db, 'DM', actorA, actorB)
+			await addObjectInOutbox(db, actorA, note, undefined, actorB.id.toString())
+
+			{
+				const res = await ap_outbox_page.handleRequest(domain, db, 'a')
+				assert.equal(res.status, 200)
+
+				const data = await res.json<any>()
+				assert.equal(data.orderedItems.length, 0)
+			}
+
+			{
+				const res = await ap_outbox_page.handleRequest(domain, db, 'b')
+				assert.equal(res.status, 200)
+
+				const data = await res.json<any>()
+				assert.equal(data.orderedItems.length, 0)
+			}
+		})
+
+		test("doesn't show private note in target outbox", async () => {
+			const db = await makeDB()
+			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const actorB = await createPerson(domain, db, userKEK, 'target@cloudflare.com')
+
+			const note = await createPrivateNote(domain, db, 'DM', actorA, actorB)
+			await addObjectInOutbox(db, actorA, note)
+
+			const res = await ap_outbox_page.handleRequest(domain, db, 'target')
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.orderedItems.length, 0)
+		})
 	})
 
-	describe('Announce', () => {
-		test('Announce objects are stored and added to the remote actors outbox', async () => {
-			const remoteActorId = 'https://example.com/actor'
-			const objectId = 'https://example.com/some-object'
+	describe('Actors', () => {
+		test('getAndCache adds peer', async () => {
+			const actorId = new URL('https://example.com/user/foo')
+
 			globalThis.fetch = async (input: RequestInfo) => {
-				if (input.toString() === remoteActorId) {
+				if (input.toString() === actorId.toString()) {
 					return new Response(
 						JSON.stringify({
-							id: remoteActorId,
-							icon: { url: 'img.com' },
+							id: actorId,
 							type: 'Person',
+							preferredUsername: 'sven',
+							name: 'sven ssss',
+
+							icon: { url: 'icon.jpg' },
+							image: { url: 'image.jpg' },
 						})
 					)
 				}
 
-				if (input.toString() === objectId) {
-					return new Response(
-						JSON.stringify({
-							id: objectId,
-							type: 'Note',
-							content: 'foo',
-						})
-					)
-				}
-
-				throw new Error('unexpected request to ' + input)
+				throw new Error(`unexpected request to "${input}"`)
 			}
 
 			const db = await makeDB()
-			await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-			const activity: any = {
-				type: 'Announce',
-				actor: remoteActorId,
-				to: [],
-				cc: [],
-				object: objectId,
+			await actors.getAndCache(actorId, db)
+
+			const { results } = (await db.prepare('SELECT domain from peers').all()) as any
+			assert.equal(results.length, 1)
+			assert.equal(results[0].domain, 'example.com')
+		})
+
+		test('getAndCache supports any Actor types', async () => {
+			// While Actor ObjectID MUST be globally unique, the Object can
+			// change type and Mastodon uses this behavior as a feature.
+			// We need to make sure our caching works with Actor that change
+			// types.
+
+			const actorId = new URL('https://example.com/user/foo')
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === actorId.toString()) {
+					return new Response(
+						JSON.stringify({
+							id: actorId,
+							type: 'Service',
+							preferredUsername: 'sven',
+							name: 'sven ssss',
+
+							icon: { url: 'icon.jpg' },
+							image: { url: 'image.jpg' },
+						})
+					)
+				}
+
+				if (input.toString() === actorId.toString()) {
+					return new Response(
+						JSON.stringify({
+							id: actorId,
+							type: 'Person',
+							preferredUsername: 'sven',
+							name: 'sven ssss',
+
+							icon: { url: 'icon.jpg' },
+							image: { url: 'image.jpg' },
+						})
+					)
+				}
+
+				throw new Error(`unexpected request to "${input}"`)
 			}
-			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
-			const object = await db.prepare('SELECT * FROM objects').bind(remoteActorId).first()
-			assert(object)
-			assert.equal(object.type, 'Note')
-			assert.equal(object.original_actor_id, remoteActorId)
+			const db = await makeDB()
 
-			const outbox_object = await db
-				.prepare('SELECT * FROM outbox_objects WHERE actor_id=?')
-				.bind(remoteActorId)
-				.first()
-			assert(outbox_object)
-			assert.equal(outbox_object.actor_id, remoteActorId)
+			await actors.getAndCache(actorId, db)
+
+			const { results } = (await db.prepare('SELECT * FROM actors').all()) as any
+			assert.equal(results.length, 1)
+			assert.equal(results[0].id, actorId.toString())
+			assert.equal(results[0].type, 'Service')
 		})
 	})
 
@@ -332,6 +240,81 @@ describe('ActivityPub', () => {
 
 			result = await db.prepare('SELECT count(*) as count from objects').first()
 			assert.equal(result.count, 1)
+		})
+
+		test('cacheObject adds peer', async () => {
+			const db = await makeDB()
+			const properties = { type: 'Note', a: 1, b: 2 }
+			const actor = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const originalObjectId = new URL('https://example.com/object1')
+
+			await cacheObject(domain, db, properties, actor.id, originalObjectId, false)
+
+			const { results } = (await db.prepare('SELECT domain from peers').all()) as any
+			assert.equal(results.length, 1)
+			assert.equal(results[0].domain, 'example.com')
+		})
+
+		test('serve unknown object', async () => {
+			const db = await makeDB()
+			const res = await ap_objects.handleRequest(domain, db, 'unknown id')
+			assert.equal(res.status, 404)
+		})
+
+		test('serve object', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			const note = await createPublicNote(domain, db, 'content', actor)
+
+			const res = await ap_objects.handleRequest(domain, db, note[mastodonIdSymbol]!)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+			assert.equal(data.content, 'content')
+		})
+	})
+
+	describe('Inbox', () => {
+		test('send Note to non existant user', async () => {
+			const db = await makeDB()
+
+			const queue = {
+				async send() {},
+				async sendBatch() {
+					throw new Error('unimplemented')
+				},
+			}
+
+			const activity: any = {}
+			const res = await ap_inbox.handleRequest(domain, db, 'sven', activity, queue, userKEK, vapidKeys)
+			assert.equal(res.status, 404)
+		})
+
+		test('send activity sends message in queue', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			let msg: any = null
+
+			const queue = {
+				async send(v: any) {
+					msg = v
+				},
+				async sendBatch() {
+					throw new Error('unimplemented')
+				},
+			}
+
+			const activity: any = {
+				type: 'some activity',
+			}
+			const res = await ap_inbox.handleRequest(domain, db, 'sven', activity, queue, userKEK, vapidKeys)
+			assert.equal(res.status, 200)
+
+			assert(msg)
+			assert.equal(msg.type, MessageType.Inbox)
+			assert.equal(msg.actorId, actor.id.toString())
+			assert.equal(msg.activity.type, 'some activity')
 		})
 	})
 })

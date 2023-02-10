@@ -1,11 +1,12 @@
 import { getClientById } from 'wildebeest/backend/src/mastodon/client'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { getVAPIDKeys } from 'wildebeest/backend/src/config'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { createSubscription, getSubscription } from 'wildebeest/backend/src/mastodon/subscription'
 import type { CreateRequest } from 'wildebeest/backend/src/mastodon/subscription'
 import { ContextData } from 'wildebeest/backend/src/types/context'
-import { Env } from 'wildebeest/backend/src/types/env'
+import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 
@@ -18,8 +19,7 @@ export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ requ
 }
 
 const headers = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
 }
 

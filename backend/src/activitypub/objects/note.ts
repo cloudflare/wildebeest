@@ -1,24 +1,24 @@
 // https://www.w3.org/TR/activitystreams-vocabulary/#object-types
 
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
-import type { Document } from 'wildebeest/backend/src/activitypub/objects'
+import type { Link } from 'wildebeest/backend/src/activitypub/objects/link'
 import { followersURL } from 'wildebeest/backend/src/activitypub/actors'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import * as objects from '.'
 
 const NOTE = 'Note'
-export const PUBLIC = 'https://www.w3.org/ns/activitystreams#Public'
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
-export interface Note extends objects.Object {
+export interface Note extends objects.APObject {
 	content: string
 	attributedTo?: string
 	summary?: string
 	inReplyTo?: string
 	replies?: string
 	to: Array<string>
-	attachment: Array<Document>
-	cc?: Array<string>
-	tag?: Array<string>
+	attachment: Array<objects.APObject>
+	cc: Array<string>
+	tag: Array<Link>
 }
 
 export async function createPublicNote(
@@ -26,7 +26,7 @@ export async function createPublicNote(
 	db: D1Database,
 	content: string,
 	actor: Actor,
-	attachment: Array<Document> = [],
+	attachments: Array<objects.APObject> = [],
 	extraProperties: any = {}
 ): Promise<Note> {
 	const actorId = new URL(actor.id)
@@ -34,8 +34,39 @@ export async function createPublicNote(
 	const properties = {
 		attributedTo: actorId,
 		content,
-		to: [PUBLIC],
+		to: [PUBLIC_GROUP],
 		cc: [followersURL(actorId)],
+
+		// FIXME: stub values
+		replies: null,
+		sensitive: false,
+		summary: null,
+		tag: [],
+
+		attachment: attachments,
+		inReplyTo: null,
+		...extraProperties,
+	}
+
+	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
+}
+
+export async function createPrivateNote(
+	domain: string,
+	db: D1Database,
+	content: string,
+	actor: Actor,
+	targetActor: Actor,
+	attachment: Array<objects.APObject> = [],
+	extraProperties: any = {}
+): Promise<Note> {
+	const actorId = new URL(actor.id)
+
+	const properties = {
+		attributedTo: actorId,
+		content,
+		to: [targetActor.id.toString()],
+		cc: [],
 
 		// FIXME: stub values
 		inReplyTo: null,

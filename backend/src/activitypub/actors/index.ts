@@ -1,6 +1,7 @@
 import { defaultImages } from 'wildebeest/config/accounts'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
-import type { Object } from '../objects'
+import { type APObject, sanitizeContent, getTextContent } from '../objects'
+import { addPeer } from 'wildebeest/backend/src/activitypub/peers'
 
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
@@ -27,7 +28,7 @@ export function followersURL(id: URL): URL {
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
-export interface Actor extends Object {
+export interface Actor extends APObject {
 	inbox: URL
 	outbox: URL
 	following: URL
@@ -58,6 +59,16 @@ export async function get(url: string | URL): Promise<Actor> {
 	const actor: Actor = { ...data }
 	actor.id = new URL(data.id)
 
+	if (data.content) {
+		actor.content = await sanitizeContent(data.content)
+	}
+	if (data.name) {
+		actor.name = await getTextContent(data.name)
+	}
+	if (data.preferredUsername) {
+		actor.preferredUsername = await getTextContent(data.preferredUsername)
+	}
+
 	// This is mostly for testing where for convenience not all values
 	// are provided.
 	// TODO: eventually clean that to better match production.
@@ -77,10 +88,13 @@ export async function get(url: string | URL): Promise<Actor> {
 	return actor
 }
 
+// Get and cache the Actor locally
 export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
-	const person = await getPersonById(db, url)
-	if (person !== null) {
-		return person
+	{
+		const actor = await getActorById(db, url)
+		if (actor !== null) {
+			return actor
+		}
 	}
 
 	const actor = await get(url)
@@ -101,6 +115,12 @@ export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
 		.run()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
+	}
+
+	// Add peer
+	{
+		const domain = actor.id.host
+		await addPeer(db, domain)
 	}
 	return actor
 }
@@ -180,8 +200,8 @@ export async function updateActorProperty(db: D1Database, actorId: URL, key: str
 	}
 }
 
-export async function getPersonById(db: D1Database, id: URL): Promise<Person | null> {
-	const stmt = db.prepare('SELECT * FROM actors WHERE id=? AND type=?').bind(id.toString(), PERSON)
+export async function getActorById(db: D1Database, id: URL): Promise<Actor | null> {
+	const stmt = db.prepare('SELECT * FROM actors WHERE id=?').bind(id.toString())
 	const { results } = await stmt.all()
 	if (!results || results.length === 0) {
 		return null

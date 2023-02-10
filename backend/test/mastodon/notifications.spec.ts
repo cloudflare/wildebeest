@@ -4,12 +4,13 @@ import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/not
 import { createNotification, insertFollowNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import * as notifications from 'wildebeest/functions/api/v1/notifications'
-import { makeDB, assertJSON, createTestClient } from '../utils'
+import { makeCache, makeDB, assertJSON, createTestClient } from '../utils'
 import { strict as assert } from 'node:assert/strict'
 import { sendLikeNotification } from 'wildebeest/backend/src/mastodon/notification'
 import { createSubscription } from 'wildebeest/backend/src/mastodon/subscription'
 import { arrayBufferToBase64 } from 'wildebeest/backend/src/utils/key-ops'
 import { getNotifications } from 'wildebeest/backend/src/mastodon/notification'
+import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
 
 const userKEK = 'test_kek15'
 const domain = 'cloudflare.com'
@@ -32,15 +33,13 @@ describe('Mastodon APIs', () => {
 		test('returns notifications stored in KV cache', async () => {
 			const db = await makeDB()
 			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const kv_cache: any = {
-				async get(key: string) {
-					assert.equal(key, connectedActor.id + '/notifications')
-					return 'cached data'
-				},
-			}
+			const cache = makeCache()
+
+			await cache.put(connectedActor.id + '/notifications', 12345)
+
 			const req = new Request('https://' + domain)
-			const data = await notifications.handleRequest(req, kv_cache, connectedActor)
-			assert.equal(await data.text(), 'cached data')
+			const data = await notifications.handleRequest(req, cache, connectedActor)
+			assert.equal(await data.json(), 12345)
 		})
 
 		test('returns notifications stored in db', async () => {
@@ -56,15 +55,15 @@ describe('Mastodon APIs', () => {
 			await sleep(10)
 			await createNotification(db, 'mention', connectedActor, fromActor, note)
 
-			const notifications: any = await getNotifications(db, connectedActor)
+			const notifications: any = await getNotifications(db, connectedActor, domain)
 
 			assert.equal(notifications[0].type, 'mention')
 			assert.equal(notifications[0].account.username, 'from')
-			assert.equal(notifications[0].status.id, note.mastodonId)
+			assert.equal(notifications[0].status.id, note[mastodonIdSymbol])
 
 			assert.equal(notifications[1].type, 'favourite')
 			assert.equal(notifications[1].account.username, 'from')
-			assert.equal(notifications[1].status.id, note.mastodonId)
+			assert.equal(notifications[1].status.id, note[mastodonIdSymbol])
 			assert.equal(notifications[1].status.account.username, 'sven')
 
 			assert.equal(notifications[2].type, 'follow')
@@ -119,7 +118,7 @@ describe('Mastodon APIs', () => {
 
 			globalThis.fetch = async (input: RequestInfo, data: any) => {
 				if (input === 'https://push.com') {
-					assert(data.headers['Authorization'].includes('WebPush'))
+					assert((data.headers['Authorization'] as string).includes('WebPush'))
 
 					const cryptoKeyHeader = parseCryptoKey(data.headers['Crypto-Key'])
 					assert(cryptoKeyHeader.dh)

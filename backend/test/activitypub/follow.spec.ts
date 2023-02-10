@@ -21,16 +21,16 @@ describe('ActivityPub', () => {
 		beforeEach(() => {
 			receivedActivity = null
 
-			globalThis.fetch = async (input: any) => {
-				if (input.url === `https://${domain}/ap/users/sven2/inbox`) {
-					assert.equal(input.method, 'POST')
-					const data = await input.json()
+			globalThis.fetch = async (input: RequestInfo) => {
+				const request = new Request(input)
+				if (request.url === `https://${domain}/ap/users/sven2/inbox`) {
+					assert.equal(request.method, 'POST')
+					const data = await request.json()
 					receivedActivity = data
-					console.log({ receivedActivity })
 					return new Response('')
 				}
 
-				throw new Error('unexpected request to ' + input.url)
+				throw new Error('unexpected request to ' + request.url)
 			}
 		})
 
@@ -51,14 +51,17 @@ describe('ActivityPub', () => {
 			const row = await db
 				.prepare(`SELECT target_actor_id, state FROM actor_following WHERE actor_id=?`)
 				.bind(actor2.id.toString())
-				.first()
+				.first<{
+					target_actor_id: object
+					state: string
+				}>()
 			assert(row)
 			assert.equal(row.target_actor_id.toString(), actor.id.toString())
 			assert.equal(row.state, 'accepted')
 
 			assert(receivedActivity)
 			assert.equal(receivedActivity.type, 'Accept')
-			assert.equal(receivedActivity.actor.toString(), actor.id.toString())
+			assert.equal((receivedActivity.actor as object).toString(), actor.id.toString())
 			assert.equal(receivedActivity.object.actor, activity.actor)
 			assert.equal(receivedActivity.object.type, activity.type)
 		})
@@ -144,10 +147,35 @@ describe('ActivityPub', () => {
 
 			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
-			const entry = await db.prepare('SELECT * FROM actor_notifications').first()
+			const entry = await db.prepare('SELECT * FROM actor_notifications').first<{
+				type: string
+				actor_id: object
+				from_actor_id: object
+			}>()
 			assert.equal(entry.type, 'follow')
 			assert.equal(entry.actor_id.toString(), actor.id.toString())
 			assert.equal(entry.from_actor_id.toString(), actor2.id.toString())
+		})
+
+		test('ignore when trying to follow multiple times', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
+
+			const activity = {
+				'@context': 'https://www.w3.org/ns/activitystreams',
+				type: 'Follow',
+				actor: actor2.id,
+				object: actor.id,
+			}
+
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+			await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+			// Even if we followed multiple times, only one row should be present.
+			const { count } = await db.prepare(`SELECT count(*) as count FROM actor_following`).first<{ count: number }>()
+			assert.equal(count, 1)
 		})
 	})
 })

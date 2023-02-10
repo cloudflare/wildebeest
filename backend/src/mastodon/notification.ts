@@ -1,32 +1,38 @@
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import { defaultImages } from 'wildebeest/config/accounts'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { generateWebPushMessage } from 'wildebeest/backend/src/webpush'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import type { WebPushInfos, WebPushMessage } from 'wildebeest/backend/src/webpush/webpushinfos'
 import { WebPushResult } from 'wildebeest/backend/src/webpush/webpushinfos'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
-import type { NotificationType, Notification } from 'wildebeest/backend/src/types/notification'
+import type {
+	NotificationType,
+	Notification,
+	NotificationsQueryResult,
+} from 'wildebeest/backend/src/types/notification'
 import { getSubscriptionForAllClients } from 'wildebeest/backend/src/mastodon/subscription'
+import type { Cache } from 'wildebeest/backend/src/cache'
 
 export async function createNotification(
 	db: D1Database,
 	type: NotificationType,
 	actor: Actor,
 	fromActor: Actor,
-	obj: Object
+	obj: APObject
 ): Promise<string> {
 	const query = `
           INSERT INTO actor_notifications (type, actor_id, from_actor_id, object_id)
           VALUES (?, ?, ?, ?)
           RETURNING id
 `
-	const row: { id: string } = await db
+	const row = await db
 		.prepare(query)
 		.bind(type, actor.id.toString(), fromActor.id.toString(), obj.id.toString())
-		.first()
+		.first<{ id: string }>()
 	return row.id
 }
 
@@ -38,7 +44,7 @@ export async function insertFollowNotification(db: D1Database, actor: Actor, fro
           VALUES (?, ?, ?)
           RETURNING id
 `
-	const row: { id: string } = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).first()
+	const row = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).first<{ id: string }>()
 	return row.id
 }
 
@@ -50,11 +56,16 @@ export async function sendFollowNotification(
 	adminEmail: string,
 	vapidKeys: JWK
 ) {
+	let icon = new URL(defaultImages.avatar)
+	if (follower.icon) {
+		icon = follower.icon.url
+	}
+
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'follow',
 		notification_id: notificationId,
-		icon: follower.icon!.url,
+		icon,
 		title: 'New follower',
 		body: `${follower.name} is now following you`,
 	}
@@ -77,11 +88,16 @@ export async function sendLikeNotification(
 	adminEmail: string,
 	vapidKeys: JWK
 ) {
+	let icon = new URL(defaultImages.avatar)
+	if (fromActor.icon) {
+		icon = fromActor.icon.url
+	}
+
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'favourite',
 		notification_id: notificationId,
-		icon: fromActor.icon!.url,
+		icon,
 		title: 'New favourite',
 		body: `${fromActor.name} favourited your status`,
 	}
@@ -104,11 +120,16 @@ export async function sendMentionNotification(
 	adminEmail: string,
 	vapidKeys: JWK
 ) {
+	let icon = new URL(defaultImages.avatar)
+	if (fromActor.icon) {
+		icon = fromActor.icon.url
+	}
+
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'mention',
 		notification_id: notificationId,
-		icon: fromActor.icon!.url,
+		icon,
 		title: 'New mention',
 		body: `You were mentioned by ${fromActor.name}`,
 	}
@@ -131,11 +152,16 @@ export async function sendReblogNotification(
 	adminEmail: string,
 	vapidKeys: JWK
 ) {
+	let icon = new URL(defaultImages.avatar)
+	if (fromActor.icon) {
+		icon = fromActor.icon.url
+	}
+
 	const data = {
 		preferred_locale: 'en',
 		notification_type: 'reblog',
 		notification_id: notificationId,
-		icon: fromActor.icon!.url,
+		icon,
 		title: 'New boost',
 		body: `${fromActor.name} boosted your status`,
 	}
@@ -169,7 +195,7 @@ async function sendNotification(db: D1Database, actor: Actor, message: WebPushMe
 	await Promise.allSettled(promises)
 }
 
-export async function getNotifications(db: D1Database, actor: Actor): Promise<Array<Notification>> {
+export async function getNotifications(db: D1Database, actor: Actor, domain: string): Promise<Array<Notification>> {
 	const query = `
     SELECT
         objects.*,
@@ -186,7 +212,7 @@ export async function getNotifications(db: D1Database, actor: Actor): Promise<Ar
   `
 
 	const stmt = db.prepare(query).bind(actor.id.toString())
-	const { results, success, error } = await stmt.all()
+	const { results, success, error } = await stmt.all<NotificationsQueryResult>()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}
@@ -197,11 +223,11 @@ export async function getNotifications(db: D1Database, actor: Actor): Promise<Ar
 	}
 
 	for (let i = 0, len = results.length; i < len; i++) {
-		const result = results[i] as any
+		const result = results[i]
 		const properties = JSON.parse(result.properties)
 		const notifFromActorId = new URL(result.notif_from_actor_id)
 
-		const notifFromActor = await getPersonById(db, notifFromActorId)
+		const notifFromActor = await getActorById(db, notifFromActorId)
 		if (!notifFromActor) {
 			console.warn('unknown actor')
 			continue
@@ -228,6 +254,7 @@ export async function getNotifications(db: D1Database, actor: Actor): Promise<Ar
 				id: result.mastodon_id,
 				content: properties.content,
 				uri: result.id,
+				url: new URL('/statuses/' + result.mastodon_id, 'https://' + domain),
 				created_at: new Date(result.cdate).toISOString(),
 
 				emojis: [],
@@ -249,7 +276,7 @@ export async function getNotifications(db: D1Database, actor: Actor): Promise<Ar
 	return out
 }
 
-export async function pregenerateNotifications(db: D1Database, cache: KVNamespace, actor: Actor) {
-	const notifications = await getNotifications(db, actor)
-	await cache.put(actor.id + '/notifications', JSON.stringify(notifications))
+export async function pregenerateNotifications(db: D1Database, cache: Cache, actor: Actor, domain: string) {
+	const notifications = await getNotifications(db, actor, domain)
+	await cache.put(actor.id + '/notifications', notifications)
 }

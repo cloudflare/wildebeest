@@ -40,9 +40,7 @@ describe('utils', () => {
 	test('handle parsing', async () => {
 		let res
 
-		res = parseHandle('')
-		assert.equal(res.localPart, '')
-		assert.equal(res.domain, null)
+		assert.throws(() => parseHandle(''), { message: /invalid handle/ })
 
 		res = parseHandle('@a')
 		assert.equal(res.localPart, 'a')

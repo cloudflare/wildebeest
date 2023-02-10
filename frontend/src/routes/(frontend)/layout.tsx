@@ -1,6 +1,6 @@
 import { component$, Slot, useContextProvider } from '@builder.io/qwik'
 import type { Env } from 'wildebeest/backend/src/types/env'
-import { DocumentHead, loader$ } from '@builder.io/qwik-city'
+import { DocumentHead, Link, loader$ } from '@builder.io/qwik-city'
 import * as instance from 'wildebeest/functions/api/v1/instance'
 import type { InstanceConfig } from 'wildebeest/backend/src/types/configs'
 import LeftColumn from '~/components/layout/LeftColumn/LeftColumn'
@@ -8,20 +8,25 @@ import RightColumn from '~/components/layout/RightColumn/RightColumn'
 import { WildebeestLogo } from '~/components/MastodonLogo'
 import { getCommitHash } from '~/utils/getCommitHash'
 import { InstanceConfigContext } from '~/utils/instanceConfig'
+import { getDocumentHead } from '~/utils/getDocumentHead'
 
 export const instanceLoader = loader$<
 	{ DATABASE: D1Database; INSTANCE_TITLE: string; INSTANCE_DESCR: string; ADMIN_EMAIL: string },
 	Promise<InstanceConfig>
->(async ({ platform }) => {
+>(async ({ platform, html }) => {
 	const env = {
 		INSTANCE_DESCR: platform.INSTANCE_DESCR,
 		INSTANCE_TITLE: platform.INSTANCE_TITLE,
 		ADMIN_EMAIL: platform.ADMIN_EMAIL,
 	} as Env
-	const response = await instance.handleRequest('', platform.DATABASE, env)
-	const results = await response.text()
-	const json = JSON.parse(results) as InstanceConfig
-	return json
+	try {
+		const response = await instance.handleRequest('', env)
+		const results = await response.text()
+		const json = JSON.parse(results) as InstanceConfig
+		return json
+	} catch {
+		throw html(500, 'An error occurred whilst retrieving the instance details')
+	}
 })
 
 export default component$(() => {
@@ -31,18 +36,18 @@ export default component$(() => {
 	return (
 		<>
 			<header class="h-[3.9rem] z-50 sticky top-0 bg-wildebeest-600 p-3 w-full border-b border-wildebeest-700 xl:hidden">
-				<a class="no-underline flex items-center w-max" aria-label="Wildebeest Home" href="/">
+				<Link class="no-underline flex items-center w-max" aria-label="Wildebeest Home" href={'/'}>
 					<WildebeestLogo size="small" />
-				</a>
+				</Link>
 			</header>
-			<main class="flex-1 flex justify-center main-wrapper top-[3.9rem]">
+			<main class="flex-1 flex justify-center top-[3.9rem]">
 				<div class="w-fit md:w-72 hidden xl:block mx-2.5">
 					<div class="sticky top-2.5">
 						<LeftColumn />
 					</div>
 				</div>
-				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent">
-					<div class="bg-wildebeest-600 rounded">
+				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent flex flex-col">
+					<div class="bg-wildebeest-600 rounded flex flex-1 flex-col">
 						<Slot />
 					</div>
 				</div>
@@ -59,15 +64,18 @@ export default component$(() => {
 	)
 })
 
-export const head: DocumentHead = (props) => {
-	const config = props.getData(instanceLoader)
-	return {
-		title: config.short_description,
-		meta: [
-			{
-				name: 'description',
-				content: config.description,
+export const head: DocumentHead = ({ getData, head }) => {
+	const instance = getData(instanceLoader)
+
+	return getDocumentHead(
+		{
+			description: instance.short_description ?? instance.description,
+			og: {
+				type: 'website',
+				url: instance.uri,
+				image: instance.thumbnail,
 			},
-		],
-	}
+		},
+		head
+	)
 }

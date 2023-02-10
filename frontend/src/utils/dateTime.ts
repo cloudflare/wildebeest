@@ -40,9 +40,9 @@ export const formatTimeAgo = (date: Date) => {
 	return `${roundTo(YEAR)}y`
 }
 
-export const formatDateTime = (isoString: string) => {
+export const formatDateTime = (isoString: string, includeTime = true) => {
 	const date = new Date(isoString)
 	const dateFormatter = Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' })
 	const timeFormatter = Intl.DateTimeFormat('en', { timeStyle: 'short' })
-	return `${dateFormatter.format(date)}, ${timeFormatter.format(date)}`
+	return [dateFormatter.format(date), ...(includeTime ? [timeFormatter.format(date)] : [])].join(', ')
 }

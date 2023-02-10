@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/oauth/#authorize
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
@@ -10,26 +11,16 @@ import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
 // Extract the JWT token sent by Access (running before us).
 const extractJWTFromRequest = (request: Request) => request.headers.get('Cf-Access-Jwt-Assertion') || ''
 
-export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
-	return handleRequest(request, env.DATABASE, env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
+export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
+	return handleRequestPost(request, env.DATABASE, env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
-export async function handleRequest(
-	request: Request,
+export async function buildRedirect(
 	db: D1Database,
-	userKEK: string,
-	accessDomain: string,
-	accessAud: string
+	request: Request,
+	isFirstLogin: boolean,
+	jwt: string
 ): Promise<Response> {
-	if (request.method === 'OPTIONS') {
-		const headers = {
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Headers': 'content-type, authorization',
-			'content-type': 'application/json',
-		}
-		return new Response('', { headers })
-	}
-
 	const url = new URL(request.url)
 
 	if (
@@ -47,6 +38,8 @@ export async function handleRequest(
 		return new Response('', { status: 400 })
 	}
 
+	const state = url.searchParams.get('state')
+
 	const clientId = url.searchParams.get('client_id') || ''
 	const client = await getClientById(db, clientId)
 	if (client === null) {
@@ -58,7 +51,36 @@ export async function handleRequest(
 		return new Response('', { status: 403 })
 	}
 
+	const code = `${client.id}.${jwt}`
+	const redirect = redirect_uri + `?code=${code}` + (state ? `&state=${state}` : '')
+
+	if (isFirstLogin) {
+		url.pathname = '/first-login'
+		url.searchParams.set('redirect_uri', encodeURIComponent(redirect))
+		return URLsafeRedirect(url.toString())
+	}
+	return URLsafeRedirect(redirect)
+}
+
+export async function handleRequestPost(
+	request: Request,
+	db: D1Database,
+	userKEK: string,
+	accessDomain: string,
+	accessAud: string
+): Promise<Response> {
+	if (request.method === 'OPTIONS') {
+		const headers = {
+			...cors(),
+			'content-type': 'application/json',
+		}
+		return new Response('', { headers })
+	}
+
 	const jwt = extractJWTFromRequest(request)
+	if (!jwt) {
+		return new Response('', { status: 401 })
+	}
 	const validate = access.generateValidator({ jwt, domain: accessDomain, aud: accessAud })
 	await validate(request)
 
@@ -67,15 +89,16 @@ export async function handleRequest(
 		return new Response('', { status: 401 })
 	}
 
-	const code = `${client.id}.${jwt}`
+	const isFirstLogin = (await getPersonByEmail(db, identity.email)) === null
 
-	const person = await getPersonByEmail(db, identity.email)
-	if (person === null) {
-		url.pathname = '/first-login'
-		url.searchParams.set('email', identity.email)
-		url.searchParams.set('redirect_uri', encodeURIComponent(redirect_uri + '?code=' + code))
-		return Response.redirect(url.toString(), 302)
-	}
+	return buildRedirect(db, request, isFirstLogin, jwt)
+}
 
-	return Response.redirect(redirect_uri + '?code=' + code, 302)
+// Workaround bug EW-7148, constructing an URL with unknown protocols
+// throws an error. This happens when using an Android or iOS based URLs.
+// `URLsafeRedirect` mimics `Response.redirect` but does not rely on the URL
+// class for parsing.
+function URLsafeRedirect(location: string): Response {
+	const headers = { location }
+	return new Response(`redirect to ${location}.`, { status: 302, headers })
 }

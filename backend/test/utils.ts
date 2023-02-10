@@ -1,7 +1,10 @@
 import { strict as assert } from 'node:assert/strict'
+import type { Cache } from 'wildebeest/backend/src/cache'
+import type { Queue } from 'wildebeest/backend/src/types/queue'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
 import type { Client } from 'wildebeest/backend/src/mastodon/client'
 import { promises as fs } from 'fs'
+import * as path from 'path'
 import { BetaDatabase } from '@miniflare/d1'
 import * as Database from 'better-sqlite3'
 
@@ -15,15 +18,19 @@ export function isUrlValid(s: string) {
 	return url.protocol === 'https:'
 }
 
-export async function makeDB(): Promise<any> {
+export async function makeDB(): Promise<D1Database> {
 	const db = new Database(':memory:')
 	const db2 = new BetaDatabase(db)!
 
 	// Manually run our migrations since @miniflare/d1 doesn't support it (yet).
-	const initial = await fs.readFile('./migrations/0000_initial.sql', 'utf-8')
-	await db.exec(initial)
+	const migrations = await fs.readdir('./migrations/')
 
-	return db2
+	for (let i = 0, len = migrations.length; i < len; i++) {
+		const content = await fs.readFile(path.join('migrations', migrations[i]), 'utf-8')
+		db.exec(content)
+	}
+
+	return db2 as unknown as D1Database
 }
 
 export function assertCORS(response: Response) {
@@ -63,4 +70,50 @@ export async function createTestClient(
 	scopes: string = 'read follow'
 ): Promise<Client> {
 	return createClient(db, 'test client', redirectUri, 'https://cloudflare.com', scopes)
+}
+
+type TestQueue = Queue<any> & { messages: Array<any> }
+
+export function makeQueue(): TestQueue {
+	const messages: Array<any> = []
+
+	return {
+		messages,
+
+		async send(msg: any) {
+			messages.push(msg)
+		},
+
+		async sendBatch(batch: Array<{ body: any }>) {
+			for (let i = 0, len = batch.length; i < len; i++) {
+				messages.push(batch[i].body)
+			}
+		},
+	}
+}
+
+export function makeCache(): Cache {
+	const cache: any = {}
+
+	return {
+		async get<T>(key: string): Promise<T | null> {
+			if (cache[key]) {
+				return cache[key] as T
+			} else {
+				return null
+			}
+		},
+
+		async put<T>(key: string, value: T): Promise<void> {
+			cache[key] = value
+		},
+	}
+}
+
+export function isUUID(v: string): boolean {
+	assert.equal(typeof v, 'string')
+	if (v.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') === null) {
+		return false
+	}
+	return true
 }

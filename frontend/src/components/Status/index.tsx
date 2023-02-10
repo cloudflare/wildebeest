@@ -2,9 +2,9 @@ import { component$, $, useStyles$ } from '@builder.io/qwik'
 import { Link, useNavigate } from '@builder.io/qwik-city'
 import { formatTimeAgo } from '~/utils/dateTime'
 import { Avatar } from '../avatar'
-import Image from './ImageGallery'
 import type { Account, MastodonStatus } from '~/types'
-import styles from './index.scss?inline'
+import styles from '../../utils/innerHtmlContent.scss?inline'
+import { MediaGallery } from '../MediaGallery.tsx'
 
 type Props = {
 	status: MastodonStatus
@@ -23,7 +23,7 @@ export default component$((props: Props) => {
 	const handleContentClick = $(() => nav(statusUrl))
 
 	return (
-		<div class="p-4 border-t border-wildebeest-700 pointer">
+		<article class="p-4 border-t border-wildebeest-700 pointer">
 			<RebloggerLink account={reblogger}></RebloggerLink>
 			<div onClick$={handleContentClick}>
 				<div class="flex justify-between mb-3">
@@ -31,9 +31,9 @@ export default component$((props: Props) => {
 						<Avatar primary={status.account} secondary={reblogger} />
 						<div class="flex-col ml-3">
 							<div>
-								<a class="no-underline" href={status.account.url}>
+								<Link class="no-underline" href={accountUrl}>
 									{status.account.display_name}
-								</a>
+								</Link>
 							</div>
 							<div class="text-wildebeest-500">@{status.account.username}</div>
 						</div>
@@ -45,12 +45,12 @@ export default component$((props: Props) => {
 						</div>
 					</Link>
 				</div>
-				<div class="leading-relaxed status-content" dangerouslySetInnerHTML={status.content} />
+				<div class="leading-relaxed inner-html-content" dangerouslySetInnerHTML={status.content} />
 			</div>
 
-			{status.media_attachments.length > 0 && <Image mediaAttachment={status.media_attachments[0]} />}
+			<MediaGallery medias={status.media_attachments} />
 
-			{status.card && status.media_attachments.length == 0 && (
+			{status.card && status.media_attachments.length === 0 && (
 				<a class="no-underline" href={status.card.url}>
 					<div class="rounded flex border border-wildebeest-600">
 						<img class="w-16 h-16" src={status.card.image} />
@@ -61,7 +61,7 @@ export default component$((props: Props) => {
 					</div>
 				</a>
 			)}
-		</div>
+		</article>
 	)
 })
 
@@ -70,7 +70,7 @@ export const RebloggerLink = ({ account }: { account: Account | null }) => {
 		account && (
 			<div class="flex text-wildebeest-500 py-3">
 				<p>
-					<i class="fa fa-retweet mr-3" />
+					<i class="fa fa-retweet mr-3 w-4 inline-block" />
 					<a class="no-underline" href={account.url}>
 						{account.display_name}
 					</a>

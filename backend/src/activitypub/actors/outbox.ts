@@ -1,21 +1,29 @@
-import type { Object } from 'wildebeest/backend/src/activitypub/objects'
+import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
-import type { OrderedCollection, OrderedCollectionPage } from 'wildebeest/backend/src/activitypub/core'
+import type { OrderedCollection } from 'wildebeest/backend/src/activitypub/objects/collection'
+import { getMetadata, loadItems } from 'wildebeest/backend/src/activitypub/objects/collection'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 
-export async function addObjectInOutbox(db: D1Database, actor: Actor, obj: Object, published_date?: string) {
+export async function addObjectInOutbox(
+	db: D1Database,
+	actor: Actor,
+	obj: APObject,
+	published_date?: string,
+	target: string = PUBLIC_GROUP
+) {
 	const id = crypto.randomUUID()
 	let out: any = null
 
 	if (published_date !== undefined) {
 		out = await db
-			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, published_date) VALUES(?, ?, ?, ?)')
-			.bind(id, actor.id.toString(), obj.id.toString(), published_date)
+			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, published_date, target) VALUES(?, ?, ?, ?, ?)')
+			.bind(id, actor.id.toString(), obj.id.toString(), published_date, target)
 			.run()
 	} else {
 		out = await db
-			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id) VALUES(?, ?, ?)')
-			.bind(id, actor.id.toString(), obj.id.toString())
+			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, target) VALUES(?, ?, ?, ?)')
+			.bind(id, actor.id.toString(), obj.id.toString(), target)
 			.run()
 	}
 	if (!out.success) {
@@ -23,35 +31,14 @@ export async function addObjectInOutbox(db: D1Database, actor: Actor, obj: Objec
 	}
 }
 
-const headers = {
-	accept: 'application/activity+json',
-}
-
-export async function getMetadata(actor: Actor): Promise<OrderedCollection<unknown>> {
-	const res = await fetch(actor.outbox, { headers })
-	if (!res.ok) {
-		throw new Error(`${actor.outbox} returned ${res.status}`)
-	}
-
-	return res.json<OrderedCollection<unknown>>()
-}
-
 export async function get(actor: Actor): Promise<OrderedCollection<Activity>> {
-	const collection = await getMetadata(actor)
+	const collection = await getMetadata(actor.outbox)
 	collection.items = await loadItems(collection, 20)
 
 	return collection
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function loadItems<T>(collection: OrderedCollection<T>, max: number): Promise<Array<T>> {
-	// FIXME: implement max and multi page support
-
-	const res = await fetch(collection.first, { headers })
-	if (!res.ok) {
-		throw new Error(`${collection.first} returned ${res.status}`)
-	}
-
-	const data = await res.json<OrderedCollectionPage<T>>()
-	return data.orderedItems
+export async function countStatuses(actor: Actor): Promise<number> {
+	const metadata = await getMetadata(actor.outbox)
+	return metadata.totalItems
 }

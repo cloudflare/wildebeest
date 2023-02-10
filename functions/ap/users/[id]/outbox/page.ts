@@ -1,28 +1,27 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
-import * as objects from 'wildebeest/backend/src/activitypub/objects'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
+import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import * as activityCreate from 'wildebeest/backend/src/activitypub/activities/create'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, params.id as string, env.userKEK)
+	return handleRequest(domain, env.DATABASE, params.id as string)
 }
 
 const headers = {
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
 const DEFAULT_LIMIT = 20
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use userKEK
-export async function handleRequest(domain: string, db: D1Database, id: string, userKEK: string): Promise<Response> {
+export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 
 	if (handle.domain !== null) {
@@ -30,7 +29,7 @@ export async function handleRequest(domain: string, db: D1Database, id: string, 
 	}
 
 	const actorId = actorURL(domain, handle.localPart)
-	const actor = await getPersonById(db, actorId)
+	const actor = await getActorById(db, actorId)
 	if (actor === null) {
 		return new Response('', { status: 404 })
 	}
@@ -42,9 +41,11 @@ export async function handleRequest(domain: string, db: D1Database, id: string, 
 SELECT objects.*
 FROM outbox_objects
 INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE outbox_objects.actor_id = ? AND objects.type = 'Note'
+WHERE outbox_objects.actor_id = ?1
+      AND objects.type = 'Note'
+      AND outbox_objects.target = '${PUBLIC_GROUP}'
 ORDER by outbox_objects.cdate DESC
-LIMIT ?
+LIMIT ?2
 `
 
 	const { success, error, results } = await db.prepare(QUERY).bind(actorId.toString(), DEFAULT_LIMIT).all()
@@ -58,8 +59,8 @@ LIMIT ?
 			const properties = JSON.parse(result.properties)
 
 			const note: Note = {
-				id: new URL(objects.uri(domain, result.id)),
-				atomUri: new URL(objects.uri(domain, result.id)),
+				id: new URL(result.id),
+				atomUri: new URL(result.id),
 				type: 'Note',
 				published: new Date(result.cdate).toISOString(),
 

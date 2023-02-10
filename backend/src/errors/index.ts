@@ -1,11 +1,12 @@
+import { cors } from 'wildebeest/backend/src/utils/cors'
+
 type ErrorResponse = {
 	error: string
 	error_description?: string
 }
 
 const headers = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
+	...cors(),
 	'content-type': 'application/json',
 } as const
 
@@ -35,4 +36,16 @@ export function clientUnknown(): Response {
 
 export function internalServerError(): Response {
 	return generateErrorResponse('Internal Server Error', 500)
+}
+
+export function statusNotFound(id: string): Response {
+	return generateErrorResponse('Resource not found', 404, `Status "${id}" not found`)
+}
+
+export function mediaNotFound(id: string): Response {
+	return generateErrorResponse('Resource not found', 404, `Media "${id}" not found`)
+}
+
+export function exceededLimit(detail: string): Response {
+	return generateErrorResponse('Limit exceeded', 400, detail)
 }

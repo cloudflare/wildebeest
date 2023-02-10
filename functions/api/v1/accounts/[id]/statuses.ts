@@ -1,8 +1,10 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
+import * as errors from 'wildebeest/backend/src/errors'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
-import { getPersonById } from 'wildebeest/backend/src/activitypub/actors'
 import { makeGetActorAsId, makeGetObjectAsId } from 'wildebeest/backend/src/activitypub/activities/handle'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Handle } from 'wildebeest/backend/src/utils/parse'
@@ -14,18 +16,18 @@ import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import * as webfinger from 'wildebeest/backend/src/webfinger'
 import * as outbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { toMastodonStatusFromRow } from 'wildebeest/backend/src/mastodon/status'
 
 const headers = {
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
-	return handleRequest(request, env.DATABASE, params.id as string, env.userKEK)
+	return handleRequest(request, env.DATABASE, params.id as string)
 }
 
-export async function handleRequest(request: Request, db: D1Database, id: string, userKEK: string): Promise<Response> {
+export async function handleRequest(request: Request, db: D1Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 	const domain = new URL(request.url).hostname
 
@@ -34,14 +36,13 @@ export async function handleRequest(request: Request, db: D1Database, id: string
 		return getLocalStatuses(request, db, handle)
 	} else if (handle.domain !== null) {
 		// Retrieve the statuses of a remote actor
-		return getRemoteStatuses(request, handle, db, userKEK)
+		return getRemoteStatuses(request, handle, db)
 	} else {
 		return new Response('', { status: 403 })
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use userKEK
-async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database, userKEK: string): Promise<Response> {
+async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database): Promise<Response> {
 	const url = new URL(request.url)
 	const domain = url.hostname
 	const isPinned = url.searchParams.get('pinned') === 'true'
@@ -72,7 +73,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 			const actorId = getActorAsId()
 			const originalObjectId = getObjectAsId()
 			const res = await objects.cacheObject(domain, db, activity.object, actorId, originalObjectId, false)
-			return toMastodonStatusFromObject(db, res.object as Note)
+			return toMastodonStatusFromObject(db, res.object as Note, domain)
 		}
 
 		if (activity.type === 'Announce') {
@@ -101,7 +102,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 				obj = localObject
 			}
 
-			return toMastodonStatusFromObject(db, obj)
+			return toMastodonStatusFromObject(db, obj, domain)
 		}
 
 		// FIXME: support other Activities, like Update.
@@ -117,13 +118,23 @@ async function getLocalStatuses(request: Request, db: D1Database, handle: Handle
 
 	const QUERY = `
 SELECT objects.*,
+       actors.id as actor_id,
+       actors.cdate as actor_cdate,
+       actors.properties as actor_properties,
+       outbox_objects.actor_id as publisher_actor_id,
        (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
-       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count
+       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count,
+       (SELECT count(*) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count
 FROM outbox_objects
-INNER JOIN objects ON objects.id = outbox_objects.object_id
-WHERE outbox_objects.actor_id = ? AND outbox_objects.cdate > ? AND objects.type = 'Note'
-ORDER by outbox_objects.cdate DESC
-LIMIT ?
+INNER JOIN objects ON objects.id=outbox_objects.object_id
+INNER JOIN actors ON actors.id=outbox_objects.actor_id
+WHERE objects.type='Note'
+      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
+      AND outbox_objects.target = '${PUBLIC_GROUP}'
+      AND outbox_objects.actor_id = ?1
+      AND outbox_objects.cdate > ?2
+ORDER by outbox_objects.published_date DESC
+LIMIT ?3
 `
 
 	const DEFAULT_LIMIT = 20
@@ -144,9 +155,12 @@ LIMIT ?
 		// Client asked to retrieve statuses after the max_id
 		// As opposed to Mastodon we don't use incremental ID but UUID, we need
 		// to retrieve the cdate of the max_id row and only show the newer statuses.
-		const maxId = url.searchParams.get('max_id')
+		const maxId = url.searchParams.get('max_id')!
 
 		const row: any = await db.prepare('SELECT cdate FROM outbox_objects WHERE object_id=?').bind(maxId).first()
+		if (!row) {
+			return errors.statusNotFound(maxId)
+		}
 		afterCdate = row.cdate
 	}
 
@@ -155,37 +169,14 @@ LIMIT ?
 		throw new Error('SQL error: ' + error)
 	}
 
-	if (results && results.length > 0) {
-		for (let i = 0, len = results.length; i < len; i++) {
-			const result: any = results[i]
-			const properties = JSON.parse(result.properties)
+	if (!results) {
+		return new Response(JSON.stringify(out), { headers })
+	}
 
-			const author = await getPersonById(db, actorId)
-			if (author === null) {
-				console.error('note author is unknown')
-				continue
-			}
-
-			const acct = `${author.preferredUsername}@${domain}`
-			const account = await loadExternalMastodonAccount(acct, author)
-
-			out.push({
-				id: result.id,
-				uri: objects.uri(domain, result.id),
-				created_at: new Date(result.cdate).toISOString(),
-				content: properties.content,
-				emojis: [],
-				media_attachments: [],
-				tags: [],
-				mentions: [],
-				account,
-				favourites_count: result.favourites_count,
-				reblogs_count: result.reblogs_count,
-
-				// TODO: stub values
-				visibility: 'public',
-				spoiler_text: '',
-			})
+	for (let i = 0, len = results.length; i < len; i++) {
+		const status = await toMastodonStatusFromRow(domain, db, results[i])
+		if (status !== null) {
+			out.push(status)
 		}
 	}
 

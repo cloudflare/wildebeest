@@ -1,8 +1,8 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { DEFAULT_THUMBNAIL } from 'wildebeest/backend/src/config'
 import type { InstanceConfigV2 } from 'wildebeest/backend/src/types/configs'
-
-const INSTANCE_VERSION = '4.0.2'
+import { getVersion } from 'wildebeest/config/versions'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain = new URL(request.url).hostname
@@ -11,15 +11,14 @@ export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 
 export async function handleRequest(domain: string, db: D1Database, env: Env) {
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 
 	const res: InstanceConfigV2 = {
 		domain,
 		title: env.INSTANCE_TITLE,
-		version: INSTANCE_VERSION,
+		version: getVersion(),
 		source_url: 'https://github.com/cloudflare/wildebeest',
 		description: env.INSTANCE_DESCR,
 		thumbnail: {

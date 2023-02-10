@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/statuses/#context
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
@@ -12,9 +13,8 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 }
 
 const headers = {
+	...cors(),
 	'content-type': 'application/json; charset=utf-8',
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'content-type, authorization',
 }
 
 export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {

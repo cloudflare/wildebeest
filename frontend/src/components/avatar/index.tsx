@@ -1,9 +1,11 @@
 import { component$ } from '@builder.io/qwik'
 import type { Account } from '~/types'
 
+type AvatarDetails = Pick<Account, 'display_name' | 'avatar' | 'url'>
+
 type Props = {
-	primary: Account
-	secondary: Account | null
+	primary: AvatarDetails
+	secondary: AvatarDetails | null
 }
 
 export const Avatar = component$<Props>(({ primary, secondary }) => {

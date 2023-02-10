@@ -3,6 +3,7 @@ export type Handle = {
 	domain: string | null
 }
 
+// Parse a "handle" in the form: `[@] <local-part> '@' <domain>`
 export function parseHandle(query: string): Handle {
 	// Remove the leading @, if there's one.
 	if (query.startsWith('@')) {
@@ -13,9 +14,15 @@ export function parseHandle(query: string): Handle {
 	query = decodeURIComponent(query)
 
 	const parts = query.split('@')
+	const localPart = parts[0]
+
+	if (!/^[\w-.]+$/.test(localPart)) {
+		throw new Error('invalid handle: localPart: ' + localPart)
+	}
+
 	if (parts.length > 1) {
-		return { localPart: parts[0], domain: parts[1] }
+		return { localPart, domain: parts[1] }
 	} else {
-		return { localPart: parts[0], domain: null }
+		return { localPart, domain: null }
 	}
 }

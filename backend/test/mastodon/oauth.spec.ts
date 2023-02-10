@@ -5,6 +5,7 @@ import * as oauth_token from 'wildebeest/functions/oauth/token'
 import { isUrlValid, makeDB, assertCORS, assertJSON, createTestClient } from '../utils'
 import { TEST_JWT, ACCESS_CERTS } from '../test-data'
 import { strict as assert } from 'node:assert/strict'
+import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 
 const userKEK = 'test_kek3'
 const accessDomain = 'access.com'
@@ -34,16 +35,28 @@ describe('Mastodon APIs', () => {
 			const db = await makeDB()
 
 			let req = new Request('https://example.com/oauth/authorize')
-			let res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			let res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
+			assert.equal(res.status, 401)
+
+			const headers = {
+				'Cf-Access-Jwt-Assertion': TEST_JWT,
+			}
+
+			req = new Request('https://example.com/oauth/authorize', { headers })
+			res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 
-			req = new Request('https://example.com/oauth/authorize?scope=foobar')
-			res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			req = new Request('https://example.com/oauth/authorize?scope=foobar', { headers })
+			res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 		})
 
 		test('authorize unsupported response_type', async () => {
 			const db = await makeDB()
+
+			const headers = {
+				'Cf-Access-Jwt-Assertion': TEST_JWT,
+			}
 
 			const params = new URLSearchParams({
 				redirect_uri: 'https://example.com',
@@ -51,8 +64,8 @@ describe('Mastodon APIs', () => {
 				client_id: 'client_id',
 			})
 
-			const req = new Request('https://example.com/oauth/authorize?' + params)
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const req = new Request('https://example.com/oauth/authorize?' + params, { headers })
+			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 400)
 		})
 
@@ -71,7 +84,7 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize?' + params, {
 				headers,
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 403)
 		})
 
@@ -83,6 +96,7 @@ describe('Mastodon APIs', () => {
 				redirect_uri: client.redirect_uris,
 				response_type: 'code',
 				client_id: client.id,
+				state: 'mock-state',
 			})
 
 			const headers = { 'Cf-Access-Jwt-Assertion': TEST_JWT }
@@ -90,26 +104,25 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize?' + params, {
 				headers,
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 302)
 
 			const location = new URL(res.headers.get('location') || '')
 			assert.equal(
 				location.searchParams.get('redirect_uri'),
-				encodeURIComponent(`${client.redirect_uris}?code=${client.id}.${TEST_JWT}`)
+				encodeURIComponent(`${client.redirect_uris}?code=${client.id}.${TEST_JWT}&state=mock-state`)
 			)
 
 			// actor isn't created yet
-			const { count } = await db.prepare('SELECT count(*) as count FROM actors').first()
+			const { count } = await db.prepare('SELECT count(*) as count FROM actors').first<{ count: number }>()
 			assert.equal(count, 0)
 		})
 
-		test('first login creates the user and redirects', async () => {
+		test('first login is protected by Access', async () => {
 			const db = await makeDB()
 
 			const params = new URLSearchParams({
 				redirect_uri: 'https://redirect.com/a',
-				email: 'a@cloudflare.com',
 			})
 
 			const formData = new FormData()
@@ -120,21 +133,45 @@ describe('Mastodon APIs', () => {
 				method: 'POST',
 				body: formData,
 			})
-			const res = await first_login.handlePostRequest(req, db, userKEK)
+			const res = await first_login.handlePostRequest(req, db, userKEK, accessDomain, accessAud)
+			assert.equal(res.status, 401)
+		})
+
+		test('first login creates the user and redirects', async () => {
+			const db = await makeDB()
+
+			const params = new URLSearchParams({
+				redirect_uri: 'https://redirect.com/a',
+			})
+
+			const formData = new FormData()
+			formData.set('username', 'username')
+			formData.set('name', 'name')
+
+			const req = new Request('https://example.com/first-login?' + params, {
+				method: 'POST',
+				body: formData,
+				headers: {
+					cookie: `CF_Authorization=${TEST_JWT}`,
+				},
+			})
+			const res = await first_login.handlePostRequest(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 302)
 
 			const location = res.headers.get('location')
 			assert.equal(location, 'https://redirect.com/a')
 
-			const actor = await db.prepare('SELECT * FROM actors').first()
+			const actor = await db
+				.prepare('SELECT * FROM actors')
+				.first<{ properties: string; email: string; id: string } & Actor>()
 			const properties = JSON.parse(actor.properties)
 
-			assert.equal(actor.email, 'a@cloudflare.com')
+			assert.equal(actor.email, 'sven@cloudflare.com')
 			assert.equal(properties.preferredUsername, 'username')
 			assert.equal(properties.name, 'name')
 			assert(isUrlValid(actor.id))
 			// ensure that we generate a correct key pairs for the user
-			assert((await getSigningKey(userKEK, db, actor)) instanceof CryptoKey)
+			assert((await getSigningKey(userKEK, db, actor as Actor)) instanceof CryptoKey)
 		})
 
 		test('token error on unknown client', async () => {
@@ -199,7 +236,7 @@ describe('Mastodon APIs', () => {
 			const req = new Request('https://example.com/oauth/authorize', {
 				method: 'OPTIONS',
 			})
-			const res = await oauth_authorize.handleRequest(req, db, userKEK, accessDomain, accessAud)
+			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
 			assert.equal(res.status, 200)
 			assertCORS(res)
 		})

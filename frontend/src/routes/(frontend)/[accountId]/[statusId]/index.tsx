@@ -1,54 +1,69 @@
-import { component$, Slot } from '@builder.io/qwik'
+import { component$, Slot, useStyles$ } from '@builder.io/qwik'
 import { MastodonStatus, StatusContext } from '~/types'
 import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
-import { Link, loader$ } from '@builder.io/qwik-city'
+import * as contextAPI from 'wildebeest/functions/api/v1/statuses/[id]/context'
+import { DocumentHead, Link, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { Avatar } from '~/components/avatar'
+import { MediaGallery } from '~/components/MediaGallery.tsx'
+import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
+import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
+import styles from '../../../../utils/innerHtmlContent.scss?inline'
+import { getTextContent } from 'wildebeest/backend/src/activitypub/objects'
+import { getDocumentHead } from '~/utils/getDocumentHead'
 
 export const statusLoader = loader$<
-	{ DATABASE: D1Database; domain: string },
-	Promise<{ status: MastodonStatus; context: StatusContext }>
->(async ({ redirect, platform, params }) => {
-	const response = await statusAPI.handleRequest(platform.DATABASE, params.statusId)
-	const results = await response.text()
-	if (!results) {
-		throw redirect(303, '/not-found')
+	{ DATABASE: D1Database },
+	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>
+>(async ({ request, html, platform, params }) => {
+	const domain = new URL(request.url).hostname
+	let statusText = ''
+	try {
+		const statusResponse = await statusAPI.handleRequestGet(platform.DATABASE, params.statusId, domain)
+		statusText = await statusResponse.text()
+	} catch {
+		throw html(500, getErrorHtml('An error occurred whilst retrieving the status data, please try again later'))
 	}
-	return { status: JSON.parse(results), context: { ancestors: [], descendants: [] } }
+	if (!statusText) {
+		throw html(404, getNotFoundHtml())
+	}
+	const status: MastodonStatus = JSON.parse(statusText)
+	const statusTextContent = await getTextContent(status.content)
+
+	try {
+		const contextResponse = await contextAPI.handleRequest(domain, platform.DATABASE, params.statusId)
+		const contextText = await contextResponse.text()
+		const context = JSON.parse(contextText ?? null) as StatusContext | null
+		if (!context) {
+			throw new Error(`No context present for status with ${params.statusId}`)
+		}
+		return { status, statusTextContent, context }
+	} catch {
+		throw html(500, getErrorHtml('No context for the status has been found, please try again later'))
+	}
 })
 
 export default component$(() => {
-	const { status, context } = statusLoader.use().value
-	const mediaAttachment = (status.media_attachments && status.media_attachments[0]) || null
+	useStyles$(styles)
+
+	const loaderData = statusLoader.use().value
 
 	return (
 		<>
-			<StickyHeader>
-				<div class="flex justify-between items-center xl:rounded-t header bg-wildebeest-700">
-					<Link class="text-semi no-underline text-wildebeest-vibrant-400 bg-transparent p-4" href="/explore">
-						<i class="fa fa-chevron-left mr-2 w-3 inline-block" />
-						<span class="hover:underline">Back</span>
-					</Link>
-				</div>
-			</StickyHeader>
+			<StickyHeader withBackButton />
 			<div class="bg-wildebeest-700 p-4">
-				<AccountCard status={status} />
+				<AccountCard status={loaderData.status} />
+				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={loaderData.status.content} />
 
-				<div class="leading-normal status-content text-lg" dangerouslySetInnerHTML={status.content} />
+				<MediaGallery medias={loaderData.status.media_attachments} />
 
-				{mediaAttachment && (
-					<div class="flex justify-center" style={{ height: `${mediaAttachment.meta.small.height}px` }}>
-						{mediaAttachment.preview_url && <img class="rounded" src={mediaAttachment.preview_url} />}
-					</div>
-				)}
-
-				<InfoTray status={status} />
+				<InfoTray status={loaderData.status} />
 			</div>
 			<div>
-				{context.descendants.map((status) => {
+				{loaderData.context.descendants.map((status) => {
 					return <Status status={status} />
 				})}
 			</div>
@@ -57,13 +72,16 @@ export default component$(() => {
 })
 
 export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) => {
+	const accountUrl = `/@${status.account.username}`
+
 	return (
 		<div class="flex">
 			<Avatar primary={status.account} secondary={null} />
 			<div class="flex flex-col">
 				<div class="p-1">
-					{/* TODO: this should either have an href or not being an `a` element (also consider using QwikCity's `Link` instead) */}
-					<a class="no-underline">{status.account.display_name}</a>
+					<Link href={accountUrl} class="no-underline">
+						{status.account.display_name}
+					</Link>
 				</div>
 				<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>
 			</div>
@@ -111,3 +129,21 @@ export const Info = component$<{ href: string | null }>(({ href }) => {
 		</>
 	)
 })
+
+export const head: DocumentHead = ({ getData }) => {
+	const { status, statusTextContent } = getData(statusLoader)
+
+	const title = `${status.account.display_name}: ${statusTextContent.substring(0, 30)}${
+		statusTextContent.length > 30 ? '…' : ''
+	} - Wildebeest`
+
+	return getDocumentHead({
+		title,
+		description: statusTextContent,
+		og: {
+			type: 'article',
+			url: status.url,
+			image: status.account.avatar,
+		},
+	})
+}

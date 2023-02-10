@@ -18,11 +18,16 @@ variable "cloudflare_api_token" {
   sensitive = true
 }
 
-variable "gh_username" {
+variable "name_suffix" {
   type = string
 }
 
 variable "d1_id" {
+  type = string
+  sensitive = true
+}
+
+variable "do_cache_id" {
   type = string
   sensitive = true
 }
@@ -76,14 +81,16 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-resource "cloudflare_workers_kv_namespace" "wildebeest_cache" {
-  account_id = var.cloudflare_account_id
-  title = "wildebeest-${lower(var.gh_username)}-cache"
+// The KV cache namespace isn't used anymore but Terraform isn't able
+// to remove the binding from the Pages project, so leaving for now.
+resource "cloudflare_workers_kv_namespace" "wildebeest_cache" {	
+  account_id = var.cloudflare_account_id	
+  title = "wildebeest-${lower(var.name_suffix)}-cache"	
 }
 
 resource "cloudflare_workers_kv_namespace" "terraform_state" {
   account_id = var.cloudflare_account_id
-  title = "wildebeest-terraform-${lower(var.gh_username)}-state"
+  title = "wildebeest-terraform-${lower(var.name_suffix)}-state"
 }
 
 resource "random_password" "user_key" {
@@ -93,7 +100,7 @@ resource "random_password" "user_key" {
 
 resource "cloudflare_pages_project" "wildebeest_pages_project" {
   account_id = var.cloudflare_account_id
-  name              = "wildebeest-${lower(var.gh_username)}"
+  name              = "wildebeest-${lower(var.name_suffix)}"
   production_branch = "main"
 
   deployment_configs {
@@ -117,12 +124,20 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
         SENTRY_ACCESS_CLIENT_ID     = var.sentry_access_client_id
         SENTRY_ACCESS_CLIENT_SECRET = var.sentry_access_client_secret
       }
-      kv_namespaces = {
-        KV_CACHE = sensitive(cloudflare_workers_kv_namespace.wildebeest_cache.id)
+
+      kv_namespaces = {	
+        KV_CACHE = sensitive(cloudflare_workers_kv_namespace.wildebeest_cache.id)	
       }
+
       d1_databases = {
         DATABASE = sensitive(var.d1_id)
       }
+
+      durable_object_namespaces = {
+        DO_CACHE = sensitive(var.do_cache_id)
+      }
+
+      compatibility_date = "2023-01-09"
     }
   }
 }
@@ -138,7 +153,7 @@ resource "cloudflare_record" "record" {
 
 resource "cloudflare_pages_domain" "domain" {
   account_id   = var.cloudflare_account_id
-  project_name = "wildebeest-${lower(var.gh_username)}"
+  project_name = "wildebeest-${lower(var.name_suffix)}"
   domain       = trimspace(var.cloudflare_deploy_domain)
 
   depends_on = [
@@ -149,9 +164,9 @@ resource "cloudflare_pages_domain" "domain" {
 
 resource "cloudflare_access_application" "wildebeest_access" {
   account_id                = var.cloudflare_account_id
-  name                      = "wildebeest-${lower(var.gh_username)}"
+  name                      = "wildebeest-${lower(var.name_suffix)}"
   domain                    = "${trimspace(var.cloudflare_deploy_domain)}/oauth/authorize"
   type                      = "self_hosted"
-  session_duration          = "168h"
+  session_duration          = "730h"
   auto_redirect_to_identity = false
 }

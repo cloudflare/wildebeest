@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/accounts/#verify_credentials
 
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
@@ -35,8 +36,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, en
 	}
 
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type, authorization',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })

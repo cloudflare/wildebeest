@@ -1,4 +1,5 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
@@ -24,7 +25,7 @@ export async function handleRequest(
 	if (request.method !== 'POST') {
 		return new Response('', { status: 400 })
 	}
-
+	const domain = new URL(request.url).hostname
 	const handle = parseHandle(id)
 
 	// Only allow to follow remote users
@@ -43,14 +44,13 @@ export async function handleRequest(
 
 	const activity = follow.create(connectedActor, targetActor)
 	const signingKey = await getSigningKey(userKEK, db, connectedActor)
-	await deliverToActor(signingKey, connectedActor, targetActor, activity)
+	await deliverToActor(signingKey, connectedActor, targetActor, activity, domain)
 
 	const res: Relationship = {
 		id: await addFollowing(db, connectedActor, targetActor, acct),
 	}
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })

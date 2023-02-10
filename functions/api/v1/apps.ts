@@ -1,9 +1,11 @@
 import { ContextData } from 'wildebeest/backend/src/types/context'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
-import { Env } from 'wildebeest/backend/src/types/env'
+import type { Env } from 'wildebeest/backend/src/types/env'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 import { getVAPIDKeys } from 'wildebeest/backend/src/config'
+import { readBody } from 'wildebeest/backend/src/utils/body'
 
 type AppsPost = {
 	redirect_uris: string
@@ -21,7 +23,7 @@ export async function handleRequest(db: D1Database, request: Request, vapidKeys:
 		return new Response('', { status: 400 })
 	}
 
-	const body = await request.json<AppsPost>()
+	const body = await readBody<AppsPost>(request)
 
 	const client = await createClient(db, body.client_name, body.redirect_uris, body.website, body.scopes)
 	const vapidKey = VAPIDPublicKey(vapidKeys)
@@ -37,8 +39,7 @@ export async function handleRequest(db: D1Database, request: Request, vapidKeys:
 		vapid_key: vapidKey,
 	}
 	const headers = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'content-type',
+		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 	return new Response(JSON.stringify(res), { headers })

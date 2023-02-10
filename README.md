@@ -31,4 +31,3 @@ Follow this tutorial to deploy Wildebeest:
 - [Updating Wildebeest](docs/updating.md)
 - [Other Cloudflare services](docs/other-services.md)
 - [Troubleshooting](docs/troubleshooting.md)
-
