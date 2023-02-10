@@ -6,7 +6,7 @@ The deployment workflow runs automatically every time the main branch changes, s
 
 ![configuration screen](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/92ddc9f2-789b-454d-f6ca-2e9011613900/w=500)
 
-Once your fork is syncronized with the official repo, the GitHub Actions workflow is triggered and a new build will be deployed.
+Once your fork is synchronized with the official repo, the GitHub Actions workflow is triggered and a new build will be deployed.
 
 Updates are incremental and non-destructive. When the GitHub Actions workflow redeploys Wildebeest, we only make the necessary changes to your configuration and nothing else. You don't lose your data; we don't need to delete your existing configurations.
 
