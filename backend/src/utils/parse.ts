@@ -3,6 +3,7 @@ export type Handle = {
 	domain: string | null
 }
 
+// Parse a "handle" in the form: `[@] <local-part> '@' <domain>`
 export function parseHandle(query: string): Handle {
 	// Remove the leading @, if there's one.
 	if (query.startsWith('@')) {
