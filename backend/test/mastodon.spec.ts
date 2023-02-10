@@ -285,55 +285,41 @@ describe('Mastodon APIs', () => {
 
 	describe('Microformats', () => {
 		test('convert mentions to HTML', () => {
-			assert.equal(
-				enrichStatus('@sven2@example.com hein'),
-				'<p><span class="h-card"><a href="https://example.com/@sven2" class="u-url mention">@<span>sven2</span></a></span> hein</p>'
-			)
-
-			assert.equal(
-				enrichStatus('    @sven2@example.com hein'),
-				'<p>    <span class="h-card"><a href="https://example.com/@sven2" class="u-url mention">@<span>sven2</span></a></span> hein</p>'
-			)
-
-			assert.equal(
-				enrichStatus('@sven2@example.com\n\thein'),
-				'<p><span class="h-card"><a href="https://example.com/@sven2" class="u-url mention">@<span>sven2</span></a></span>\n\thein</p>'
-			)
-
-			assert.equal(
-				enrichStatus('hey @test@example.com hi'),
-				'<p>hey <span class="h-card"><a href="https://example.com/@test" class="u-url mention">@<span>test</span></a></span> hi</p>'
-			)
-
-			assert.equal(
-				enrichStatus('hello @test@example.com'),
-				'<p>hello <span class="h-card"><a href="https://example.com/@test" class="u-url mention">@<span>test</span></a></span></p>'
-			)
-
-			assert.equal(
-				enrichStatus('hello @test@example.eng.com'),
-				'<p>hello <span class="h-card"><a href="https://example.eng.com/@test" class="u-url mention">@<span>test</span></a></span></p>'
-			)
-
-			assert.equal(
-				enrichStatus('hello @test@example.eng.com!!!'),
-				'<p>hello <span class="h-card"><a href="https://example.eng.com/@test" class="u-url mention">@<span>test</span></a></span>!!!</p>'
-			)
-
-			assert.equal(
-				enrichStatus('hi @test.a.b.c-d@example.eng.co.uk.....'),
-				'<p>hi <span class="h-card"><a href="https://example.eng.co.uk/@test.a.b.c-d" class="u-url mention">@<span>test.a.b.c-d</span></a></span>.....</p>'
-			)
-
-			assert.equal(
-				enrichStatus(`@testey@123456.abcdef, hi!`),
-				'<p><span class="h-card"><a href="https://123456.abcdef/@testey" class="u-url mention">@<span>testey</span></a></span>, hi!</p>'
-			)
-
-			assert.equal(
-				enrichStatus(`@testey@123456.test.testey.abcdef`),
-				'<p><span class="h-card"><a href="https://123456.test.testey.abcdef/@testey" class="u-url mention">@<span>testey</span></a></span></p>'
-			)
+			const mentionsToTest = [
+				{
+					mention: '@sven2@example.com',
+					expectedMentionSpan:
+						'<span class="h-card"><a href="https://example.com/@sven2" class="u-url mention">@<span>sven2</span></a></span>',
+				},
+				{
+					mention: '@test@example.eng.com',
+					expectedMentionSpan:
+						'<span class="h-card"><a href="https://example.eng.com/@test" class="u-url mention">@<span>test</span></a></span>',
+				},
+				{
+					mention: '@test.a.b.c-d@example.eng.co.uk',
+					expectedMentionSpan:
+						'<span class="h-card"><a href="https://example.eng.co.uk/@test.a.b.c-d" class="u-url mention">@<span>test.a.b.c-d</span></a></span>',
+				},
+				{
+					mention: '@testey@123456.abcdef',
+					expectedMentionSpan:
+						'<span class="h-card"><a href="https://123456.abcdef/@testey" class="u-url mention">@<span>testey</span></a></span>',
+				},
+				{
+					mention: '@testey@123456.test.testey.abcdef',
+					expectedMentionSpan:
+						'<span class="h-card"><a href="https://123456.test.testey.abcdef/@testey" class="u-url mention">@<span>testey</span></a></span>',
+				},
+			]
+			mentionsToTest.forEach(({ mention, expectedMentionSpan }) => {
+				assert.equal(enrichStatus(`hey ${mention} hi`), `<p>hey ${expectedMentionSpan} hi</p>`)
+				assert.equal(enrichStatus(`${mention} hi`), `<p>${expectedMentionSpan} hi</p>`)
+				assert.equal(enrichStatus(`${mention}\n\thein`), `<p>${expectedMentionSpan}\n\thein</p>`)
+				assert.equal(enrichStatus(`hey ${mention}`), `<p>hey ${expectedMentionSpan}</p>`)
+				assert.equal(enrichStatus(`${mention}`), `<p>${expectedMentionSpan}</p>`)
+				assert.equal(enrichStatus(`@!@£${mention}!!!`), `<p>@!@£${expectedMentionSpan}!!!</p>`)
+			})
 		})
 
 		test('handle invalid mention', () => {
