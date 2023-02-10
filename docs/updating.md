@@ -1,4 +1,4 @@
-[Index](../) ┊ [Back](supported-clients.md) ┊ [Other Cloudflare services](other-services.md)
+[Index](../README.md) ┊ [Back](supported-clients.md) ┊ [Other Cloudflare services](other-services.md)
 
 ## Updating Wildebeest
 
@@ -14,4 +14,4 @@ Data loss is not a problem either because D1 supports migrations. If we need to 
 
 ![first login](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/51a4767c-5d3d-4075-d17d-b8112432ca00/w=850)
 
-[Index](../) ┊ [Back](supported-clients.md) ┊ [Other Cloudflare services](other-services.md)
+[Index](../README.md) ┊ [Back](supported-clients.md) ┊ [Other Cloudflare services](other-services.md)

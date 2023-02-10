@@ -1,4 +1,4 @@
-[Index](../) ┊ [Back](../) ┊ [Getting started](getting-started.md)
+[Index](../README.md) ┊ [Back](../) ┊ [Getting started](getting-started.md)
 
 ## Requirements
 
@@ -20,4 +20,4 @@ Most of our products offer a [generous free plan](https://www.cloudflare.com/en-
 
 Because you subscribed a Workers Paid plan to use Unbound, you also get Durable Objects and Queues and no further action is required. Please refer to our [Workers limits](https://developers.cloudflare.com/workers/platform/limits/) and [Queues limits](https://developers.cloudflare.com/queues/limits/) pages for more information. Queues requires the Workers Paid plan to use, but [does not increase](https://developers.cloudflare.com/queues/pricing/) your monthly subscription cost.
 
-[Index](../) ┊ [Back](../) ┊ [Getting started](getting-started.md)
+[Index](../README.md) ┊ [Back](../) ┊ [Getting started](getting-started.md)

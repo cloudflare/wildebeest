@@ -1,4 +1,4 @@
-[Index](../) ┊ [Back](access-policy.md) ┊ [Updating Wildebeest](updating.md)
+[Index](../README.md) ┊ [Back](access-policy.md) ┊ [Updating Wildebeest](updating.md)
 
 ## Supported Clients
 
@@ -11,4 +11,4 @@ This is the list clients that we have been using successfully while developing a
 
 Wildebeest also provides a read-only web client in your instance URL, where you can explore the timelines (local and federated), posts and profiles. Please use the existing Mastodon clients to post and manage your account.
 
-[Index](../) ┊ [Back](access-policy.md) ┊ [Updating Wildebeest](updating.md)
+[Index](../README.md) ┊ [Back](access-policy.md) ┊ [Updating Wildebeest](updating.md)

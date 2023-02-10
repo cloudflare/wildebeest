@@ -1,4 +1,4 @@
-[Index](../) ┊ [Back](getting-started.md) ┊ [Supported clients](supported-clients.md)
+[Index](../README.md) ┊ [Back](getting-started.md) ┊ [Supported clients](supported-clients.md)
 
 ## Access Policy
 
@@ -48,4 +48,4 @@ Go to `https://social.example/api/v1/instance` (replace social.example with your
 
 That's it, you're ready to start using your Wildebeest Mastodon compatible instance.
 
-[Index](../) ┊ [Back](getting-started.md) ┊ [Supported clients](supported-clients.md)
+[Index](../README.md) ┊ [Back](getting-started.md) ┊ [Supported clients](supported-clients.md)

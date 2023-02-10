@@ -1,4 +1,4 @@
-[Index](../) ┊ [Back](updating.md) ┊ [Troubleshooting](troubleshooting.md)
+[Index](../README.md) ┊ [Back](updating.md) ┊ [Troubleshooting](troubleshooting.md)
 
 ## Additional Cloudflare services
 
@@ -16,4 +16,4 @@ Likewise, you'll get instant network and content delivery optimizations from our
 
 If you want to receive Email at your @social.example domain, you can enable [Email Routing](https://developers.cloudflare.com/email-routing/get-started/enable-email-routing/) for free and take advantage of sophisticated Email forwarding and protection features. Simply log in to your account, select the Wildebeest zone and then click on Email to enable.
 
-[Index](../) ┊ [Back](updating.md) ┊ [Troubleshooting](troubleshooting.md)
+[Index](../README.md) ┊ [Back](updating.md) ┊ [Troubleshooting](troubleshooting.md)

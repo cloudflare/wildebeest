@@ -1,4 +1,4 @@
-[Index](../) ┊ [Back](other-services.md)
+[Index](../README.md) ┊ [Back](other-services.md)
 
 ## Troubleshooting
 
@@ -32,4 +32,4 @@ We will keep optimizing our code to run as fast as possible, but if you start se
 
 After you change your Pages project to Unbound, you need to redeploy it. Go to GitHub Actions in your repo, select the latest successful deploy, and press **Re-run all jobs**.
 
-[Index](../) ┊ [Back](other-services.md)
+[Index](../README.md) ┊ [Back](other-services.md)

@@ -1,4 +1,4 @@
-[Index](../) ┊ [Back](requirements.md) ┊ [Access policy](access-policy.md)
+[Index](../README.md) ┊ [Back](requirements.md) ┊ [Access policy](access-policy.md)
 
 ## Getting started
 
@@ -58,4 +58,4 @@ If you followed all the steps, you should see a successful GitHub Actions build.
 
 You can also confirm in the Cloudflare [dashboard](https://dash.cloudflare.com) that the Pages project, DNS entry, KV namespace, D1 database and Access rule were all created and configured.
 
-[Index](../) ┊ [Back](requirements.md) ┊ [Access policy](access-policy.md)
+[Index](../README.md) ┊ [Back](requirements.md) ┊ [Access policy](access-policy.md)
