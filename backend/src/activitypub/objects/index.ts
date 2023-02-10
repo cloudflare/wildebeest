@@ -226,7 +226,7 @@ export async function sanitizeObjectProperties(properties: unknown): Promise<APO
 		sanitized.content = await sanitizeContent(properties.content as string)
 	}
 	if ('name' in properties) {
-		sanitized.name = await sanitizeName(properties.name as string)
+		sanitized.name = await getTextContent(properties.name as string)
 	}
 	return sanitized
 }
@@ -245,12 +245,12 @@ export async function sanitizeContent(unsafeContent: string): Promise<string> {
 }
 
 /**
- * Sanitizes given string as an ActivityPub Object name.
- *
- * This sanitization removes all HTML elements from the string leaving only the text content.
+ * This method removes all HTML elements from the string leaving only the text content.
  */
-export async function sanitizeName(unsafeName: string): Promise<string> {
-	return await getNameRewriter().transform(new Response(unsafeName)).text()
+export async function getTextContent(unsafeName: string): Promise<string> {
+	const rawContent = getTextContentRewriter().transform(new Response(unsafeName))
+	const text = await rawContent.text()
+	return text.trim()
 }
 
 function getContentRewriter() {
@@ -273,14 +273,17 @@ function getContentRewriter() {
 	return contentRewriter
 }
 
-function getNameRewriter() {
-	const nameRewriter = new HTMLRewriter()
-	nameRewriter.on('*', {
+function getTextContentRewriter() {
+	const textContentRewriter = new HTMLRewriter()
+	textContentRewriter.on('*', {
 		element(el) {
 			el.removeAndKeepContent()
+			if (['p', 'br'].includes(el.tagName)) {
+				el.after(' ')
+			}
 		},
 	})
-	return nameRewriter
+	return textContentRewriter
 }
 
 // TODO: eventually use SQLite's `ON DELETE CASCADE` but requires writing the DB
