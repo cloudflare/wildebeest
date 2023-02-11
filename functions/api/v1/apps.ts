@@ -23,7 +23,24 @@ export async function handleRequest(db: D1Database, request: Request, vapidKeys:
 		return new Response('', { status: 400 })
 	}
 
-	const body = await readBody<AppsPost>(request)
+	const body: AppsPost = await readBody<AppsPost>(request)
+
+  // Parameter validation according to https://github.com/mastodon/mastodon/blob/main/app/lib/application_extension.rb
+  if ((body.client_name === undefined) || (body.client_name?.trim() === '')) {
+    return new Response('Unprocessable entity: client_name cannot be an empty string', { status: 422 })
+  } else if ((body.client_name?.length > 60)) {
+    return new Response('Unprocessable entity: client_name cannot exceed 60 characters', { status: 422 })
+  } else if ((body.redirect_uris === undefined) || (body.redirect_uris?.trim() === '')) {
+    return new Response('Unprocessable entity: redirect_uris cannot be an empty string', { status: 422 })
+  } else if ((body.redirect_uris?.length > 2000)) {
+    return new Response('Unprocessable entity: redirect_uris cannot exceed 2000 characters', { status: 422 })
+  } else if (body.redirect_uris !== 'urn:ietf:wg:oauth:2.0:oob') {
+    try {
+      new URL("", body.redirect_uris);
+    } catch {
+      return new Response('Unprocessable entity: redirect_uris must be a valid URI', { status: 422 })
+    }
+  }
 
 	const client = await createClient(db, body.client_name, body.redirect_uris, body.website, body.scopes)
 	const vapidKey = VAPIDPublicKey(vapidKeys)
