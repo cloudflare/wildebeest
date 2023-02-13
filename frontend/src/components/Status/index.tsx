@@ -23,7 +23,7 @@ export default component$((props: Props) => {
 	const handleContentClick = $(() => nav(statusUrl))
 
 	return (
-		<article class="p-4 border-t border-wildebeest-700 pointer">
+		<article class="p-4 border-t border-wildebeest-700 break-words sm:break-normal">
 			<RebloggerLink account={reblogger}></RebloggerLink>
 			<div onClick$={handleContentClick}>
 				<div class="flex justify-between mb-3">

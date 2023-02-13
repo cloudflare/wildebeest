@@ -31,10 +31,15 @@
     white-space: nowrap;
     overflow: hidden;
     text-decoration: none;
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 50%;
   }
 
-  .ellipsis::after {
-    content: "...";
+  @screen sm {
+    .ellipsis {
+      display: inline;
+    }
   }
 
   .status-link {
