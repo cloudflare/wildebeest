@@ -966,5 +966,39 @@ describe('Mastodon APIs', () => {
 				assert.equal(row.count, 1)
 			}
 		})
+
+		test('hashtag in status adds in note_hashtags table', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'hey #hi #car',
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+
+			const { results, success } = await db
+				.prepare('SELECT value, object_id FROM note_hashtags')
+				.all<{ value: string; object_id: string }>()
+			assert(success)
+			assert(results)
+			assert.equal(results!.length, 2)
+			assert.equal(results![0].value, 'hi')
+			assert.equal(results![1].value, 'car')
+
+			const note = (await getObjectByMastodonId(db, data.id)) as unknown as Note
+			assert.equal(results![0].object_id, note.id.toString())
+			assert.equal(results![1].object_id, note.id.toString())
+		})
 	})
 })
