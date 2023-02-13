@@ -115,7 +115,9 @@ export async function handleRequest(
 
 	const note = await createStatus(domain, db, connectedActor, content, mediaAttachments, extraProperties)
 
-	await insertHashtags(db, note, hashtags)
+	if (hashtags.length > 0) {
+		await insertHashtags(db, note, hashtags)
+	}
 
 	if (inReplyToObject !== null) {
 		// after the status has been created, record the reply.
