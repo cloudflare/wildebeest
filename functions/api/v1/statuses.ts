@@ -9,6 +9,7 @@ import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/que
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import { createStatus, getMentions } from 'wildebeest/backend/src/mastodon/status'
+import { getHashtags, insertHashtags } from 'wildebeest/backend/src/mastodon/hashtag'
 import * as activities from 'wildebeest/backend/src/activitypub/activities/create'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
@@ -104,6 +105,8 @@ export async function handleRequest(
 		extraProperties.inReplyTo = inReplyToObject[originalObjectIdSymbol] || inReplyToObject.id.toString()
 	}
 
+	const hashtags = getHashtags(body.status)
+
 	const content = enrichStatus(body.status)
 	const mentions = await getMentions(body.status, domain)
 	if (mentions.length > 0) {
@@ -111,6 +114,8 @@ export async function handleRequest(
 	}
 
 	const note = await createStatus(domain, db, connectedActor, content, mediaAttachments, extraProperties)
+
+	await insertHashtags(db, note, hashtags)
 
 	if (inReplyToObject !== null) {
 		// after the status has been created, record the reply.
