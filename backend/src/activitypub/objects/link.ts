@@ -1,6 +1,7 @@
-import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-link
+export interface Link {
+	type: string
 
-export interface Link extends APObject {
 	href: URL
 	name: string
 }
