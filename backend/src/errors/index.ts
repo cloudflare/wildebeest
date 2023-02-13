@@ -46,6 +46,10 @@ export function mediaNotFound(id: string): Response {
 	return generateErrorResponse('Resource not found', 404, `Media "${id}" not found`)
 }
 
+export function tagNotFound(tag: string): Response {
+	return generateErrorResponse('Resource not found', 404, `Tag "${tag}" not found`)
+}
+
 export function exceededLimit(detail: string): Response {
 	return generateErrorResponse('Limit exceeded', 400, detail)
 }
