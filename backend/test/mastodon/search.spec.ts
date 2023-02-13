@@ -168,5 +168,12 @@ describe('Mastodon APIs', () => {
 				assert.equal(data.accounts[1].display_name, 'bar')
 			}
 		})
+
+		test('empty results for invalid handle', async () => {
+			const db = await makeDB()
+			const req = new Request('https://example.com/api/v2/search?q=    ')
+			const res = await search.handleRequest(db, req)
+			assert.equal(res.status, 400)
+		})
 	})
 })
