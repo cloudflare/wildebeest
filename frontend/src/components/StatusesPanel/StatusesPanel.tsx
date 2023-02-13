@@ -21,6 +21,7 @@ export const StatusesPanel = component$(({ initialStatuses, fetchMoreStatuses: f
 		const newStatuses = await fetchMoreStatusesFn(statuses.value.length)
 		fetchingMoreStatuses.value = false
 		noMoreStatusesAvailable.value = newStatuses.length === 0
+		statuses.value = [...statuses.value, ...newStatuses]
 	})
 
 	useClientEffect$(({ track }) => {

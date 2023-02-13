@@ -123,9 +123,20 @@ export default component$(() => {
 				{accountDetails.statuses.length > 0 && (
 					<StatusesPanel
 						initialStatuses={accountDetails.statuses}
-						fetchMoreStatuses={$(async () => {
-							// TODO-DARIO: implement this function
-							return []
+						fetchMoreStatuses={$(async (numOfCurrentStatuses: number) => {
+							let statuses: MastodonStatus[] = []
+							try {
+								const response = await fetch(
+									`/api/v1/accounts/${accountDetails.account.id}/statuses?offset=${numOfCurrentStatuses}`
+								)
+								if (response.ok) {
+									const results = await response.text()
+									statuses = JSON.parse(results)
+								}
+							} catch {
+								/* empty */
+							}
+							return statuses
 						})}
 					/>
 				)}
