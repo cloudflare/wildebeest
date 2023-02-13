@@ -1126,6 +1126,116 @@ const mastodonRawStatuses: MastodonStatus[] = [
 		},
 		poll: null,
 	},
+	{
+		id: '109261798394272672',
+		created_at: '2022-10-31T07:52:14.290Z',
+		in_reply_to_id: null,
+		in_reply_to_account_id: null,
+		sensitive: false,
+		spoiler_text: '',
+		visibility: 'public',
+		language: 'en',
+		uri: 'https://mastodon.design/users/rafa/statuses/109261798394272672',
+		url: 'https://mastodon.design/@rafa/109261798394272672',
+		replies_count: 5,
+		reblogs_count: 10,
+		favourites_count: 42,
+		edited_at: null,
+		content:
+			'<p>Time for an updated <a href="https://mastodon.design/tags/Introduction" class="mention hashtag" rel="tag">#<span>Introduction</span></a>:</p><p>I&#39;m Rafa, a designer and app developer currently living in Amsterdam ☀️</p><p>I make Hand Mirror for macOS, Booby Track for iOS/watchOS, and co-host a design podcast with my friend <span class="h-card"><a href="https://mastodon.design/@kevin" class="u-url mention">@<span>kevin</span></a></span> called Layout.</p><p>Been loving the sense of community and the good vibes you&#39;re all giving in this platform, say hi 👋</p><p>Here&#39;s some topics I feel like I like to participate in, I hear hashtags can help with discovery so here it goes: <a href="https://mastodon.design/tags/Design" class="mention hashtag" rel="tag">#<span>Design</span></a> <a href="https://mastodon.design/tags/Tech" class="mention hashtag" rel="tag">#<span>Tech</span></a> <a href="https://mastodon.design/tags/AppDevelopment" class="mention hashtag" rel="tag">#<span>AppDevelopment</span></a> <a href="https://mastodon.design/tags/Parenthood" class="mention hashtag" rel="tag">#<span>Parenthood</span></a> <a href="https://mastodon.design/tags/Therapy" class="mention hashtag" rel="tag">#<span>Therapy</span></a></p>',
+		reblog: null,
+		application: {
+			name: 'Web',
+			website: null,
+		},
+		account: {
+			id: '11932',
+			username: 'rafa',
+			acct: 'rafa',
+			display_name: 'Rafa',
+			locked: false,
+			bot: false,
+			discoverable: true,
+			group: false,
+			created_at: '2018-08-21T00:00:00.000Z',
+			note: '<p>I’m a designer and app developer, currently working on Sketch, and Hand Mirror for Mac</p>',
+			url: 'https://mastodon.design/@rafa',
+			avatar: 'https://cdn.masto.host/mastodondesign/accounts/avatars/000/011/932/original/8f601be03c98b2e8.png',
+			avatar_static: 'https://cdn.masto.host/mastodondesign/accounts/avatars/000/011/932/original/8f601be03c98b2e8.png',
+			header: 'https://cdn.masto.host/mastodondesign/accounts/headers/000/011/932/original/668f6d32abb54252.jpeg',
+			header_static:
+				'https://cdn.masto.host/mastodondesign/accounts/headers/000/011/932/original/668f6d32abb54252.jpeg',
+			followers_count: 3135,
+			following_count: 453,
+			statuses_count: 1289,
+			last_status_at: '2023-02-12',
+			noindex: false,
+			emojis: [],
+			fields: [
+				{
+					name: 'Website',
+					value:
+						'<a href="https://rafa.design" target="_blank" rel="nofollow noopener noreferrer me"><span class="invisible">https://</span><span class="">rafa.design</span><span class="invisible"></span></a>',
+					verified_at: '2022-11-06T16:49:24.339+00:00',
+				},
+				{
+					name: 'App',
+					value:
+						'<a href="http://handmirror.app" target="_blank" rel="nofollow noopener noreferrer me"><span class="invisible">http://</span><span class="">handmirror.app</span><span class="invisible"></span></a>',
+					verified_at: null,
+				},
+				{
+					name: 'Podcast',
+					value:
+						'<a href="http://layout.fm" target="_blank" rel="nofollow noopener noreferrer me"><span class="invisible">http://</span><span class="">layout.fm</span><span class="invisible"></span></a>',
+					verified_at: null,
+				},
+				{
+					name: 'Pronouns',
+					value: 'He/Them',
+					verified_at: null,
+				},
+			],
+		},
+		media_attachments: [],
+		mentions: [
+			{
+				id: '12179',
+				username: 'kevin',
+				url: 'https://mastodon.design/@kevin',
+				acct: 'kevin',
+			},
+		],
+		tags: [
+			{
+				name: 'therapy',
+				url: 'https://mastodon.design/tags/therapy',
+			},
+			{
+				name: 'parenthood',
+				url: 'https://mastodon.design/tags/parenthood',
+			},
+			{
+				name: 'appdevelopment',
+				url: 'https://mastodon.design/tags/appdevelopment',
+			},
+			{
+				name: 'tech',
+				url: 'https://mastodon.design/tags/tech',
+			},
+			{
+				name: 'design',
+				url: 'https://mastodon.design/tags/design',
+			},
+			{
+				name: 'introduction',
+				url: 'https://mastodon.design/tags/introduction',
+			},
+		],
+		emojis: [],
+		card: null,
+		poll: null,
+	},
 ]
 
 export const statuses: MastodonStatus[] = mastodonRawStatuses.map((rawStatus) => ({

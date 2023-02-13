@@ -1,6 +1,6 @@
 import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { unwrapPrivateKey } from 'wildebeest/backend/src/utils/key-ops'
-import type { Actor } from '../activitypub/actors'
+import { Actor } from '../activitypub/actors'
 import { defaultImages } from 'wildebeest/config/accounts'
 import * as apOutbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as apFollow from 'wildebeest/backend/src/activitypub/actors/follow'
