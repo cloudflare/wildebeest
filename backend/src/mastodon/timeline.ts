@@ -112,8 +112,14 @@ export async function getPublicTimeline(
 	domain: string,
 	db: D1Database,
 	localPreference: LocalPreference,
-	offset: number = 0
+	offset: number = 0,
+	hashtag?: string
 ): Promise<Array<MastodonStatus>> {
+	let hashtagFilter = ''
+	if (hashtag) {
+		hashtagFilter = 'AND note_hashtags.value=?3'
+	}
+
 	const QUERY = `
 SELECT objects.*,
        actors.id as actor_id,
@@ -126,17 +132,24 @@ SELECT objects.*,
 FROM outbox_objects
 INNER JOIN objects ON objects.id=outbox_objects.object_id
 INNER JOIN actors ON actors.id=outbox_objects.actor_id
+LEFT JOIN note_hashtags ON objects.id=note_hashtags.object_id
 WHERE objects.type='Note'
       AND ${localPreferenceQuery(localPreference)}
       AND json_extract(objects.properties, '$.inReplyTo') IS NULL
       AND outbox_objects.target = '${PUBLIC_GROUP}'
+      ${hashtagFilter}
 GROUP BY objects.id
 ORDER by outbox_objects.published_date DESC
 LIMIT ?1 OFFSET ?2
 `
 	const DEFAULT_LIMIT = 20
 
-	const { success, error, results } = await db.prepare(QUERY).bind(DEFAULT_LIMIT, offset).all()
+	let query = db.prepare(QUERY).bind(DEFAULT_LIMIT, offset)
+	if (hashtagFilter) {
+		query = db.prepare(QUERY).bind(DEFAULT_LIMIT, offset, hashtag)
+	}
+
+	const { success, error, results } = await query.all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}
