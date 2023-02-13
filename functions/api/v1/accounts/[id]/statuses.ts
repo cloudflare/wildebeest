@@ -17,6 +17,7 @@ import * as webfinger from 'wildebeest/backend/src/webfinger'
 import * as outbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { toMastodonStatusFromRow } from 'wildebeest/backend/src/mastodon/status'
+import { adjustLocalHostDomain } from 'wildebeest/backend/src/utils/adjustLocalHostDomain'
 
 const headers = {
 	...cors(),
@@ -112,9 +113,9 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 	return new Response(JSON.stringify(statuses), { headers })
 }
 
-async function getLocalStatuses(request: Request, db: D1Database, handle: Handle): Promise<Response> {
+export async function getLocalStatuses(request: Request, db: D1Database, handle: Handle): Promise<Response> {
 	const domain = new URL(request.url).hostname
-	const actorId = actorURL(domain, handle.localPart)
+	const actorId = actorURL(adjustLocalHostDomain(domain), handle.localPart)
 
 	const QUERY = `
 SELECT objects.*,
