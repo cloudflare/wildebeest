@@ -4,10 +4,10 @@ test('Display the list of toots in the explore page', async ({ page }) => {
 	await page.goto('http://127.0.0.1:8788/explore')
 
 	const tootsTextsToCheck = [
-		'Hi, meet HiDock',
-		'George Santos is in serious trouble.',
-		'The real message of Jurassic Park is that you get the Unix and IT support you pay for.',
-		'BREAKING: Black smoke coming from Capitol chimney.',
+		'Hi! My name is Rafael!',
+		'We did it!',
+		"Fine. I'll use Wildebeest",
+		'A very simple update: all good!',
 	]
 
 	for (const tootText of tootsTextsToCheck) {
