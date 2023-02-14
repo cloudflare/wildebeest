@@ -20,6 +20,32 @@
 	--wildebeest-vibrant-color-600: hsl(var(--wildebeest-vibrant-hue), 100%, 67%);
 }
 
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--wildebeest-color-700);
+    border: 0;
+    border-radius: 0;
+}
+
+::-webkit-scrollbar-track {
+    border: 0;
+    border-radius: 0;
+    background: var(--wildebeest-color-900);
+}
+
+::-webkit-scrollbar-track:hover,
+::-webkit-scrollbar-track:active {
+	background: var(--wildebeest-color-600);
+}
+
 body {
 	font-family: ui-sans-serif, sans-serif, ui-sans-serif;
 	line-height: 1.25rem;
