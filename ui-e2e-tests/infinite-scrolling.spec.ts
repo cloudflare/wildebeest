@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect, Page, Request } from '@playwright/test'
 import type { Account, MastodonStatus } from 'wildebeest/frontend/src/types'
 
 test.describe('Infinite (statuses) scrolling', () => {
@@ -6,6 +6,20 @@ test.describe('Infinite (statuses) scrolling', () => {
 		{
 			description: 'in explore page',
 			goToPageFn: async (page: Page) => await page.goto('http://127.0.0.1:8788/explore'),
+			fetchUrl: 'http://127.0.0.1:8788/api/v1/timelines/public?*',
+		},
+		{
+			description: 'in local page',
+			goToPageFn: async (page: Page) => await page.goto('http://127.0.0.1:8788/public/local'),
+			fetchUrl: 'http://127.0.0.1:8788/api/v1/timelines/public?*',
+			isRequestValid: (request: Request) => {
+				const searchParams = new URL(request.url()).searchParams
+				return searchParams.get('local') === 'true'
+			},
+		},
+		{
+			description: 'in federated page',
+			goToPageFn: async (page: Page) => await page.goto('http://127.0.0.1:8788/public'),
 			fetchUrl: 'http://127.0.0.1:8788/api/v1/timelines/public?*',
 		},
 		{
@@ -21,7 +35,7 @@ test.describe('Infinite (statuses) scrolling', () => {
 		},
 	]
 
-	tests.forEach(({ description, fetchUrl, goToPageFn }) =>
+	tests.forEach(({ description, fetchUrl, goToPageFn, isRequestValid }) =>
 		test(description, async ({ page, browserName }) => {
 			test.skip(browserName !== 'chromium', 'Only chromium tests infinite scrolling well')
 
@@ -29,8 +43,11 @@ test.describe('Infinite (statuses) scrolling', () => {
 			await page.waitForLoadState('networkidle')
 
 			const generateFakeStatus = getMockStatusFn()
-			await page.route(fetchUrl, async (route) => {
-				const newStatuses = new Array(5).fill(null).map(generateFakeStatus)
+			await page.route(fetchUrl, async (route, request) => {
+				let newStatuses: MastodonStatus[] = []
+				if (!isRequestValid || isRequestValid(request)) {
+					newStatuses = new Array(5).fill(null).map(generateFakeStatus)
+				}
 				await route.fulfill({ body: JSON.stringify(newStatuses) })
 			})
 

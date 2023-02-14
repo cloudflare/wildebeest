@@ -1,11 +1,11 @@
-import { component$ } from '@builder.io/qwik'
+import { $, component$ } from '@builder.io/qwik'
 import { MastodonStatus } from '~/types'
 import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
-import Status from '~/components/Status'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { RequestContext } from '@builder.io/qwik-city/middleware/request-handler'
+import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
 
 export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<MastodonStatus[]>>(
 	async ({ platform, html }) => {
@@ -22,7 +22,7 @@ export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, 
 )
 
 export default component$(() => {
-	const statuses = statusesLoader.use()
+	const statuses = statusesLoader.use().value
 	return (
 		<>
 			<StickyHeader>
@@ -31,13 +31,22 @@ export default component$(() => {
 					<span>Local timeline</span>
 				</div>
 			</StickyHeader>
-			{statuses.value.length > 0 ? (
-				statuses.value.map((status) => <Status status={status} />)
-			) : (
-				<div class="flex-1 grid place-items-center bg-wildebeest-600 text-center">
-					<p>Nothing to see right now. Check back later!</p>
-				</div>
-			)}
+			<StatusesPanel
+				initialStatuses={statuses}
+				fetchMoreStatuses={$(async (numOfCurrentStatuses: number) => {
+					let statuses: MastodonStatus[] = []
+					try {
+						const response = await fetch(`/api/v1/timelines/public?local=true&offset=${numOfCurrentStatuses}`)
+						if (response.ok) {
+							const results = await response.text()
+							statuses = JSON.parse(results)
+						}
+					} catch {
+						/* empty */
+					}
+					return statuses
+				})}
+			/>
 		</>
 	)
 })
