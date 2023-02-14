@@ -29,43 +29,43 @@ test('Presence of appropriate SEO metadata across the application', async ({ pag
 	})
 
 	await page.goto('http://127.0.0.1:8788/explore')
-	await page.locator('article').filter({ hasText: 'Hi, meet HiDock' }).locator('i.fa-globe + span').click()
+	await page
+		.locator('article')
+		.filter({ hasText: "I'm Rafael and I am a web designer!" })
+		.locator('i.fa-globe + span')
+		.click()
 	await checkPageSeoData(page, {
-		title: "Rafa: Hi, meet HiDock! It's a free M… - Wildebeest",
-		description:
-			"Hi, meet HiDock! It's a free Mac app that lets you set different Dock settings for different display configurations https://hidock.app →",
+		title: "Raffa123$: I'm Rafael and I am a web desi… - Wildebeest",
+		description: "I'm Rafael and I am a web designer! 💪💪",
 		ogType: 'article',
 		ogUrl: /https:\/\/127.0.0.1\/statuses\/[\w-]*\/?/,
-		ogImage: 'https://cdn.masto.host/mastodondesign/accounts/avatars/000/011/932/original/8f601be03c98b2e8.png',
+		ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/157.jpg',
 	})
 
-	await page.goto('http://127.0.0.1:8788/@rafa')
+	await page.goto('http://127.0.0.1:8788/@Ben')
 	await checkPageSeoData(page, {
-		title: 'Rafa (@rafa@0.0.0.0) - Wildebeest',
-		description: 'Rafa account page - Wildebeest',
+		title: 'Ben, just Ben (@Ben@0.0.0.0) - Wildebeest',
+		description: 'Ben, just Ben account page - Wildebeest',
 		ogType: 'article',
-		ogUrl: 'https://0.0.0.0/@rafa',
-		ogImage: 'https://cdn.masto.host/mastodondesign/accounts/avatars/000/011/932/original/8f601be03c98b2e8.png',
+		ogUrl: 'https://0.0.0.0/@Ben',
+		ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1148.jpg',
 	})
 
 	await page.goto('http://127.0.0.1:8788/explore')
-	await page.locator('article').filter({ hasText: 'Ken White' }).locator('i.fa-globe + span').click()
+	await page.locator('article').filter({ hasText: 'Ben, just Ben' }).locator('i.fa-globe + span').click()
 	await checkPageSeoData(page, {
-		title: 'Ken White: Just recorded the first Seriou… - Wildebeest',
-		description:
-			'Just recorded the first Serious Trouble episode of the new year, out tomorrow.  This week:  George Santos is in serious trouble.  Sam Bankman-Fried is in REALLY serious trouble.  And Scott Adams is still making dumb defamation threats.',
+		title: 'Ben, just Ben: A very simple update: all good… - Wildebeest',
+		description: 'A very simple update: all good!',
 		ogType: 'article',
 		ogUrl: /https:\/\/127.0.0.1\/statuses\/[\w-]*\/?/,
-		ogImage: 'https://files.mastodon.social/accounts/avatars/109/502/260/753/916/593/original/f721da0f38083abf.jpg',
+		ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1148.jpg',
 	})
 
-	await page.goto('http://127.0.0.1:8788/@Popehat')
+	await page.goto('http://127.0.0.1:8788/@NonExistent')
 	await checkPageSeoData(page, {
-		title: 'Ken White (@Popehat@0.0.0.0) - Wildebeest',
-		description: 'Ken White account page - Wildebeest',
-		ogType: 'article',
-		ogUrl: 'https://0.0.0.0/@Popehat',
-		ogImage: 'https://files.mastodon.social/accounts/avatars/109/502/260/753/916/593/original/f721da0f38083abf.jpg',
+		title: 'Wildebeest Not Found',
+		description: 'Wildebeest Page Not Found',
+		ogType: 'website',
 	})
 })
 
@@ -73,8 +73,8 @@ type ExpectedSeoValues = {
 	title: string | RegExp
 	description: string | RegExp
 	ogType: 'website' | 'article'
-	ogUrl: string | RegExp
-	ogImage: string | RegExp
+	ogUrl?: string | RegExp
+	ogImage?: string | RegExp
 }
 
 async function checkPageSeoData(page: Page, expected: Partial<ExpectedSeoValues>) {
