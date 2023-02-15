@@ -257,14 +257,16 @@ export async function getNotifications(db: D1Database, actor: Actor, domain: str
 				url: new URL('/statuses/' + result.mastodon_id, 'https://' + domain),
 				created_at: new Date(result.cdate).toISOString(),
 
+				account,
+
+				// TODO: stub values
 				emojis: [],
 				media_attachments: [],
 				tags: [],
 				mentions: [],
-
-				account,
-
-				// TODO: stub values
+				replies_count: 0,
+				reblogs_count: 0,
+				favourites_count: 0,
 				visibility: 'public',
 				spoiler_text: '',
 			}
