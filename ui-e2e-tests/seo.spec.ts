@@ -1,71 +1,83 @@
 import { test, expect, Page } from '@playwright/test'
 
-test('Presence of appropriate SEO metadata across the application', async ({ page }) => {
-	await page.goto('http://127.0.0.1:8788/explore')
-	await checkPageSeoData(page, {
-		title: 'Explore - Wildebeest',
-		description: 'My Wildebeest Instance',
-		ogType: 'website',
-		ogUrl: 'http://127.0.0.1:8788/explore',
-		ogImage: 'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail',
+test.describe('Presence of appropriate SEO metadata across the application', () => {
+	test('in explore page', async ({ page }) => {
+		await page.goto('http://127.0.0.1:8788/explore')
+		await checkPageSeoData(page, {
+			title: 'Explore - Wildebeest',
+			description: 'My Wildebeest Instance',
+			ogType: 'website',
+			ogUrl: 'http://127.0.0.1:8788/explore',
+			ogImage: 'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail',
+		})
 	})
 
-	await page.goto('http://127.0.0.1:8788/public/local')
-	await checkPageSeoData(page, {
-		title: 'Local timeline - Wildebeest',
-		description: 'My Wildebeest Instance',
-		ogType: 'website',
-		ogUrl: 'http://127.0.0.1:8788/public/local',
-		ogImage: 'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail',
+	test('in local page', async ({ page }) => {
+		await page.goto('http://127.0.0.1:8788/public/local')
+		await checkPageSeoData(page, {
+			title: 'Local timeline - Wildebeest',
+			description: 'My Wildebeest Instance',
+			ogType: 'website',
+			ogUrl: 'http://127.0.0.1:8788/public/local',
+			ogImage: 'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail',
+		})
 	})
 
-	await page.goto('http://127.0.0.1:8788/public')
-	await checkPageSeoData(page, {
-		title: 'Federated timeline - Wildebeest',
-		description: 'My Wildebeest Instance',
-		ogType: 'website',
-		ogUrl: 'http://127.0.0.1:8788/public',
-		ogImage: 'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail',
+	test('in public page', async ({ page }) => {
+		await page.goto('http://127.0.0.1:8788/public')
+		await checkPageSeoData(page, {
+			title: 'Federated timeline - Wildebeest',
+			description: 'My Wildebeest Instance',
+			ogType: 'website',
+			ogUrl: 'http://127.0.0.1:8788/public',
+			ogImage: 'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail',
+		})
 	})
 
-	await page.goto('http://127.0.0.1:8788/explore')
-	await page
-		.locator('article')
-		.filter({ hasText: "I'm Rafael and I am a web designer!" })
-		.locator('i.fa-globe + span')
-		.click()
-	await checkPageSeoData(page, {
-		title: "Raffa123$: I'm Rafael and I am a web desi… - Wildebeest",
-		description: "I'm Rafael and I am a web designer! 💪💪",
-		ogType: 'article',
-		ogUrl: /https:\/\/127.0.0.1\/statuses\/[\w-]*\/?/,
-		ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/157.jpg',
+	test('in toot page', async ({ page }) => {
+		await page.goto('http://127.0.0.1:8788/explore')
+		await page
+			.locator('article')
+			.filter({ hasText: "I'm Rafael and I am a web designer!" })
+			.locator('i.fa-globe + span')
+			.click()
+		await checkPageSeoData(page, {
+			title: "Raffa123$: I'm Rafael and I am a web desi… - Wildebeest",
+			description: "I'm Rafael and I am a web designer! 💪💪",
+			ogType: 'article',
+			ogUrl: /https:\/\/127.0.0.1\/statuses\/[\w-]*\/?/,
+			ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/157.jpg',
+		})
+
+		await page.goto('http://127.0.0.1:8788/explore')
+		await page.locator('article').filter({ hasText: 'Ben, just Ben' }).locator('i.fa-globe + span').click()
+		await checkPageSeoData(page, {
+			title: 'Ben, just Ben: A very simple update: all good… - Wildebeest',
+			description: 'A very simple update: all good!',
+			ogType: 'article',
+			ogUrl: /https:\/\/127.0.0.1\/statuses\/[\w-]*\/?/,
+			ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1148.jpg',
+		})
 	})
 
-	await page.goto('http://127.0.0.1:8788/@Ben')
-	await checkPageSeoData(page, {
-		title: 'Ben, just Ben (@Ben@0.0.0.0) - Wildebeest',
-		description: 'Ben, just Ben account page - Wildebeest',
-		ogType: 'article',
-		ogUrl: 'https://0.0.0.0/@Ben',
-		ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1148.jpg',
+	test('in account page', async ({ page }) => {
+		await page.goto('http://127.0.0.1:8788/@Ben')
+		await checkPageSeoData(page, {
+			title: 'Ben, just Ben (@Ben@0.0.0.0) - Wildebeest',
+			description: 'Ben, just Ben account page - Wildebeest',
+			ogType: 'article',
+			ogUrl: 'https://0.0.0.0/@Ben',
+			ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1148.jpg',
+		})
 	})
 
-	await page.goto('http://127.0.0.1:8788/explore')
-	await page.locator('article').filter({ hasText: 'Ben, just Ben' }).locator('i.fa-globe + span').click()
-	await checkPageSeoData(page, {
-		title: 'Ben, just Ben: A very simple update: all good… - Wildebeest',
-		description: 'A very simple update: all good!',
-		ogType: 'article',
-		ogUrl: /https:\/\/127.0.0.1\/statuses\/[\w-]*\/?/,
-		ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1148.jpg',
-	})
-
-	await page.goto('http://127.0.0.1:8788/@NonExistent')
-	await checkPageSeoData(page, {
-		title: 'Wildebeest Not Found',
-		description: 'Wildebeest Page Not Found',
-		ogType: 'website',
+	test('in non-existent page', async ({ page }) => {
+		await page.goto('http://127.0.0.1:8788/@NonExistent')
+		await checkPageSeoData(page, {
+			title: 'Wildebeest Not Found',
+			description: 'Wildebeest Page Not Found',
+			ogType: 'website',
+		})
 	})
 })
 
