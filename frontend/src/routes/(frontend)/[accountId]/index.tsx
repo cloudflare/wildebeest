@@ -9,10 +9,11 @@ import { getAccount } from 'wildebeest/backend/src/accounts/getAccount'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import { getDocumentHead } from '~/utils/getDocumentHead'
-import type { MastodonStatus } from '~/types'
+import type { Account, MastodonStatus } from '~/types'
 import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { getLocalStatuses } from 'wildebeest/functions/api/v1/accounts/[id]/statuses'
+import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
 
 export const accountLoader = loader$<
 	{ DATABASE: D1Database },
@@ -93,7 +94,7 @@ export default component$(() => {
 					/>
 				</div>
 				<div class="px-5">
-					<h2 class="font-bold">{accountDetails.account.display_name}</h2>
+					<h2 class="font-bold">{getDisplayNameElement(accountDetails.account as Account)}</h2>
 					<span class="block my-1 text-wildebeest-400">{accountDetails.accountHandle}</span>
 					<div class="inner-html-content my-5" dangerouslySetInnerHTML={accountDetails.account.note} />
 					<dl class="mb-6 flex flex-col bg-wildebeest-800 border border-wildebeest-600 rounded-md">

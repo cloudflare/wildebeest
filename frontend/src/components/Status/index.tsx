@@ -6,6 +6,7 @@ import type { Account, MastodonStatus } from '~/types'
 import styles from '../../utils/innerHtmlContent.scss?inline'
 import { MediaGallery } from '../MediaGallery.tsx'
 import { useAccountUrl } from '~/utils/useAccountUrl'
+import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
 
 type Props = {
 	status: MastodonStatus
@@ -33,7 +34,7 @@ export default component$((props: Props) => {
 						<div class="flex-col ml-3">
 							<div>
 								<Link class="no-underline" href={accountUrl}>
-									{status.account.display_name}
+									{getDisplayNameElement(status.account)}
 								</Link>
 							</div>
 							<div class="text-wildebeest-500">@{status.account.username}</div>
@@ -75,7 +76,7 @@ export const RebloggerLink = component$(({ account }: { account: Account | null 
 				<p>
 					<i class="fa fa-retweet mr-3 w-4 inline-block" />
 					<a class="no-underline" href={accountUrl}>
-						{account.display_name}
+						{getDisplayNameElement(account)}
 					</a>
 					&nbsp;boosted
 				</p>

@@ -84,7 +84,7 @@ export function getMockStatusFn(): () => MastodonStatus {
 		const paddedNum = `${numOfGeneratedMockStatuses}`.padStart(3, '0')
 		const status = {
 			content: `Mock Fetched Status #${paddedNum}`,
-			account: {} as Account,
+			account: { display_name: 'test', emojis: [] } as unknown as Account,
 			media_attachments: [],
 		} as unknown as MastodonStatus
 		numOfGeneratedMockStatuses++
