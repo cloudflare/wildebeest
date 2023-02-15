@@ -11,7 +11,7 @@ import * as errors from 'wildebeest/backend/src/errors'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleGetRequest(env.DATABASE, request, data.connectedActor, data.clientId)
+	return handleGetRequest(env.DATABASE, request, data.connectedActor, data.clientId, getVAPIDKeys(env))
 }
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
@@ -23,7 +23,13 @@ const headers = {
 	'content-type': 'application/json; charset=utf-8',
 }
 
-export async function handleGetRequest(db: D1Database, request: Request, connectedActor: Actor, clientId: string) {
+export async function handleGetRequest(
+	db: D1Database,
+	request: Request,
+	connectedActor: Actor,
+	clientId: string,
+	vapidKeys: JWK
+) {
 	const client = await getClientById(db, clientId)
 	if (client === null) {
 		return errors.clientUnknown()
@@ -35,20 +41,14 @@ export async function handleGetRequest(db: D1Database, request: Request, connect
 		return new Response('', { status: 404 })
 	}
 
-	const res = {
-		id: 4,
-		endpoint: subscription.gateway.endpoint,
-		alerts: {
-			follow: true,
-			favourite: true,
-			reblog: true,
-			mention: true,
-			poll: true,
-		},
-		policy: 'all',
+	const vapidKey = VAPIDPublicKey(vapidKeys)
 
-		// FIXME: stub value
-		server_key: 'TODO',
+	const res = {
+		id: subscription.id,
+		endpoint: subscription.gateway.endpoint,
+		alerts: subscription.alerts,
+		policy: subscription.policy,
+		server_key: vapidKey,
 	}
 
 	return new Response(JSON.stringify(res), { headers })
@@ -77,16 +77,10 @@ export async function handlePostRequest(
 	const vapidKey = VAPIDPublicKey(vapidKeys)
 
 	const res = {
-		id: 4,
-		endpoint: data.subscription.endpoint,
-		alerts: {
-			follow: true,
-			favourite: true,
-			reblog: true,
-			mention: true,
-			poll: true,
-		},
-		policy: 'all',
+		id: subscription.id,
+		endpoint: subscription.gateway.endpoint,
+		alerts: subscription.alerts,
+		policy: subscription.policy,
 		server_key: vapidKey,
 	}
 
