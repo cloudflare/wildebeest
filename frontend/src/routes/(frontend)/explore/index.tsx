@@ -24,10 +24,10 @@ export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, 
 )
 
 export default component$(() => {
-	const statuses = statusesLoader.use()
+	const statuses = statusesLoader.use().value
 	return (
 		<StatusesPanel
-			initialStatuses={statuses.value}
+			initialStatuses={statuses}
 			fetchMoreStatuses={$(async (numOfCurrentStatuses: number) => {
 				let statuses: MastodonStatus[] = []
 				try {
