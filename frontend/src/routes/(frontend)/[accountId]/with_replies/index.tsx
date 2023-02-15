@@ -40,27 +40,25 @@ export default component$(() => {
 	const { accountId, statuses } = statusesLoader.use().value
 
 	return (
-		<div>
-			<div data-testid="account-statuses">
-				<StatusesPanel
-					initialStatuses={statuses}
-					fetchMoreStatuses={$(async (numOfCurrentStatuses: number) => {
-						let statuses: MastodonStatus[] = []
-						try {
-							const response = await fetch(
-								`/api/v1/accounts/${accountId}/statuses?offset=${numOfCurrentStatuses}&with-replies=true`
-							)
-							if (response.ok) {
-								const results = await response.text()
-								statuses = JSON.parse(results)
-							}
-						} catch {
-							/* empty */
+		<div data-testid="account-posts-and-replies">
+			<StatusesPanel
+				initialStatuses={statuses}
+				fetchMoreStatuses={$(async (numOfCurrentStatuses: number) => {
+					let statuses: MastodonStatus[] = []
+					try {
+						const response = await fetch(
+							`/api/v1/accounts/${accountId}/statuses?offset=${numOfCurrentStatuses}&with-replies=true`
+						)
+						if (response.ok) {
+							const results = await response.text()
+							statuses = JSON.parse(results)
 						}
-						return statuses
-					})}
-				/>
-			</div>
+					} catch {
+						/* empty */
+					}
+					return statuses
+				})}
+			/>
 		</div>
 	)
 })
