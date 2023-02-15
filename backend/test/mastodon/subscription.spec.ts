@@ -1,7 +1,7 @@
 import { createSubscription } from '../../src/mastodon/subscription'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { strict as assert } from 'node:assert/strict'
-import { makeDB, createTestClient, generateVAPIDKeys } from '../utils'
+import { makeDB, createTestClient, generateVAPIDKeys, assertCORS } from '../utils'
 import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
 
 const userKEK = 'test_kek21'
@@ -18,6 +18,7 @@ describe('Mastodon APIs', () => {
 
 			const res = await subscription.handleGetRequest(db, req, connectedActor, client.id, vapidKeys)
 			assert.equal(res.status, 404)
+			assertCORS(res)
 		})
 
 		test('get existing subscription', async () => {

@@ -38,7 +38,7 @@ export async function handleGetRequest(
 	const subscription = await getSubscription(db, connectedActor, client)
 
 	if (subscription === null) {
-		return new Response('', { status: 404 })
+		return errors.resourceNotFound('subscription', clientId)
 	}
 
 	const vapidKey = VAPIDPublicKey(vapidKeys)
