@@ -1,7 +1,9 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { WILDEBEEST_VERSION } from 'wildebeest/config/versions'
+import { cors } from 'wildebeest/backend/src/utils/cors'
 
 const headers = {
+	...cors(),
 	'content-type': 'application/json',
 	'cache-control': 'max-age=259200, public',
 }
