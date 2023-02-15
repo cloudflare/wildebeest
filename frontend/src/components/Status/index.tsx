@@ -5,6 +5,8 @@ import { Avatar } from '../avatar'
 import type { Account, MastodonStatus } from '~/types'
 import styles from '../../utils/innerHtmlContent.scss?inline'
 import { MediaGallery } from '../MediaGallery.tsx'
+import { useAccountUrl } from '~/utils/useAccountUrl'
+import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
 
 type Props = {
 	status: MastodonStatus
@@ -17,13 +19,13 @@ export default component$((props: Props) => {
 	const status = props.status.reblog ?? props.status
 	const reblogger = props.status.reblog && props.status.account
 
-	const accountUrl = `/@${status.account.username}`
+	const accountUrl = useAccountUrl(status.account)
 	const statusUrl = `${accountUrl}/${status.id}`
 
 	const handleContentClick = $(() => nav(statusUrl))
 
 	return (
-		<article class="p-4 border-t border-wildebeest-700 pointer">
+		<article class="p-4 border-t border-wildebeest-700 break-words sm:break-normal">
 			<RebloggerLink account={reblogger}></RebloggerLink>
 			<div onClick$={handleContentClick}>
 				<div class="flex justify-between mb-3">
@@ -32,7 +34,7 @@ export default component$((props: Props) => {
 						<div class="flex-col ml-3">
 							<div>
 								<Link class="no-underline" href={accountUrl}>
-									{status.account.display_name}
+									{getDisplayNameElement(status.account)}
 								</Link>
 							</div>
 							<div class="text-wildebeest-500">@{status.account.username}</div>
@@ -65,18 +67,20 @@ export default component$((props: Props) => {
 	)
 })
 
-export const RebloggerLink = ({ account }: { account: Account | null }) => {
+export const RebloggerLink = component$(({ account }: { account: Account | null }) => {
+	const accountUrl = useAccountUrl(account)
+
 	return (
 		account && (
 			<div class="flex text-wildebeest-500 py-3">
 				<p>
 					<i class="fa fa-retweet mr-3 w-4 inline-block" />
-					<a class="no-underline" href={account.url}>
-						{account.display_name}
+					<a class="no-underline" href={accountUrl}>
+						{getDisplayNameElement(account)}
 					</a>
 					&nbsp;boosted
 				</p>
 			</div>
 		)
 	)
-}
+})

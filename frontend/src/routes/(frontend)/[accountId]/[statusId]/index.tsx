@@ -14,6 +14,8 @@ import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import styles from '../../../../utils/innerHtmlContent.scss?inline'
 import { getTextContent } from 'wildebeest/backend/src/activitypub/objects'
 import { getDocumentHead } from '~/utils/getDocumentHead'
+import { useAccountUrl } from '~/utils/useAccountUrl'
+import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database },
@@ -72,7 +74,7 @@ export default component$(() => {
 })
 
 export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) => {
-	const accountUrl = `/@${status.account.username}`
+	const accountUrl = useAccountUrl(status.account)
 
 	return (
 		<div class="flex">
@@ -80,7 +82,7 @@ export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) =
 			<div class="flex flex-col">
 				<div class="p-1">
 					<Link href={accountUrl} class="no-underline">
-						{status.account.display_name}
+						{getDisplayNameElement(status.account)}
 					</Link>
 				</div>
 				<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>

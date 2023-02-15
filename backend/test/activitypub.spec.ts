@@ -275,7 +275,7 @@ describe('ActivityPub', () => {
 	})
 
 	describe('Inbox', () => {
-		test('send Note to non existant user', async () => {
+		test('send Note to non existent user', async () => {
 			const db = await makeDB()
 
 			const queue = {

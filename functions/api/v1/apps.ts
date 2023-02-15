@@ -37,6 +37,9 @@ export async function handleRequest(db: D1Database, request: Request, vapidKeys:
 		client_secret: client.secret,
 
 		vapid_key: vapidKey,
+
+		// FIXME: stub value
+		id: '20',
 	}
 	const headers = {
 		...cors(),

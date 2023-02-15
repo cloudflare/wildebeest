@@ -16,8 +16,9 @@ export function fromObject(obj: APObject): MediaAttachment {
 	}
 }
 
+const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 export function fromObjectDocument(obj: Document): MediaAttachment {
-	if (obj.mediaType === 'image/jpeg' || obj.mediaType === 'image/png') {
+	if (imageTypes.includes(obj.mediaType as string)) {
 		return fromObjectImage(obj)
 	} else if (obj.mediaType === 'video/mp4') {
 		return fromObjectVideo(obj)

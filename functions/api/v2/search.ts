@@ -7,6 +7,7 @@ import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { personFromRow } from 'wildebeest/backend/src/activitypub/actors'
+import type { Handle } from 'wildebeest/backend/src/utils/parse'
 
 const headers = {
 	...cors(),
@@ -38,7 +39,14 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 		hashtags: [],
 	}
 
-	const query = parseHandle(url.searchParams.get('q') || '')
+	let query: Handle
+
+	try {
+		query = parseHandle(url.searchParams.get('q') || '')
+	} catch (err: any) {
+		return new Response('', { status: 400 })
+	}
+
 	if (useWebFinger && query.domain !== null) {
 		const acct = `${query.localPart}@${query.domain}`
 		const res = await queryAcct(query.domain, acct)

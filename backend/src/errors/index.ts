@@ -39,13 +39,21 @@ export function internalServerError(): Response {
 }
 
 export function statusNotFound(id: string): Response {
-	return generateErrorResponse('Resource not found', 404, `Status "${id}" not found`)
+	return resourceNotFound('status', id)
 }
 
 export function mediaNotFound(id: string): Response {
-	return generateErrorResponse('Resource not found', 404, `Media "${id}" not found`)
+	return resourceNotFound('media', id)
+}
+
+export function tagNotFound(tag: string): Response {
+	return resourceNotFound('tag', tag)
 }
 
 export function exceededLimit(detail: string): Response {
 	return generateErrorResponse('Limit exceeded', 400, detail)
+}
+
+export function resourceNotFound(name: string, id: string): Response {
+	return generateErrorResponse('Resource not found', 404, `${name} "${id}" not found`)
 }

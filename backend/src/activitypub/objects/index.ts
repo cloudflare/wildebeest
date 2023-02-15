@@ -299,6 +299,7 @@ export async function deleteObject<T extends APObject>(db: D1Database, note: T) 
 		db.prepare('DELETE FROM actor_reblogs WHERE object_id=?').bind(nodeId),
 		db.prepare('DELETE FROM actor_replies WHERE object_id=?1 OR in_reply_to_object_id=?1').bind(nodeId),
 		db.prepare('DELETE FROM idempotency_keys WHERE object_id=?').bind(nodeId),
+		db.prepare('DELETE FROM note_hashtags WHERE object_id=?').bind(nodeId),
 		db.prepare('DELETE FROM objects WHERE id=?').bind(nodeId),
 	]
 
