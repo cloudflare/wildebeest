@@ -65,3 +65,14 @@ button {
 .pointer {
 	cursor: pointer;
 }
+
+.custom-emoji {
+	display: inline-block;
+	font-size: inherit;
+	vertical-align: middle;
+	-o-object-fit: contain;
+	object-fit: contain;
+	margin: -.2ex 0.15em .2ex;
+	width: 1rem;
+	height: 1rem;
+}
