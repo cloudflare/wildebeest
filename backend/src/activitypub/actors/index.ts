@@ -34,6 +34,8 @@ export interface Actor extends APObject {
 	following: URL
 	followers: URL
 
+	alsoKnownAs?: string
+
 	[emailSymbol]: string
 }
 
@@ -194,6 +196,16 @@ export async function updateActorProperty(db: D1Database, actorId: URL, key: str
 	const { success, error } = await db
 		.prepare(`UPDATE actors SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
 		.bind(value, actorId.toString())
+		.run()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+}
+
+export async function setActorAlias(db: D1Database, actorId: URL, alias: URL) {
+	const { success, error } = await db
+		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', json_array(?)) WHERE id=?`)
+		.bind(alias.toString(), actorId.toString())
 		.run()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
