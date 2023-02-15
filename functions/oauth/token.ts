@@ -24,12 +24,23 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 		return new Response('', { headers })
 	}
 
-	const data = await readBody<Body>(request)
-	if (!data.code) {
+	let data: Body = { code: null }
+	try {
+		data = await readBody<Body>(request)
+	} catch (err: any) {
+        // ignore error
+    }
+
+	let code = data.code
+	if (!code) {
+		const url = new URL(request.url)
+		code = url.searchParams.get('code')
+	}
+	if (!code) {
 		return errors.notAuthorized('missing authorization')
 	}
 
-	const parts = data.code.split('.')
+	const parts = code.split('.')
 	const clientId = parts[0]
 
 	const client = await getClientById(db, clientId)
@@ -38,7 +49,7 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 	}
 
 	const res = {
-		access_token: data.code,
+		access_token: code,
 		token_type: 'Bearer',
 		scope: client.scopes,
 		created_at: (Date.now() / 1000) | 0,
