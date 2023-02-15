@@ -28,8 +28,8 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 	try {
 		data = await readBody<Body>(request)
 	} catch (err: any) {
-        // ignore error
-    }
+		// ignore error
+	}
 
 	let code = data.code
 	if (!code) {
