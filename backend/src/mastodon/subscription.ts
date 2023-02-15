@@ -26,7 +26,7 @@ export interface CreateRequest {
 			admin_sign_up?: boolean
 			admin_report?: boolean
 		}
-		policy: string
+		policy?: string
 	}
 }
 
@@ -79,7 +79,7 @@ export async function createSubscription(
 			req.data.alerts.update === false ? 0 : 1,
 			req.data.alerts.admin_sign_up === false ? 0 : 1,
 			req.data.alerts.admin_report === false ? 0 : 1,
-			req.data.policy
+			req.data.policy ?? 'all'
 		)
 		.first<any>()
 	return subscriptionFromRow(row)

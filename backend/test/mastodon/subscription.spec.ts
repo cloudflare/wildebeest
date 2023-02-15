@@ -79,7 +79,6 @@ describe('Mastodon APIs', () => {
 						poll: false,
 						status: true,
 					},
-					policy: 'all',
 				},
 			}
 			const req = new Request('https://example.com', {
@@ -94,6 +93,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(out.alerts.mention, true)
 			assert.equal(out.alerts.status, true) // default to true
 			assert.equal(out.alerts.poll, false)
+			assert.equal(out.policy, 'all') // default policy
 
 			const row: any = await db.prepare('SELECT * FROM subscriptions').first()
 			assert.equal(row.actor_id, connectedActor.id.toString())
@@ -102,6 +102,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(row.alert_poll, 0)
 			assert.equal(row.alert_mention, 1)
 			assert.equal(row.alert_status, 1) // default to true
+			assert.equal(row.policy, 'all') // default policy
 		})
 
 		test('create subscriptions only creates one', async () => {
