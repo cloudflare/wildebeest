@@ -104,13 +104,14 @@ describe('Mastodon APIs', () => {
 			assertJSON(res)
 
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { name, website, redirect_uri, client_id, client_secret, vapid_key, ...rest } = await res.json<
+			const { name, website, redirect_uri, client_id, client_secret, vapid_key, id, ...rest } = await res.json<
 				Record<string, string>
 			>()
 
 			assert.equal(name, 'Mastodon for iOS')
 			assert.equal(website, 'https://app.joinmastodon.org/ios')
 			assert.equal(redirect_uri, 'mastodon://joinmastodon.org/oauth')
+			assert.equal(id, '20')
 			assert.deepEqual(rest, {})
 		})
 
