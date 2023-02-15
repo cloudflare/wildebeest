@@ -1,5 +1,5 @@
 import { component$, Slot, useStyles$ } from '@builder.io/qwik'
-import { type DocumentHead, loader$ } from '@builder.io/qwik-city'
+import { type DocumentHead, loader$, useLocation, Link } from '@builder.io/qwik-city'
 import { MastodonAccount } from 'wildebeest/backend/src/types'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { formatDateTime } from '~/utils/dateTime'
@@ -10,6 +10,7 @@ import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
+import { useAccountUrl } from '~/utils/useAccountUrl'
 
 export const accountPageLoader = loader$<
 	{ DATABASE: D1Database },
@@ -55,6 +56,9 @@ export default component$(() => {
 	const pageDetails = accountPageLoader.use().value
 	const showAccountInfo = !pageDetails.isValidStatus
 
+	const location = useLocation()
+	const currentPath = location.pathname.replace(/\/$/, '')
+
 	const fields = [
 		{
 			name: 'Joined',
@@ -75,6 +79,19 @@ export default component$(() => {
 		{
 			name: 'Followers',
 			value: formatRoundedNumber(pageDetails.account.followers_count),
+		},
+	]
+
+	const accountUrl = useAccountUrl(pageDetails.account)
+
+	const tabLinks = [
+		{
+			text: 'Posts',
+			href: accountUrl,
+		},
+		{
+			text: 'Posts and replies',
+			href: `${accountUrl}/with_replies`,
 		},
 	]
 
@@ -118,10 +135,14 @@ export default component$(() => {
 							</div>
 						</div>
 					</div>
-					<div class="bg-wildebeest-800 flex justify-around mt-6">
-						<span class="my-3 text-wildebeest-200">
-							<span>Posts</span>
-						</span>
+					<div class="bg-wildebeest-800 flex justify-around mt-2">
+						{tabLinks.map(({ text, href }) => (
+							<div key={text} class={`py-4 ${currentPath === href ? activeClasses : ''}`}>
+								<Link href={href} class="no-underline text-bold text-wildebeest-200 py-4">
+									{text}
+								</Link>
+							</div>
+						))}
 					</div>
 				</>
 			)}
@@ -155,3 +176,35 @@ export const head: DocumentHead = ({ getData, head }) => {
 		head
 	)
 }
+
+export const activeClasses = [
+	'relative',
+	'before:block',
+	'before:content-[""]',
+	'before:absolute',
+	'before:w-0',
+	'before:h-0',
+	'before:bottom-[-1px]',
+	'before:left-1/2',
+	'before:translate-x-[-50%]',
+	'before:border-solid',
+	'before:border-t-0',
+	'before:border-x-[0.7rem]',
+	'before:border-b-[0.7rem]',
+	'before:border-x-transparent',
+	'before:border-b-wildebeest-500',
+	'after:block',
+	'after:content-[""]',
+	'after:absolute',
+	'after:w-0',
+	'after:h-0',
+	'after:bottom-[-1px]',
+	'after:left-1/2',
+	'after:translate-x-[-50%]',
+	'after:border-solid',
+	'after:border-t-0',
+	'after:border-x-[0.7rem]',
+	'after:border-b-[0.7rem]',
+	'after:border-x-transparent',
+	'after:border-b-wildebeest-600',
+].join(' ')

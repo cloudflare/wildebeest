@@ -1,6 +1,6 @@
 import { $, component$, useStyles$ } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
-import styles from '../../../utils/innerHtmlContent.scss?inline'
+import styles from '../../../../utils/innerHtmlContent.scss?inline'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import type { MastodonStatus } from '~/types'
 import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
@@ -22,7 +22,7 @@ export const statusesLoader = loader$<
 
 		const handle = parseHandle(accountId)
 		accountId = handle.localPart
-		const response = await getLocalStatuses(request as Request, platform.DATABASE, handle, 0, false)
+		const response = await getLocalStatuses(request as Request, platform.DATABASE, handle, 0, true)
 		statuses = await response.json<Array<MastodonStatus>>()
 	} catch {
 		throw html(
@@ -40,14 +40,16 @@ export default component$(() => {
 	const { accountId, statuses } = statusesLoader.use().value
 
 	return (
-		<>
+		<div>
 			<div data-testid="account-statuses">
 				<StatusesPanel
 					initialStatuses={statuses}
 					fetchMoreStatuses={$(async (numOfCurrentStatuses: number) => {
 						let statuses: MastodonStatus[] = []
 						try {
-							const response = await fetch(`/api/v1/accounts/${accountId}/statuses?offset=${numOfCurrentStatuses}`)
+							const response = await fetch(
+								`/api/v1/accounts/${accountId}/statuses?offset=${numOfCurrentStatuses}&with-replies=true`
+							)
 							if (response.ok) {
 								const results = await response.text()
 								statuses = JSON.parse(results)
@@ -59,6 +61,6 @@ export default component$(() => {
 					})}
 				/>
 			</div>
-		</>
+		</div>
 	)
 })
