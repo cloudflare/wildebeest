@@ -2,7 +2,7 @@ import type { MediaAttachment, MastodonStatus } from '~/types'
 import { generateDummyStatus } from './generateDummyStatus'
 import { ben, george, penny, rafael, zak } from './accounts'
 
-// Raw statuses taken directly from mastodon
+// Raw statuses which follow the precise structure found mastodon does
 const mastodonRawStatuses: MastodonStatus[] = [
 	generateDummyStatus("<p>Fine. I'll use Wildebeest!</p>", george),
 	generateDummyStatus('We did it!', george, [
@@ -31,6 +31,8 @@ export const replies: MastodonStatus[] = [
 	generateDummyStatus('<p>Yes we did! 🎉</p>', zak, [], statuses[1].id),
 	generateDummyStatus('<p> Yes you guys did it! </p>', penny, [], statuses[1].id),
 ]
+
+export const reblogs: MastodonStatus[] = [generateDummyStatus('', george, [], null, statuses[2])]
 
 function getStandardMediaType(mediaAttachmentMastodonType: string): string {
 	switch (mediaAttachmentMastodonType) {

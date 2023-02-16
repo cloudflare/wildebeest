@@ -1,5 +1,5 @@
 import { createPerson, getPersonByEmail, type Person } from 'wildebeest/backend/src/activitypub/actors'
-import { replies, statuses } from 'wildebeest/frontend/src/dummyData'
+import { reblogs, replies, statuses } from 'wildebeest/frontend/src/dummyData'
 import type { Account, MastodonStatus } from 'wildebeest/frontend/src/types'
 import { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
@@ -24,8 +24,17 @@ export async function init(domain: string, db: D1Database) {
 		loadedStatuses.push({ status, note })
 	}
 
-	const { reblogger, noteToReblog } = await pickReblogDetails(loadedStatuses, domain, db)
-	await createReblog(db, reblogger, noteToReblog)
+	for (const reblog of reblogs) {
+		const rebloggerAccount = reblog.account
+		const reblogger = await getOrCreatePerson(domain, db, rebloggerAccount)
+		const reblogStatus = reblog.reblog
+		if (reblogStatus?.id) {
+			const noteToReblog = loadedStatuses.find(({ status: { id } }) => id === reblogStatus.id)?.note
+			if (noteToReblog) {
+				await createReblog(db, reblogger, noteToReblog)
+			}
+		}
+	}
 
 	for (const reply of replies) {
 		await createReply(domain, db, reply, loadedStatuses)
@@ -73,22 +82,4 @@ async function getOrCreatePerson(
 		throw new Error('Could not create Actor ' + username)
 	}
 	return newPerson
-}
-
-/**
- * Picks the details to use to reblog an arbitrary note/status.
- *
- * Both the note/status and the reblogger are picked arbitrarily
- * form a list of available notes/states (respectively from the first
- * and second entries).
- */
-async function pickReblogDetails(
-	loadedStatuses: { status: MastodonStatus; note: Note }[],
-	domain: string,
-	db: D1Database
-) {
-	const rebloggerAccount = loadedStatuses[1].status.account
-	const reblogger = await getOrCreatePerson(domain, db, rebloggerAccount)
-	const noteToReblog = loadedStatuses[2].note
-	return { reblogger, noteToReblog }
 }
