@@ -5,7 +5,8 @@ export function generateDummyStatus(
 	content: string,
 	account: Account,
 	mediaAttachments: MediaAttachment[] = [],
-	inReplyTo: string | null = null
+	inReplyTo: string | null = null,
+	reblog: MastodonStatus | null = null
 ): MastodonStatus {
 	return {
 		id: `${Math.random() * 9999999}`.padStart(3, '7'),
@@ -23,7 +24,7 @@ export function generateDummyStatus(
 		favourites_count: Math.random() * 900,
 		edited_at: null,
 		content,
-		reblog: null,
+		reblog,
 		application: { name: 'Wildebeest', website: null },
 		account,
 		media_attachments: mediaAttachments,

@@ -5,8 +5,8 @@ export const george = generateDummyAccount({
 	username: 'george',
 	acct: 'george_george@dummy.users.wildebeest.com',
 	display_name: 'George :verified: 👍',
-	avatar: getAvatarUrl(805),
-	avatar_static: getAvatarUrl(805),
+	avatar: getAvatarUrl(837),
+	avatar_static: getAvatarUrl(837),
 })
 
 export const zak = generateDummyAccount({
