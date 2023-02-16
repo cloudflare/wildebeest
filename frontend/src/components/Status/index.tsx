@@ -1,12 +1,12 @@
 import { component$, $, useStyles$ } from '@builder.io/qwik'
 import { Link, useNavigate } from '@builder.io/qwik-city'
 import { formatTimeAgo } from '~/utils/dateTime'
-import { Avatar } from '../avatar'
 import type { Account, MastodonStatus } from '~/types'
 import styles from '../../utils/innerHtmlContent.scss?inline'
 import { MediaGallery } from '../MediaGallery.tsx'
 import { useAccountUrl } from '~/utils/useAccountUrl'
 import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
+import { StatusAccountCard } from '../StatusAccountCard/StatusAccountCard'
 
 type Props = {
 	status: MastodonStatus
@@ -29,17 +29,7 @@ export default component$((props: Props) => {
 			<RebloggerLink account={reblogger}></RebloggerLink>
 			<div onClick$={handleContentClick}>
 				<div class="flex justify-between mb-3">
-					<div class="flex">
-						<Avatar primary={status.account} secondary={reblogger} />
-						<div class="flex-col ml-3">
-							<div>
-								<Link class="no-underline" href={accountUrl}>
-									{getDisplayNameElement(status.account)}
-								</Link>
-							</div>
-							<div class="text-wildebeest-500">@{status.account.username}</div>
-						</div>
-					</div>
+					<StatusAccountCard status={status} subText="username" secondaryAvatar={reblogger} />
 					<Link class="no-underline" href={statusUrl}>
 						<div class="text-wildebeest-500 flex items-baseline">
 							<i style={{ height: '0.75rem', width: '0.75rem' }} class="fa fa-xs fa-globe w-3 h-3" />

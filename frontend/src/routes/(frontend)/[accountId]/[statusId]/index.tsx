@@ -5,17 +5,15 @@ import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
 import * as contextAPI from 'wildebeest/functions/api/v1/statuses/[id]/context'
-import { DocumentHead, Link, loader$ } from '@builder.io/qwik-city'
+import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
-import { Avatar } from '~/components/avatar'
 import { MediaGallery } from '~/components/MediaGallery.tsx'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import styles from '../../../../utils/innerHtmlContent.scss?inline'
 import { getTextContent } from 'wildebeest/backend/src/activitypub/objects'
 import { getDocumentHead } from '~/utils/getDocumentHead'
-import { useAccountUrl } from '~/utils/useAccountUrl'
-import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
+import { StatusAccountCard } from '~/components/StatusAccountCard/StatusAccountCard'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database },
@@ -57,7 +55,7 @@ export default component$(() => {
 		<>
 			<StickyHeader withBackButton />
 			<div class="bg-wildebeest-700 p-4">
-				<AccountCard status={loaderData.status} />
+				<StatusAccountCard subText="acct" status={loaderData.status} />
 				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={loaderData.status.content} />
 
 				<MediaGallery medias={loaderData.status.media_attachments} />
@@ -70,24 +68,6 @@ export default component$(() => {
 				})}
 			</div>
 		</>
-	)
-})
-
-export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) => {
-	const accountUrl = useAccountUrl(status.account)
-
-	return (
-		<div class="flex">
-			<Avatar primary={status.account} secondary={null} />
-			<div class="flex flex-col">
-				<div class="p-1">
-					<Link href={accountUrl} class="no-underline">
-						{getDisplayNameElement(status.account)}
-					</Link>
-				</div>
-				<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>
-			</div>
-		</div>
 	)
 })
 

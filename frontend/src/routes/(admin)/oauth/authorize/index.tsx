@@ -87,6 +87,7 @@ export default component$(() => {
 									url: url.toString(),
 								}}
 								secondary={null}
+								withLinks={true}
 							/>
 						</div>
 						<p class="col-start-2">Signed in as:</p>
