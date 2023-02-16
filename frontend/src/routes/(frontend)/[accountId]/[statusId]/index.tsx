@@ -52,7 +52,7 @@ export default component$(() => {
 
 	return (
 		<>
-			<div class="bg-wildebeest-700 p-4">
+			<div class="p-4">
 				<StatusAccountCard subText="acct" status={loaderData.status} />
 				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={loaderData.status.content} />
 
