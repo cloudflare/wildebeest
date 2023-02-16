@@ -17,7 +17,7 @@ import {
 import { type APObject, updateObject } from 'wildebeest/backend/src/activitypub/objects'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
-import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
+import { addFollowing, acceptFollowing, moveFollowers } from 'wildebeest/backend/src/mastodon/follow'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
@@ -26,6 +26,7 @@ import { insertReply } from 'wildebeest/backend/src/mastodon/reply'
 import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import { originalActorIdSymbol, deleteObject } from 'wildebeest/backend/src/activitypub/objects'
 import { hasReblog } from 'wildebeest/backend/src/mastodon/reblog'
+import { getMetadata, loadItems } from 'wildebeest/backend/src/activitypub/objects/collection'
 
 function extractID(domain: string, s: string | URL): string {
 	return s.toString().replace(`https://${domain}/ap/users/`, '')
@@ -364,6 +365,44 @@ export async function handle(
 			}
 
 			await deleteObject(db, obj)
+			break
+		}
+
+		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-move
+		case 'Move': {
+			const fromActorId = getActorAsId()
+			const target = new URL(activity.target)
+
+			if (target.hostname !== domain) {
+				console.warn("Moving actor isn't local")
+				break
+			}
+
+			const fromActor = await actors.getAndCache(fromActorId, db)
+
+			const localActor = await actors.getActorById(db, target)
+			if (localActor === null) {
+				console.warn(`actor ${target} not found`)
+				break
+			}
+
+			// move followers
+			{
+				const collection = await getMetadata(fromActor.followers)
+				collection.items = await loadItems(collection)
+
+				// TODO: eventually move to queue and move workers
+				while (collection.items.length > 0) {
+					const batch = collection.items.splice(0, 20)
+					await Promise.all(
+						batch.map(async (items) => {
+							await moveFollowers(db, localActor, items)
+							console.log(`moved ${items.length} followers`)
+						})
+					)
+				}
+			}
+
 			break
 		}
 

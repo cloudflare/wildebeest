@@ -11,6 +11,7 @@ export interface Collection<T> extends APObject {
 export interface OrderedCollection<T> extends Collection<T> {}
 
 export interface OrderedCollectionPage<T> extends APObject {
+	next?: string
 	orderedItems: Array<T>
 }
 
@@ -29,13 +30,33 @@ export async function getMetadata(url: URL): Promise<OrderedCollection<any>> {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function loadItems<T>(collection: OrderedCollection<T>, max?: number): Promise<Array<T>> {
-	// FIXME: implement max and multi page support
+	// FIXME: implement max
 
-	const res = await fetch(collection.first, { headers })
-	if (!res.ok) {
-		throw new Error(`${collection.first} returned ${res.status}`)
+	const items = []
+	let pageUrl = collection.first
+
+	while (true) {
+		const page = await loadPage<T>(pageUrl)
+		if (page === null) {
+			break
+		}
+		items.push(...page.orderedItems)
+		if (page.next) {
+			pageUrl = new URL(page.next)
+		} else {
+			break
+		}
 	}
 
-	const data = await res.json<OrderedCollectionPage<T>>()
-	return data.orderedItems
+	return items
+}
+
+export async function loadPage<T>(url: URL): Promise<null | OrderedCollectionPage<T>> {
+	const res = await fetch(url, { headers })
+	if (!res.ok) {
+		console.warn(`${url} return ${res.status}`)
+		return null
+	}
+
+	return res.json<OrderedCollectionPage<T>>()
 }

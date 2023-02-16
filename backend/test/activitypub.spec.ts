@@ -14,6 +14,7 @@ import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
 import * as ap_outbox_page from 'wildebeest/functions/ap/users/[id]/outbox/page'
 import { createStatus } from '../src/mastodon/status'
 import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { loadItems } from 'wildebeest/backend/src/activitypub/objects/collection'
 
 const userKEK = 'test_kek5'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -315,6 +316,46 @@ describe('ActivityPub', () => {
 			assert.equal(msg.type, MessageType.Inbox)
 			assert.equal(msg.actorId, actor.id.toString())
 			assert.equal(msg.activity.type, 'some activity')
+		})
+	})
+
+	describe('Collection', () => {
+		test('loadItems walks pages', async () => {
+			const collection = {
+				totalItems: 6,
+				first: 'https://example.com/1',
+			} as any
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === 'https://example.com/1') {
+					return new Response(
+						JSON.stringify({
+							next: 'https://example.com/2',
+							orderedItems: ['a', 'b'],
+						})
+					)
+				}
+				if (input.toString() === 'https://example.com/2') {
+					return new Response(
+						JSON.stringify({
+							next: 'https://example.com/3',
+							orderedItems: ['c', 'd'],
+						})
+					)
+				}
+				if (input.toString() === 'https://example.com/3') {
+					return new Response(
+						JSON.stringify({
+							orderedItems: ['e', 'f'],
+						})
+					)
+				}
+
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const items = await loadItems(collection)
+			assert.deepEqual(items, ['a', 'b', 'c', 'd', 'e', 'f'])
 		})
 	})
 })

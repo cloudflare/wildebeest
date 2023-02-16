@@ -8,7 +8,10 @@ import * as mutes from 'wildebeest/functions/api/v1/mutes'
 import * as blocks from 'wildebeest/functions/api/v1/blocks'
 import { makeDB, assertCORS, assertJSON, assertCache, generateVAPIDKeys } from './utils'
 import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
+import { moveFollowers } from 'wildebeest/backend/src/mastodon/follow'
+import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 
+const userKEK = 'test_kek23'
 const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
@@ -225,6 +228,45 @@ describe('Mastodon APIs', () => {
 				assert.equal(enrichStatus(`${link}`), `<p><a href="${link}">${urlDisplayText}</a></p>`)
 				assert.equal(enrichStatus(`@!@£${link}!!!`), `<p>@!@£<a href="${link}">${urlDisplayText}</a>!!!</p>`)
 			})
+		})
+	})
+
+	describe('Follow', () => {
+		test('move followers', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input === 'https://example.com/user/a') {
+					return new Response(JSON.stringify({ id: 'https://example.com/user/a', type: 'Actor' }))
+				}
+				if (input === 'https://example.com/user/b') {
+					return new Response(JSON.stringify({ id: 'https://example.com/user/b', type: 'Actor' }))
+				}
+				if (input === 'https://example.com/user/c') {
+					return new Response(JSON.stringify({ id: 'https://example.com/user/c', type: 'Actor' }))
+				}
+
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const followers = ['https://example.com/user/a', 'https://example.com/user/b', 'https://example.com/user/c']
+
+			await moveFollowers(db, actor, followers)
+
+			const { results, success } = await db.prepare('SELECT * FROM actor_following').all<any>()
+			assert(success)
+			assert(results)
+			assert.equal(results.length, 3)
+			assert.equal(results[0].state, 'accepted')
+			assert.equal(results[0].actor_id, 'https://example.com/user/a')
+			assert.equal(results[0].target_actor_acct, 'sven@cloudflare.com')
+			assert.equal(results[1].state, 'accepted')
+			assert.equal(results[1].actor_id, 'https://example.com/user/b')
+			assert.equal(results[1].target_actor_acct, 'sven@cloudflare.com')
+			assert.equal(results[2].state, 'accepted')
+			assert.equal(results[2].actor_id, 'https://example.com/user/c')
+			assert.equal(results[2].target_actor_acct, 'sven@cloudflare.com')
 		})
 	})
 })
