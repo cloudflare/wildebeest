@@ -14,3 +14,10 @@ test('Display the list of toots in the explore page', async ({ page }) => {
 		await expect(page.locator('article').filter({ hasText: tootText })).toBeVisible()
 	}
 })
+
+test('Correctly displays toots with truncated urls', async ({ page }) => {
+	await page.goto('http://127.0.0.1:8788/explore')
+
+	const articleLocator = page.locator('article').filter({ hasText: "Fine. I'll use Wildebeest" })
+	await expect(articleLocator.getByRole('link', { name: 'blog.cloudflare.com/welcome-to…' })).toBeVisible()
+})

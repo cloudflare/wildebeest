@@ -4,7 +4,20 @@ import { ben, george, penny, rafael, zak } from './accounts'
 
 // Raw statuses taken directly from mastodon
 const mastodonRawStatuses: MastodonStatus[] = [
-	generateDummyStatus("<p>Fine. I'll use Wildebeest!</p>", george),
+	generateDummyStatus(
+		`
+		<p>Fine. I'll use Wildebeest!</p>
+		<p>It does look interesting:
+			<a href="https://blog.cloudflare.com/welcome-to-wildebeest-the-fediverse-on-cloudflare/"
+				target="_blank"
+				rel="nofollow noopener noreferrer">
+					<span class="invisible">https://</span>
+					<span class="ellipsis">blog.cloudflare.com/welcome-to</span>
+					<span class="invisible">-wildebeest-the-fediverse-on-cloudflare/</span>
+			</a>
+		</p>`,
+		george
+	),
 	generateDummyStatus('We did it!', george, [
 		generateDummyMediaImage(`https:/loremflickr.com/640/480/victory?lock=${Math.round(Math.random() * 999999)}`),
 	]),
