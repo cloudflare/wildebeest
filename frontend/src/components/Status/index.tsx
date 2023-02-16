@@ -1,19 +1,18 @@
-import { component$, $, useStyles$ } from '@builder.io/qwik'
+import { component$, $ } from '@builder.io/qwik'
 import { Link, useNavigate } from '@builder.io/qwik-city'
 import { formatTimeAgo } from '~/utils/dateTime'
 import type { Account, MastodonStatus } from '~/types'
-import styles from '../../utils/innerHtmlContent.scss?inline'
 import { MediaGallery } from '../MediaGallery.tsx'
 import { useAccountUrl } from '~/utils/useAccountUrl'
 import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
 import { StatusAccountCard } from '../StatusAccountCard/StatusAccountCard'
+import { HtmlContent } from '../HtmlContent/HtmlContent'
 
 type Props = {
 	status: MastodonStatus
 }
 
 export default component$((props: Props) => {
-	useStyles$(styles)
 	const nav = useNavigate()
 
 	const status = props.status.reblog ?? props.status
@@ -32,15 +31,13 @@ export default component$((props: Props) => {
 				<Link class="no-underline" href={statusUrl}>
 					<div class="text-wildebeest-500 flex items-baseline">
 						<i style={{ height: '0.75rem', width: '0.75rem' }} class="fa fa-xs fa-globe w-3 h-3" />
-						<span class="ml-2 text-sm hover:underline">{formatTimeAgo(new Date(status.created_at))}</span>
+						<span class="ml-2 text-sm hover:underline min-w-max">{formatTimeAgo(new Date(status.created_at))}</span>
 					</div>
 				</Link>
 			</div>
-			<div
-				onClick$={handleContentClick}
-				class="leading-relaxed inner-html-content cursor-pointer"
-				dangerouslySetInnerHTML={status.content}
-			/>
+			<div onClick$={handleContentClick} class="cursor-pointer">
+				<HtmlContent html={status.content} />
+			</div>
 
 			<MediaGallery medias={status.media_attachments} />
 
