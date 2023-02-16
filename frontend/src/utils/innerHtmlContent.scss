@@ -36,6 +36,10 @@
     max-width: 50%;
   }
 
+  .ellipsis::after {
+    content: "…";
+  }
+
   @screen sm {
     .ellipsis {
       display: inline;
