@@ -17,7 +17,7 @@ import {
 import { type APObject, updateObject } from 'wildebeest/backend/src/activitypub/objects'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
-import { addFollowing, acceptFollowing, moveFollowers } from 'wildebeest/backend/src/mastodon/follow'
+import { addFollowing, acceptFollowing, moveFollowers, moveFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
@@ -398,6 +398,23 @@ export async function handle(
 						batch.map(async (items) => {
 							await moveFollowers(db, localActor, items)
 							console.log(`moved ${items.length} followers`)
+						})
+					)
+				}
+			}
+
+			// move following
+			{
+				const collection = await getMetadata(fromActor.following)
+				collection.items = await loadItems(collection)
+
+				// TODO: eventually move to queue and move workers
+				while (collection.items.length > 0) {
+					const batch = collection.items.splice(0, 20)
+					await Promise.all(
+						batch.map(async (items) => {
+							await moveFollowing(db, localActor, items)
+							console.log(`moved ${items.length} following`)
 						})
 					)
 				}
