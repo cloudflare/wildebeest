@@ -19,7 +19,8 @@ export async function init(domain: string, db: D1Database) {
 			db,
 			actor,
 			status.content,
-			status.media_attachments as unknown as APObject[]
+			status.media_attachments as unknown as APObject[],
+			{ spoiler_text: status.spoiler_text }
 		)
 		loadedStatuses.push({ status, note })
 	}

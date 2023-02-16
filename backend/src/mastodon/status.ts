@@ -78,10 +78,10 @@ export async function toMastodonStatusFromObject(
 		emojis: [],
 		tags: [],
 		mentions: [],
+		spoiler_text: obj.spoiler_text ?? '',
 
 		// TODO: stub values
 		visibility: 'public',
-		spoiler_text: '',
 
 		media_attachments: mediaAttachments,
 		content: obj.content || '',
@@ -143,10 +143,10 @@ export async function toMastodonStatusFromRow(
 		tags: [],
 		mentions: [],
 		account,
+		spoiler_text: properties.spoiler_text ?? '',
 
 		// TODO: stub values
 		visibility: 'public',
-		spoiler_text: '',
 
 		content: properties.content,
 		favourites_count: row.favourites_count,

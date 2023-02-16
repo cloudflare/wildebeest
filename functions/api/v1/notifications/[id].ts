@@ -68,6 +68,7 @@ export async function handleRequest(
 			media_attachments: [],
 			tags: [],
 			mentions: [],
+			spoiler_text: properties.spoiler_text ?? '',
 
 			// TODO: a shortcut has been taked. We assume that the actor
 			// generating the notification also created the object. In practice
@@ -76,7 +77,6 @@ export async function handleRequest(
 
 			// TODO: stub values
 			visibility: 'public',
-			spoiler_text: '',
 		}
 	}
 

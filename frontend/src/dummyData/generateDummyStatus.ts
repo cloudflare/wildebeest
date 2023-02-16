@@ -1,20 +1,31 @@
 import { Account, MastodonStatus, MediaAttachment } from '~/types'
+import { george } from './accounts'
 import { getRandomDateInThePastYear } from './getRandomDateInThePastYear'
 
-export function generateDummyStatus(
-	content: string,
-	account: Account,
-	mediaAttachments: MediaAttachment[] = [],
-	inReplyTo: string | null = null,
-	reblog: MastodonStatus | null = null
-): MastodonStatus {
+type dummyStatusConfig = {
+	content?: string
+	account?: Account
+	mediaAttachments?: MediaAttachment[]
+	inReplyTo?: string | null
+	reblog?: MastodonStatus | null
+	spoiler_text?: string
+}
+
+export function generateDummyStatus({
+	content = '',
+	account = george,
+	mediaAttachments = [],
+	inReplyTo = null,
+	reblog = null,
+	spoiler_text = '',
+}: dummyStatusConfig): MastodonStatus {
 	return {
 		id: `${Math.random() * 9999999}`.padStart(3, '7'),
 		created_at: getRandomDateInThePastYear().toISOString(),
 		in_reply_to_id: inReplyTo,
 		in_reply_to_account_id: null,
 		sensitive: false,
-		spoiler_text: '',
+		spoiler_text,
 		visibility: 'public',
 		language: 'en',
 		uri: '',

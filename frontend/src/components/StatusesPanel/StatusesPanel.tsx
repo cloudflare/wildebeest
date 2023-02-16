@@ -48,7 +48,7 @@ export const StatusesPanel = component$(({ initialStatuses, fetchMoreStatuses: f
 					const divProps = isLastStatus ? { ref: lastStatusRef } : {}
 					return (
 						<div key={status.id} {...divProps}>
-							<Status status={status} />
+							<Status status={status} accountSubText="username" showInfoTray={false} contentClickable={true} />
 						</div>
 					)
 				})
