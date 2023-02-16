@@ -33,10 +33,11 @@ export async function handleRequest(request: Request, db: D1Database, id: string
 	const url = new URL(request.url)
 	const domain = url.hostname
 	const offset = Number.parseInt(url.searchParams.get('offset') ?? '0')
+	const withReplies = url.searchParams.get('with-replies') === 'true'
 
 	if (handle.domain === null || (handle.domain !== null && handle.domain === domain)) {
 		// Retrieve the statuses from a local user
-		return getLocalStatuses(request, db, handle, offset)
+		return getLocalStatuses(request, db, handle, offset, withReplies)
 	} else if (handle.domain !== null) {
 		// Retrieve the statuses of a remote actor
 		return getRemoteStatuses(request, handle, db)
@@ -119,7 +120,8 @@ export async function getLocalStatuses(
 	request: Request,
 	db: D1Database,
 	handle: Handle,
-	offset = 0
+	offset: number,
+	withReplies: boolean
 ): Promise<Response> {
 	const domain = new URL(request.url).hostname
 	const actorId = actorURL(adjustLocalHostDomain(domain), handle.localPart)
@@ -137,7 +139,7 @@ FROM outbox_objects
 INNER JOIN objects ON objects.id=outbox_objects.object_id
 INNER JOIN actors ON actors.id=outbox_objects.actor_id
 WHERE objects.type='Note'
-      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
+      ${withReplies ? '' : "AND json_extract(objects.properties, '$.inReplyTo') IS NULL"}
       AND outbox_objects.target = '${PUBLIC_GROUP}'
       AND outbox_objects.actor_id = ?1
       AND outbox_objects.cdate > ?2

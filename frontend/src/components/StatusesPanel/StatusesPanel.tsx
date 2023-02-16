@@ -53,7 +53,7 @@ export const StatusesPanel = component$(({ initialStatuses, fetchMoreStatuses: f
 					)
 				})
 			) : (
-				<div class="flex-1 grid place-items-center bg-wildebeest-600 text-center">
+				<div class="flex-1 grid place-items-center bg-wildebeest-600 text-center p-5 mt-8">
 					<p>Nothing to see right now. Check back later!</p>
 				</div>
 			)}
