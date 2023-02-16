@@ -31,7 +31,7 @@ export default component$((props: Props) => {
 				<Link class="no-underline" href={statusUrl}>
 					<div class="text-wildebeest-500 flex items-baseline">
 						<i style={{ height: '0.75rem', width: '0.75rem' }} class="fa fa-xs fa-globe w-3 h-3" />
-						<span class="ml-2 text-sm hover:underline">{formatTimeAgo(new Date(status.created_at))}</span>
+						<span class="ml-2 text-sm hover:underline min-w-max">{formatTimeAgo(new Date(status.created_at))}</span>
 					</div>
 				</Link>
 			</div>
