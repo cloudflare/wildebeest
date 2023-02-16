@@ -51,7 +51,9 @@ export default component$(() => {
 	return (
 		<>
 			<div class="p-4">
-				<StatusAccountCard subText="acct" status={loaderData.status} />
+				<div class="mb-3">
+					<StatusAccountCard subText="acct" status={loaderData.status} />
+				</div>
 
 				<HtmlContent html={loaderData.status.content} />
 
