@@ -26,9 +26,7 @@ test.describe('Infinite (statuses) scrolling', () => {
 			description: 'in account page',
 			goToPageFn: async (page: Page) => {
 				await page.goto('http://127.0.0.1:8788/explore')
-				await page.locator('article').filter({ hasText: "I'm Rafael" }).locator('i.fa-globe + span').click()
-				await page.waitForLoadState('networkidle')
-				await page.getByRole('link', { name: 'Raffa123$', exact: true }).click()
+				await page.getByRole('article').getByRole('link').filter({ hasText: 'Raffa123$' }).first().click()
 				await expect(page.getByTestId('account-info').getByRole('img', { name: 'Header of Raffa123$' })).toBeVisible()
 			},
 			fetchUrl: 'http://127.0.0.1:8788/api/v1/accounts/Rafael/statuses?*',

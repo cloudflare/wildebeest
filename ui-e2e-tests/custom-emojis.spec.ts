@@ -40,7 +40,11 @@ test('View of custom emojis in an toots author display name', async ({ page, bro
 		.locator('i.fa-globe + span')
 		.click()
 
-	const customEmojiLocator = page.getByRole('link', { name: 'George :verified: 👍', exact: true }).getByRole('img')
+	const customEmojiLocator = page
+		.getByRole('link')
+		.filter({ hasText: 'George' })
+		.getByTestId('account-display-name')
+		.getByRole('img')
 	await expect(customEmojiLocator).toBeVisible()
 	await expect(customEmojiLocator).toHaveAttribute(
 		'src',
