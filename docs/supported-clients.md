@@ -36,7 +36,7 @@ Wildebeest also provides a read-only web client in your instance URL, where you 
 [9]: https://github.com/elk-zone/elk
 [10]: https://tooot.app/
 [11]: https://github.com/tooot-app
-[12]: https://testflight.apple.com/join/ejJ70WEq
+[12]: https://testflight.apple.com/join/66c1wW8y
 [favorites]: https://docs.joinmastodon.org/methods/favourites/
 [bookmarks]: https://docs.joinmastodon.org/methods/bookmarks/
 [trends]: https://docs.joinmastodon.org/methods/trends/
