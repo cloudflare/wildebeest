@@ -1,4 +1,4 @@
-import { component$, Slot, useStyles$ } from '@builder.io/qwik'
+import { component$, Slot } from '@builder.io/qwik'
 import { MastodonStatus, StatusContext } from '~/types'
 import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
@@ -9,10 +9,10 @@ import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import { MediaGallery } from '~/components/MediaGallery.tsx'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
-import styles from '../../../../utils/innerHtmlContent.scss?inline'
 import { getTextContent } from 'wildebeest/backend/src/activitypub/objects'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { StatusAccountCard } from '~/components/StatusAccountCard/StatusAccountCard'
+import { HtmlContent } from '~/components/HtmlContent/HtmlContent'
 
 export const statusLoader = loader$<
 	{ DATABASE: D1Database },
@@ -46,15 +46,14 @@ export const statusLoader = loader$<
 })
 
 export default component$(() => {
-	useStyles$(styles)
-
 	const loaderData = statusLoader.use().value
 
 	return (
 		<>
 			<div class="p-4">
 				<StatusAccountCard subText="acct" status={loaderData.status} />
-				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={loaderData.status.content} />
+
+				<HtmlContent html={loaderData.status.content} />
 
 				<MediaGallery medias={loaderData.status.media_attachments} />
 

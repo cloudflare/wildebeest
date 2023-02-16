@@ -1,19 +1,18 @@
-import { component$, $, useStyles$ } from '@builder.io/qwik'
+import { component$, $ } from '@builder.io/qwik'
 import { Link, useNavigate } from '@builder.io/qwik-city'
 import { formatTimeAgo } from '~/utils/dateTime'
 import type { Account, MastodonStatus } from '~/types'
-import styles from '../../utils/innerHtmlContent.scss?inline'
 import { MediaGallery } from '../MediaGallery.tsx'
 import { useAccountUrl } from '~/utils/useAccountUrl'
 import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
 import { StatusAccountCard } from '../StatusAccountCard/StatusAccountCard'
+import { HtmlContent } from '../HtmlContent/HtmlContent'
 
 type Props = {
 	status: MastodonStatus
 }
 
 export default component$((props: Props) => {
-	useStyles$(styles)
 	const nav = useNavigate()
 
 	const status = props.status.reblog ?? props.status
@@ -36,11 +35,9 @@ export default component$((props: Props) => {
 					</div>
 				</Link>
 			</div>
-			<div
-				onClick$={handleContentClick}
-				class="leading-relaxed inner-html-content cursor-pointer"
-				dangerouslySetInnerHTML={status.content}
-			/>
+			<div onClick$={handleContentClick} class="cursor-pointer">
+				<HtmlContent html={status.content} />
+			</div>
 
 			<MediaGallery medias={status.media_attachments} />
 

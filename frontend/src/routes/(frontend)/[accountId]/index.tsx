@@ -1,6 +1,5 @@
-import { $, component$, useStyles$ } from '@builder.io/qwik'
+import { $, component$ } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
-import styles from '../../../utils/innerHtmlContent.scss?inline'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import type { MastodonStatus } from '~/types'
 import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
@@ -35,8 +34,6 @@ export const statusesLoader = loader$<
 })
 
 export default component$(() => {
-	useStyles$(styles)
-
 	const { accountId, statuses } = statusesLoader.use().value
 
 	return (
