@@ -16,7 +16,7 @@ This is the list clients that we have been using successfully while developing a
 | [Tooot][10]           | Mobile  | yes   | yes  | yes    | yes    | yes    | n/a             | [github][11] | ✅ <sup>3</sup>
 | [Mammoth][12]         | Mobile  | yes   | yes  | yes    | yes    | yes    | n/a             | n/a          | ✅ <sup>3</sup> <sup>4</sup>
 
-<sup>1</sup> [unmaintained](pinafore-unmaintained)
+<sup>1</sup> [unmaintained](pinafore-unmaintained)<br/>
 <sup>2</sup> we know what the issue is and are in contact with the author<br/>
 <sup>3</sup> [conversations][conversations], [favourites][favorites], [bookmarks][bookmarks] and [trends][trends] are not implemented yet<br/>
 <sup>4</sup> notification filters are broken
