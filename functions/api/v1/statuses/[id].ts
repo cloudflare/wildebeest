@@ -17,9 +17,9 @@ import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/que
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import { cacheFromEnv } from 'wildebeest/backend/src/cache'
 
-export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ params, env, request }) => {
+export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ params, env, request, data }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequestGet(env.DATABASE, params.id as UUID, domain)
+	return handleRequestGet(env.DATABASE, params.id as UUID, domain, data.connectedActor)
 }
 
 export const onRequestDelete: PagesFunction<Env, any, ContextData> = async ({ params, env, request, data }) => {
@@ -35,11 +35,18 @@ export const onRequestDelete: PagesFunction<Env, any, ContextData> = async ({ pa
 	)
 }
 
-export async function handleRequestGet(db: D1Database, id: UUID, domain: string): Promise<Response> {
+export async function handleRequestGet(db: D1Database, id: UUID, domain: string, connectedActor: Person): Promise<Response> {
 	const status = await getMastodonStatusById(db, id, domain)
 	if (status === null) {
 		return new Response('', { status: 404 })
 	}
+
+	// future validation for private statuses
+	/*
+	if (status.private && status.account.id !== urlToHandle(connectedActor.id)) {
+		return errors.notAuthorized("status is private");
+	}
+	*/
 
 	const headers = {
 		...cors(),
