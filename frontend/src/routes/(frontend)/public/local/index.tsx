@@ -4,10 +4,9 @@ import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { getDocumentHead } from '~/utils/getDocumentHead'
-import { RequestContext } from '@builder.io/qwik-city/middleware/request-handler'
 import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
 
-export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<MastodonStatus[]>>(
+export const statusesLoader = loader$<Promise<MastodonStatus[]>, { DATABASE: D1Database; domain: string }>(
 	async ({ platform, html }) => {
 		try {
 			// TODO: use the "trending" API endpoint here.
@@ -22,7 +21,7 @@ export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, 
 )
 
 export default component$(() => {
-	const statuses = statusesLoader.use().value
+	const statuses = statusesLoader().value
 	return (
 		<>
 			<StickyHeader>
@@ -53,11 +52,11 @@ export default component$(() => {
 
 export const requestLoader = loader$(async ({ request }) => {
 	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
-	return JSON.parse(JSON.stringify(request)) as RequestContext
+	return JSON.parse(JSON.stringify(request)) as Request
 })
 
-export const head: DocumentHead = ({ getData }) => {
-	const { url } = getData(requestLoader)
+export const head: DocumentHead = ({ resolveValue }) => {
+	const { url } = resolveValue(requestLoader)
 	return getDocumentHead({
 		title: 'Local timeline - Wildebeest',
 		og: {

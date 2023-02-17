@@ -7,6 +7,6 @@ export const loader = loader$(({ html }) => {
 })
 
 export default component$(() => {
-	loader.use()
+	loader()
 	return <></>
 })

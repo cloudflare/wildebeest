@@ -13,8 +13,8 @@ import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
 import { useAccountUrl } from '~/utils/useAccountUrl'
 
 export const accountPageLoader = loader$<
-	{ DATABASE: D1Database },
-	Promise<{ account: MastodonAccount; accountHandle: string; isValidStatus: boolean }>
+	Promise<{ account: MastodonAccount; accountHandle: string; isValidStatus: boolean }>,
+	{ DATABASE: D1Database }
 >(async ({ platform, params, request, html }) => {
 	let isValidStatus = false
 	let account: MastodonAccount | null = null
@@ -53,7 +53,7 @@ export const accountPageLoader = loader$<
 export default component$(() => {
 	useStyles$(styles)
 
-	const pageDetails = accountPageLoader.use().value
+	const pageDetails = accountPageLoader().value
 	const showAccountInfo = !pageDetails.isValidStatus
 
 	const location = useLocation()
@@ -160,8 +160,8 @@ export function getAccountDomain(account: MastodonAccount): string | null {
 	}
 }
 
-export const head: DocumentHead = ({ getData, head }) => {
-	const { account, accountHandle } = getData(accountPageLoader)
+export const head: DocumentHead = ({ resolveValue, head }) => {
+	const { account, accountHandle } = resolveValue(accountPageLoader)
 
 	return getDocumentHead(
 		{

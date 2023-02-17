@@ -13,8 +13,8 @@
 		"watch": "concurrently \"vite build -w\" \"vite build -w -c adaptors/cloudflare-pages/vite.config.ts\""
 	},
 	"devDependencies": {
-		"@builder.io/qwik": "0.16.2",
-		"@builder.io/qwik-city": "0.1.0-beta8",
+		"@builder.io/qwik": "0.18.1",
+		"@builder.io/qwik-city": "0.2.1",
 		"@types/eslint": "8.4.10",
 		"@types/jest": "^29.2.4",
 		"@types/node": "^18.11.16",

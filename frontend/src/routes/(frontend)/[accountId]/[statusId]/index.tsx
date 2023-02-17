@@ -15,8 +15,8 @@ import { StatusAccountCard } from '~/components/StatusAccountCard/StatusAccountC
 import { HtmlContent } from '~/components/HtmlContent/HtmlContent'
 
 export const statusLoader = loader$<
-	{ DATABASE: D1Database },
-	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>
+	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>,
+	{ DATABASE: D1Database }
 >(async ({ request, html, platform, params }) => {
 	const domain = new URL(request.url).hostname
 	let statusText = ''
@@ -46,7 +46,7 @@ export const statusLoader = loader$<
 })
 
 export default component$(() => {
-	const loaderData = statusLoader.use().value
+	const loaderData = statusLoader().value
 
 	return (
 		<>
@@ -111,8 +111,8 @@ export const Info = component$<{ href: string | null }>(({ href }) => {
 	)
 })
 
-export const head: DocumentHead = ({ getData }) => {
-	const { status, statusTextContent } = getData(statusLoader)
+export const head: DocumentHead = ({ resolveValue }) => {
+	const { status, statusTextContent } = resolveValue(statusLoader)
 
 	const title = `${status.account.display_name}: ${statusTextContent.substring(0, 30)}${
 		statusTextContent.length > 30 ? '…' : ''
