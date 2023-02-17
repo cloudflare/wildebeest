@@ -536,7 +536,7 @@ describe('Mastodon APIs', () => {
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
 
-			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -552,7 +552,7 @@ describe('Mastodon APIs', () => {
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
 			const note = await createPublicNote(domain, db, 'my first status', actor, mediaAttachments)
 
-			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -591,7 +591,7 @@ describe('Mastodon APIs', () => {
 				await insertReblog(db, actor2, note)
 				await insertReblog(db, actor3, note)
 
-				const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+				const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
