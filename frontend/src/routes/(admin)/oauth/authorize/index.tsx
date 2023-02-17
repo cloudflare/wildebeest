@@ -9,7 +9,7 @@ import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import { buildRedirect } from 'wildebeest/functions/oauth/authorize'
 
-export const clientLoader = loader$<{ DATABASE: D1Database }, Promise<Client>>(async ({ platform, query, html }) => {
+export const clientLoader = loader$<Promise<Client>, { DATABASE: D1Database }>(async ({ platform, query, html }) => {
 	const client_id = query.get('client_id') || ''
 	let client: Client | null = null
 	try {
@@ -24,8 +24,8 @@ export const clientLoader = loader$<{ DATABASE: D1Database }, Promise<Client>>(a
 })
 
 export const userLoader = loader$<
-	{ DATABASE: D1Database; domain: string },
-	Promise<{ email: string; avatar: URL; name: string; url: URL }>
+	Promise<{ email: string; avatar: URL; name: string; url: URL }>,
+	{ DATABASE: D1Database; domain: string }
 >(async ({ cookie, platform, html, request, redirect, text }) => {
 	const jwt = cookie.get('CF_Authorization')
 	if (jwt === null) {
@@ -68,8 +68,8 @@ export const userLoader = loader$<
 })
 
 export default component$(() => {
-	const client = clientLoader.use().value
-	const { email, avatar, name: display_name, url } = userLoader.use().value
+	const client = clientLoader().value
+	const { email, avatar, name: display_name, url } = userLoader().value
 	return (
 		<div class="flex flex-col p-4 items-center">
 			<h1 class="text-center mt-3 mb-5 flex items-center">

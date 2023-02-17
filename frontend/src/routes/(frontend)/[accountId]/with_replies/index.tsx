@@ -8,11 +8,11 @@ import { getLocalStatuses } from 'wildebeest/functions/api/v1/accounts/[id]/stat
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 
 export const statusesLoader = loader$<
-	{ DATABASE: D1Database },
 	Promise<{
 		accountId: string
 		statuses: MastodonStatus[]
-	}>
+	}>,
+	{ DATABASE: D1Database }
 >(async ({ platform, request, html }) => {
 	let statuses: MastodonStatus[] = []
 	let accountId = ''
@@ -37,7 +37,7 @@ export const statusesLoader = loader$<
 export default component$(() => {
 	useStyles$(styles)
 
-	const { accountId, statuses } = statusesLoader.use().value
+	const { accountId, statuses } = statusesLoader().value
 
 	return (
 		<div data-testid="account-posts-and-replies">

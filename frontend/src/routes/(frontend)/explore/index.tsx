@@ -1,13 +1,12 @@
 import { $, component$ } from '@builder.io/qwik'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
-import { RequestContext } from '@builder.io/qwik-city/middleware/request-handler'
 import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
 import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
 import type { MastodonStatus } from '~/types'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
-export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<MastodonStatus[]>>(
+export const statusesLoader = loader$<Promise<MastodonStatus[]>, { DATABASE: D1Database; domain: string }>(
 	async ({ platform, html }) => {
 		try {
 			// TODO: use the "trending" API endpoint here.
@@ -24,7 +23,7 @@ export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, 
 )
 
 export default component$(() => {
-	const statuses = statusesLoader.use().value
+	const statuses = statusesLoader().value
 	return (
 		<StatusesPanel
 			initialStatuses={statuses}
@@ -47,11 +46,11 @@ export default component$(() => {
 
 export const requestLoader = loader$(async ({ request }) => {
 	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
-	return JSON.parse(JSON.stringify(request)) as RequestContext
+	return JSON.parse(JSON.stringify(request)) as Request
 })
 
-export const head: DocumentHead = ({ getData }) => {
-	const { url } = getData(requestLoader)
+export const head: DocumentHead = ({ resolveValue }) => {
+	const { url } = resolveValue(requestLoader)
 	return getDocumentHead({
 		title: 'Explore - Wildebeest',
 		og: {

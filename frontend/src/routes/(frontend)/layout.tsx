@@ -11,8 +11,8 @@ import { InstanceConfigContext } from '~/utils/instanceConfig'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 
 export const instanceLoader = loader$<
-	{ DATABASE: D1Database; INSTANCE_TITLE: string; INSTANCE_DESCR: string; ADMIN_EMAIL: string },
-	Promise<InstanceConfig>
+	Promise<InstanceConfig>,
+	{ DATABASE: D1Database; INSTANCE_TITLE: string; INSTANCE_DESCR: string; ADMIN_EMAIL: string }
 >(async ({ platform, html }) => {
 	const env = {
 		INSTANCE_DESCR: platform.INSTANCE_DESCR,
@@ -30,7 +30,7 @@ export const instanceLoader = loader$<
 })
 
 export default component$(() => {
-	useContextProvider(InstanceConfigContext, instanceLoader.use().value)
+	useContextProvider(InstanceConfigContext, instanceLoader().value)
 	const commitHash = getCommitHash()
 
 	return (
@@ -64,8 +64,8 @@ export default component$(() => {
 	)
 })
 
-export const head: DocumentHead = ({ getData, head }) => {
-	const instance = getData(instanceLoader)
+export const head: DocumentHead = ({ resolveValue, head }) => {
+	const instance = resolveValue(instanceLoader)
 
 	return getDocumentHead(
 		{
