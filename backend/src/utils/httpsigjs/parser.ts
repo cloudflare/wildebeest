@@ -261,8 +261,8 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 
 	if (!parsed.params.signature) throw new InvalidHeaderError('signature was not specified')
 
-	if (['date', 'x-date', '(created)'].every((hdr) => parsedHeaders.indexOf(hdr) < 0)) {
-		throw new MissingHeaderError('no signed date header')
+	if (['date', 'x-date', '(created)', 'digest'].every((hdr) => parsedHeaders.indexOf(hdr) < 0)) {
+		throw new MissingHeaderError('no signed date or digest header')
 	}
 
 	// Check the algorithm against the official list
