@@ -46,7 +46,7 @@ export default component$(() => {
 						<LeftColumn />
 					</div>
 				</div>
-				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent flex flex-col break-all sm:break-normal">
+				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent flex flex-col break-all">
 					<div class="bg-wildebeest-600 rounded flex flex-1 flex-col">
 						<Slot />
 					</div>

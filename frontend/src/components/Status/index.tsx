@@ -24,7 +24,7 @@ export default component$((props: Props) => {
 	const handleContentClick = $(() => nav(statusUrl))
 
 	return (
-		<article class="p-4 border-t border-wildebeest-700 break-words sm:break-normal">
+		<article class="p-4 border-t border-wildebeest-700 break-words">
 			<RebloggerLink account={reblogger}></RebloggerLink>
 			<div class="flex justify-between mb-3">
 				<StatusAccountCard status={status} subText="username" secondaryAvatar={reblogger} />
