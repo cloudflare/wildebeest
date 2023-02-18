@@ -15,21 +15,22 @@ export async function signRequest(request: Request, key: CryptoKey, keyId: URL):
 		)
 	mySigner.alg = 'hs2019' as Algorithm
 
+	if (!request.headers.has('Date')) {
+		request.headers.set('Date', new Date().toUTCString())
+	}
+
 	if (!request.headers.has('Host')) {
 		const url = new URL(request.url)
 		request.headers.set('Host', url.host)
 	}
 
-	const components = ['@request-target', 'host']
+	const components = ['@request-target', 'date', 'host']
 	if (request.method == 'POST') {
 		components.push('digest')
 	}
 
 	await sign(request, {
 		components: components,
-		parameters: {
-			created: Math.floor(Date.now() / 1000),
-		},
 		keyId: keyId.toString(),
 		signer: mySigner,
 	})
