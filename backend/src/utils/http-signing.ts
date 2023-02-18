@@ -27,9 +27,6 @@ export async function signRequest(request: Request, key: CryptoKey, keyId: URL):
 
 	await sign(request, {
 		components: components,
-		parameters: {
-			created: Math.floor(Date.now() / 1000),
-		},
 		keyId: keyId.toString(),
 		signer: mySigner,
 	})
