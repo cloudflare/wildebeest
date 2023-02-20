@@ -8,6 +8,7 @@ const mastodonRawStatuses: MastodonStatus[] = [
 		content: `
 		<p>Fine. I'll use Wildebeest!</p>
 		<p>It does look interesting:
+			&#32
 			<a href="https://blog.cloudflare.com/welcome-to-wildebeest-the-fediverse-on-cloudflare/"
 				target="_blank"
 				rel="nofollow noopener noreferrer">
@@ -15,7 +16,7 @@ const mastodonRawStatuses: MastodonStatus[] = [
 					<span class="ellipsis">blog.cloudflare.com/welcome-to</span>
 					<span class="invisible">-wildebeest-the-fediverse-on-cloudflare/</span>
 			</a>
-		</p>`,
+		</p>`.replace(/[\t\n]/g, ''),
 		account: george,
 	}),
 	generateDummyStatus({
