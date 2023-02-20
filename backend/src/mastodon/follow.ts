@@ -125,12 +125,26 @@ export function getFollowingId(db: D1Database, actor: Actor): Promise<Array<stri
 	return getResultsField(statement, 'target_actor_id')
 }
 
-export function getFollowers(db: D1Database, actor: Actor): Promise<Array<string>> {
-	const query = `
-		SELECT actor_id FROM actor_following WHERE target_actor_id=? AND state=?
-	`
+export async function getFollowers(db: D1Database, actor: Actor): Promise<Array<string>> {
+	const followers = []
 
-	const statement = db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED)
+	{
+		const query = `
+            SELECT actor_id FROM actor_following WHERE target_actor_id=? AND state=?
+        `
+		const statement = db.prepare(query).bind(actor.id.toString(), STATE_ACCEPTED)
+		const actors = await getResultsField(statement, 'actor_id')
+		followers.push(...actors)
+	}
 
-	return getResultsField(statement, 'actor_id')
+	{
+		const query = `
+            SELECT actor_id FROM relays
+        `
+		const statement = db.prepare(query)
+		const relays = await getResultsField(statement, 'actor_id')
+		followers.push(...relays)
+	}
+
+	return followers
 }
