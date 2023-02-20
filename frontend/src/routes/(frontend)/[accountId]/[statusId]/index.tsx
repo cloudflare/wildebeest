@@ -8,6 +8,7 @@ import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import { getTextContent } from 'wildebeest/backend/src/activitypub/objects'
 import { getDocumentHead } from '~/utils/getDocumentHead'
+import { Person } from 'wildebeest/backend/src/activitypub/actors'
 
 export const statusLoader = loader$<
 	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>,
@@ -16,7 +17,7 @@ export const statusLoader = loader$<
 	const domain = new URL(request.url).hostname
 	let statusText = ''
 	try {
-		const statusResponse = await statusAPI.handleRequestGet(platform.DATABASE, params.statusId, domain)
+		const statusResponse = await statusAPI.handleRequestGet(platform.DATABASE, params.statusId, domain, {} as Person)
 		statusText = await statusResponse.text()
 	} catch {
 		throw html(500, getErrorHtml('An error occurred whilst retrieving the status data, please try again later'))
