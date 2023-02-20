@@ -49,6 +49,7 @@ export async function main(context: EventContext<Env, any, any>) {
 	if (
 		url.pathname === '/oauth/token' ||
 		url.pathname === '/oauth/authorize' || // Cloudflare Access runs on /oauth/authorize
+		/^\/api\/v1\/statuses\/.*(?<!(reblog|favourite))$/.test(url.pathname) || // Unless private https://docs.joinmastodon.org/methods/statuses/#get
 		url.pathname === '/api/v1/instance' ||
 		url.pathname === '/api/v2/instance' ||
 		url.pathname === '/api/v1/instance/peers' ||
