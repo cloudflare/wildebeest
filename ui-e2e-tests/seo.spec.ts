@@ -45,7 +45,7 @@ test.describe('Presence of appropriate SEO metadata across the application', () 
 			title: "Raffa123$: I'm Rafael and I am a web desi… - Wildebeest",
 			description: "I'm Rafael and I am a web designer! 💪💪",
 			ogType: 'article',
-			ogUrl: /https:\/\/127.0.0.1\/statuses\/[\w-]*\/?/,
+			ogUrl: /https:\/\/127.0.0.1\/@Rafael\/[\w-]*\/?/,
 			ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/157.jpg',
 		})
 
@@ -55,7 +55,7 @@ test.describe('Presence of appropriate SEO metadata across the application', () 
 			title: 'Ben, just Ben: A very simple update: all good… - Wildebeest',
 			description: 'A very simple update: all good!',
 			ogType: 'article',
-			ogUrl: /https:\/\/127.0.0.1\/statuses\/[\w-]*\/?/,
+			ogUrl: /https:\/\/127.0.0.1\/@Ben\/[\w-]*\/?/,
 			ogImage: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1148.jpg',
 		})
 	})
