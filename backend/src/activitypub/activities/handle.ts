@@ -394,13 +394,8 @@ export async function handle(
 				// TODO: eventually move to queue and move workers
 				while (collection.items.length > 0) {
 					const batch = collection.items.splice(0, 20)
-					await Promise.all(
-						batch.map(async (items) => {
-							console.log({ items })
-							await moveFollowers(db, localActor, items)
-							console.log(`moved ${items.length} followers`)
-						})
-					)
+					await moveFollowers(db, localActor, batch)
+					console.log(`moved ${batch.length} followers`)
 				}
 			}
 
@@ -412,12 +407,8 @@ export async function handle(
 				// TODO: eventually move to queue and move workers
 				while (collection.items.length > 0) {
 					const batch = collection.items.splice(0, 20)
-					await Promise.all(
-						batch.map(async (items) => {
-							await moveFollowing(db, localActor, items)
-							console.log(`moved ${items.length} following`)
-						})
-					)
+					await moveFollowing(db, localActor, batch)
+					console.log(`moved ${batch.length} following`)
 				}
 			}
 

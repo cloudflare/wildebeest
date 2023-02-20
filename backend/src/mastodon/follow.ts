@@ -19,7 +19,6 @@ export async function moveFollowers(db: D1Database, actor: Actor, followers: Arr
 	const actorAcc = urlToHandle(actor.id)
 
 	for (let i = 0; i < followers.length; i++) {
-		console.log(followers[i])
 		const follower = new URL(followers[i])
 		const followActor = await actors.getAndCache(follower, db)
 
