@@ -167,7 +167,7 @@ describe('Mastodon APIs', () => {
 	})
 
 	describe('Microformats', () => {
-		test('convert mentions to HTML', () => {
+		test('convert mentions to HTML', async () => {
 			const mentionsToTest = [
 				{
 					mention: '@sven2@example.com',
@@ -195,18 +195,34 @@ describe('Mastodon APIs', () => {
 						'<span class="h-card"><a href="https://123456.test.testey.abcdef/@testey" class="u-url mention">@<span>testey</span></a></span>',
 				},
 			]
-			mentionsToTest.forEach(({ mention, expectedMentionSpan }) => {
-				assert.equal(enrichStatus(`hey ${mention} hi`), `<p>hey ${expectedMentionSpan} hi</p>`)
-				assert.equal(enrichStatus(`${mention} hi`), `<p>${expectedMentionSpan} hi</p>`)
-				assert.equal(enrichStatus(`${mention}\n\thein`), `<p>${expectedMentionSpan}\n\thein</p>`)
-				assert.equal(enrichStatus(`hey ${mention}`), `<p>hey ${expectedMentionSpan}</p>`)
-				assert.equal(enrichStatus(`${mention}`), `<p>${expectedMentionSpan}</p>`)
-				assert.equal(enrichStatus(`@!@£${mention}!!!`), `<p>@!@£${expectedMentionSpan}!!!</p>`)
-			})
+
+			for (let i = 0, len = mentionsToTest.length; i < len; i++) {
+				const { mention, expectedMentionSpan } = mentionsToTest[i]
+
+				// List of mentioned actors, only the `id` is required so we can hack together an Actor
+				const mentions: any = [
+					{ id: new URL('https://example.com/sven2') },
+					{ id: new URL('https://example.eng.com/test') },
+					{ id: new URL('https://example.eng.co.uk/test.a.b.c-d') },
+					{ id: new URL('https://123456.abcdef/testey') },
+					{ id: new URL('https://123456.test.testey.abcdef/testey') },
+				]
+
+				assert.equal(enrichStatus(`hey ${mention} hi`, mentions), `<p>hey ${expectedMentionSpan} hi</p>`)
+				assert.equal(enrichStatus(`${mention} hi`, mentions), `<p>${expectedMentionSpan} hi</p>`)
+				assert.equal(enrichStatus(`${mention}\n\thein`, mentions), `<p>${expectedMentionSpan}\n\thein</p>`)
+				assert.equal(enrichStatus(`hey ${mention}`, mentions), `<p>hey ${expectedMentionSpan}</p>`)
+				assert.equal(enrichStatus(`${mention}`, mentions), `<p>${expectedMentionSpan}</p>`)
+				assert.equal(enrichStatus(`@!@£${mention}!!!`, mentions), `<p>@!@£${expectedMentionSpan}!!!</p>`)
+			}
 		})
 
 		test('handle invalid mention', () => {
-			assert.equal(enrichStatus('hey @#-...@example.com'), '<p>hey @#-...@example.com</p>')
+			assert.equal(enrichStatus('hey @#-...@example.com', []), '<p>hey @#-...@example.com</p>')
+		})
+
+		test('mention to invalid user', () => {
+			assert.equal(enrichStatus('hey test@example.com', []), '<p>hey test@example.com</p>')
 		})
 
 		test('convert links to HTML', () => {
@@ -222,11 +238,11 @@ describe('Mastodon APIs', () => {
 			linksToTest.forEach((link) => {
 				const url = new URL(link)
 				const urlDisplayText = `${url.hostname}${url.pathname}`
-				assert.equal(enrichStatus(`hey ${link} hi`), `<p>hey <a href="${link}">${urlDisplayText}</a> hi</p>`)
-				assert.equal(enrichStatus(`${link} hi`), `<p><a href="${link}">${urlDisplayText}</a> hi</p>`)
-				assert.equal(enrichStatus(`hey ${link}`), `<p>hey <a href="${link}">${urlDisplayText}</a></p>`)
-				assert.equal(enrichStatus(`${link}`), `<p><a href="${link}">${urlDisplayText}</a></p>`)
-				assert.equal(enrichStatus(`@!@£${link}!!!`), `<p>@!@£<a href="${link}">${urlDisplayText}</a>!!!</p>`)
+				assert.equal(enrichStatus(`hey ${link} hi`, []), `<p>hey <a href="${link}">${urlDisplayText}</a> hi</p>`)
+				assert.equal(enrichStatus(`${link} hi`, []), `<p><a href="${link}">${urlDisplayText}</a> hi</p>`)
+				assert.equal(enrichStatus(`hey ${link}`, []), `<p>hey <a href="${link}">${urlDisplayText}</a></p>`)
+				assert.equal(enrichStatus(`${link}`, []), `<p><a href="${link}">${urlDisplayText}</a></p>`)
+				assert.equal(enrichStatus(`@!@£${link}!!!`, []), `<p>@!@£<a href="${link}">${urlDisplayText}</a>!!!</p>`)
 			})
 		})
 	})

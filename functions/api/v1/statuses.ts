@@ -107,12 +107,12 @@ export async function handleRequest(
 
 	const hashtags = getHashtags(body.status)
 
-	const content = enrichStatus(body.status)
 	const mentions = await getMentions(body.status, domain)
 	if (mentions.length > 0) {
 		extraProperties.tag = mentions.map(newMention)
 	}
 
+	const content = enrichStatus(body.status, mentions)
 	const note = await createStatus(domain, db, connectedActor, content, mediaAttachments, extraProperties)
 
 	if (hashtags.length > 0) {
