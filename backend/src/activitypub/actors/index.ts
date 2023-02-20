@@ -263,8 +263,24 @@ export function personFromRow(row: any): Person {
 		domain = new URL(row.original_actor_id).hostname
 	}
 
-	if (properties.inbox === undefined) {
-		console.warn('malformed Actor: missing inbox')
+	// Old local actors weren't created with inbox/outbox/etc properties, so add
+	// them if missing.
+	{
+		if (properties.inbox === undefined) {
+			properties.inbox = id + '/inbox'
+		}
+
+		if (properties.outbox === undefined) {
+			properties.outbox = id + '/outbox'
+		}
+
+		if (properties.following === undefined) {
+			properties.following = id + '/following'
+		}
+
+		if (properties.followers === undefined) {
+			properties.followers = id + '/followers'
+		}
 	}
 
 	return {
