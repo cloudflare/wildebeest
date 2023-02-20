@@ -358,7 +358,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[0].favourites_count, 0)
 			assert.equal(data[0].reblogs_count, 1)
 			assert.equal(new URL(data[0].uri).pathname, '/ap/o/' + data[0].id)
-			assert.equal(new URL(data[0].url).pathname, '/statuses/' + data[0].id)
+			assert.equal(new URL(data[0].url).pathname, '/@sven/' + data[0].id)
 
 			assert(isUUID(data[1].id))
 			assert.equal(data[1].content, 'my first status')

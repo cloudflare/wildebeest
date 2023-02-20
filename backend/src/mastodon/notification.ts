@@ -254,7 +254,7 @@ export async function getNotifications(db: D1Database, actor: Actor, domain: str
 				id: result.mastodon_id,
 				content: properties.content,
 				uri: result.id,
-				url: new URL('/statuses/' + result.mastodon_id, 'https://' + domain),
+				url: new URL(`/@${actor.preferredUsername}/${result.mastodon_id}`, 'https://' + domain),
 				created_at: new Date(result.cdate).toISOString(),
 
 				account,
