@@ -457,6 +457,11 @@ describe('Mastodon APIs', () => {
 						})
 					)
 				}
+				if (
+					input.toString() === 'https://cloudflare.com/.well-known/webfinger?resource=acct%3Ano-json%40cloudflare.com'
+				) {
+					return new Response('not json', { status: 200 })
+				}
 
 				if (input.toString() === 'https://instance.horse/users/sven') {
 					return new Response(
@@ -496,7 +501,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			{
-				const mentions = await getMentions('unknown@actor.com', domain)
+				const mentions = await getMentions('no-json@actor.com', domain)
 				assert.equal(mentions.length, 0)
 			}
 
@@ -523,6 +528,11 @@ describe('Mastodon APIs', () => {
 				const mentions = await getMentions('<p>@sven</p>', domain)
 				assert.equal(mentions.length, 1)
 				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/sven')
+			}
+
+			{
+				const mentions = await getMentions('<p>@unknown</p>', domain)
+				assert.equal(mentions.length, 0)
 			}
 		})
 
