@@ -51,13 +51,10 @@ export default component$(() => {
 	)
 })
 
-export const requestLoader = loader$(async ({ request }) => {
-	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
-	return JSON.parse(JSON.stringify(request)) as Request
-})
+export const requestUrlLoader = loader$(async ({ request }) => request.url)
 
 export const head: DocumentHead = ({ resolveValue }) => {
-	const { url } = resolveValue(requestLoader)
+	const url = resolveValue(requestUrlLoader)
 	return getDocumentHead({
 		title: 'Federated timeline - Wildebeest',
 		og: {
