@@ -83,3 +83,18 @@ test("Navigation to and view of a toot's replies", async ({ page }) => {
 	await expect(page.getByTestId('account-display-name').filter({ hasText: 'Penny' })).toBeVisible()
 	await expect(page.getByText('Yes you guys did it!')).toBeVisible()
 })
+
+test("Correctly hides and displays the toot's content based on the spoiler text", async ({ page }) => {
+	await page.goto('http://127.0.0.1:8788/explore')
+
+	await page.getByText('who am I?').click()
+
+	await expect(page.getByRole('button', { name: 'Back' })).toBeVisible()
+
+	const articleLocator = page.getByRole('article').filter({ hasText: 'who am I?' })
+	await expect(articleLocator.getByRole('paragraph').getByText('Hi! My name is Rafael! 👋')).not.toBeVisible()
+	await articleLocator.getByRole('button', { name: 'show more' }).click()
+	await expect(articleLocator.getByRole('paragraph').getByText('Hi! My name is Rafael! 👋')).toBeVisible()
+	await articleLocator.getByRole('button', { name: 'show less' }).click()
+	await expect(articleLocator.getByRole('paragraph').getByText('Hi! My name is Rafael! 👋')).not.toBeVisible()
+})

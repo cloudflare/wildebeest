@@ -31,6 +31,11 @@ test('Navigation to and view of an account (with 2 posts)', async ({ page }) => 
 	await expect(post1Locator.getByRole('img', { name: 'Avatar of Raffa123$' })).toBeVisible()
 	await expect(post1Locator).toContainText("I'm Rafael and I am a web designer")
 	await expect(post2Locator.getByRole('img', { name: 'Avatar of Raffa123$' })).toBeVisible()
+	await expect(post2Locator.getByText('who am I?')).toBeVisible()
+	await expect(post2Locator.getByRole('paragraph').getByText('Hi! My name is Rafael! 👋')).not.toBeVisible()
+	await post2Locator.getByRole('button', { name: 'show more' }).click()
+	await expect(post2Locator.getByRole('paragraph').getByText('Hi! My name is Rafael! 👋')).toBeVisible()
+
 	await expect(post2Locator).toContainText('Hi! My name is Rafael!')
 })
 

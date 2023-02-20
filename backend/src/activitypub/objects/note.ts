@@ -19,6 +19,7 @@ export interface Note extends objects.APObject {
 	attachment: Array<objects.APObject>
 	cc: Array<string>
 	tag: Array<Link>
+	spoiler_text?: string
 }
 
 export async function createPublicNote(

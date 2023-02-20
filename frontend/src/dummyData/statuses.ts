@@ -4,8 +4,8 @@ import { ben, george, penny, rafael, zak } from './accounts'
 
 // Raw statuses which follow the precise structure found mastodon does
 const mastodonRawStatuses: MastodonStatus[] = [
-	generateDummyStatus(
-		`
+	generateDummyStatus({
+		content: `
 		<p>Fine. I'll use Wildebeest!</p>
 		<p>It does look interesting:
 			<a href="https://blog.cloudflare.com/welcome-to-wildebeest-the-fediverse-on-cloudflare/"
@@ -16,20 +16,27 @@ const mastodonRawStatuses: MastodonStatus[] = [
 					<span class="invisible">-wildebeest-the-fediverse-on-cloudflare/</span>
 			</a>
 		</p>`,
-		george
-	),
-	generateDummyStatus('We did it!', george, [
-		generateDummyMediaImage(`https:/loremflickr.com/640/480/victory?lock=${Math.round(Math.random() * 999999)}`),
-	]),
-	generateDummyStatus('<span>A very simple update: all good!</span>', ben),
-	generateDummyStatus('<p>Hi! My name is Rafael! 👋</p>', rafael),
-	generateDummyStatus(
-		"<div><p>I'm Rafael and I am a web designer!</p><p>💪💪</p></div>",
-		rafael,
-		new Array(4)
+		account: george,
+	}),
+	generateDummyStatus({
+		content: 'We did it!',
+		account: george,
+		mediaAttachments: [
+			generateDummyMediaImage(`https:/loremflickr.com/640/480/victory?lock=${Math.round(Math.random() * 999999)}`),
+		],
+	}),
+	generateDummyStatus({
+		content: '<span>A very simple update: all good!</span>',
+		account: ben,
+	}),
+	generateDummyStatus({ content: '<p>Hi! My name is Rafael! 👋</p>', account: rafael, spoiler_text: 'who am I?' }),
+	generateDummyStatus({
+		content: "<div><p>I'm Rafael and I am a web designer!</p><p>💪💪</p></div>",
+		account: rafael,
+		mediaAttachments: new Array(4)
 			.fill(null)
-			.map((_, idx) => generateDummyMediaImage(`https:/loremflickr.com/640/480/abstract?lock=${100 + idx}`))
-	),
+			.map((_, idx) => generateDummyMediaImage(`https:/loremflickr.com/640/480/abstract?lock=${100 + idx}`)),
+	}),
 ]
 
 export const statuses: MastodonStatus[] = mastodonRawStatuses.map((rawStatus) => ({
@@ -41,11 +48,11 @@ export const statuses: MastodonStatus[] = mastodonRawStatuses.map((rawStatus) =>
 }))
 
 export const replies: MastodonStatus[] = [
-	generateDummyStatus('<p>Yes we did! 🎉</p>', zak, [], statuses[1].id),
-	generateDummyStatus('<p> Yes you guys did it! </p>', penny, [], statuses[1].id),
+	generateDummyStatus({ content: '<p>Yes we did! 🎉</p>', account: zak, inReplyTo: statuses[1].id }),
+	generateDummyStatus({ content: '<p> Yes you guys did it! </p>', account: penny, inReplyTo: statuses[1].id }),
 ]
 
-export const reblogs: MastodonStatus[] = [generateDummyStatus('', george, [], null, statuses[2])]
+export const reblogs: MastodonStatus[] = [generateDummyStatus({ account: george, reblog: statuses[2] })]
 
 function getStandardMediaType(mediaAttachmentMastodonType: string): string {
 	switch (mediaAttachmentMastodonType) {
