@@ -11,22 +11,6 @@ export function actorURL(domain: string, id: string): URL {
 	return new URL(`/ap/users/${id}`, 'https://' + domain)
 }
 
-function inboxURL(id: URL): URL {
-	return new URL(id + '/inbox')
-}
-
-function outboxURL(id: URL): URL {
-	return new URL(id + '/outbox')
-}
-
-function followingURL(id: URL): URL {
-	return new URL(id + '/following')
-}
-
-export function followersURL(id: URL): URL {
-	return new URL(id + '/followers')
-}
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
 export interface Actor extends APObject {
 	inbox: URL
@@ -143,8 +127,14 @@ type PersonProperties = {
 	icon?: { url: string }
 	image?: { url: string }
 	preferredUsername?: string
+
+	inbox?: string
+	outbox?: string
+	following?: string
+	followers?: string
 }
 
+// Create a local user
 export async function createPerson(
 	domain: string,
 	db: D1Database,
@@ -178,6 +168,23 @@ export async function createPerson(
 	}
 
 	const id = actorURL(domain, properties.preferredUsername).toString()
+
+	if (properties.inbox === undefined) {
+		properties.inbox = id + '/inbox'
+	}
+
+	if (properties.outbox === undefined) {
+		properties.outbox = id + '/outbox'
+	}
+
+	if (properties.following === undefined) {
+		properties.following = id + '/following'
+	}
+
+	if (properties.followers === undefined) {
+		properties.followers = id + '/followers'
+	}
+
 	const row = await db
 		.prepare(
 			`
@@ -256,6 +263,10 @@ export function personFromRow(row: any): Person {
 		domain = new URL(row.original_actor_id).hostname
 	}
 
+	if (properties.inbox === undefined) {
+		console.warn('malformed Actor: missing inbox')
+	}
+
 	return {
 		// Hidden values
 		[emailSymbol]: row.email,
@@ -270,11 +281,7 @@ export function personFromRow(row: any): Person {
 		type: PERSON,
 		id,
 		published: new Date(row.cdate).toISOString(),
-		inbox: inboxURL(row.id),
-		outbox: outboxURL(row.id),
-		following: followingURL(row.id),
-		followers: followersURL(row.id),
 
 		url: new URL('@' + preferredUsername, 'https://' + domain),
-	} as Person
+	} as unknown as Person
 }
