@@ -71,6 +71,17 @@ test.describe('Presence of appropriate SEO metadata across the application', () 
 		})
 	})
 
+	// To unskip when we enable the about page
+	test.skip('in about page', async ({ page }) => {
+		await page.goto('http://127.0.0.1:8788/about')
+		await checkPageSeoData(page, {
+			title: 'About - Test Wildebeest',
+			description: 'About page for the Test Wildebeest Mastodon instance',
+			ogType: 'website',
+			ogImage: 'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail',
+		})
+	})
+
 	test('in non-existent page', async ({ page }) => {
 		await page.goto('http://127.0.0.1:8788/@NonExistent')
 		await checkPageSeoData(page, {

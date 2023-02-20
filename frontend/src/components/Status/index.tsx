@@ -5,7 +5,7 @@ import type { Account, MastodonStatus } from '~/types'
 import { MediaGallery } from '../MediaGallery.tsx'
 import { useAccountUrl } from '~/utils/useAccountUrl'
 import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
-import { StatusAccountCard } from '../StatusAccountCard/StatusAccountCard'
+import { AccountCard } from '../AccountCard/AccountCard'
 import { HtmlContent } from '../HtmlContent/HtmlContent'
 import { StatusInfoTray } from '../StatusInfoTray/StatusInfoTray'
 
@@ -33,7 +33,7 @@ export default component$((props: Props) => {
 		<article class="p-4 border-t border-wildebeest-700 break-words">
 			<RebloggerLink account={reblogger}></RebloggerLink>
 			<div class="flex justify-between mb-3">
-				<StatusAccountCard status={status} subText={props.accountSubText} secondaryAvatar={reblogger} />
+				<AccountCard account={status.account} subText={props.accountSubText} secondaryAvatar={reblogger} />
 				<Link class="no-underline" href={statusUrl}>
 					<div class="text-wildebeest-500 flex items-baseline">
 						<i style={{ height: '0.75rem', width: '0.75rem' }} class="fa fa-xs fa-globe w-3 h-3" />
