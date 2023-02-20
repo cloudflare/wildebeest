@@ -35,7 +35,13 @@ export const onRequestDelete: PagesFunction<Env, any, ContextData> = async ({ pa
 	)
 }
 
-export async function handleRequestGet(db: D1Database, id: UUID, domain: string, connectedActor: Person): Promise<Response> {
+export async function handleRequestGet(
+	db: D1Database,
+	id: UUID,
+	domain: string,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- To be used when we implement private statuses
+	connectedActor: Person
+): Promise<Response> {
 	const status = await getMastodonStatusById(db, id, domain)
 	if (status === null) {
 		return new Response('', { status: 404 })
