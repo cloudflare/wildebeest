@@ -34,6 +34,10 @@ export function clientUnknown(): Response {
 	return generateErrorResponse(`The client is unknown or invalid`, 403)
 }
 
+export function unprocessableEntity(detail: string): Response {
+	return generateErrorResponse(`Unprocessable entity`, 422, detail)
+}
+
 export function internalServerError(): Response {
 	return generateErrorResponse('Internal Server Error', 500)
 }
