@@ -61,13 +61,14 @@ export async function handleRequest(
 			id: row.mastodon_id,
 			content: properties.content,
 			uri: row.id,
-			url: new URL('/statuses/' + row.mastodon_id, 'https://' + domain),
+			url: new URL(`/@${fromActor.preferredUsername}/${row.mastodon_id}`, 'https://' + domain),
 			created_at: new Date(row.cdate).toISOString(),
 
 			emojis: [],
 			media_attachments: [],
 			tags: [],
 			mentions: [],
+			spoiler_text: properties.spoiler_text ?? '',
 
 			// TODO: a shortcut has been taked. We assume that the actor
 			// generating the notification also created the object. In practice
@@ -76,7 +77,6 @@ export async function handleRequest(
 
 			// TODO: stub values
 			visibility: 'public',
-			spoiler_text: '',
 		}
 	}
 

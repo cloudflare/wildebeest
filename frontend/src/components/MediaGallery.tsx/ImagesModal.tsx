@@ -11,10 +11,14 @@ export const ImagesModal = component$<Props>(({ images, idxOfCurrentImage: initi
 	const idxOfCurrentImage = useSignal(initialIdx)
 
 	return (
-		<div class="pointer-events-auto cursor-default z-50 fixed inset-0 isolate flex items-center justify-between backdrop-blur-sm">
+		<div
+			data-testid="images-modal"
+			class="pointer-events-auto cursor-default z-50 fixed inset-0 isolate flex items-center justify-between backdrop-blur-sm"
+		>
 			<div class="inset-0 absolute z-[-1] bg-wildebeest-900 opacity-70" onClick$={() => onCloseImagesModal$()}></div>
 			{images.length > 1 && (
 				<button
+					data-testid="left-btn"
 					class="cursor-pointer text-4xl opacity-60 hover:opacity-90 focus-visible:opacity-90"
 					onClick$={() => {
 						const idx = idxOfCurrentImage.value - 1
@@ -27,6 +31,7 @@ export const ImagesModal = component$<Props>(({ images, idxOfCurrentImage: initi
 			<img class="ma max-w-[80vw] max-h-[90vh] m-auto" src={images[idxOfCurrentImage.value].url} />
 			{images.length > 1 && (
 				<button
+					data-testid="right-btn"
 					class="cursor-pointer text-4xl opacity-60 hover:opacity-90 focus-visible:opacity-90"
 					onClick$={() => {
 						idxOfCurrentImage.value = (idxOfCurrentImage.value + 1) % images.length
@@ -36,6 +41,7 @@ export const ImagesModal = component$<Props>(({ images, idxOfCurrentImage: initi
 				</button>
 			)}
 			<button
+				data-testid="close-btn"
 				class="cursor-pointer absolute top-7 right-7 text-4xl opacity-60 hover:opacity-90 focus-visible:opacity-90"
 				onClick$={() => onCloseImagesModal$()}
 			>

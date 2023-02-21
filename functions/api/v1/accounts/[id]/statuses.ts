@@ -17,6 +17,7 @@ import * as webfinger from 'wildebeest/backend/src/webfinger'
 import * as outbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { toMastodonStatusFromRow } from 'wildebeest/backend/src/mastodon/status'
+import { adjustLocalHostDomain } from 'wildebeest/backend/src/utils/adjustLocalHostDomain'
 
 const headers = {
 	...cors(),
@@ -29,11 +30,14 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 
 export async function handleRequest(request: Request, db: D1Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
-	const domain = new URL(request.url).hostname
+	const url = new URL(request.url)
+	const domain = url.hostname
+	const offset = Number.parseInt(url.searchParams.get('offset') ?? '0')
+	const withReplies = url.searchParams.get('with-replies') === 'true'
 
 	if (handle.domain === null || (handle.domain !== null && handle.domain === domain)) {
 		// Retrieve the statuses from a local user
-		return getLocalStatuses(request, db, handle)
+		return getLocalStatuses(request, db, handle, offset, withReplies)
 	} else if (handle.domain !== null) {
 		// Retrieve the statuses of a remote actor
 		return getRemoteStatuses(request, handle, db)
@@ -112,9 +116,15 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 	return new Response(JSON.stringify(statuses), { headers })
 }
 
-async function getLocalStatuses(request: Request, db: D1Database, handle: Handle): Promise<Response> {
+export async function getLocalStatuses(
+	request: Request,
+	db: D1Database,
+	handle: Handle,
+	offset: number,
+	withReplies: boolean
+): Promise<Response> {
 	const domain = new URL(request.url).hostname
-	const actorId = actorURL(domain, handle.localPart)
+	const actorId = actorURL(adjustLocalHostDomain(domain), handle.localPart)
 
 	const QUERY = `
 SELECT objects.*,
@@ -129,12 +139,12 @@ FROM outbox_objects
 INNER JOIN objects ON objects.id=outbox_objects.object_id
 INNER JOIN actors ON actors.id=outbox_objects.actor_id
 WHERE objects.type='Note'
-      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
+      ${withReplies ? '' : "AND json_extract(objects.properties, '$.inReplyTo') IS NULL"}
       AND outbox_objects.target = '${PUBLIC_GROUP}'
       AND outbox_objects.actor_id = ?1
       AND outbox_objects.cdate > ?2
 ORDER by outbox_objects.published_date DESC
-LIMIT ?3
+LIMIT ?3 OFFSET ?4
 `
 
 	const DEFAULT_LIMIT = 20
@@ -164,7 +174,10 @@ LIMIT ?3
 		afterCdate = row.cdate
 	}
 
-	const { success, error, results } = await db.prepare(QUERY).bind(actorId.toString(), afterCdate, DEFAULT_LIMIT).all()
+	const { success, error, results } = await db
+		.prepare(QUERY)
+		.bind(actorId.toString(), afterCdate, DEFAULT_LIMIT, offset)
+		.all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}

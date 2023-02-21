@@ -1,28 +1,17 @@
 import { strict as assert } from 'node:assert/strict'
-import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as v1_instance from 'wildebeest/functions/api/v1/instance'
 import * as v2_instance from 'wildebeest/functions/api/v2/instance'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
 import * as mutes from 'wildebeest/functions/api/v1/mutes'
 import * as blocks from 'wildebeest/functions/api/v1/blocks'
-import { makeDB, assertCORS, assertJSON, assertCache, createTestClient } from './utils'
-import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
-import { createSubscription } from '../src/mastodon/subscription'
-import * as subscription from 'wildebeest/functions/api/v1/push/subscription'
+import { makeDB, assertCORS, assertJSON, assertCache, generateVAPIDKeys } from './utils'
 import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
+import { moveFollowers } from 'wildebeest/backend/src/mastodon/follow'
+import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 
-const userKEK = 'test_kek'
+const userKEK = 'test_kek23'
 const domain = 'cloudflare.com'
-
-export async function generateVAPIDKeys(): Promise<JWK> {
-	const keyPair = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
-		'sign',
-		'verify',
-	])) as CryptoKeyPair
-	const jwk = (await crypto.subtle.exportKey('jwk', keyPair.privateKey)) as JWK
-	return jwk
-}
 
 describe('Mastodon APIs', () => {
 	describe('instance', () => {
@@ -99,6 +88,52 @@ describe('Mastodon APIs', () => {
 		})
 	})
 
+	describe('apps', () => {
+		test('return the app infos', async () => {
+			const db = await makeDB()
+			const vapidKeys = await generateVAPIDKeys()
+			const request = new Request('https://example.com', {
+				method: 'POST',
+				body: '{"redirect_uris":"mastodon://joinmastodon.org/oauth","website":"https://app.joinmastodon.org/ios","client_name":"Mastodon for iOS","scopes":"read write follow push"}',
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+
+			const res = await apps.handleRequest(db, request, vapidKeys)
+			assert.equal(res.status, 200)
+			assertCORS(res)
+			assertJSON(res)
+
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { name, website, redirect_uri, client_id, client_secret, vapid_key, id, ...rest } = await res.json<
+				Record<string, string>
+			>()
+
+			assert.equal(name, 'Mastodon for iOS')
+			assert.equal(website, 'https://app.joinmastodon.org/ios')
+			assert.equal(redirect_uri, 'mastodon://joinmastodon.org/oauth')
+			assert.equal(id, '20')
+			assert.deepEqual(rest, {})
+		})
+
+		test('returns 404 for GET request', async () => {
+			const vapidKeys = await generateVAPIDKeys()
+			const request = new Request('https://example.com')
+			const ctx: any = {
+				next: () => new Response(),
+				data: null,
+				env: {
+					VAPID_JWK: JSON.stringify(vapidKeys),
+				},
+				request,
+			}
+
+			const res = await apps.onRequest(ctx)
+			assert.equal(res.status, 400)
+		})
+	})
+
 	describe('custom emojis', () => {
 		test('returns an empty array', async () => {
 			const res = await custom_emojis.onRequest()
@@ -109,113 +144,6 @@ describe('Mastodon APIs', () => {
 
 			const data = await res.json<any>()
 			assert.equal(data.length, 0)
-		})
-	})
-
-	describe('subscriptions', () => {
-		test('get non existing subscription', async () => {
-			const db = await makeDB()
-			const req = new Request('https://example.com')
-			const client = await createTestClient(db)
-			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-			const res = await subscription.handleGetRequest(db, req, connectedActor, client.id)
-			assert.equal(res.status, 404)
-		})
-
-		test('get existing subscription', async () => {
-			const db = await makeDB()
-			const req = new Request('https://example.com')
-			const client = await createTestClient(db)
-			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-			const data: any = {
-				subscription: {
-					endpoint: 'https://endpoint.com',
-					keys: {
-						p256dh: 'p256dh',
-						auth: 'auth',
-					},
-				},
-				data: {
-					alerts: {},
-					policy: 'all',
-				},
-			}
-			await createSubscription(db, connectedActor, client, data)
-
-			const res = await subscription.handleGetRequest(db, req, connectedActor, client.id)
-			assert.equal(res.status, 200)
-
-			const out = await res.json<any>()
-			assert.equal(typeof out.id, 'number')
-			assert.equal(out.endpoint, data.subscription.endpoint)
-		})
-
-		test('create subscription', async () => {
-			const db = await makeDB()
-			const client = await createTestClient(db)
-			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const vapidKeys = await generateVAPIDKeys()
-
-			const data: any = {
-				subscription: {
-					endpoint: 'https://endpoint.com',
-					keys: {
-						p256dh: 'p256dh',
-						auth: 'auth',
-					},
-				},
-				data: {
-					alerts: {},
-					policy: 'all',
-				},
-			}
-			const req = new Request('https://example.com', {
-				method: 'POST',
-				body: JSON.stringify(data),
-			})
-
-			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id, vapidKeys)
-			assert.equal(res.status, 200)
-
-			const row: any = await db.prepare('SELECT * FROM subscriptions').first()
-			assert.equal(row.actor_id, connectedActor.id.toString())
-			assert.equal(row.client_id, client.id)
-			assert.equal(row.endpoint, data.subscription.endpoint)
-		})
-
-		test('create subscriptions only creates one', async () => {
-			const db = await makeDB()
-			const client = await createTestClient(db)
-			const connectedActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-			const vapidKeys = await generateVAPIDKeys()
-
-			const data: any = {
-				subscription: {
-					endpoint: 'https://endpoint.com',
-					keys: {
-						p256dh: 'p256dh',
-						auth: 'auth',
-					},
-				},
-				data: {
-					alerts: {},
-					policy: 'all',
-				},
-			}
-			await createSubscription(db, connectedActor, client, data)
-
-			const req = new Request('https://example.com', {
-				method: 'POST',
-				body: JSON.stringify(data),
-			})
-
-			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id, vapidKeys)
-			assert.equal(res.status, 200)
-
-			const { count } = await db.prepare('SELECT count(*) as count FROM subscriptions').first<{ count: number }>()
-			assert.equal(count, 1)
 		})
 	})
 
@@ -238,7 +166,7 @@ describe('Mastodon APIs', () => {
 	})
 
 	describe('Microformats', () => {
-		test('convert mentions to HTML', () => {
+		test('convert mentions to HTML', async () => {
 			const mentionsToTest = [
 				{
 					mention: '@sven2@example.com',
@@ -266,18 +194,34 @@ describe('Mastodon APIs', () => {
 						'<span class="h-card"><a href="https://123456.test.testey.abcdef/@testey" class="u-url mention">@<span>testey</span></a></span>',
 				},
 			]
-			mentionsToTest.forEach(({ mention, expectedMentionSpan }) => {
-				assert.equal(enrichStatus(`hey ${mention} hi`), `<p>hey ${expectedMentionSpan} hi</p>`)
-				assert.equal(enrichStatus(`${mention} hi`), `<p>${expectedMentionSpan} hi</p>`)
-				assert.equal(enrichStatus(`${mention}\n\thein`), `<p>${expectedMentionSpan}\n\thein</p>`)
-				assert.equal(enrichStatus(`hey ${mention}`), `<p>hey ${expectedMentionSpan}</p>`)
-				assert.equal(enrichStatus(`${mention}`), `<p>${expectedMentionSpan}</p>`)
-				assert.equal(enrichStatus(`@!@£${mention}!!!`), `<p>@!@£${expectedMentionSpan}!!!</p>`)
-			})
+
+			for (let i = 0, len = mentionsToTest.length; i < len; i++) {
+				const { mention, expectedMentionSpan } = mentionsToTest[i]
+
+				// List of mentioned actors, only the `id` is required so we can hack together an Actor
+				const mentions: any = [
+					{ id: new URL('https://example.com/sven2') },
+					{ id: new URL('https://example.eng.com/test') },
+					{ id: new URL('https://example.eng.co.uk/test.a.b.c-d') },
+					{ id: new URL('https://123456.abcdef/testey') },
+					{ id: new URL('https://123456.test.testey.abcdef/testey') },
+				]
+
+				assert.equal(enrichStatus(`hey ${mention} hi`, mentions), `<p>hey ${expectedMentionSpan} hi</p>`)
+				assert.equal(enrichStatus(`${mention} hi`, mentions), `<p>${expectedMentionSpan} hi</p>`)
+				assert.equal(enrichStatus(`${mention}\n\thein`, mentions), `<p>${expectedMentionSpan}\n\thein</p>`)
+				assert.equal(enrichStatus(`hey ${mention}`, mentions), `<p>hey ${expectedMentionSpan}</p>`)
+				assert.equal(enrichStatus(`${mention}`, mentions), `<p>${expectedMentionSpan}</p>`)
+				assert.equal(enrichStatus(`@!@£${mention}!!!`, mentions), `<p>@!@£${expectedMentionSpan}!!!</p>`)
+			}
 		})
 
 		test('handle invalid mention', () => {
-			assert.equal(enrichStatus('hey @#-...@example.com'), '<p>hey @#-...@example.com</p>')
+			assert.equal(enrichStatus('hey @#-...@example.com', []), '<p>hey @#-...@example.com</p>')
+		})
+
+		test('mention to invalid user', () => {
+			assert.equal(enrichStatus('hey test@example.com', []), '<p>hey test@example.com</p>')
 		})
 
 		test('convert links to HTML', () => {
@@ -293,12 +237,51 @@ describe('Mastodon APIs', () => {
 			linksToTest.forEach((link) => {
 				const url = new URL(link)
 				const urlDisplayText = `${url.hostname}${url.pathname}`
-				assert.equal(enrichStatus(`hey ${link} hi`), `<p>hey <a href="${link}">${urlDisplayText}</a> hi</p>`)
-				assert.equal(enrichStatus(`${link} hi`), `<p><a href="${link}">${urlDisplayText}</a> hi</p>`)
-				assert.equal(enrichStatus(`hey ${link}`), `<p>hey <a href="${link}">${urlDisplayText}</a></p>`)
-				assert.equal(enrichStatus(`${link}`), `<p><a href="${link}">${urlDisplayText}</a></p>`)
-				assert.equal(enrichStatus(`@!@£${link}!!!`), `<p>@!@£<a href="${link}">${urlDisplayText}</a>!!!</p>`)
+				assert.equal(enrichStatus(`hey ${link} hi`, []), `<p>hey <a href="${link}">${urlDisplayText}</a> hi</p>`)
+				assert.equal(enrichStatus(`${link} hi`, []), `<p><a href="${link}">${urlDisplayText}</a> hi</p>`)
+				assert.equal(enrichStatus(`hey ${link}`, []), `<p>hey <a href="${link}">${urlDisplayText}</a></p>`)
+				assert.equal(enrichStatus(`${link}`, []), `<p><a href="${link}">${urlDisplayText}</a></p>`)
+				assert.equal(enrichStatus(`@!@£${link}!!!`, []), `<p>@!@£<a href="${link}">${urlDisplayText}</a>!!!</p>`)
 			})
+		})
+	})
+
+	describe('Follow', () => {
+		test('move followers', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input === 'https://example.com/user/a') {
+					return new Response(JSON.stringify({ id: 'https://example.com/user/a', type: 'Actor' }))
+				}
+				if (input === 'https://example.com/user/b') {
+					return new Response(JSON.stringify({ id: 'https://example.com/user/b', type: 'Actor' }))
+				}
+				if (input === 'https://example.com/user/c') {
+					return new Response(JSON.stringify({ id: 'https://example.com/user/c', type: 'Actor' }))
+				}
+
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const followers = ['https://example.com/user/a', 'https://example.com/user/b', 'https://example.com/user/c']
+
+			await moveFollowers(db, actor, followers)
+
+			const { results, success } = await db.prepare('SELECT * FROM actor_following').all<any>()
+			assert(success)
+			assert(results)
+			assert.equal(results.length, 3)
+			assert.equal(results[0].state, 'accepted')
+			assert.equal(results[0].actor_id, 'https://example.com/user/a')
+			assert.equal(results[0].target_actor_acct, 'sven@cloudflare.com')
+			assert.equal(results[1].state, 'accepted')
+			assert.equal(results[1].actor_id, 'https://example.com/user/b')
+			assert.equal(results[1].target_actor_acct, 'sven@cloudflare.com')
+			assert.equal(results[2].state, 'accepted')
+			assert.equal(results[2].actor_id, 'https://example.com/user/c')
+			assert.equal(results[2].target_actor_acct, 'sven@cloudflare.com')
 		})
 	})
 })

@@ -14,6 +14,7 @@ import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
 import * as ap_outbox_page from 'wildebeest/functions/ap/users/[id]/outbox/page'
 import { createStatus } from '../src/mastodon/status'
 import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { loadItems } from 'wildebeest/backend/src/activitypub/objects/collection'
 
 const userKEK = 'test_kek5'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -30,7 +31,13 @@ describe('ActivityPub', () => {
 
 	test('fetch user by id', async () => {
 		const db = await makeDB()
-		const properties = { summary: 'test summary' }
+		const properties = {
+			summary: 'test summary',
+			inbox: 'https://example.com/inbox',
+			outbox: 'https://example.com/outbox',
+			following: 'https://example.com/following',
+			followers: 'https://example.com/followers',
+		}
 		const pubKey =
 			'-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApnI8FHJQXqqAdM87YwVseRUqbNLiw8nQ0zHBUyLylzaORhI4LfW4ozguiw8cWYgMbCufXMoITVmdyeTMGbQ3Q1sfQEcEjOZZXEeCCocmnYjK6MFSspjFyNw6GP0a5A/tt1tAcSlgALv8sg1RqMhSE5Kv+6lSblAYXcIzff7T2jh9EASnimaoAAJMaRH37+HqSNrouCxEArcOFhmFETadXsv+bHZMozEFmwYSTugadr4WD3tZd+ONNeimX7XZ3+QinMzFGOW19ioVHyjt3yCDU1cPvZIDR17dyEjByNvx/4N4Zly7puwBn6Ixy/GkIh5BWtL5VOFDJm/S+zcf1G1WsOAXMwKL4Nc5UWKfTB7Wd6voId7vF7nI1QYcOnoyh0GqXWhTPMQrzie4nVnUrBedxW0s/0vRXeR63vTnh5JrTVu06JGiU2pq2kvwqoui5VU6rtdImITybJ8xRkAQ2jo4FbbkS6t49PORIuivxjS9wPl7vWYazZtDVa5g/5eL7PnxOG3HsdIJWbGEh1CsG83TU9burHIepxXuQ+JqaSiKdCVc8CUiO++acUqKp7lmbYR9E/wRmvxXDFkxCZzA0UL2mRoLLLOe4aHvRSTsqiHC5Wwxyew5bb+eseJz3wovid9ZSt/tfeMAkCDmaCxEK+LGEbJ9Ik8ihis8Esm21N0A54sCAwEAAQ==-----END PUBLIC KEY-----'
 		await db
@@ -275,7 +282,7 @@ describe('ActivityPub', () => {
 	})
 
 	describe('Inbox', () => {
-		test('send Note to non existant user', async () => {
+		test('send Note to non existent user', async () => {
 			const db = await makeDB()
 
 			const queue = {
@@ -315,6 +322,46 @@ describe('ActivityPub', () => {
 			assert.equal(msg.type, MessageType.Inbox)
 			assert.equal(msg.actorId, actor.id.toString())
 			assert.equal(msg.activity.type, 'some activity')
+		})
+	})
+
+	describe('Collection', () => {
+		test('loadItems walks pages', async () => {
+			const collection = {
+				totalItems: 6,
+				first: 'https://example.com/1',
+			} as any
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === 'https://example.com/1') {
+					return new Response(
+						JSON.stringify({
+							next: 'https://example.com/2',
+							orderedItems: ['a', 'b'],
+						})
+					)
+				}
+				if (input.toString() === 'https://example.com/2') {
+					return new Response(
+						JSON.stringify({
+							next: 'https://example.com/3',
+							orderedItems: ['c', 'd'],
+						})
+					)
+				}
+				if (input.toString() === 'https://example.com/3') {
+					return new Response(
+						JSON.stringify({
+							orderedItems: ['e', 'f'],
+						})
+					)
+				}
+
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const items = await loadItems(collection)
+			assert.deepEqual(items, ['a', 'b', 'c', 'd', 'e', 'f'])
 		})
 	})
 })

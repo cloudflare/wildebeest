@@ -78,16 +78,16 @@ export async function toMastodonStatusFromObject(
 		emojis: [],
 		tags: [],
 		mentions: [],
+		spoiler_text: obj.spoiler_text ?? '',
 
 		// TODO: stub values
 		visibility: 'public',
-		spoiler_text: '',
 
 		media_attachments: mediaAttachments,
 		content: obj.content || '',
 		id: obj[mastodonIdSymbol] || '',
 		uri: obj.id,
-		url: new URL('/statuses/' + obj[mastodonIdSymbol], 'https://' + domain),
+		url: new URL(`/@${actor.preferredUsername}/${obj[mastodonIdSymbol]}`, 'https://' + domain),
 		created_at: obj.published || '',
 		account,
 
@@ -135,7 +135,7 @@ export async function toMastodonStatusFromRow(
 
 	const status: MastodonStatus = {
 		id: row.mastodon_id,
-		url: new URL('/statuses/' + row.mastodon_id, 'https://' + domain),
+		url: new URL(`/@${author.preferredUsername}/${row.mastodon_id}`, 'https://' + domain),
 		uri: row.id,
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
@@ -143,10 +143,10 @@ export async function toMastodonStatusFromRow(
 		tags: [],
 		mentions: [],
 		account,
+		spoiler_text: properties.spoiler_text ?? '',
 
 		// TODO: stub values
 		visibility: 'public',
-		spoiler_text: '',
 
 		content: properties.content,
 		favourites_count: row.favourites_count,

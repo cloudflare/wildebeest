@@ -1,0 +1,79 @@
+// Important: The rules present in this file apply to dynamic content
+// defined by the client (set using dangerouslySetInnerHTML)
+// (thus wee cannot rely on Tailwind for such content)
+
+.inner-html-content {
+	:global(a) {
+		text-decoration: none;
+		color: var(--wildebeest-vibrant-color-400);
+		&.mention {
+			color: var(--wildebeest-vibrant-color-200);
+		}
+		&.hashtag {
+			color: var(--wildebeest-vibrant-color-200);
+		}
+	}
+
+	:global(:is(b, h1, h2, h3, h4, h5, h6)) {
+		font-weight: 700;
+	}
+
+	:global(h1) {
+		font-size: 1.5em;
+		margin-top: 0;
+		margin-bottom: 1em;
+		line-height: 1.33;
+	}
+
+	:global(h2) {
+		font-size: 1.25em;
+		margin-top: 1.6em;
+		margin-bottom: 0.6em;
+		line-height: 1.6;
+	}
+
+	:global(:is(h3, h4, h5, h6)) {
+		margin-top: 1.5em;
+		margin-bottom: 0.5em;
+		line-height: 1.5;
+	}
+
+	:global(p) {
+		margin-bottom: theme('spacing.4');
+		overflow-wrap: break-word;
+		white-space: pre-wrap;
+	}
+
+	:global(.invisible) {
+		font-size: 0;
+		line-height: 0;
+		display: inline-block;
+		width: 0;
+		height: 0;
+	}
+
+	:global(.ellipsis) {
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+		text-decoration: none;
+		display: inline-block;
+		vertical-align: middle;
+		max-width: 50%;
+
+		&:global(::after) {
+			content: '…';
+		}
+
+		@screen sm {
+			& {
+				display: inline;
+			}
+		}
+	}
+
+	:global(.status-link) {
+		color: var(--wildebeest-vibrant-color-200);
+		text-decoration: none;
+	}
+}

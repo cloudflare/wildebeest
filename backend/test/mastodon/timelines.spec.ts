@@ -12,6 +12,7 @@ import * as timelines from 'wildebeest/backend/src/mastodon/timeline'
 import { insertLike } from 'wildebeest/backend/src/mastodon/like'
 import { insertReblog, createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { createStatus } from 'wildebeest/backend/src/mastodon/status'
+import { insertHashtags } from 'wildebeest/backend/src/mastodon/hashtag'
 
 const userKEK = 'test_kek6'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -293,6 +294,47 @@ describe('Mastodon APIs', () => {
 			const data = await timelines.getPublicTimeline(domain, db, timelines.LocalPreference.NotSet)
 			assert.equal(data.length, 1)
 			assert.equal(data[0].content, 'a post')
+		})
+
+		test('timeline with non exitent tag', async () => {
+			const db = await makeDB()
+
+			const data = await timelines.getPublicTimeline(
+				domain,
+				db,
+				timelines.LocalPreference.NotSet,
+				0,
+				'non-existent-tag'
+			)
+			assert.equal(data.length, 0)
+		})
+
+		test('timeline tag', async () => {
+			const db = await makeDB()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			{
+				const note = await createStatus(domain, db, actor, 'test 1')
+				await insertHashtags(db, note, ['test', 'a'])
+			}
+			await sleep(10)
+			{
+				const note = await createStatus(domain, db, actor, 'test 2')
+				await insertHashtags(db, note, ['test', 'b'])
+			}
+
+			{
+				const data = await timelines.getPublicTimeline(domain, db, timelines.LocalPreference.NotSet, 0, 'test')
+				assert.equal(data.length, 2)
+				assert.equal(data[0].content, 'test 2')
+				assert.equal(data[1].content, 'test 1')
+			}
+
+			{
+				const data = await timelines.getPublicTimeline(domain, db, timelines.LocalPreference.NotSet, 0, 'a')
+				assert.equal(data.length, 1)
+				assert.equal(data[0].content, 'test 1')
+			}
 		})
 	})
 })

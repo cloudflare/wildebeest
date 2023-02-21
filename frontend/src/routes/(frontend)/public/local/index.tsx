@@ -1,13 +1,12 @@
-import { component$ } from '@builder.io/qwik'
+import { $, component$ } from '@builder.io/qwik'
 import { MastodonStatus } from '~/types'
 import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
-import Status from '~/components/Status'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { getDocumentHead } from '~/utils/getDocumentHead'
-import { RequestContext } from '@builder.io/qwik-city/middleware/request-handler'
+import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
 
-export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, Promise<MastodonStatus[]>>(
+export const statusesLoader = loader$<Promise<MastodonStatus[]>, { DATABASE: D1Database; domain: string }>(
 	async ({ platform, html }) => {
 		try {
 			// TODO: use the "trending" API endpoint here.
@@ -22,7 +21,7 @@ export const statusesLoader = loader$<{ DATABASE: D1Database; domain: string }, 
 )
 
 export default component$(() => {
-	const statuses = statusesLoader.use()
+	const statuses = statusesLoader().value
 	return (
 		<>
 			<StickyHeader>
@@ -31,24 +30,33 @@ export default component$(() => {
 					<span>Local timeline</span>
 				</div>
 			</StickyHeader>
-			{statuses.value.length > 0 ? (
-				statuses.value.map((status) => <Status status={status} />)
-			) : (
-				<div class="flex-1 grid place-items-center bg-wildebeest-600 text-center">
-					<p>Nothing to see right now. Check back later!</p>
-				</div>
-			)}
+			<StatusesPanel
+				initialStatuses={statuses}
+				fetchMoreStatuses={$(async (numOfCurrentStatuses: number) => {
+					let statuses: MastodonStatus[] = []
+					try {
+						const response = await fetch(`/api/v1/timelines/public?local=true&offset=${numOfCurrentStatuses}`)
+						if (response.ok) {
+							const results = await response.text()
+							statuses = JSON.parse(results)
+						}
+					} catch {
+						/* empty */
+					}
+					return statuses
+				})}
+			/>
 		</>
 	)
 })
 
 export const requestLoader = loader$(async ({ request }) => {
 	// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
-	return JSON.parse(JSON.stringify(request)) as RequestContext
+	return JSON.parse(JSON.stringify(request)) as Request
 })
 
-export const head: DocumentHead = ({ getData }) => {
-	const { url } = getData(requestLoader)
+export const head: DocumentHead = ({ resolveValue }) => {
+	const { url } = resolveValue(requestLoader)
 	return getDocumentHead({
 		title: 'Local timeline - Wildebeest',
 		og: {

@@ -35,6 +35,10 @@ export async function handleRequest(domain: string, db: D1Database, id: string):
 			{
 				toot: 'http://joinmastodon.org/ns#',
 				discoverable: 'toot:discoverable',
+				alsoKnownAs: {
+					'@id': 'as:alsoKnownAs',
+					'@type': '@id',
+				},
 			},
 		],
 

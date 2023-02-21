@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import type { Cache } from 'wildebeest/backend/src/cache'
 import type { Queue } from 'wildebeest/backend/src/types/queue'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
@@ -116,4 +117,13 @@ export function isUUID(v: string): boolean {
 		return false
 	}
 	return true
+}
+
+export async function generateVAPIDKeys(): Promise<JWK> {
+	const keyPair = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
+		'sign',
+		'verify',
+	])) as CryptoKeyPair
+	const jwk = (await crypto.subtle.exportKey('jwk', keyPair.privateKey)) as JWK
+	return jwk
 }

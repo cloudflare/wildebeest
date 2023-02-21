@@ -1,8 +1,55 @@
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import * as actors from 'wildebeest/backend/src/activitypub/actors'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { getResultsField } from './utils'
 
 const STATE_PENDING = 'pending'
 const STATE_ACCEPTED = 'accepted'
+
+// During a migration we move the followers from the old Actor to the new
+export async function moveFollowers(db: D1Database, actor: Actor, followers: Array<string>): Promise<void> {
+	const batch = []
+	const stmt = db.prepare(`
+		INSERT OR IGNORE
+        INTO actor_following (id, actor_id, target_actor_id, target_actor_acct, state)
+		VALUES (?1, ?2, ?3, ?4, 'accepted');
+    `)
+
+	const actorId = actor.id.toString()
+	const actorAcc = urlToHandle(actor.id)
+
+	for (let i = 0; i < followers.length; i++) {
+		const follower = new URL(followers[i])
+		const followActor = await actors.getAndCache(follower, db)
+
+		const id = crypto.randomUUID()
+		batch.push(stmt.bind(id, followActor.id.toString(), actorId, actorAcc))
+	}
+
+	await db.batch(batch)
+}
+
+export async function moveFollowing(db: D1Database, actor: Actor, followingActors: Array<string>): Promise<void> {
+	const batch = []
+	const stmt = db.prepare(`
+		INSERT OR IGNORE
+        INTO actor_following (id, actor_id, target_actor_id, target_actor_acct, state)
+		VALUES (?1, ?2, ?3, ?4, 'accepted');
+    `)
+
+	const actorId = actor.id.toString()
+
+	for (let i = 0; i < followingActors.length; i++) {
+		const following = new URL(followingActors[i])
+		const followingActor = await actors.getAndCache(following, db)
+		const actorAcc = urlToHandle(followingActor.id)
+
+		const id = crypto.randomUUID()
+		batch.push(stmt.bind(id, actorId, followingActor.id.toString(), actorAcc))
+	}
+
+	await db.batch(batch)
+}
 
 // Add a pending following
 export async function addFollowing(db: D1Database, actor: Actor, target: Actor, targetAcct: string): Promise<string> {

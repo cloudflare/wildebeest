@@ -11,28 +11,14 @@ export function actorURL(domain: string, id: string): URL {
 	return new URL(`/ap/users/${id}`, 'https://' + domain)
 }
 
-function inboxURL(id: URL): URL {
-	return new URL(id + '/inbox')
-}
-
-function outboxURL(id: URL): URL {
-	return new URL(id + '/outbox')
-}
-
-function followingURL(id: URL): URL {
-	return new URL(id + '/following')
-}
-
-export function followersURL(id: URL): URL {
-	return new URL(id + '/followers')
-}
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
 export interface Actor extends APObject {
 	inbox: URL
 	outbox: URL
 	following: URL
 	followers: URL
+
+	alsoKnownAs?: string
 
 	[emailSymbol]: string
 }
@@ -141,8 +127,14 @@ type PersonProperties = {
 	icon?: { url: string }
 	image?: { url: string }
 	preferredUsername?: string
+
+	inbox?: string
+	outbox?: string
+	following?: string
+	followers?: string
 }
 
+// Create a local user
 export async function createPerson(
 	domain: string,
 	db: D1Database,
@@ -176,6 +168,23 @@ export async function createPerson(
 	}
 
 	const id = actorURL(domain, properties.preferredUsername).toString()
+
+	if (properties.inbox === undefined) {
+		properties.inbox = id + '/inbox'
+	}
+
+	if (properties.outbox === undefined) {
+		properties.outbox = id + '/outbox'
+	}
+
+	if (properties.following === undefined) {
+		properties.following = id + '/following'
+	}
+
+	if (properties.followers === undefined) {
+		properties.followers = id + '/followers'
+	}
+
 	const row = await db
 		.prepare(
 			`
@@ -194,6 +203,16 @@ export async function updateActorProperty(db: D1Database, actorId: URL, key: str
 	const { success, error } = await db
 		.prepare(`UPDATE actors SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
 		.bind(value, actorId.toString())
+		.run()
+	if (!success) {
+		throw new Error('SQL error: ' + error)
+	}
+}
+
+export async function setActorAlias(db: D1Database, actorId: URL, alias: URL) {
+	const { success, error } = await db
+		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', json_array(?)) WHERE id=?`)
+		.bind(alias.toString(), actorId.toString())
 		.run()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
@@ -244,6 +263,26 @@ export function personFromRow(row: any): Person {
 		domain = new URL(row.original_actor_id).hostname
 	}
 
+	// Old local actors weren't created with inbox/outbox/etc properties, so add
+	// them if missing.
+	{
+		if (properties.inbox === undefined) {
+			properties.inbox = id + '/inbox'
+		}
+
+		if (properties.outbox === undefined) {
+			properties.outbox = id + '/outbox'
+		}
+
+		if (properties.following === undefined) {
+			properties.following = id + '/following'
+		}
+
+		if (properties.followers === undefined) {
+			properties.followers = id + '/followers'
+		}
+	}
+
 	return {
 		// Hidden values
 		[emailSymbol]: row.email,
@@ -258,11 +297,7 @@ export function personFromRow(row: any): Person {
 		type: PERSON,
 		id,
 		published: new Date(row.cdate).toISOString(),
-		inbox: inboxURL(row.id),
-		outbox: outboxURL(row.id),
-		following: followingURL(row.id),
-		followers: followersURL(row.id),
 
 		url: new URL('@' + preferredUsername, 'https://' + domain),
-	} as Person
+	} as unknown as Person
 }

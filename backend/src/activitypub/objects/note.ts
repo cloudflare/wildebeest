@@ -2,7 +2,6 @@
 
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { Link } from 'wildebeest/backend/src/activitypub/objects/link'
-import { followersURL } from 'wildebeest/backend/src/activitypub/actors'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import * as objects from '.'
 
@@ -19,6 +18,7 @@ export interface Note extends objects.APObject {
 	attachment: Array<objects.APObject>
 	cc: Array<string>
 	tag: Array<Link>
+	spoiler_text?: string
 }
 
 export async function createPublicNote(
@@ -35,7 +35,7 @@ export async function createPublicNote(
 		attributedTo: actorId,
 		content,
 		to: [PUBLIC_GROUP],
-		cc: [followersURL(actorId)],
+		cc: [actor.followers.toString()],
 
 		// FIXME: stub values
 		replies: null,

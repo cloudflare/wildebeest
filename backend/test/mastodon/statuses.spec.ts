@@ -457,6 +457,11 @@ describe('Mastodon APIs', () => {
 						})
 					)
 				}
+				if (
+					input.toString() === 'https://cloudflare.com/.well-known/webfinger?resource=acct%3Ano-json%40cloudflare.com'
+				) {
+					return new Response('not json', { status: 200 })
+				}
 
 				if (input.toString() === 'https://instance.horse/users/sven') {
 					return new Response(
@@ -496,7 +501,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			{
-				const mentions = await getMentions('unknown@actor.com', domain)
+				const mentions = await getMentions('no-json@actor.com', domain)
 				assert.equal(mentions.length, 0)
 			}
 
@@ -524,6 +529,11 @@ describe('Mastodon APIs', () => {
 				assert.equal(mentions.length, 1)
 				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/sven')
 			}
+
+			{
+				const mentions = await getMentions('<p>@unknown</p>', domain)
+				assert.equal(mentions.length, 0)
+			}
 		})
 
 		test('get status count likes', async () => {
@@ -536,7 +546,7 @@ describe('Mastodon APIs', () => {
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
 
-			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -552,7 +562,7 @@ describe('Mastodon APIs', () => {
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
 			const note = await createPublicNote(domain, db, 'my first status', actor, mediaAttachments)
 
-			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -591,7 +601,7 @@ describe('Mastodon APIs', () => {
 				await insertReblog(db, actor2, note)
 				await insertReblog(db, actor3, note)
 
-				const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+				const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
@@ -965,6 +975,40 @@ describe('Mastodon APIs', () => {
 				const row = await db.prepare(`SELECT count(*) as count FROM idempotency_keys`).first<{ count: number }>()
 				assert.equal(row.count, 1)
 			}
+		})
+
+		test('hashtag in status adds in note_hashtags table', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'hey #hi #car',
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+
+			const { results, success } = await db
+				.prepare('SELECT value, object_id FROM note_hashtags')
+				.all<{ value: string; object_id: string }>()
+			assert(success)
+			assert(results)
+			assert.equal(results!.length, 2)
+			assert.equal(results![0].value, 'hi')
+			assert.equal(results![1].value, 'car')
+
+			const note = (await getObjectByMastodonId(db, data.id)) as unknown as Note
+			assert.equal(results![0].object_id, note.id.toString())
+			assert.equal(results![1].object_id, note.id.toString())
 		})
 	})
 })
