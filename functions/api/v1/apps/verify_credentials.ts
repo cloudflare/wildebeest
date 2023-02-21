@@ -20,7 +20,6 @@ const headers = {
 	'content-type': 'application/json; charset=utf-8',
 }
 
-
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
 	return handleRequest(env.DATABASE, request, getVAPIDKeys(env))
 }
@@ -29,22 +28,22 @@ export async function handleRequest(db: D1Database, request: Request, vapidKeys:
 	if (request.method !== 'GET') {
 		return new Response('', { status: 400 })
 	}
-  
-  const authHeader = request.headers.get('Authorization')?.replace('Bearer ', '');  
-  const parts = authHeader?.split('.') ?? ''
+
+	const authHeader = request.headers.get('Authorization')?.replace('Bearer ', '')
+	const parts = authHeader?.split('.') ?? ''
 	const clientId = parts[0]
-  
-  const client = await getClientById(db, clientId)
+
+	const client = await getClientById(db, clientId)
 	if (client === null) {
 		return errors.clientUnknown()
 	}
-  const vapidKey = VAPIDPublicKey(vapidKeys)
+	const vapidKey = VAPIDPublicKey(vapidKeys)
 
 	const res = {
 		name: client.name,
 		website: client.website,
 		vapid_key: vapidKey,
 	}
-	
+
 	return new Response(JSON.stringify(res), { headers })
 }
