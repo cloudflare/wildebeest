@@ -21,7 +21,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 
 export async function handleRequest(db: D1Database, request: Request, vapidKeys: JWK) {
 	if (request.method !== 'POST') {
-		return new Response('', { status: 400 })
+    return errors.methodNotAllowed()
 	}
 
 	const body: AppsPost = await readBody<AppsPost>(request)
