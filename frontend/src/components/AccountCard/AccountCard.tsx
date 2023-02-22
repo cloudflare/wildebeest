@@ -18,12 +18,8 @@ export const AccountCard = component$<{
 				<Avatar primary={account} secondary={secondaryAvatar ?? null} />
 			</div>
 			<div>
-				<div data-testid="account-display-name" class="col-start-2 row-start-1">
-					{getDisplayNameElement(account)}
-				</div>
-				<div class="text-wildebeest-400 col-start-2 row-start-2">
-					@{subText === 'username' ? account.username : account.acct}
-				</div>
+				<div data-testid="account-display-name">{getDisplayNameElement(account)}</div>
+				<div class="text-wildebeest-400">@{subText === 'username' ? account.username : account.acct}</div>
 			</div>
 		</Link>
 	)
