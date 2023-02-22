@@ -1,4 +1,5 @@
 import { component$, Slot, useStyles$ } from '@builder.io/qwik'
+import { getDatabase } from 'wildebeest/backend/src/database'
 import { type DocumentHead, loader$, useLocation, Link } from '@builder.io/qwik-city'
 import { MastodonAccount } from 'wildebeest/backend/src/types'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
@@ -24,14 +25,14 @@ export const accountPageLoader = loader$<
 		const accountId = url.pathname.split('/')[1]
 
 		try {
-			const statusResponse = await statusAPI.handleRequestGet(platform.DATABASE, params.statusId, domain)
+			const statusResponse = await statusAPI.handleRequestGet(await getDatabase(platform as any), params.statusId, domain)
 			const statusText = await statusResponse.text()
 			isValidStatus = !!statusText
 		} catch {
 			isValidStatus = false
 		}
 
-		account = await getAccount(domain, accountId, platform.DATABASE)
+		account = await getAccount(domain, accountId, await getDatabase(platform as any))
 	} catch {
 		throw html(
 			500,

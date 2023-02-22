@@ -7,7 +7,7 @@ import type { WebFingerResponse } from '../../backend/src/webfinger'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
-	return handleRequest(request, getDatabase(env))
+	return handleRequest(request, await getDatabase(env))
 }
 
 const headers = {

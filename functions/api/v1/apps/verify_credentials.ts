@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/apps/#verify_credentials
 
+import { type Database } from 'wildebeest/backend/src/database'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 import { getVAPIDKeys } from 'wildebeest/backend/src/config'
@@ -24,7 +25,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	return handleRequest(env.DATABASE, request, getVAPIDKeys(env))
 }
 
-export async function handleRequest(db: D1Database, request: Request, vapidKeys: JWK) {
+export async function handleRequest(db: Database, request: Request, vapidKeys: JWK) {
 	if (request.method !== 'GET') {
 		return new Response('', { status: 400 })
 	}

@@ -7,7 +7,7 @@ import * as actors from 'wildebeest/backend/src/activitypub/actors'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, getDatabase(env), params.id as string)
+	return handleRequest(domain, await getDatabase(env), params.id as string)
 }
 
 const headers = {

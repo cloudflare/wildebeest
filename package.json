@@ -11,6 +11,7 @@
 		"@playwright/test": "^1.30.0",
 		"@types/jest": "^29.2.4",
 		"@types/node": "^18.11.11",
+		"@types/pg": "^8.6.6",
 		"@typescript-eslint/eslint-plugin": "^5.46.1",
 		"@typescript-eslint/parser": "^5.46.1",
 		"better-sqlite3": "8",
@@ -44,9 +45,12 @@
 		"deploy": "yarn build && yarn database:migrate && yarn pages publish frontend/dist --project-name=wildebeest"
 	},
 	"dependencies": {
+		"@neondatabase/serverless": "^0.2.5",
+		"@planetscale/database": "^1.5.0",
 		"@types/cookie": "^0.5.1",
 		"cookie": "^0.5.0",
 		"http-message-signatures": "^0.1.2",
+		"pg": "^8.9.0",
 		"toucan-js": "^3.1.0"
 	}
 }

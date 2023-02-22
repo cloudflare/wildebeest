@@ -20,13 +20,13 @@ import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ params, env, request, data }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequestGet(getDatabase(env), params.id as UUID, domain, data.connectedActor)
+	return handleRequestGet(await getDatabase(env), params.id as UUID, domain, data.connectedActor)
 }
 
 export const onRequestDelete: PagesFunction<Env, any, ContextData> = async ({ params, env, request, data }) => {
 	const domain = new URL(request.url).hostname
 	return handleRequestDelete(
-		getDatabase(env),
+		await getDatabase(env),
 		params.id as UUID,
 		data.connectedActor,
 		domain,

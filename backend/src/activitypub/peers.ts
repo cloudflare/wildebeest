@@ -9,13 +9,18 @@ export async function getPeers(db: Database): Promise<Array<String>> {
 }
 
 export async function addPeer(db: Database, domain: string): Promise<void> {
-	const query = `
-		INSERT OR IGNORE INTO peers (domain)
-		VALUES (?)
-	`
+	try {
+		const query = `
+            INSERT INTO peers (domain)
+            VALUES (?)
+        `
 
-	const out = await db.prepare(query).bind(domain).run()
-	if (!out.success) {
-		throw new Error('SQL error: ' + out.error)
+		const out = await db.prepare(query).bind(domain).run()
+		if (!out.success) {
+			throw new Error('SQL error: ' + out.error)
+		}
+	} catch (err: any) {
+        console.warn(err.stack);
+		// handle peer already exists for psql
 	}
 }

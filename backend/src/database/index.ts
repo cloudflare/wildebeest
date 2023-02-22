@@ -1,5 +1,6 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import d1 from './d1'
+import neon from './neon'
 
 export interface Result<T = unknown> {
 	results?: T[]
@@ -9,6 +10,7 @@ export interface Result<T = unknown> {
 }
 
 export interface Database {
+	qb: QueryBuilder
 	prepare(query: string): PreparedStatement
 	dump(): Promise<ArrayBuffer>
 	batch<T = unknown>(statements: PreparedStatement[]): Promise<Result<T>[]>
@@ -23,6 +25,20 @@ export interface PreparedStatement {
 	raw<T = unknown>(): Promise<T[]>
 }
 
-export function getDatabase(env: Env): Database {
-	return d1(env)
+export interface QueryBuilder {
+	jsonExtract(obj: string, prop: string): string
+	jsonExtractIsNull(obj: string, prop: string): string
+	set(array: string): string
+	psql(raw: string): string
+	epoch(): string
+}
+
+const isTesting = typeof jest !== 'undefined'
+
+export async function getDatabase(env: Env): Promise<Database> {
+	if (isTesting) {
+		return d1(env)
+	} else {
+		return neon(env)
+	}
 }

@@ -25,4 +25,12 @@ export interface Env {
 	SENTRY_DSN: string
 	SENTRY_ACCESS_CLIENT_ID: string
 	SENTRY_ACCESS_CLIENT_SECRET: string
+
+	NEON_DATABASE_URL?: string
+
+	PSQL_DATABASE_URL?: string
+
+	PSCALE_HOST?: string
+	PSCALE_USERNAME?: string
+	PSCALE_PASSWORD?: string
 }

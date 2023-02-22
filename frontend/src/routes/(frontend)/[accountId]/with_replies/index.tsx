@@ -1,4 +1,5 @@
 import { $, component$, useStyles$ } from '@builder.io/qwik'
+import { getDatabase } from 'wildebeest/backend/src/database'
 import { loader$ } from '@builder.io/qwik-city'
 import styles from '../../../../utils/innerHtmlContent.scss?inline'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
@@ -22,7 +23,7 @@ export const statusesLoader = loader$<
 
 		const handle = parseHandle(accountId)
 		accountId = handle.localPart
-		const response = await getLocalStatuses(request as Request, platform.DATABASE, handle, 0, true)
+		const response = await getLocalStatuses(request as Request, await getDatabase(platform as any), handle, 0, true)
 		statuses = await response.json<Array<MastodonStatus>>()
 	} catch {
 		throw html(

@@ -8,7 +8,7 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { getFollowingAcct, getFollowingRequestedAcct } from 'wildebeest/backend/src/mastodon/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, getDatabase(env), data.connectedActor)
+	return handleRequest(request, await getDatabase(env), data.connectedActor)
 }
 
 export async function handleRequest(req: Request, db: Database, connectedActor: Person): Promise<Response> {

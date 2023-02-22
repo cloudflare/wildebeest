@@ -12,11 +12,11 @@ import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleGetRequest(getDatabase(env), request, data.connectedActor, data.clientId, getVAPIDKeys(env))
+	return handleGetRequest(await getDatabase(env), request, data.connectedActor, data.clientId, getVAPIDKeys(env))
 }
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handlePostRequest(getDatabase(env), request, data.connectedActor, data.clientId, getVAPIDKeys(env))
+	return handlePostRequest(await getDatabase(env), request, data.connectedActor, data.clientId, getVAPIDKeys(env))
 }
 
 const headers = {
