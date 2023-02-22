@@ -97,8 +97,12 @@ jobs:
       - name: retrieve D1 database
         uses: cloudflare/wrangler-action@2.0.0
         with:
-          command: d1 list | grep "wildebeest-${{ env.NAME_SUFFIX }}\s" | awk '{print "d1_id="$2}' >> $GITHUB_ENV
+          command: d1 list --json | jq -r '.[] | select(.name == "wildebeest-${{ env.NAME_SUFFIX }}") | .uuid' | awk '{print "d1_id="$1}' >> $GITHUB_ENV
           apiToken: ${{ secrets.CF_API_TOKEN }}
+          preCommands: |
+            echo "*** pre commands ***"
+            apt-get update && apt-get -y install jq
+            echo "******"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
