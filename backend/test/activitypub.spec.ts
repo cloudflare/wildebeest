@@ -83,6 +83,28 @@ describe('ActivityPub', () => {
 			assert.equal(actor.name, 'hi hey')
 			assert.equal(actor.preferredUsername, 'sven alert(1)')
 		})
+
+		test('Actor properties limits', async () => {
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input === 'https://example.com/actor') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://example.com/actor',
+							type: 'Person',
+							summary: 'a'.repeat(612),
+							name: 'b'.repeat(50),
+							preferredUsername: 'c'.repeat(50),
+						})
+					)
+				}
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const actor = await actors.get('https://example.com/actor')
+			assert.equal(actor.summary, 'a'.repeat(500))
+			assert.equal(actor.name, 'b'.repeat(30))
+			assert.equal(actor.preferredUsername, 'c'.repeat(30))
+		})
 	})
 
 	describe('Outbox', () => {

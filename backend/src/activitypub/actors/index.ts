@@ -47,12 +47,21 @@ export async function get(url: string | URL): Promise<Actor> {
 
 	if (actor.summary) {
 		actor.summary = await sanitizeContent(actor.summary)
+		if (actor.summary.length > 500) {
+			actor.summary = actor.summary.substring(0, 500)
+		}
 	}
 	if (actor.name) {
 		actor.name = await getTextContent(actor.name)
+		if (actor.name.length > 30) {
+			actor.name = actor.name.substring(0, 30)
+		}
 	}
 	if (actor.preferredUsername) {
 		actor.preferredUsername = await getTextContent(actor.preferredUsername)
+		if (actor.preferredUsername.length > 30) {
+			actor.preferredUsername = actor.preferredUsername.substring(0, 30)
+		}
 	}
 
 	// This is mostly for testing where for convenience not all values
