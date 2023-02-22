@@ -43,32 +43,32 @@ export async function get(url: string | URL): Promise<Actor> {
 
 	const data = await res.json<any>()
 	const actor: Actor = { ...data }
-	actor.id = new URL(data.id)
+	actor.id = new URL(actor.id)
 
-	if (data.content) {
-		actor.content = await sanitizeContent(data.content)
+	if (actor.summary) {
+		actor.summary = await sanitizeContent(actor.summary)
 	}
-	if (data.name) {
-		actor.name = await getTextContent(data.name)
+	if (actor.name) {
+		actor.name = await getTextContent(actor.name)
 	}
-	if (data.preferredUsername) {
-		actor.preferredUsername = await getTextContent(data.preferredUsername)
+	if (actor.preferredUsername) {
+		actor.preferredUsername = await getTextContent(actor.preferredUsername)
 	}
 
 	// This is mostly for testing where for convenience not all values
 	// are provided.
 	// TODO: eventually clean that to better match production.
-	if (data.inbox !== undefined) {
-		actor.inbox = new URL(data.inbox)
+	if (actor.inbox !== undefined) {
+		actor.inbox = new URL(actor.inbox)
 	}
-	if (data.following !== undefined) {
-		actor.following = new URL(data.following)
+	if (actor.following !== undefined) {
+		actor.following = new URL(actor.following)
 	}
-	if (data.followers !== undefined) {
-		actor.followers = new URL(data.followers)
+	if (actor.followers !== undefined) {
+		actor.followers = new URL(actor.followers)
 	}
-	if (data.outbox !== undefined) {
-		actor.outbox = new URL(data.outbox)
+	if (actor.outbox !== undefined) {
+		actor.outbox = new URL(actor.outbox)
 	}
 
 	return actor
