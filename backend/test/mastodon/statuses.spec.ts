@@ -1010,5 +1010,25 @@ describe('Mastodon APIs', () => {
 			assert.equal(results![0].object_id, note.id.toString())
 			assert.equal(results![1].object_id, note.id.toString())
 		})
+
+		test('reject statuses exceeding limits', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'a'.repeat(501),
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
+			assert.equal(res.status, 422)
+			assertJSON(res)
+		})
 	})
 })

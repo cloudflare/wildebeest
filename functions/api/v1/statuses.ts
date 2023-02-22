@@ -74,6 +74,10 @@ export async function handleRequest(
 		return new Response('', { status: 400 })
 	}
 
+	if (body.status.length > 500) {
+		return errors.validationError('text character limit of 500 exceeded')
+	}
+
 	const mediaAttachments: Array<Document> = []
 	if (body.media_ids && body.media_ids.length > 0) {
 		if (body.media_ids.length > 4) {
