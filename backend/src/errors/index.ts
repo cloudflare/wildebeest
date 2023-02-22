@@ -7,7 +7,7 @@ type ErrorResponse = {
 
 const headers = {
 	...cors(),
-	'content-type': 'application/json',
+	'content-type': 'application/json; charset=utf-8',
 } as const
 
 function generateErrorResponse(error: string, status: number, errorDescription?: string): Response {
@@ -56,4 +56,8 @@ export function exceededLimit(detail: string): Response {
 
 export function resourceNotFound(name: string, id: string): Response {
 	return generateErrorResponse('Resource not found', 404, `${name} "${id}" not found`)
+}
+
+export function validationError(detail: string): Response {
+	return generateErrorResponse('Validation failed', 422, detail)
 }
