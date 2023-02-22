@@ -32,9 +32,9 @@ export default component$((props: Props) => {
 	return (
 		<article class="p-4 border-t border-wildebeest-700 break-words">
 			<RebloggerLink account={reblogger}></RebloggerLink>
-			<div class="flex justify-between mb-3">
+			<div class="flex justify-between mb-3 flex-wrap">
 				<AccountCard account={status.account} subText={props.accountSubText} secondaryAvatar={reblogger} />
-				<Link class="no-underline" href={statusUrl}>
+				<Link class="no-underline ml-auto" href={statusUrl}>
 					<div class="text-wildebeest-500 flex items-baseline">
 						<i style={{ height: '0.75rem', width: '0.75rem' }} class="fa fa-xs fa-globe w-3 h-3" />
 						<span class="ml-2 text-sm hover:underline min-w-max">{formatTimeAgo(new Date(status.created_at))}</span>

@@ -1,6 +1,7 @@
 import type { MediaAttachment, MastodonStatus } from '~/types'
 import { generateDummyStatus } from './generateDummyStatus'
 import { ben, george, penny, rafael, zak } from './accounts'
+import { loremIpsum } from 'lorem-ipsum'
 
 // Raw statuses which follow the precise structure found mastodon does
 const mastodonRawStatuses: MastodonStatus[] = [
@@ -37,6 +38,11 @@ const mastodonRawStatuses: MastodonStatus[] = [
 		mediaAttachments: new Array(4)
 			.fill(null)
 			.map((_, idx) => generateDummyMediaImage(`https:/loremflickr.com/640/480/abstract?lock=${100 + idx}`)),
+	}),
+	generateDummyStatus({
+		content:
+			loremIpsum({ count: 2, format: 'html', units: 'paragraphs' }) +
+			'<p>#テスト投稿\n長いURLを投稿してみる\nついでに改行も複数いれてみる\n\n\n良いプログラマになるには | プログラマが知るべき97のこと\n<a href="https://xn--97-273ae6a4irb6e2hsoiozc2g4b8082p.com/%E3%82%A8%E3%83%83%E3%82%BB%E3%82%A4/%E8%89%AF%E3%81%84%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9E%E3%81%AB%E3%81%AA%E3%82%8B%E3%81%AB%E3%81%AF/">xn--97-273ae6a4irb6e2hsoiozc2g4b8082p.com/%E3%82%A8%E3%83%83%E3%82%BB%E3%82%A4/%E8%89%AF%E3%81%84%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9E%E3%81%AB%E3%81%AA%E3%82%8B%E3%81%AB%E3%81%AF/</a></p>',
 	}),
 ]
 

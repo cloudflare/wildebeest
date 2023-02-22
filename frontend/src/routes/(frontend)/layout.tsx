@@ -40,13 +40,13 @@ export default component$(() => {
 					<WildebeestLogo size="small" />
 				</Link>
 			</header>
-			<main class="flex-1 flex justify-center top-[3.9rem]">
+			<main class="flex-1 flex justify-center top-[3.9rem] max-w-screen">
 				<div class="w-fit md:w-72 hidden xl:block mx-2.5">
 					<div class="sticky top-2.5">
 						<LeftColumn />
 					</div>
 				</div>
-				<div class="w-full xl:max-w-xl bg-wildebeest-600 xl:bg-transparent flex flex-col break-all">
+				<div class="w-0 xl:max-w-xl bg-wildebeest-600 xl:bg-transparent flex flex-col flex-1">
 					<div class="bg-wildebeest-600 rounded flex flex-1 flex-col">
 						<Slot />
 					</div>

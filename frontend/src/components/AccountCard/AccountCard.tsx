@@ -13,18 +13,17 @@ export const AccountCard = component$<{
 	const accountUrl = useAccountUrl(account)
 
 	return (
-		<Link
-			href={accountUrl}
-			class="inline-grid grid-cols-[repeat(2,_max-content)] grid-rows-[1fr,1fr] items-center no-underline"
-		>
-			<div class="row-span-2">
+		<Link href={accountUrl} class="inline-flex items-center no-underline flex-wrap gap-2">
+			<div class="flex-grow flex-shrink-0 flex justify-center">
 				<Avatar primary={account} secondary={secondaryAvatar ?? null} />
 			</div>
-			<div data-testid="account-display-name" class="ml-2 col-start-2 row-start-1">
-				{getDisplayNameElement(account)}
-			</div>
-			<div class="ml-2 text-wildebeest-400 col-start-2 row-start-2">
-				@{subText === 'username' ? account.username : account.acct}
+			<div>
+				<div data-testid="account-display-name" class="col-start-2 row-start-1">
+					{getDisplayNameElement(account)}
+				</div>
+				<div class="text-wildebeest-400 col-start-2 row-start-2">
+					@{subText === 'username' ? account.username : account.acct}
+				</div>
 			</div>
 		</Link>
 	)
