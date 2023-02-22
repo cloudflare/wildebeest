@@ -3,8 +3,9 @@ import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import { cors } from 'wildebeest/backend/src/utils/cors'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
-async function loadContextData(db: D1Database, clientId: string, email: string, ctx: any): Promise<boolean> {
+async function loadContextData(db: Database, clientId: string, email: string, ctx: any): Promise<boolean> {
 	const query = `
         SELECT *
         FROM actors
@@ -96,7 +97,7 @@ export async function main(context: EventContext<Env, any, any>) {
 		// configuration, which are used to verify the JWT.
 		// TODO: since we don't load the instance configuration anymore, we
 		// don't need to load the user before anymore.
-		if (!(await loadContextData(context.env.DATABASE, clientId, payload.email, context))) {
+		if (!(await loadContextData(getDatabase(context.env), clientId, payload.email, context))) {
 			return errors.notAuthorized('failed to load context data')
 		}
 

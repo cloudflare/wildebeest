@@ -4,9 +4,10 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { OrderedCollection } from 'wildebeest/backend/src/activitypub/objects/collection'
 import { getMetadata, loadItems } from 'wildebeest/backend/src/activitypub/objects/collection'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
+import { type Database } from 'wildebeest/backend/src/database'
 
 export async function addObjectInOutbox(
-	db: D1Database,
+	db: Database,
 	actor: Actor,
 	obj: APObject,
 	published_date?: string,

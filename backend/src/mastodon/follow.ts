@@ -2,12 +2,13 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { getResultsField } from './utils'
+import { type Database } from 'wildebeest/backend/src/database'
 
 const STATE_PENDING = 'pending'
 const STATE_ACCEPTED = 'accepted'
 
 // During a migration we move the followers from the old Actor to the new
-export async function moveFollowers(db: D1Database, actor: Actor, followers: Array<string>): Promise<void> {
+export async function moveFollowers(db: Database, actor: Actor, followers: Array<string>): Promise<void> {
 	const batch = []
 	const stmt = db.prepare(`
 		INSERT OR IGNORE
@@ -29,7 +30,7 @@ export async function moveFollowers(db: D1Database, actor: Actor, followers: Arr
 	await db.batch(batch)
 }
 
-export async function moveFollowing(db: D1Database, actor: Actor, followingActors: Array<string>): Promise<void> {
+export async function moveFollowing(db: Database, actor: Actor, followingActors: Array<string>): Promise<void> {
 	const batch = []
 	const stmt = db.prepare(`
 		INSERT OR IGNORE
@@ -52,7 +53,7 @@ export async function moveFollowing(db: D1Database, actor: Actor, followingActor
 }
 
 // Add a pending following
-export async function addFollowing(db: D1Database, actor: Actor, target: Actor, targetAcct: string): Promise<string> {
+export async function addFollowing(db: Database, actor: Actor, target: Actor, targetAcct: string): Promise<string> {
 	const id = crypto.randomUUID()
 
 	const query = `
@@ -71,7 +72,7 @@ export async function addFollowing(db: D1Database, actor: Actor, target: Actor, 
 }
 
 // Accept the pending following request
-export async function acceptFollowing(db: D1Database, actor: Actor, target: Actor) {
+export async function acceptFollowing(db: Database, actor: Actor, target: Actor) {
 	const query = `
 		UPDATE actor_following SET state=? WHERE actor_id=? AND target_actor_id=? AND state=?
 	`
@@ -85,7 +86,7 @@ export async function acceptFollowing(db: D1Database, actor: Actor, target: Acto
 	}
 }
 
-export async function removeFollowing(db: D1Database, actor: Actor, target: Actor) {
+export async function removeFollowing(db: Database, actor: Actor, target: Actor) {
 	const query = `
 		DELETE FROM actor_following WHERE actor_id=? AND target_actor_id=?
 	`
@@ -96,7 +97,7 @@ export async function removeFollowing(db: D1Database, actor: Actor, target: Acto
 	}
 }
 
-export function getFollowingAcct(db: D1Database, actor: Actor): Promise<Array<string>> {
+export function getFollowingAcct(db: Database, actor: Actor): Promise<Array<string>> {
 	const query = `
 		SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
 	`
@@ -105,7 +106,7 @@ export function getFollowingAcct(db: D1Database, actor: Actor): Promise<Array<st
 	return getResultsField(statement, 'target_actor_acct')
 }
 
-export function getFollowingRequestedAcct(db: D1Database, actor: Actor): Promise<Array<string>> {
+export function getFollowingRequestedAcct(db: Database, actor: Actor): Promise<Array<string>> {
 	const query = `
 		SELECT target_actor_acct FROM actor_following WHERE actor_id=? AND state=?
 	`
@@ -115,7 +116,7 @@ export function getFollowingRequestedAcct(db: D1Database, actor: Actor): Promise
 	return getResultsField(statement, 'target_actor_acct')
 }
 
-export function getFollowingId(db: D1Database, actor: Actor): Promise<Array<string>> {
+export function getFollowingId(db: Database, actor: Actor): Promise<Array<string>> {
 	const query = `
 		SELECT target_actor_id FROM actor_following WHERE actor_id=? AND state=?
 	`
@@ -125,7 +126,7 @@ export function getFollowingId(db: D1Database, actor: Actor): Promise<Array<stri
 	return getResultsField(statement, 'target_actor_id')
 }
 
-export function getFollowers(db: D1Database, actor: Actor): Promise<Array<string>> {
+export function getFollowers(db: Database, actor: Actor): Promise<Array<string>> {
 	const query = `
 		SELECT actor_id FROM actor_following WHERE target_actor_id=? AND state=?
 	`

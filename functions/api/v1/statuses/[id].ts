@@ -16,16 +16,17 @@ import { deliverFollowers } from 'wildebeest/backend/src/activitypub/deliver'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import { cacheFromEnv } from 'wildebeest/backend/src/cache'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ params, env, request, data }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequestGet(env.DATABASE, params.id as UUID, domain, data.connectedActor)
+	return handleRequestGet(getDatabase(env), params.id as UUID, domain, data.connectedActor)
 }
 
 export const onRequestDelete: PagesFunction<Env, any, ContextData> = async ({ params, env, request, data }) => {
 	const domain = new URL(request.url).hostname
 	return handleRequestDelete(
-		env.DATABASE,
+		getDatabase(env),
 		params.id as UUID,
 		data.connectedActor,
 		domain,
@@ -36,7 +37,7 @@ export const onRequestDelete: PagesFunction<Env, any, ContextData> = async ({ pa
 }
 
 export async function handleRequestGet(
-	db: D1Database,
+	db: Database,
 	id: UUID,
 	domain: string,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- To be used when we implement private statuses
@@ -62,7 +63,7 @@ export async function handleRequestGet(
 }
 
 export async function handleRequestDelete(
-	db: D1Database,
+	db: Database,
 	id: UUID,
 	connectedActor: Person,
 	domain: string,

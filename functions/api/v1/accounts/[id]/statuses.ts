@@ -1,4 +1,5 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import * as errors from 'wildebeest/backend/src/errors'
 import { cors } from 'wildebeest/backend/src/utils/cors'
@@ -25,10 +26,10 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
-	return handleRequest(request, env.DATABASE, params.id as string)
+	return handleRequest(request, getDatabase(env), params.id as string)
 }
 
-export async function handleRequest(request: Request, db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(request: Request, db: Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 	const url = new URL(request.url)
 	const domain = url.hostname
@@ -46,7 +47,7 @@ export async function handleRequest(request: Request, db: D1Database, id: string
 	}
 }
 
-async function getRemoteStatuses(request: Request, handle: Handle, db: D1Database): Promise<Response> {
+async function getRemoteStatuses(request: Request, handle: Handle, db: Database): Promise<Response> {
 	const url = new URL(request.url)
 	const domain = url.hostname
 	const isPinned = url.searchParams.get('pinned') === 'true'
@@ -118,7 +119,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: D1Databas
 
 export async function getLocalStatuses(
 	request: Request,
-	db: D1Database,
+	db: Database,
 	handle: Handle,
 	offset: number,
 	withReplies: boolean

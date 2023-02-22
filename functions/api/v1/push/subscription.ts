@@ -9,13 +9,14 @@ import { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleGetRequest(env.DATABASE, request, data.connectedActor, data.clientId, getVAPIDKeys(env))
+	return handleGetRequest(getDatabase(env), request, data.connectedActor, data.clientId, getVAPIDKeys(env))
 }
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handlePostRequest(env.DATABASE, request, data.connectedActor, data.clientId, getVAPIDKeys(env))
+	return handlePostRequest(getDatabase(env), request, data.connectedActor, data.clientId, getVAPIDKeys(env))
 }
 
 const headers = {
@@ -24,7 +25,7 @@ const headers = {
 }
 
 export async function handleGetRequest(
-	db: D1Database,
+	db: Database,
 	request: Request,
 	connectedActor: Actor,
 	clientId: string,
@@ -55,7 +56,7 @@ export async function handleGetRequest(
 }
 
 export async function handlePostRequest(
-	db: D1Database,
+	db: Database,
 	request: Request,
 	connectedActor: Actor,
 	clientId: string,

@@ -5,16 +5,17 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { queryAcct } from 'wildebeest/backend/src/webfinger'
 import * as errors from 'wildebeest/backend/src/errors'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ env, request, data }) => {
-	return handleRequestPost(env.DATABASE, request, data.connectedActor)
+	return handleRequestPost(getDatabase(env), request, data.connectedActor)
 }
 
 type AddAliasRequest = {
 	alias: string
 }
 
-export async function handleRequestPost(db: D1Database, request: Request, connectedActor: Actor): Promise<Response> {
+export async function handleRequestPost(db: Database, request: Request, connectedActor: Actor): Promise<Response> {
 	const body = await request.json<AddAliasRequest>()
 
 	const handle = parseHandle(body.alias)

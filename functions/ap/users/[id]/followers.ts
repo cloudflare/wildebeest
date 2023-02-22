@@ -1,4 +1,5 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
@@ -10,10 +11,10 @@ const headers = {
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, params.id as string)
+	return handleRequest(domain, getDatabase(env), params.id as string)
 }
 
-export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(domain: string, db: Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 
 	if (handle.domain !== null) {

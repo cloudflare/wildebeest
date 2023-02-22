@@ -1,4 +1,5 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
@@ -6,7 +7,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, params.id as string, env.userKEK)
+	return handleRequest(domain, getDatabase(env), params.id as string, env.userKEK)
 }
 
 const headers = {
@@ -14,7 +15,7 @@ const headers = {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use userKEK
-export async function handleRequest(domain: string, db: D1Database, id: string, userKEK: string): Promise<Response> {
+export async function handleRequest(domain: string, db: Database, id: string, userKEK: string): Promise<Response> {
 	const handle = parseHandle(id)
 
 	if (handle.domain !== null) {

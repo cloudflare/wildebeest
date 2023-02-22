@@ -2,6 +2,7 @@ import { defaultImages } from 'wildebeest/config/accounts'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
 import { type APObject, sanitizeContent, getTextContent } from '../objects'
 import { addPeer } from 'wildebeest/backend/src/activitypub/peers'
+import { type Database } from 'wildebeest/backend/src/database'
 
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
@@ -84,7 +85,7 @@ export async function get(url: string | URL): Promise<Actor> {
 }
 
 // Get and cache the Actor locally
-export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
+export async function getAndCache(url: URL, db: Database): Promise<Actor> {
 	{
 		const actor = await getActorById(db, url)
 		if (actor !== null) {
@@ -120,7 +121,7 @@ export async function getAndCache(url: URL, db: D1Database): Promise<Actor> {
 	return actor
 }
 
-export async function getPersonByEmail(db: D1Database, email: string): Promise<Person | null> {
+export async function getPersonByEmail(db: Database, email: string): Promise<Person | null> {
 	const stmt = db.prepare('SELECT * FROM actors WHERE email=? AND type=?').bind(email, PERSON)
 	const { results } = await stmt.all()
 	if (!results || results.length === 0) {
@@ -146,7 +147,7 @@ type PersonProperties = {
 // Create a local user
 export async function createPerson(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	userKEK: string,
 	email: string,
 	properties: PersonProperties = {}
@@ -208,7 +209,7 @@ export async function createPerson(
 	return personFromRow(row)
 }
 
-export async function updateActorProperty(db: D1Database, actorId: URL, key: string, value: string) {
+export async function updateActorProperty(db: Database, actorId: URL, key: string, value: string) {
 	const { success, error } = await db
 		.prepare(`UPDATE actors SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
 		.bind(value, actorId.toString())
@@ -218,7 +219,7 @@ export async function updateActorProperty(db: D1Database, actorId: URL, key: str
 	}
 }
 
-export async function setActorAlias(db: D1Database, actorId: URL, alias: URL) {
+export async function setActorAlias(db: Database, actorId: URL, alias: URL) {
 	const { success, error } = await db
 		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', json_array(?)) WHERE id=?`)
 		.bind(alias.toString(), actorId.toString())
@@ -228,7 +229,7 @@ export async function setActorAlias(db: D1Database, actorId: URL, alias: URL) {
 	}
 }
 
-export async function getActorById(db: D1Database, id: URL): Promise<Actor | null> {
+export async function getActorById(db: Database, id: URL): Promise<Actor | null> {
 	const stmt = db.prepare('SELECT * FROM actors WHERE id=?').bind(id.toString())
 	const { results } = await stmt.all()
 	if (!results || results.length === 0) {

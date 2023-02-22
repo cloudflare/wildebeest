@@ -17,6 +17,7 @@ import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { addObjectInOutbox } from '../activitypub/actors/outbox'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import { type Database } from 'wildebeest/backend/src/database'
 
 export async function getMentions(input: string, instanceDomain: string): Promise<Array<Actor>> {
 	const mentions: Array<Actor> = []
@@ -46,7 +47,7 @@ export async function getMentions(input: string, instanceDomain: string): Promis
 }
 
 export async function toMastodonStatusFromObject(
-	db: D1Database,
+	db: Database,
 	obj: Note,
 	domain: string
 ): Promise<MastodonStatus | null> {
@@ -99,11 +100,7 @@ export async function toMastodonStatusFromObject(
 // toMastodonStatusFromRow makes assumption about what field are available on
 // the `row` object. This function is only used for timelines, which is optimized
 // SQL. Otherwise don't use this function.
-export async function toMastodonStatusFromRow(
-	domain: string,
-	db: D1Database,
-	row: any
-): Promise<MastodonStatus | null> {
+export async function toMastodonStatusFromRow(domain: string, db: Database, row: any): Promise<MastodonStatus | null> {
 	if (row.publisher_actor_id === undefined) {
 		console.warn('missing `row.publisher_actor_id`')
 		return null
@@ -180,7 +177,7 @@ export async function toMastodonStatusFromRow(
 	return status
 }
 
-export async function getMastodonStatusById(db: D1Database, id: UUID, domain: string): Promise<MastodonStatus | null> {
+export async function getMastodonStatusById(db: Database, id: UUID, domain: string): Promise<MastodonStatus | null> {
 	const obj = await getObjectByMastodonId(db, id)
 	if (obj === null) {
 		return null
@@ -192,7 +189,7 @@ export async function getMastodonStatusById(db: D1Database, id: UUID, domain: st
  * Creates a status object in the given actor's outbox.
  *
  * @param domain the domain to use
- * @param db D1Database
+ * @param db Database
  * @param actor Author of the reply
  * @param content content of the reply
  * @param attachments optional attachments for the status
@@ -201,7 +198,7 @@ export async function getMastodonStatusById(db: D1Database, id: UUID, domain: st
  */
 export async function createStatus(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	actor: Person,
 	content: string,
 	attachments?: APObject[],
