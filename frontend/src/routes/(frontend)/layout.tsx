@@ -40,7 +40,7 @@ export default component$(() => {
 					<WildebeestLogo size="small" />
 				</Link>
 			</header>
-			<main class="flex-1 flex justify-center top-[3.9rem] w-screen">
+			<main class="flex-1 flex justify-center top-[3.9rem] max-w-screen">
 				<div class="w-fit md:w-72 hidden xl:block mx-2.5">
 					<div class="sticky top-2.5">
 						<LeftColumn />
