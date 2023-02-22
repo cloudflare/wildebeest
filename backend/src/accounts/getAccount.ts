@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/accounts/#get
 
+import { type Database } from 'wildebeest/backend/src/database'
 import { actorURL, getActorById } from 'wildebeest/backend/src/activitypub/actors'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import type { Handle } from 'wildebeest/backend/src/utils/parse'
@@ -8,7 +9,7 @@ import { loadExternalMastodonAccount, loadLocalMastodonAccount } from 'wildebees
 import { MastodonAccount } from '../types'
 import { adjustLocalHostDomain } from '../utils/adjustLocalHostDomain'
 
-export async function getAccount(domain: string, accountId: string, db: D1Database): Promise<MastodonAccount | null> {
+export async function getAccount(domain: string, accountId: string, db: Database): Promise<MastodonAccount | null> {
 	const handle = parseHandle(accountId)
 
 	if (handle.domain === null || (handle.domain !== null && handle.domain === domain)) {
@@ -35,7 +36,7 @@ async function getRemoteAccount(handle: Handle, acct: string): Promise<MastodonA
 	return await loadExternalMastodonAccount(acct, actor, true)
 }
 
-async function getLocalAccount(domain: string, db: D1Database, handle: Handle): Promise<MastodonAccount | null> {
+async function getLocalAccount(domain: string, db: Database, handle: Handle): Promise<MastodonAccount | null> {
 	const actorId = actorURL(adjustLocalHostDomain(domain), handle.localPart)
 
 	const actor = await getActorById(db, actorId)

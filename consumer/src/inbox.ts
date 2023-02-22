@@ -8,7 +8,7 @@ import type { Env } from './'
 
 export async function handleInboxMessage(env: Env, actor: Actor, message: InboxMessageBody) {
 	const domain = env.DOMAIN
-	const db = env.DATABASE
+	const db = getDatabase(env)
 	const adminEmail = env.ADMIN_EMAIL
 	const cache = cacheFromEnv(env)
 	const activity = message.activity

@@ -3,13 +3,14 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors/'
 import { toMastodonStatusFromRow } from './status'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import type { Cache } from 'wildebeest/backend/src/cache'
+import { type Database } from 'wildebeest/backend/src/database'
 
-export async function pregenerateTimelines(domain: string, db: D1Database, cache: Cache, actor: Actor) {
+export async function pregenerateTimelines(domain: string, db: Database, cache: Cache, actor: Actor) {
 	const timeline = await getHomeTimeline(domain, db, actor)
 	await cache.put(actor.id + '/timeline/home', timeline)
 }
 
-export async function getHomeTimeline(domain: string, db: D1Database, actor: Actor): Promise<Array<MastodonStatus>> {
+export async function getHomeTimeline(domain: string, db: Database, actor: Actor): Promise<Array<MastodonStatus>> {
 	const { results: following } = await db
 		.prepare(
 			`
@@ -110,7 +111,7 @@ function localPreferenceQuery(preference: LocalPreference): string {
 
 export async function getPublicTimeline(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	localPreference: LocalPreference,
 	offset: number = 0,
 	hashtag?: string

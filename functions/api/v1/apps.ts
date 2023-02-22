@@ -6,6 +6,7 @@ import { createClient } from 'wildebeest/backend/src/mastodon/client'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
 import { getVAPIDKeys } from 'wildebeest/backend/src/config'
 import { readBody } from 'wildebeest/backend/src/utils/body'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 type AppsPost = {
 	redirect_uris: string
@@ -15,10 +16,10 @@ type AppsPost = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
-	return handleRequest(env.DATABASE, request, getVAPIDKeys(env))
+	return handleRequest(getDatabase(env), request, getVAPIDKeys(env))
 }
 
-export async function handleRequest(db: D1Database, request: Request, vapidKeys: JWK) {
+export async function handleRequest(db: Database, request: Request, vapidKeys: JWK) {
 	if (request.method !== 'POST') {
 		return new Response('', { status: 400 })
 	}

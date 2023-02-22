@@ -1,6 +1,7 @@
 // Also known as boost.
 
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database } from 'wildebeest/backend/src/database'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { getResultsField } from './utils'
 import { addObjectInOutbox } from '../activitypub/actors/outbox'
@@ -8,15 +9,15 @@ import { addObjectInOutbox } from '../activitypub/actors/outbox'
 /**
  * Creates a reblog and inserts it in the reblog author's outbox
  *
- * @param db D1Database
+ * @param db Database
  * @param actor Reblogger
  * @param obj ActivityPub object to reblog
  */
-export async function createReblog(db: D1Database, actor: Actor, obj: APObject) {
+export async function createReblog(db: Database, actor: Actor, obj: APObject) {
 	await Promise.all([addObjectInOutbox(db, actor, obj), insertReblog(db, actor, obj)])
 }
 
-export async function insertReblog(db: D1Database, actor: Actor, obj: APObject) {
+export async function insertReblog(db: Database, actor: Actor, obj: APObject) {
 	const id = crypto.randomUUID()
 
 	const query = `
@@ -30,7 +31,7 @@ export async function insertReblog(db: D1Database, actor: Actor, obj: APObject) 
 	}
 }
 
-export function getReblogs(db: D1Database, obj: APObject): Promise<Array<string>> {
+export function getReblogs(db: Database, obj: APObject): Promise<Array<string>> {
 	const query = `
 		SELECT actor_id FROM actor_reblogs WHERE object_id=?
 	`
@@ -40,7 +41,7 @@ export function getReblogs(db: D1Database, obj: APObject): Promise<Array<string>
 	return getResultsField(statement, 'actor_id')
 }
 
-export async function hasReblog(db: D1Database, actor: Actor, obj: APObject): Promise<boolean> {
+export async function hasReblog(db: Database, actor: Actor, obj: APObject): Promise<boolean> {
 	const query = `
 		SELECT count(*) as count FROM actor_reblogs WHERE object_id=?1 AND actor_id=?2
 	`

@@ -4,6 +4,7 @@ import { Actor } from '../activitypub/actors'
 import { defaultImages } from 'wildebeest/config/accounts'
 import * as apOutbox from 'wildebeest/backend/src/activitypub/actors/outbox'
 import * as apFollow from 'wildebeest/backend/src/activitypub/actors/follow'
+import { type Database } from 'wildebeest/backend/src/database'
 
 function toMastodonAccount(acct: string, res: Actor): MastodonAccount {
 	const avatar = res.icon?.url.toString() ?? defaultImages.avatar
@@ -55,7 +56,7 @@ export async function loadExternalMastodonAccount(
 }
 
 // Load a local user and return it as a MastodonAccount
-export async function loadLocalMastodonAccount(db: D1Database, res: Actor): Promise<MastodonAccount> {
+export async function loadLocalMastodonAccount(db: Database, res: Actor): Promise<MastodonAccount> {
 	const query = `
 SELECT
   (SELECT count(*)
@@ -85,7 +86,7 @@ SELECT
 	return account
 }
 
-export async function getSigningKey(instanceKey: string, db: D1Database, actor: Actor): Promise<CryptoKey> {
+export async function getSigningKey(instanceKey: string, db: Database, actor: Actor): Promise<CryptoKey> {
 	const stmt = db.prepare('SELECT privkey, privkey_salt FROM actors WHERE id=?').bind(actor.id.toString())
 	const { privkey, privkey_salt } = (await stmt.first()) as any
 	return unwrapPrivateKey(instanceKey, new Uint8Array(privkey), new Uint8Array(privkey_salt))

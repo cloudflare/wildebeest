@@ -1,5 +1,6 @@
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { Tag } from 'wildebeest/backend/src/types/tag'
+import { type Database } from 'wildebeest/backend/src/database'
 
 export type Hashtag = string
 
@@ -14,7 +15,7 @@ export function getHashtags(input: string): Array<Hashtag> {
 	return [...matches].map((match) => match[1])
 }
 
-export async function insertHashtags(db: D1Database, note: Note, values: Array<Hashtag>): Promise<void> {
+export async function insertHashtags(db: Database, note: Note, values: Array<Hashtag>): Promise<void> {
 	const queries = []
 	const stmt = db.prepare(`
         INSERT INTO note_hashtags (value, object_id)
@@ -29,7 +30,7 @@ export async function insertHashtags(db: D1Database, note: Note, values: Array<H
 	await db.batch(queries)
 }
 
-export async function getTag(db: D1Database, domain: string, tag: string): Promise<Tag | null> {
+export async function getTag(db: Database, domain: string, tag: string): Promise<Tag | null> {
 	const query = `
         SELECT * FROM note_hashtags WHERE value=?
     `

@@ -26,6 +26,7 @@ import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
 import * as idempotency from 'wildebeest/backend/src/mastodon/idempotency'
 import { newMention } from 'wildebeest/backend/src/activitypub/objects/mention'
 import { originalObjectIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 type StatusCreate = {
 	status: string
@@ -36,13 +37,13 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK, env.QUEUE, cacheFromEnv(env))
+	return handleRequest(request, getDatabase(env), data.connectedActor, env.userKEK, env.QUEUE, cacheFromEnv(env))
 }
 
 // FIXME: add tests for delivery to followers and mentions to a specific Actor.
 export async function handleRequest(
 	request: Request,
-	db: D1Database,
+	db: Database,
 	connectedActor: Person,
 	userKEK: string,
 	queue: Queue<DeliverMessageBody>,

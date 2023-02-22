@@ -1,4 +1,5 @@
 import { arrayBufferToBase64 } from 'wildebeest/backend/src/utils/key-ops'
+import { type Database } from 'wildebeest/backend/src/database'
 
 export interface Client {
 	id: string
@@ -10,7 +11,7 @@ export interface Client {
 }
 
 export async function createClient(
-	db: D1Database,
+	db: Database,
 	name: string,
 	redirect_uris: string,
 	website: string,
@@ -42,7 +43,7 @@ export async function createClient(
 	}
 }
 
-export async function getClientById(db: D1Database, id: string): Promise<Client | null> {
+export async function getClientById(db: Database, id: string): Promise<Client | null> {
 	const stmt = db.prepare('SELECT * FROM clients WHERE id=?').bind(id)
 	const { results } = await stmt.all()
 	if (!results || results.length === 0) {

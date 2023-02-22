@@ -1,4 +1,5 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import { getVAPIDKeys } from 'wildebeest/backend/src/config'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
@@ -38,12 +39,20 @@ export const onRequest: PagesFunction<Env, any> = async ({ params, request, env 
 
 	const activity: Activity = JSON.parse(body)
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, params.id as string, activity, env.QUEUE, env.userKEK, getVAPIDKeys(env))
+	return handleRequest(
+		domain,
+		getDatabase(env),
+		params.id as string,
+		activity,
+		env.QUEUE,
+		env.userKEK,
+		getVAPIDKeys(env)
+	)
 }
 
 export async function handleRequest(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	id: string,
 	activity: Activity,
 	queue: Queue<InboxMessageBody>,

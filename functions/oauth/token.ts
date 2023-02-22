@@ -3,6 +3,7 @@
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import * as errors from 'wildebeest/backend/src/errors'
 import type { Env } from 'wildebeest/backend/src/types/env'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import { readBody } from 'wildebeest/backend/src/utils/body'
 import { getClientById } from 'wildebeest/backend/src/mastodon/client'
 
@@ -11,10 +12,10 @@ type Body = {
 }
 
 export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
-	return handleRequest(env.DATABASE, request)
+	return handleRequest(getDatabase(env), request)
 }
 
-export async function handleRequest(db: D1Database, request: Request): Promise<Response> {
+export async function handleRequest(db: Database, request: Request): Promise<Response> {
 	const headers = {
 		...cors(),
 		'content-type': 'application/json; charset=utf-8',

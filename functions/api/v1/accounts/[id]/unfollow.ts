@@ -1,4 +1,5 @@
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 import { getSigningKey } from 'wildebeest/backend/src/mastodon/account'
@@ -11,12 +12,12 @@ import type { Relationship } from 'wildebeest/backend/src/types/account'
 import { removeFollowing } from 'wildebeest/backend/src/mastodon/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
-	return handleRequest(request, env.DATABASE, params.id as string, data.connectedActor, env.userKEK)
+	return handleRequest(request, getDatabase(env), params.id as string, data.connectedActor, env.userKEK)
 }
 
 export async function handleRequest(
 	request: Request,
-	db: D1Database,
+	db: Database,
 	id: string,
 	connectedActor: Person,
 	userKEK: string

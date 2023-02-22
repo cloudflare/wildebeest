@@ -2,6 +2,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import * as timelines from 'wildebeest/backend/src/mastodon/timeline'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 const headers = {
 	...cors(),
@@ -10,10 +11,10 @@ const headers = {
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(env.DATABASE, request, domain, params.tag as string)
+	return handleRequest(getDatabase(env), request, domain, params.tag as string)
 }
 
-export async function handleRequest(db: D1Database, request: Request, domain: string, tag: string): Promise<Response> {
+export async function handleRequest(db: Database, request: Request, domain: string, tag: string): Promise<Response> {
 	const url = new URL(request.url)
 	if (url.searchParams.has('max_id')) {
 		return new Response(JSON.stringify([]), { headers })

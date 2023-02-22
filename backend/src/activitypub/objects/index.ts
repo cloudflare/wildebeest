@@ -1,5 +1,6 @@
 import type { UUID } from 'wildebeest/backend/src/types'
 import { addPeer } from 'wildebeest/backend/src/activitypub/peers'
+import { type Database } from 'wildebeest/backend/src/database'
 
 export const originalActorIdSymbol = Symbol()
 export const originalObjectIdSymbol = Symbol()
@@ -39,7 +40,7 @@ export function uri(domain: string, id: string): URL {
 
 export async function createObject<Type extends APObject>(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	type: string,
 	properties: any,
 	originalActorId: URL,
@@ -86,7 +87,7 @@ type CacheObjectRes = {
 
 export async function cacheObject(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	properties: unknown,
 	originalActorId: URL,
 	originalObjectId: URL,
@@ -144,7 +145,7 @@ export async function cacheObject(
 	}
 }
 
-export async function updateObject(db: D1Database, properties: any, id: URL): Promise<boolean> {
+export async function updateObject(db: Database, properties: any, id: URL): Promise<boolean> {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const res: any = await db
 		.prepare('UPDATE objects SET properties = ? WHERE id = ?')
@@ -156,7 +157,7 @@ export async function updateObject(db: D1Database, properties: any, id: URL): Pr
 	return true
 }
 
-export async function updateObjectProperty(db: D1Database, obj: APObject, key: string, value: string) {
+export async function updateObjectProperty(db: Database, obj: APObject, key: string, value: string) {
 	const { success, error } = await db
 		.prepare(`UPDATE objects SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
 		.bind(value, obj.id.toString())
@@ -166,19 +167,19 @@ export async function updateObjectProperty(db: D1Database, obj: APObject, key: s
 	}
 }
 
-export async function getObjectById(db: D1Database, id: string | URL): Promise<APObject | null> {
+export async function getObjectById(db: Database, id: string | URL): Promise<APObject | null> {
 	return getObjectBy(db, 'id', id.toString())
 }
 
-export async function getObjectByOriginalId(db: D1Database, id: string | URL): Promise<APObject | null> {
+export async function getObjectByOriginalId(db: Database, id: string | URL): Promise<APObject | null> {
 	return getObjectBy(db, 'original_object_id', id.toString())
 }
 
-export async function getObjectByMastodonId(db: D1Database, id: UUID): Promise<APObject | null> {
+export async function getObjectByMastodonId(db: Database, id: UUID): Promise<APObject | null> {
 	return getObjectBy(db, 'mastodon_id', id)
 }
 
-export async function getObjectBy(db: D1Database, key: string, value: string) {
+export async function getObjectBy(db: Database, key: string, value: string) {
 	const query = `
 SELECT *
 FROM objects
@@ -289,7 +290,7 @@ function getTextContentRewriter() {
 // TODO: eventually use SQLite's `ON DELETE CASCADE` but requires writing the DB
 // schema directly into D1, which D1 disallows at the moment.
 // Some context at: https://stackoverflow.com/questions/13150075/add-on-delete-cascade-behavior-to-an-sqlite3-table-after-it-has-been-created
-export async function deleteObject<T extends APObject>(db: D1Database, note: T) {
+export async function deleteObject<T extends APObject>(db: Database, note: T) {
 	const nodeId = note.id.toString()
 	const batch = [
 		db.prepare('DELETE FROM outbox_objects WHERE object_id=?').bind(nodeId),
