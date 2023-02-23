@@ -116,7 +116,7 @@ export async function handle(
 			}
 
 			// check current object
-			const object = await objects.getObjectBy(db, 'original_object_id', objectId.toString())
+			const object = await objects.getObjectBy(db, objects.ObjectByKey.originalObjectId, objectId.toString())
 			if (object === null) {
 				throw new Error(`object ${objectId} does not exist`)
 			}
