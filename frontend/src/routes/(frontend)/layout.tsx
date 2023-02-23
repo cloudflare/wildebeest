@@ -9,6 +9,7 @@ import { WildebeestLogo } from '~/components/MastodonLogo'
 import { getCommitHash } from '~/utils/getCommitHash'
 import { InstanceConfigContext } from '~/utils/instanceConfig'
 import { getDocumentHead } from '~/utils/getDocumentHead'
+import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
 export const instanceLoader = loader$<
 	Promise<InstanceConfig>,
@@ -24,8 +25,10 @@ export const instanceLoader = loader$<
 		const results = await response.text()
 		const json = JSON.parse(results) as InstanceConfig
 		return json
-	} catch {
-		throw html(500, 'An error occurred whilst retrieving the instance details')
+	} catch (e: unknown) {
+		const error = e as { stack: string; cause: string }
+		console.warn(error.stack, error.cause)
+		throw html(500, getErrorHtml('An error occurred whilst retrieving the instance details'))
 	}
 })
 
