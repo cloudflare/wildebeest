@@ -112,7 +112,7 @@ export async function handleRequest(
 
 	const hashtags = getHashtags(body.status)
 
-	const mentions = await getMentions(body.status, domain)
+	const mentions = await getMentions(body.status, domain, db)
 	if (mentions.length > 0) {
 		extraProperties.tag = mentions.map(newMention)
 	}

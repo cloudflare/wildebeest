@@ -19,7 +19,7 @@ import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { type Database } from 'wildebeest/backend/src/database'
 
-export async function getMentions(input: string, instanceDomain: string): Promise<Array<Actor>> {
+export async function getMentions(input: string, instanceDomain: string, db: Database): Promise<Array<Actor>> {
 	const mentions: Array<Actor> = []
 
 	for (let i = 0, len = input.length; i < len; i++) {
@@ -34,7 +34,7 @@ export async function getMentions(input: string, instanceDomain: string): Promis
 			const handle = parseHandle(buffer)
 			const domain = handle.domain ? handle.domain : instanceDomain
 			const acct = `${handle.localPart}@${domain}`
-			const targetActor = await queryAcct(domain!, acct)
+			const targetActor = await queryAcct(domain!, db, acct)
 			if (targetActor === null) {
 				console.warn(`actor ${acct} not found`)
 				continue

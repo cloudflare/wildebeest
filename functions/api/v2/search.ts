@@ -50,7 +50,7 @@ export async function handleRequest(db: Database, request: Request): Promise<Res
 
 	if (useWebFinger && query.domain !== null) {
 		const acct = `${query.localPart}@${query.domain}`
-		const res = await queryAcct(query.domain, acct)
+		const res = await queryAcct(query.domain, db, acct)
 		if (res !== null) {
 			out.accounts.push(await loadExternalMastodonAccount(acct, res))
 		}

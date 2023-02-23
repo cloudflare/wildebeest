@@ -35,7 +35,7 @@ export async function handleRequest(
 	}
 
 	const acct = `${handle.localPart}@${handle.domain}`
-	const targetActor = await webfinger.queryAcct(handle.domain!, acct)
+	const targetActor = await webfinger.queryAcct(handle.domain!, db, acct)
 	if (targetActor === null) {
 		return new Response('', { status: 404 })
 	}

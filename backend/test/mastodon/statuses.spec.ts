@@ -202,6 +202,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://social.com/users/sven',
+							type: 'Person',
 							inbox: 'https://social.com/sven/inbox',
 						})
 					)
@@ -404,6 +405,7 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('get mentions from status', async () => {
+			const db = await makeDB()
 			globalThis.fetch = async (input: RequestInfo) => {
 				if (input.toString() === 'https://instance.horse/.well-known/webfinger?resource=acct%3Asven%40instance.horse') {
 					return new Response(
@@ -467,6 +469,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://instance.horse/users/sven',
+							type: 'Person',
 						})
 					)
 				}
@@ -474,6 +477,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://cloudflare.com/users/sven',
+							type: 'Person',
 						})
 					)
 				}
@@ -481,6 +485,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://cloudflare.com/users/a',
+							type: 'Person',
 						})
 					)
 				}
@@ -488,6 +493,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://cloudflare.com/users/b',
+							type: 'Person',
 						})
 					)
 				}
@@ -496,42 +502,42 @@ describe('Mastodon APIs', () => {
 			}
 
 			{
-				const mentions = await getMentions('test status', domain)
+				const mentions = await getMentions('test status', domain, db)
 				assert.equal(mentions.length, 0)
 			}
 
 			{
-				const mentions = await getMentions('no-json@actor.com', domain)
+				const mentions = await getMentions('no-json@actor.com', domain, db)
 				assert.equal(mentions.length, 0)
 			}
 
 			{
-				const mentions = await getMentions('@sven@instance.horse test status', domain)
+				const mentions = await getMentions('@sven@instance.horse test status', domain, db)
 				assert.equal(mentions.length, 1)
 				assert.equal(mentions[0].id.toString(), 'https://instance.horse/users/sven')
 			}
 
 			{
-				const mentions = await getMentions('@sven test status', domain)
+				const mentions = await getMentions('@sven test status', domain, db)
 				assert.equal(mentions.length, 1)
 				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/sven')
 			}
 
 			{
-				const mentions = await getMentions('@a @b', domain)
+				const mentions = await getMentions('@a @b', domain, db)
 				assert.equal(mentions.length, 2)
 				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/a')
 				assert.equal(mentions[1].id.toString(), 'https://' + domain + '/users/b')
 			}
 
 			{
-				const mentions = await getMentions('<p>@sven</p>', domain)
+				const mentions = await getMentions('<p>@sven</p>', domain, db)
 				assert.equal(mentions.length, 1)
 				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/sven')
 			}
 
 			{
-				const mentions = await getMentions('<p>@unknown</p>', domain)
+				const mentions = await getMentions('<p>@unknown</p>', domain, db)
 				assert.equal(mentions.length, 0)
 			}
 		})
