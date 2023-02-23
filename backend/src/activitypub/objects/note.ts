@@ -52,12 +52,12 @@ export async function createPublicNote(
 	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
 }
 
-export async function createPrivateNote(
+export async function createDirectNote(
 	domain: string,
 	db: Database,
 	content: string,
 	actor: Actor,
-	targetActor: Actor,
+	targetActors: Array<Actor>,
 	attachment: Array<objects.APObject> = [],
 	extraProperties: any = {}
 ): Promise<Note> {
@@ -66,7 +66,7 @@ export async function createPrivateNote(
 	const properties = {
 		attributedTo: actorId,
 		content,
-		to: [targetActor.id.toString()],
+		to: targetActors.map((a) => a.id.toString()),
 		cc: [],
 
 		// FIXME: stub values
