@@ -95,7 +95,7 @@ export async function cacheObject(
 ): Promise<CacheObjectRes> {
 	const sanitizedProperties = await sanitizeObjectProperties(properties)
 
-	const cachedObject = await getObjectBy(db, 'original_object_id', originalObjectId.toString())
+	const cachedObject = await getObjectBy(db, ObjectByKey.originalObjectId, originalObjectId.toString())
 	if (cachedObject !== null) {
 		return {
 			created: false,
@@ -168,23 +168,34 @@ export async function updateObjectProperty(db: Database, obj: APObject, key: str
 }
 
 export async function getObjectById(db: Database, id: string | URL): Promise<APObject | null> {
-	return getObjectBy(db, 'id', id.toString())
+	return getObjectBy(db, ObjectByKey.id, id.toString())
 }
 
 export async function getObjectByOriginalId(db: Database, id: string | URL): Promise<APObject | null> {
-	return getObjectBy(db, 'original_object_id', id.toString())
+	return getObjectBy(db, ObjectByKey.originalObjectId, id.toString())
 }
 
 export async function getObjectByMastodonId(db: Database, id: UUID): Promise<APObject | null> {
-	return getObjectBy(db, 'mastodon_id', id)
+	return getObjectBy(db, ObjectByKey.mastodonId, id)
 }
 
-export async function getObjectBy(db: Database, key: string, value: string) {
+export enum ObjectByKey {
+	id = 'id',
+	originalObjectId = 'original_object_id',
+	mastodonId = 'mastodon_id',
+}
+
+const allowedObjectByKeysSet = new Set(Object.values(ObjectByKey))
+
+export async function getObjectBy(db: Database, key: ObjectByKey, value: string) {
+	if (!allowedObjectByKeysSet.has(key)) {
+		throw new Error('getObjectBy run with invalid key: ' + key)
+	}
 	const query = `
-SELECT *
-FROM objects
-WHERE objects.${key}=?
-  `
+		SELECT *
+		FROM objects
+		WHERE objects.${key}=?
+	`
 	const { results, success, error } = await db.prepare(query).bind(value).all()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
