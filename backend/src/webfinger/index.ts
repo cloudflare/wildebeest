@@ -11,12 +11,12 @@ const headers = {
 	accept: 'application/jrd+json',
 }
 
-export async function queryAcct(domain: string, acct: string): Promise<Actor | null> {
+export async function queryAcct(domain: string, db: D1Database, acct: string): Promise<Actor | null> {
 	const url = await queryAcctLink(domain, acct)
 	if (url === null) {
 		return null
 	}
-	return actors.get(url)
+	return actors.getAndCache(url, db)
 }
 
 export async function queryAcctLink(domain: string, acct: string): Promise<URL | null> {

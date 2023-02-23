@@ -24,7 +24,7 @@ export async function handleRequestPost(db: Database, request: Request, connecte
 		console.warn("account migration within an instance isn't supported")
 		return new Response('', { status: 400 })
 	}
-	const actor = await queryAcct(handle.domain, acct)
+	const actor = await queryAcct(handle.domain, db, acct)
 	if (actor === null) {
 		return errors.resourceNotFound('actor', acct)
 	}
