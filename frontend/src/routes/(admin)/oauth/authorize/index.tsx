@@ -14,7 +14,9 @@ export const clientLoader = loader$<Promise<Client>, { DATABASE: D1Database }>(a
 	let client: Client | null = null
 	try {
 		client = await getClientById(platform.DATABASE, client_id)
-	} catch {
+	} catch (e: unknown) {
+		const error = e as { stack: string; cause: string }
+		console.warn(error.stack, error.cause)
 		throw html(500, getErrorHtml('An error occurred while trying to fetch the client data, please try again later'))
 	}
 	if (client === null) {
@@ -36,8 +38,9 @@ export const userLoader = loader$<
 		// TODO: eventually, verify the JWT with Access, however this
 		// is not critical.
 		payload = access.getPayload(jwt.value)
-	} catch (err: unknown) {
-		console.warn((err as { stack: unknown }).stack)
+	} catch (e: unknown) {
+		const error = e as { stack: string; cause: string }
+		console.warn(error.stack, error.cause)
 		throw html(500, getErrorHtml('Failed to validate Access JWT'))
 	}
 
