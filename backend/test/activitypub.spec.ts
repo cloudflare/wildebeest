@@ -3,7 +3,7 @@ import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
-import { createPrivateNote, createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createDirectNote, createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
 import { cacheObject } from 'wildebeest/backend/src/activitypub/objects/'
@@ -146,7 +146,7 @@ describe('ActivityPub', () => {
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
-			const note = await createPrivateNote(domain, db, 'DM', actorA, actorB)
+			const note = await createDirectNote(domain, db, 'DM', actorA, [actorB])
 			await addObjectInOutbox(db, actorA, note, undefined, actorB.id.toString())
 
 			{
@@ -171,7 +171,7 @@ describe('ActivityPub', () => {
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'target@cloudflare.com')
 
-			const note = await createPrivateNote(domain, db, 'DM', actorA, actorB)
+			const note = await createDirectNote(domain, db, 'DM', actorA, [actorB])
 			await addObjectInOutbox(db, actorA, note)
 
 			const res = await ap_outbox_page.handleRequest(domain, db, 'target')

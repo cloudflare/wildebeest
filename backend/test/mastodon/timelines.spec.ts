@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert/strict'
 import { createReply } from 'wildebeest/backend/test/shared.utils'
 import { createImage } from 'wildebeest/backend/src/activitypub/objects/image'
 import { addFollowing, acceptFollowing } from 'wildebeest/backend/src/mastodon/follow'
-import { createPublicNote, createPrivateNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createPublicNote, createDirectNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { makeDB, assertCORS, assertJSON, makeCache } from '../utils'
@@ -67,7 +67,7 @@ describe('Mastodon APIs', () => {
 			await acceptFollowing(db, actor3, actor2)
 
 			// actor2 sends a DM to actor1
-			const note = await createPrivateNote(domain, db, 'DM', actor2, actor1)
+			const note = await createDirectNote(domain, db, 'DM', actor2, [actor1])
 			await addObjectInOutbox(db, actor2, note, undefined, actor1.id.toString())
 
 			// actor3 shouldn't see the private note
@@ -100,7 +100,7 @@ describe('Mastodon APIs', () => {
 			const actor2 = await createPerson(domain, db, userKEK, 'sven2@cloudflare.com')
 
 			// actor2 sends a DM to actor1
-			const note = await createPrivateNote(domain, db, 'DM', actor2, actor1)
+			const note = await createDirectNote(domain, db, 'DM', actor2, [actor1])
 			await addObjectInOutbox(db, actor2, note, undefined, actor1.id.toString())
 
 			const data = await timelines.getPublicTimeline(domain, db, timelines.LocalPreference.NotSet)
