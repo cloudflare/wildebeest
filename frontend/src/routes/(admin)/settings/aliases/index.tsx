@@ -1,6 +1,13 @@
 import { component$ } from '@builder.io/qwik'
+import { loader$ } from '@builder.io/qwik-city'
+
+export const loader = loader$(({ redirect }) => {
+	redirect(303, '/explore')
+})
 
 export default component$(() => {
+	loader.use()
+
 	return (
 		<div class="max-w-4xl py-14 px-8">
 			<h2 class="text-2xl font-bold mb-6">Account Aliases</h2>
