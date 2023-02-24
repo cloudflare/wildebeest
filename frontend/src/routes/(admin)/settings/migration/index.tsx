@@ -15,6 +15,8 @@ export const loader = loader$<WildebeestEnv, void>(async ({ redirect }) => {
 })
 
 export default component$(() => {
+	loader()
+
 	return (
 		<div class="max-w-4xl py-14 px-8">
 			<h2 class="text-2xl font-bold mb-10">Account Migration</h2>
