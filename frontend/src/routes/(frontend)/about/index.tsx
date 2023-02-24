@@ -7,6 +7,7 @@ import { HtmlContent } from '~/components/HtmlContent/HtmlContent'
 import { george } from '~/dummyData/accounts'
 import { Account } from '~/types'
 import { getDocumentHead } from '~/utils/getDocumentHead'
+import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { instanceLoader } from '../layout'
 
 type AboutInfo = {
@@ -23,9 +24,9 @@ type AboutInfo = {
 	}
 }
 
-export const aboutInfoLoader = loader$<Promise<AboutInfo>>(async ({ resolveValue, request, redirect }) => {
-	// TODO: properly implement loader and remove redirect
-	throw redirect(302, '/')
+export const aboutInfoLoader = loader$<Promise<AboutInfo>>(async ({ resolveValue, request, html }) => {
+	// TODO: properly implement loader and remove the following 404 throw
+	throw html(404, getNotFoundHtml())
 
 	const instance = await resolveValue(instanceLoader)
 	return {

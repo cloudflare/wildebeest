@@ -1,7 +1,16 @@
 import { component$, Slot } from '@builder.io/qwik'
 import { WildebeestLogo } from '~/components/MastodonLogo'
 
+import { loader$ } from '@builder.io/qwik-city'
+import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
+
+export const loader = loader$(({ html }) => {
+	html(404, getNotFoundHtml())
+})
+
 export default component$(() => {
+	loader()
+
 	return (
 		<div class="flex w-screen min-h-screen justify-center">
 			<AccountSidebar />
