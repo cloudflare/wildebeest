@@ -8,12 +8,12 @@ import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
 
 export async function handleDeliverMessage(env: Env, actor: Actor, message: DeliverMessageBody) {
 	const toActorId = new URL(message.toActorId)
-	const targetActor = await actors.getAndCache(toActorId, getDatabase(env as any))
+	const targetActor = await actors.getAndCache(toActorId, getDatabase(env))
 	if (targetActor === null) {
 		console.warn(`actor ${toActorId} not found`)
 		return
 	}
 
-	const signingKey = await getSigningKey(message.userKEK, getDatabase(env as any), actor)
+	const signingKey = await getSigningKey(message.userKEK, getDatabase(env), actor)
 	await deliverToActor(signingKey, actor, targetActor, message.activity, env.DOMAIN)
 }
