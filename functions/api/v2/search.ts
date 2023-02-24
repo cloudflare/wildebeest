@@ -7,6 +7,8 @@ import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { parseHandle } from 'wildebeest/backend/src/utils/parse'
 import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { personFromRow } from 'wildebeest/backend/src/activitypub/actors'
+import type { Handle } from 'wildebeest/backend/src/utils/parse'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 const headers = {
 	...cors(),
@@ -20,10 +22,10 @@ type SearchResult = {
 }
 
 export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
-	return handleRequest(env.DATABASE, request)
+	return handleRequest(getDatabase(env), request)
 }
 
-export async function handleRequest(db: D1Database, request: Request): Promise<Response> {
+export async function handleRequest(db: Database, request: Request): Promise<Response> {
 	const url = new URL(request.url)
 
 	if (!url.searchParams.has('q')) {
@@ -38,10 +40,17 @@ export async function handleRequest(db: D1Database, request: Request): Promise<R
 		hashtags: [],
 	}
 
-	const query = parseHandle(url.searchParams.get('q') || '')
+	let query: Handle
+
+	try {
+		query = parseHandle(url.searchParams.get('q') || '')
+	} catch (err: any) {
+		return new Response('', { status: 400 })
+	}
+
 	if (useWebFinger && query.domain !== null) {
 		const acct = `${query.localPart}@${query.domain}`
-		const res = await queryAcct(query.domain, acct)
+		const res = await queryAcct(query.domain, db, acct)
 		if (res !== null) {
 			out.accounts.push(await loadExternalMastodonAccount(acct, res))
 		}

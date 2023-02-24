@@ -8,6 +8,7 @@ import { generateDigestHeader } from 'wildebeest/backend/src/utils/http-signing-
 import { signRequest } from 'wildebeest/backend/src/utils/http-signing'
 import { getFollowers } from 'wildebeest/backend/src/mastodon/follow'
 import { getFederationUA } from 'wildebeest/config/ua'
+import { type Database } from 'wildebeest/backend/src/database'
 
 const MAX_BATCH_SIZE = 100
 
@@ -46,7 +47,7 @@ export async function deliverToActor(
 // to a collection (followers) and the worker creates the indivual messages. More
 // reliable and scalable.
 export async function deliverFollowers(
-	db: D1Database,
+	db: Database,
 	userKEK: string,
 	from: Actor,
 	activity: Activity,

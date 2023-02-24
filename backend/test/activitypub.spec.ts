@@ -3,7 +3,7 @@ import { MessageType } from 'wildebeest/backend/src/types/queue'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
-import { createPrivateNote, createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { createDirectNote, createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 import { strict as assert } from 'node:assert/strict'
 import { cacheObject } from 'wildebeest/backend/src/activitypub/objects/'
@@ -14,6 +14,7 @@ import * as ap_inbox from 'wildebeest/functions/ap/users/[id]/inbox'
 import * as ap_outbox_page from 'wildebeest/functions/ap/users/[id]/outbox/page'
 import { createStatus } from '../src/mastodon/status'
 import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { loadItems } from 'wildebeest/backend/src/activitypub/objects/collection'
 
 const userKEK = 'test_kek5'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -21,37 +22,89 @@ const vapidKeys = {} as JWK
 const domain = 'cloudflare.com'
 
 describe('ActivityPub', () => {
-	test('fetch non-existant user by id', async () => {
-		const db = await makeDB()
+	describe('Actors', () => {
+		test('fetch non-existant user by id', async () => {
+			const db = await makeDB()
 
-		const res = await ap_users.handleRequest(domain, db, 'nonexisting')
-		assert.equal(res.status, 404)
-	})
+			const res = await ap_users.handleRequest(domain, db, 'nonexisting')
+			assert.equal(res.status, 404)
+		})
 
-	test('fetch user by id', async () => {
-		const db = await makeDB()
-		const properties = { summary: 'test summary' }
-		const pubKey =
-			'-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApnI8FHJQXqqAdM87YwVseRUqbNLiw8nQ0zHBUyLylzaORhI4LfW4ozguiw8cWYgMbCufXMoITVmdyeTMGbQ3Q1sfQEcEjOZZXEeCCocmnYjK6MFSspjFyNw6GP0a5A/tt1tAcSlgALv8sg1RqMhSE5Kv+6lSblAYXcIzff7T2jh9EASnimaoAAJMaRH37+HqSNrouCxEArcOFhmFETadXsv+bHZMozEFmwYSTugadr4WD3tZd+ONNeimX7XZ3+QinMzFGOW19ioVHyjt3yCDU1cPvZIDR17dyEjByNvx/4N4Zly7puwBn6Ixy/GkIh5BWtL5VOFDJm/S+zcf1G1WsOAXMwKL4Nc5UWKfTB7Wd6voId7vF7nI1QYcOnoyh0GqXWhTPMQrzie4nVnUrBedxW0s/0vRXeR63vTnh5JrTVu06JGiU2pq2kvwqoui5VU6rtdImITybJ8xRkAQ2jo4FbbkS6t49PORIuivxjS9wPl7vWYazZtDVa5g/5eL7PnxOG3HsdIJWbGEh1CsG83TU9burHIepxXuQ+JqaSiKdCVc8CUiO++acUqKp7lmbYR9E/wRmvxXDFkxCZzA0UL2mRoLLLOe4aHvRSTsqiHC5Wwxyew5bb+eseJz3wovid9ZSt/tfeMAkCDmaCxEK+LGEbJ9Ik8ihis8Esm21N0A54sCAwEAAQ==-----END PUBLIC KEY-----'
-		await db
-			.prepare('INSERT INTO actors (id, email, type, properties, pubkey) VALUES (?, ?, ?, ?, ?)')
-			.bind(`https://${domain}/ap/users/sven`, 'sven@cloudflare.com', 'Person', JSON.stringify(properties), pubKey)
-			.run()
+		test('fetch user by id', async () => {
+			const db = await makeDB()
+			const properties = {
+				summary: 'test summary',
+				inbox: 'https://example.com/inbox',
+				outbox: 'https://example.com/outbox',
+				following: 'https://example.com/following',
+				followers: 'https://example.com/followers',
+			}
+			const pubKey =
+				'-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApnI8FHJQXqqAdM87YwVseRUqbNLiw8nQ0zHBUyLylzaORhI4LfW4ozguiw8cWYgMbCufXMoITVmdyeTMGbQ3Q1sfQEcEjOZZXEeCCocmnYjK6MFSspjFyNw6GP0a5A/tt1tAcSlgALv8sg1RqMhSE5Kv+6lSblAYXcIzff7T2jh9EASnimaoAAJMaRH37+HqSNrouCxEArcOFhmFETadXsv+bHZMozEFmwYSTugadr4WD3tZd+ONNeimX7XZ3+QinMzFGOW19ioVHyjt3yCDU1cPvZIDR17dyEjByNvx/4N4Zly7puwBn6Ixy/GkIh5BWtL5VOFDJm/S+zcf1G1WsOAXMwKL4Nc5UWKfTB7Wd6voId7vF7nI1QYcOnoyh0GqXWhTPMQrzie4nVnUrBedxW0s/0vRXeR63vTnh5JrTVu06JGiU2pq2kvwqoui5VU6rtdImITybJ8xRkAQ2jo4FbbkS6t49PORIuivxjS9wPl7vWYazZtDVa5g/5eL7PnxOG3HsdIJWbGEh1CsG83TU9burHIepxXuQ+JqaSiKdCVc8CUiO++acUqKp7lmbYR9E/wRmvxXDFkxCZzA0UL2mRoLLLOe4aHvRSTsqiHC5Wwxyew5bb+eseJz3wovid9ZSt/tfeMAkCDmaCxEK+LGEbJ9Ik8ihis8Esm21N0A54sCAwEAAQ==-----END PUBLIC KEY-----'
+			await db
+				.prepare('INSERT INTO actors (id, email, type, properties, pubkey) VALUES (?, ?, ?, ?, ?)')
+				.bind(`https://${domain}/ap/users/sven`, 'sven@cloudflare.com', 'Person', JSON.stringify(properties), pubKey)
+				.run()
 
-		const res = await ap_users.handleRequest(domain, db, 'sven')
-		assert.equal(res.status, 200)
+			const res = await ap_users.handleRequest(domain, db, 'sven')
+			assert.equal(res.status, 200)
 
-		const data = await res.json<any>()
-		assert.equal(data.summary, 'test summary')
-		assert(data.discoverable)
-		assert(data['@context'])
-		assert(isUrlValid(data.id))
-		assert(isUrlValid(data.url))
-		assert(isUrlValid(data.inbox))
-		assert(isUrlValid(data.outbox))
-		assert(isUrlValid(data.following))
-		assert(isUrlValid(data.followers))
-		assert.equal(data.publicKey.publicKeyPem, pubKey)
+			const data = await res.json<any>()
+			assert.equal(data.summary, 'test summary')
+			assert(data.discoverable)
+			assert(data['@context'])
+			assert(isUrlValid(data.id))
+			assert(isUrlValid(data.url))
+			assert(isUrlValid(data.inbox))
+			assert(isUrlValid(data.outbox))
+			assert(isUrlValid(data.following))
+			assert(isUrlValid(data.followers))
+			assert.equal(data.publicKey.publicKeyPem, pubKey)
+		})
+
+		test('sanitize Actor properties', async () => {
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input === 'https://example.com/actor') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://example.com/actor',
+							type: 'Person',
+							summary: "it's me, Mario. <script>alert(1)</script>",
+							name: 'hi<br />hey',
+							preferredUsername: 'sven <script>alert(1)</script>',
+						})
+					)
+				}
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const actor = await actors.get('https://example.com/actor')
+			assert.equal(actor.summary, "it's me, Mario. <p>alert(1)</p>")
+			assert.equal(actor.name, 'hi hey')
+			assert.equal(actor.preferredUsername, 'sven alert(1)')
+		})
+
+		test('Actor properties limits', async () => {
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input === 'https://example.com/actor') {
+					return new Response(
+						JSON.stringify({
+							id: 'https://example.com/actor',
+							type: 'Person',
+							summary: 'a'.repeat(612),
+							name: 'b'.repeat(50),
+							preferredUsername: 'c'.repeat(50),
+						})
+					)
+				}
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const actor = await actors.get('https://example.com/actor')
+			assert.equal(actor.summary, 'a'.repeat(500))
+			assert.equal(actor.name, 'b'.repeat(30))
+			assert.equal(actor.preferredUsername, 'c'.repeat(30))
+		})
 	})
 
 	describe('Outbox', () => {
@@ -93,7 +146,7 @@ describe('ActivityPub', () => {
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
 
-			const note = await createPrivateNote(domain, db, 'DM', actorA, actorB)
+			const note = await createDirectNote(domain, db, 'DM', actorA, [actorB])
 			await addObjectInOutbox(db, actorA, note, undefined, actorB.id.toString())
 
 			{
@@ -118,7 +171,7 @@ describe('ActivityPub', () => {
 			const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
 			const actorB = await createPerson(domain, db, userKEK, 'target@cloudflare.com')
 
-			const note = await createPrivateNote(domain, db, 'DM', actorA, actorB)
+			const note = await createDirectNote(domain, db, 'DM', actorA, [actorB])
 			await addObjectInOutbox(db, actorA, note)
 
 			const res = await ap_outbox_page.handleRequest(domain, db, 'target')
@@ -315,6 +368,46 @@ describe('ActivityPub', () => {
 			assert.equal(msg.type, MessageType.Inbox)
 			assert.equal(msg.actorId, actor.id.toString())
 			assert.equal(msg.activity.type, 'some activity')
+		})
+	})
+
+	describe('Collection', () => {
+		test('loadItems walks pages', async () => {
+			const collection = {
+				totalItems: 6,
+				first: 'https://example.com/1',
+			} as any
+
+			globalThis.fetch = async (input: RequestInfo) => {
+				if (input.toString() === 'https://example.com/1') {
+					return new Response(
+						JSON.stringify({
+							next: 'https://example.com/2',
+							orderedItems: ['a', 'b'],
+						})
+					)
+				}
+				if (input.toString() === 'https://example.com/2') {
+					return new Response(
+						JSON.stringify({
+							next: 'https://example.com/3',
+							orderedItems: ['c', 'd'],
+						})
+					)
+				}
+				if (input.toString() === 'https://example.com/3') {
+					return new Response(
+						JSON.stringify({
+							orderedItems: ['e', 'f'],
+						})
+					)
+				}
+
+				throw new Error(`unexpected request to "${input}"`)
+			}
+
+			const items = await loadItems(collection)
+			assert.deepEqual(items, ['a', 'b', 'c', 'd', 'e', 'f'])
 		})
 	})
 })

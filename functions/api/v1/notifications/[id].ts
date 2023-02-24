@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/notifications/#get-one
 
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import type { Notification, NotificationsQueryResult } from 'wildebeest/backend/src/types/notification'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
@@ -14,13 +15,13 @@ const headers = {
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, params.id as string, env.DATABASE, data.connectedActor)
+	return handleRequest(domain, params.id as string, getDatabase(env), data.connectedActor)
 }
 
 export async function handleRequest(
 	domain: string,
 	id: string,
-	db: D1Database,
+	db: Database,
 	connectedActor: Person
 ): Promise<Response> {
 	const query = `
@@ -61,13 +62,14 @@ export async function handleRequest(
 			id: row.mastodon_id,
 			content: properties.content,
 			uri: row.id,
-			url: new URL('/statuses/' + row.mastodon_id, 'https://' + domain),
+			url: new URL(`/@${fromActor.preferredUsername}/${row.mastodon_id}`, 'https://' + domain),
 			created_at: new Date(row.cdate).toISOString(),
 
 			emojis: [],
 			media_attachments: [],
 			tags: [],
 			mentions: [],
+			spoiler_text: properties.spoiler_text ?? '',
 
 			// TODO: a shortcut has been taked. We assume that the actor
 			// generating the notification also created the object. In practice
@@ -76,7 +78,6 @@ export async function handleRequest(
 
 			// TODO: stub values
 			visibility: 'public',
-			spoiler_text: '',
 		}
 	}
 

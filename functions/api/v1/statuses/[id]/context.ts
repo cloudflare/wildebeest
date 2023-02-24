@@ -6,10 +6,11 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import { getReplies } from 'wildebeest/backend/src/mastodon/reply'
 import type { Context } from 'wildebeest/backend/src/types/status'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, params.id as string)
+	return handleRequest(domain, getDatabase(env), params.id as string)
 }
 
 const headers = {
@@ -17,7 +18,7 @@ const headers = {
 	'content-type': 'application/json; charset=utf-8',
 }
 
-export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(domain: string, db: Database, id: string): Promise<Response> {
 	const obj = await getObjectByMastodonId(db, id)
 	if (obj === null) {
 		return new Response('', { status: 404 })

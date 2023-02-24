@@ -13,20 +13,20 @@ import { devices } from '@playwright/test'
 const config: PlaywrightTestConfig = {
 	testDir: './ui-e2e-tests',
 	/* Maximum time one test can run for. */
-	timeout: 40 * 1000,
+	timeout: (process.env.CI ? 30 : 5) * 1000,
 	expect: {
 		/**
 		 * Maximum time expect() should wait for the condition to be met.
 		 * For example in `await expect(locator).toHaveText();`
 		 */
-		timeout: 7000,
+		timeout: process.env.CI ? 5000 : 500,
 	},
 	/* Run tests in files in parallel */
 	fullyParallel: true,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
-	retries: process.env.CI ? 5 : 0,
+	retries: process.env.CI ? 3 : 0,
 	/* Opt out of parallel tests on CI. */
 	workers: process.env.CI ? 1 : undefined,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -66,18 +66,18 @@ const config: PlaywrightTestConfig = {
 		},
 
 		/* Test against mobile viewports. */
-		// {
-		//   name: 'Mobile Chrome',
-		//   use: {
-		//     ...devices['Pixel 5'],
-		//   },
-		// },
-		// {
-		//   name: 'Mobile Safari',
-		//   use: {
-		//     ...devices['iPhone 12'],
-		//   },
-		// },
+		{
+			name: 'Mobile Chrome',
+			use: {
+				...devices['Pixel 5'],
+			},
+		},
+		{
+			name: 'Mobile Safari',
+			use: {
+				...devices['iPhone 12'],
+			},
+		},
 
 		/* Test against branded browsers. */
 		// {

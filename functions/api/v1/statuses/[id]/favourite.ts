@@ -13,14 +13,15 @@ import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { toMastodonStatusFromObject } from 'wildebeest/backend/src/mastodon/status'
 import { originalObjectIdSymbol, originalActorIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ env, data, params, request }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(env.DATABASE, params.id as string, data.connectedActor, env.userKEK, domain)
+	return handleRequest(getDatabase(env), params.id as string, data.connectedActor, env.userKEK, domain)
 }
 
 export async function handleRequest(
-	db: D1Database,
+	db: Database,
 	id: string,
 	connectedActor: Person,
 	userKEK: string,

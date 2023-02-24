@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert/strict'
+import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import type { Cache } from 'wildebeest/backend/src/cache'
 import type { Queue } from 'wildebeest/backend/src/types/queue'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
@@ -6,7 +7,8 @@ import type { Client } from 'wildebeest/backend/src/mastodon/client'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import { BetaDatabase } from '@miniflare/d1'
-import * as Database from 'better-sqlite3'
+import * as SQLiteDatabase from 'better-sqlite3'
+import { type Database } from 'wildebeest/backend/src/database'
 
 export function isUrlValid(s: string) {
 	let url
@@ -18,8 +20,8 @@ export function isUrlValid(s: string) {
 	return url.protocol === 'https:'
 }
 
-export async function makeDB(): Promise<D1Database> {
-	const db = new Database(':memory:')
+export async function makeDB(): Promise<Database> {
+	const db = new SQLiteDatabase(':memory:')
 	const db2 = new BetaDatabase(db)!
 
 	// Manually run our migrations since @miniflare/d1 doesn't support it (yet).
@@ -30,7 +32,7 @@ export async function makeDB(): Promise<D1Database> {
 		db.exec(content)
 	}
 
-	return db2 as unknown as D1Database
+	return db2 as unknown as Database
 }
 
 export function assertCORS(response: Response) {
@@ -65,7 +67,7 @@ export async function streamToArrayBuffer(stream: ReadableStream) {
 }
 
 export async function createTestClient(
-	db: D1Database,
+	db: Database,
 	redirectUri: string = 'https://localhost',
 	scopes: string = 'read follow'
 ): Promise<Client> {
@@ -116,4 +118,13 @@ export function isUUID(v: string): boolean {
 		return false
 	}
 	return true
+}
+
+export async function generateVAPIDKeys(): Promise<JWK> {
+	const keyPair = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
+		'sign',
+		'verify',
+	])) as CryptoKeyPair
+	const jwk = (await crypto.subtle.exportKey('jwk', keyPair.privateKey)) as JWK
+	return jwk
 }

@@ -17,8 +17,9 @@ import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { addObjectInOutbox } from '../activitypub/actors/outbox'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
+import { type Database } from 'wildebeest/backend/src/database'
 
-export async function getMentions(input: string, instanceDomain: string): Promise<Array<Actor>> {
+export async function getMentions(input: string, instanceDomain: string, db: Database): Promise<Array<Actor>> {
 	const mentions: Array<Actor> = []
 
 	for (let i = 0, len = input.length; i < len; i++) {
@@ -33,7 +34,7 @@ export async function getMentions(input: string, instanceDomain: string): Promis
 			const handle = parseHandle(buffer)
 			const domain = handle.domain ? handle.domain : instanceDomain
 			const acct = `${handle.localPart}@${domain}`
-			const targetActor = await queryAcct(domain!, acct)
+			const targetActor = await queryAcct(domain!, db, acct)
 			if (targetActor === null) {
 				console.warn(`actor ${acct} not found`)
 				continue
@@ -46,7 +47,7 @@ export async function getMentions(input: string, instanceDomain: string): Promis
 }
 
 export async function toMastodonStatusFromObject(
-	db: D1Database,
+	db: Database,
 	obj: Note,
 	domain: string
 ): Promise<MastodonStatus | null> {
@@ -78,16 +79,16 @@ export async function toMastodonStatusFromObject(
 		emojis: [],
 		tags: [],
 		mentions: [],
+		spoiler_text: obj.spoiler_text ?? '',
 
 		// TODO: stub values
 		visibility: 'public',
-		spoiler_text: '',
 
 		media_attachments: mediaAttachments,
 		content: obj.content || '',
 		id: obj[mastodonIdSymbol] || '',
 		uri: obj.id,
-		url: new URL('/statuses/' + obj[mastodonIdSymbol], 'https://' + domain),
+		url: new URL(`/@${actor.preferredUsername}/${obj[mastodonIdSymbol]}`, 'https://' + domain),
 		created_at: obj.published || '',
 		account,
 
@@ -99,11 +100,7 @@ export async function toMastodonStatusFromObject(
 // toMastodonStatusFromRow makes assumption about what field are available on
 // the `row` object. This function is only used for timelines, which is optimized
 // SQL. Otherwise don't use this function.
-export async function toMastodonStatusFromRow(
-	domain: string,
-	db: D1Database,
-	row: any
-): Promise<MastodonStatus | null> {
+export async function toMastodonStatusFromRow(domain: string, db: Database, row: any): Promise<MastodonStatus | null> {
 	if (row.publisher_actor_id === undefined) {
 		console.warn('missing `row.publisher_actor_id`')
 		return null
@@ -135,7 +132,7 @@ export async function toMastodonStatusFromRow(
 
 	const status: MastodonStatus = {
 		id: row.mastodon_id,
-		url: new URL('/statuses/' + row.mastodon_id, 'https://' + domain),
+		url: new URL(`/@${author.preferredUsername}/${row.mastodon_id}`, 'https://' + domain),
 		uri: row.id,
 		created_at: new Date(row.cdate).toISOString(),
 		emojis: [],
@@ -143,10 +140,10 @@ export async function toMastodonStatusFromRow(
 		tags: [],
 		mentions: [],
 		account,
+		spoiler_text: properties.spoiler_text ?? '',
 
 		// TODO: stub values
 		visibility: 'public',
-		spoiler_text: '',
 
 		content: properties.content,
 		favourites_count: row.favourites_count,
@@ -180,7 +177,7 @@ export async function toMastodonStatusFromRow(
 	return status
 }
 
-export async function getMastodonStatusById(db: D1Database, id: UUID, domain: string): Promise<MastodonStatus | null> {
+export async function getMastodonStatusById(db: Database, id: UUID, domain: string): Promise<MastodonStatus | null> {
 	const obj = await getObjectByMastodonId(db, id)
 	if (obj === null) {
 		return null
@@ -192,7 +189,7 @@ export async function getMastodonStatusById(db: D1Database, id: UUID, domain: st
  * Creates a status object in the given actor's outbox.
  *
  * @param domain the domain to use
- * @param db D1Database
+ * @param db Database
  * @param actor Author of the reply
  * @param content content of the reply
  * @param attachments optional attachments for the status
@@ -201,7 +198,7 @@ export async function getMastodonStatusById(db: D1Database, id: UUID, domain: st
  */
 export async function createStatus(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	actor: Person,
 	content: string,
 	attachments?: APObject[],

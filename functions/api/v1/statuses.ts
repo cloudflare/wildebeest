@@ -8,7 +8,8 @@ import * as timeline from 'wildebeest/backend/src/mastodon/timeline'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import type { Document } from 'wildebeest/backend/src/activitypub/objects'
 import { getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
-import { createStatus, getMentions } from 'wildebeest/backend/src/mastodon/status'
+import { getMentions } from 'wildebeest/backend/src/mastodon/status'
+import { getHashtags, insertHashtags } from 'wildebeest/backend/src/mastodon/hashtag'
 import * as activities from 'wildebeest/backend/src/activitypub/activities/create'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
@@ -25,6 +26,9 @@ import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
 import * as idempotency from 'wildebeest/backend/src/mastodon/idempotency'
 import { newMention } from 'wildebeest/backend/src/activitypub/objects/mention'
 import { originalObjectIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
+import { createPublicNote, createDirectNote } from 'wildebeest/backend/src/activitypub/objects/note'
+import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
 
 type StatusCreate = {
 	status: string
@@ -35,13 +39,13 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, env.DATABASE, data.connectedActor, env.userKEK, env.QUEUE, cacheFromEnv(env))
+	return handleRequest(request, getDatabase(env), data.connectedActor, env.userKEK, env.QUEUE, cacheFromEnv(env))
 }
 
 // FIXME: add tests for delivery to followers and mentions to a specific Actor.
 export async function handleRequest(
 	request: Request,
-	db: D1Database,
+	db: Database,
 	connectedActor: Person,
 	userKEK: string,
 	queue: Queue<DeliverMessageBody>,
@@ -71,6 +75,10 @@ export async function handleRequest(
 	console.log(body)
 	if (body.status === undefined || body.visibility === undefined) {
 		return new Response('', { status: 400 })
+	}
+
+	if (body.status.length > 500) {
+		return errors.validationError('text character limit of 500 exceeded')
 	}
 
 	const mediaAttachments: Array<Document> = []
@@ -104,13 +112,28 @@ export async function handleRequest(
 		extraProperties.inReplyTo = inReplyToObject[originalObjectIdSymbol] || inReplyToObject.id.toString()
 	}
 
-	const content = enrichStatus(body.status)
-	const mentions = await getMentions(body.status, domain)
+	const hashtags = getHashtags(body.status)
+
+	const mentions = await getMentions(body.status, domain, db)
 	if (mentions.length > 0) {
 		extraProperties.tag = mentions.map(newMention)
 	}
 
-	const note = await createStatus(domain, db, connectedActor, content, mediaAttachments, extraProperties)
+	const content = enrichStatus(body.status, mentions)
+
+	let note
+
+	if (body.visibility === 'public') {
+		note = await createPublicNote(domain, db, content, connectedActor, mediaAttachments, extraProperties)
+	} else if (body.visibility === 'direct') {
+		note = await createDirectNote(domain, db, content, connectedActor, mentions, mediaAttachments, extraProperties)
+	} else {
+		return errors.validationError(`status with visibility: ${body.visibility}`)
+	}
+
+	if (hashtags.length > 0) {
+		await insertHashtags(db, note, hashtags)
+	}
 
 	if (inReplyToObject !== null) {
 		// after the status has been created, record the reply.
@@ -120,11 +143,27 @@ export async function handleRequest(
 	const activity = activities.create(domain, connectedActor, note)
 	await deliverFollowers(db, userKEK, connectedActor, activity, queue)
 
+	if (body.visibility === 'public') {
+		await addObjectInOutbox(db, connectedActor, note)
+
+		// A public note is sent to the public group URL and cc'ed any mentioned
+		// actors.
+		for (let i = 0, len = mentions.length; i < len; i++) {
+			const targetActor = mentions[i]
+			note.cc.push(targetActor.id.toString())
+		}
+	} else if (body.visibility === 'direct') {
+		//  A direct note is sent to mentioned people only
+		for (let i = 0, len = mentions.length; i < len; i++) {
+			const targetActor = mentions[i]
+			await addObjectInOutbox(db, connectedActor, note, undefined, targetActor.id.toString())
+		}
+	}
+
 	{
 		// If the status is mentioning other persons, we need to delivery it to them.
 		for (let i = 0, len = mentions.length; i < len; i++) {
 			const targetActor = mentions[i]
-			note.cc.push(targetActor.id.toString())
 			const activity = activities.create(domain, connectedActor, note)
 			const signingKey = await getSigningKey(userKEK, db, connectedActor)
 			await deliverToActor(signingKey, connectedActor, targetActor, activity, domain)

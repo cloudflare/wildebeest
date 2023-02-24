@@ -3,13 +3,14 @@ import { cors } from 'wildebeest/backend/src/utils/cors'
 import { DEFAULT_THUMBNAIL } from 'wildebeest/backend/src/config'
 import type { InstanceConfigV2 } from 'wildebeest/backend/src/types/configs'
 import { getVersion } from 'wildebeest/config/versions'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, env)
+	return handleRequest(domain, getDatabase(env), env)
 }
 
-export async function handleRequest(domain: string, db: D1Database, env: Env) {
+export async function handleRequest(domain: string, db: Database, env: Env) {
 	const headers = {
 		...cors(),
 		'content-type': 'application/json; charset=utf-8',

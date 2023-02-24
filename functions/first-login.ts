@@ -6,14 +6,15 @@ import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { parse } from 'cookie'
 import * as errors from 'wildebeest/backend/src/errors'
 import * as access from 'wildebeest/backend/src/access'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
-	return handlePostRequest(request, env.DATABASE, env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
+	return handlePostRequest(request, getDatabase(env), env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
 export async function handlePostRequest(
 	request: Request,
-	db: D1Database,
+	db: Database,
 	userKEK: string,
 	accessDomain: string,
 	accessAud: string

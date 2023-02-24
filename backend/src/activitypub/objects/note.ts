@@ -2,9 +2,9 @@
 
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { Link } from 'wildebeest/backend/src/activitypub/objects/link'
-import { followersURL } from 'wildebeest/backend/src/activitypub/actors'
 import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 import * as objects from '.'
+import { type Database } from 'wildebeest/backend/src/database'
 
 const NOTE = 'Note'
 
@@ -19,11 +19,12 @@ export interface Note extends objects.APObject {
 	attachment: Array<objects.APObject>
 	cc: Array<string>
 	tag: Array<Link>
+	spoiler_text?: string
 }
 
 export async function createPublicNote(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	content: string,
 	actor: Actor,
 	attachments: Array<objects.APObject> = [],
@@ -35,7 +36,7 @@ export async function createPublicNote(
 		attributedTo: actorId,
 		content,
 		to: [PUBLIC_GROUP],
-		cc: [followersURL(actorId)],
+		cc: [actor.followers.toString()],
 
 		// FIXME: stub values
 		replies: null,
@@ -51,12 +52,12 @@ export async function createPublicNote(
 	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
 }
 
-export async function createPrivateNote(
+export async function createDirectNote(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	content: string,
 	actor: Actor,
-	targetActor: Actor,
+	targetActors: Array<Actor>,
 	attachment: Array<objects.APObject> = [],
 	extraProperties: any = {}
 ): Promise<Note> {
@@ -65,7 +66,7 @@ export async function createPrivateNote(
 	const properties = {
 		attributedTo: actorId,
 		content,
-		to: [targetActor.id.toString()],
+		to: targetActors.map((a) => a.id.toString()),
 		cc: [],
 
 		// FIXME: stub values

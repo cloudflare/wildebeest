@@ -18,6 +18,7 @@ import { MessageType } from 'wildebeest/backend/src/types/queue'
 import { MastodonStatus } from 'wildebeest/backend/src/types'
 import { mastodonIdSymbol, getObjectByMastodonId } from 'wildebeest/backend/src/activitypub/objects'
 import { addObjectInOutbox } from 'wildebeest/backend/src/activitypub/actors/outbox'
+import * as timelines from 'wildebeest/backend/src/mastodon/timeline'
 
 const userKEK = 'test_kek4'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -202,6 +203,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://social.com/users/sven',
+							type: 'Person',
 							inbox: 'https://social.com/sven/inbox',
 						})
 					)
@@ -404,6 +406,7 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('get mentions from status', async () => {
+			const db = await makeDB()
 			globalThis.fetch = async (input: RequestInfo) => {
 				if (input.toString() === 'https://instance.horse/.well-known/webfinger?resource=acct%3Asven%40instance.horse') {
 					return new Response(
@@ -457,11 +460,17 @@ describe('Mastodon APIs', () => {
 						})
 					)
 				}
+				if (
+					input.toString() === 'https://cloudflare.com/.well-known/webfinger?resource=acct%3Ano-json%40cloudflare.com'
+				) {
+					return new Response('not json', { status: 200 })
+				}
 
 				if (input.toString() === 'https://instance.horse/users/sven') {
 					return new Response(
 						JSON.stringify({
 							id: 'https://instance.horse/users/sven',
+							type: 'Person',
 						})
 					)
 				}
@@ -469,6 +478,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://cloudflare.com/users/sven',
+							type: 'Person',
 						})
 					)
 				}
@@ -476,6 +486,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://cloudflare.com/users/a',
+							type: 'Person',
 						})
 					)
 				}
@@ -483,6 +494,7 @@ describe('Mastodon APIs', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://cloudflare.com/users/b',
+							type: 'Person',
 						})
 					)
 				}
@@ -491,38 +503,43 @@ describe('Mastodon APIs', () => {
 			}
 
 			{
-				const mentions = await getMentions('test status', domain)
+				const mentions = await getMentions('test status', domain, db)
 				assert.equal(mentions.length, 0)
 			}
 
 			{
-				const mentions = await getMentions('unknown@actor.com', domain)
+				const mentions = await getMentions('no-json@actor.com', domain, db)
 				assert.equal(mentions.length, 0)
 			}
 
 			{
-				const mentions = await getMentions('@sven@instance.horse test status', domain)
+				const mentions = await getMentions('@sven@instance.horse test status', domain, db)
 				assert.equal(mentions.length, 1)
 				assert.equal(mentions[0].id.toString(), 'https://instance.horse/users/sven')
 			}
 
 			{
-				const mentions = await getMentions('@sven test status', domain)
+				const mentions = await getMentions('@sven test status', domain, db)
 				assert.equal(mentions.length, 1)
 				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/sven')
 			}
 
 			{
-				const mentions = await getMentions('@a @b', domain)
+				const mentions = await getMentions('@a @b', domain, db)
 				assert.equal(mentions.length, 2)
 				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/a')
 				assert.equal(mentions[1].id.toString(), 'https://' + domain + '/users/b')
 			}
 
 			{
-				const mentions = await getMentions('<p>@sven</p>', domain)
+				const mentions = await getMentions('<p>@sven</p>', domain, db)
 				assert.equal(mentions.length, 1)
 				assert.equal(mentions[0].id.toString(), 'https://' + domain + '/users/sven')
+			}
+
+			{
+				const mentions = await getMentions('<p>@unknown</p>', domain, db)
+				assert.equal(mentions.length, 0)
 			}
 		})
 
@@ -536,7 +553,7 @@ describe('Mastodon APIs', () => {
 			await insertLike(db, actor2, note)
 			await insertLike(db, actor3, note)
 
-			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -552,7 +569,7 @@ describe('Mastodon APIs', () => {
 			const mediaAttachments = [await createImage(domain, db, actor, properties)]
 			const note = await createPublicNote(domain, db, 'my first status', actor, mediaAttachments)
 
-			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+			const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
@@ -591,7 +608,7 @@ describe('Mastodon APIs', () => {
 				await insertReblog(db, actor2, note)
 				await insertReblog(db, actor3, note)
 
-				const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain)
+				const res = await statuses_id.handleRequestGet(db, note[mastodonIdSymbol]!, domain, actor)
 				assert.equal(res.status, 200)
 
 				const data = await res.json<any>()
@@ -965,6 +982,185 @@ describe('Mastodon APIs', () => {
 				const row = await db.prepare(`SELECT count(*) as count FROM idempotency_keys`).first<{ count: number }>()
 				assert.equal(row.count, 1)
 			}
+		})
+
+		test('hashtag in status adds in note_hashtags table', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'hey #hi #car',
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
+			assert.equal(res.status, 200)
+
+			const data = await res.json<any>()
+
+			const { results, success } = await db
+				.prepare('SELECT value, object_id FROM note_hashtags')
+				.all<{ value: string; object_id: string }>()
+			assert(success)
+			assert(results)
+			assert.equal(results!.length, 2)
+			assert.equal(results![0].value, 'hi')
+			assert.equal(results![1].value, 'car')
+
+			const note = (await getObjectByMastodonId(db, data.id)) as unknown as Note
+			assert.equal(results![0].object_id, note.id.toString())
+			assert.equal(results![1].object_id, note.id.toString())
+		})
+
+		test('reject statuses exceeding limits', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'a'.repeat(501),
+				visibility: 'public',
+			}
+			const req = new Request('https://example.com', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
+			assert.equal(res.status, 422)
+			assertJSON(res)
+		})
+
+		test('create status with direct visibility', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			const actor1 = await createPerson(domain, db, userKEK, 'actor1@cloudflare.com')
+			const actor2 = await createPerson(domain, db, userKEK, 'actor2@cloudflare.com')
+
+			let deliveredActivity1: any = null
+			let deliveredActivity2: any = null
+
+			globalThis.fetch = async (input: RequestInfo | Request) => {
+				if (
+					input.toString() === 'https://cloudflare.com/.well-known/webfinger?resource=acct%3Aactor1%40cloudflare.com'
+				) {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: actor1.id,
+								},
+							],
+						})
+					)
+				}
+				if (
+					input.toString() === 'https://cloudflare.com/.well-known/webfinger?resource=acct%3Aactor2%40cloudflare.com'
+				) {
+					return new Response(
+						JSON.stringify({
+							links: [
+								{
+									rel: 'self',
+									type: 'application/activity+json',
+									href: actor2.id,
+								},
+							],
+						})
+					)
+				}
+
+				// @ts-ignore
+				if (input.url === actor1.inbox.toString()) {
+					deliveredActivity1 = await (input as Request).json()
+					return new Response()
+				}
+				// @ts-ignore
+				if (input.url === actor2.inbox.toString()) {
+					deliveredActivity2 = await (input as Request).json()
+					return new Response()
+				}
+
+				throw new Error('unexpected request to ' + input)
+			}
+
+			const body = {
+				status: '@actor1 @actor2 hey',
+				visibility: 'direct',
+			}
+			const req = new Request('https://' + domain, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
+			assert.equal(res.status, 200)
+
+			assert(deliveredActivity1)
+			assert(deliveredActivity2)
+			delete deliveredActivity1.id
+			delete deliveredActivity2.id
+
+			assert.deepEqual(deliveredActivity1, deliveredActivity2)
+			assert.equal(deliveredActivity1.to.length, 2)
+			assert.equal(deliveredActivity1.to[0], actor1.id.toString())
+			assert.equal(deliveredActivity1.to[1], actor2.id.toString())
+			assert.equal(deliveredActivity1.cc.length, 0)
+
+			// ensure that the private note doesn't show up in public timeline
+			const timeline = await timelines.getPublicTimeline(domain, db, timelines.LocalPreference.NotSet)
+			assert.equal(timeline.length, 0)
+		})
+
+		test('create status with unlisted visibility', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'something nice',
+				visibility: 'unlisted',
+			}
+			const req = new Request('https://' + domain, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
+			assert.equal(res.status, 422)
+			assertJSON(res)
+		})
+
+		test('create status with private visibility', async () => {
+			const db = await makeDB()
+			const queue = makeQueue()
+			const actor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+
+			const body = {
+				status: 'something nice',
+				visibility: 'private',
+			}
+			const req = new Request('https://' + domain, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			const res = await statuses.handleRequest(req, db, actor, userKEK, queue, cache)
+			assert.equal(res.status, 422)
+			assertJSON(res)
 		})
 	})
 })

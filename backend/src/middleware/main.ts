@@ -3,8 +3,9 @@ import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import { cors } from 'wildebeest/backend/src/utils/cors'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
-async function loadContextData(db: D1Database, clientId: string, email: string, ctx: any): Promise<boolean> {
+async function loadContextData(db: Database, clientId: string, email: string, ctx: any): Promise<boolean> {
 	const query = `
         SELECT *
         FROM actors
@@ -45,7 +46,9 @@ export async function main(context: EventContext<Env, any, any>) {
 		return new Response('', { headers })
 	}
 
-	const url = new URL(context.request.url)
+	const request = context.request
+	const url = new URL(request.url)
+
 	if (
 		url.pathname === '/oauth/token' ||
 		url.pathname === '/oauth/authorize' || // Cloudflare Access runs on /oauth/authorize
@@ -58,54 +61,61 @@ export async function main(context: EventContext<Env, any, any>) {
 		url.pathname === '/.well-known/webfinger' ||
 		url.pathname === '/api/v1/trends/statuses' ||
 		url.pathname === '/api/v1/trends/links' ||
+		/^\/api\/v1\/accounts\/(.*)\/statuses$/.test(url.pathname) ||
+		url.pathname.startsWith('/api/v1/tags/') ||
+		url.pathname.startsWith('/api/v1/timelines/tag/') ||
 		url.pathname.startsWith('/ap/') // all ActivityPub endpoints
 	) {
 		return context.next()
-	} else {
-		try {
-			const authorization = context.request.headers.get('Authorization') || ''
-			const token = authorization.replace('Bearer ', '')
+	}
 
-			if (token === '') {
-				return errors.notAuthorized('missing authorization')
-			}
+	if (/^\/api\/v1\/statuses\/.*(?<!(reblog|favourite))$/.test(url.pathname) && request.method === 'GET') {
+		return context.next()
+	}
 
-			const parts = token.split('.')
-			const [clientId, ...jwtParts] = parts
+	try {
+		const authorization = request.headers.get('Authorization') || ''
+		const token = authorization.replace('Bearer ', '')
 
-			const jwt = jwtParts.join('.')
-
-			const payload = access.getPayload(jwt)
-			if (!payload.email) {
-				return errors.notAuthorized('missing email')
-			}
-
-			// Load the user associated with the email in the payload *before*
-			// verifying the JWT validity.
-			// This is because loading the context will also load the access
-			// configuration, which are used to verify the JWT.
-			// TODO: since we don't load the instance configuration anymore, we
-			// don't need to load the user before anymore.
-			if (!(await loadContextData(context.env.DATABASE, clientId, payload.email, context))) {
-				return errors.notAuthorized('failed to load context data')
-			}
-
-			const validatate = access.generateValidator({
-				jwt,
-				domain: context.env.ACCESS_AUTH_DOMAIN,
-				aud: context.env.ACCESS_AUD,
-			})
-			await validatate(context.request)
-
-			const identity = await access.getIdentity({ jwt, domain: context.env.ACCESS_AUTH_DOMAIN })
-			if (!identity) {
-				return errors.notAuthorized('failed to load identity')
-			}
-
-			return context.next()
-		} catch (err: any) {
-			console.warn(err.stack)
-			return errors.notAuthorized('unknown error occurred')
+		if (token === '') {
+			return errors.notAuthorized('missing authorization')
 		}
+
+		const parts = token.split('.')
+		const [clientId, ...jwtParts] = parts
+
+		const jwt = jwtParts.join('.')
+
+		const payload = access.getPayload(jwt)
+		if (!payload.email) {
+			return errors.notAuthorized('missing email')
+		}
+
+		// Load the user associated with the email in the payload *before*
+		// verifying the JWT validity.
+		// This is because loading the context will also load the access
+		// configuration, which are used to verify the JWT.
+		// TODO: since we don't load the instance configuration anymore, we
+		// don't need to load the user before anymore.
+		if (!(await loadContextData(getDatabase(context.env), clientId, payload.email, context))) {
+			return errors.notAuthorized('failed to load context data')
+		}
+
+		const validatate = access.generateValidator({
+			jwt,
+			domain: context.env.ACCESS_AUTH_DOMAIN,
+			aud: context.env.ACCESS_AUD,
+		})
+		await validatate(request)
+
+		const identity = await access.getIdentity({ jwt, domain: context.env.ACCESS_AUTH_DOMAIN })
+		if (!identity) {
+			return errors.notAuthorized('failed to load identity')
+		}
+
+		return context.next()
+	} catch (err: any) {
+		console.warn(err.stack)
+		return errors.notAuthorized('unknown error occurred')
 	}
 }

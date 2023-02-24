@@ -4,9 +4,10 @@ import { parseHandle } from '../../backend/src/utils/parse'
 import { getActorById, actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from '../../backend/src/types/env'
 import type { WebFingerResponse } from '../../backend/src/webfinger'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
-	return handleRequest(request, env.DATABASE)
+	return handleRequest(request, getDatabase(env))
 }
 
 const headers = {
@@ -14,7 +15,7 @@ const headers = {
 	'cache-control': 'max-age=3600, public',
 }
 
-export async function handleRequest(request: Request, db: D1Database): Promise<Response> {
+export async function handleRequest(request: Request, db: Database): Promise<Response> {
 	const url = new URL(request.url)
 	const domain = url.hostname
 	const resource = url.searchParams.get('resource')
