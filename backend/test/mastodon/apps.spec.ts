@@ -1,11 +1,10 @@
-import { makeDB, assertCORS, assertJSON, createTestClient } from '../utils'
+import { makeDB, assertCORS, assertJSON, createTestClient, generateVAPIDKeys } from '../utils'
 import { TEST_JWT } from '../test-data'
 import { strict as assert } from 'node:assert/strict'
 import * as apps from 'wildebeest/functions/api/v1/apps'
 import * as verify_app from 'wildebeest/functions/api/v1/apps/verify_credentials'
 import { CredentialApp } from 'wildebeest/functions/api/v1/apps/verify_credentials'
 import { VAPIDPublicKey } from 'wildebeest/backend/src/mastodon/subscription'
-import { generateVAPIDKeys } from 'wildebeest/backend/test/mastodon.spec'
 
 describe('Mastodon APIs', () => {
 	describe('/apps', () => {
@@ -26,13 +25,14 @@ describe('Mastodon APIs', () => {
 			assertJSON(res)
 
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { name, website, redirect_uri, client_id, client_secret, vapid_key, ...rest } = await res.json<
+			const { name, website, redirect_uri, client_id, client_secret, vapid_key, id, ...rest } = await res.json<
 				Record<string, string>
 			>()
 
 			assert.equal(name, 'Mastodon for iOS')
 			assert.equal(website, 'https://app.joinmastodon.org/ios')
 			assert.equal(redirect_uri, 'mastodon://joinmastodon.org/oauth')
+			assert.equal(id, '20')
 			assert.deepEqual(rest, {})
 		})
 
@@ -75,7 +75,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 422)
 		})
 
-		test('GET  /apps is bad request', async () => {
+		test('GET /apps is bad request', async () => {
 			const vapidKeys = await generateVAPIDKeys()
 			const request = new Request('https://example.com')
 			const ctx: any = {
@@ -88,7 +88,7 @@ describe('Mastodon APIs', () => {
 			}
 
 			const res = await apps.onRequest(ctx)
-			assert.equal(res.status, 400)
+			assert.equal(res.status, 405)
 		})
 
 		test('GET /verify_credentials returns public VAPID key for known clients', async () => {
