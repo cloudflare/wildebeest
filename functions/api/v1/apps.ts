@@ -1,5 +1,6 @@
 import { ContextData } from 'wildebeest/backend/src/types/context'
 import { cors } from 'wildebeest/backend/src/utils/cors'
+import * as errors from 'wildebeest/backend/src/errors'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { createClient } from 'wildebeest/backend/src/mastodon/client'
@@ -21,10 +22,27 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 
 export async function handleRequest(db: Database, request: Request, vapidKeys: JWK) {
 	if (request.method !== 'POST') {
-		return new Response('', { status: 400 })
+		return errors.methodNotAllowed()
 	}
 
-	const body = await readBody<AppsPost>(request)
+	const body: AppsPost = await readBody<AppsPost>(request)
+
+	// Parameter validation according to https://github.com/mastodon/mastodon/blob/main/app/lib/application_extension.rb
+	if (body.client_name === undefined || body.client_name?.trim() === '') {
+		return errors.unprocessableEntity('client_name cannot be an empty string')
+	} else if (body.client_name?.length > 60) {
+		return errors.unprocessableEntity('client_name cannot exceed 60 characters')
+	} else if (body.redirect_uris === undefined || body.redirect_uris?.trim() === '') {
+		return errors.unprocessableEntity('redirect_uris cannot be an empty string')
+	} else if (body.redirect_uris?.length > 2000) {
+		return errors.unprocessableEntity('redirect_uris cannot exceed 2000 characters')
+	} else if (body.redirect_uris !== 'urn:ietf:wg:oauth:2.0:oob') {
+		try {
+			new URL('', body.redirect_uris)
+		} catch {
+			return errors.unprocessableEntity('redirect_uris must be a valid URI')
+		}
+	}
 
 	const client = await createClient(db, body.client_name, body.redirect_uris, body.website, body.scopes)
 	const vapidKey = VAPIDPublicKey(vapidKeys)

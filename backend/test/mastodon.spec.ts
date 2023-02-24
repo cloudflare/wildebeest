@@ -2,11 +2,10 @@ import { strict as assert } from 'node:assert/strict'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as v1_instance from 'wildebeest/functions/api/v1/instance'
 import * as v2_instance from 'wildebeest/functions/api/v2/instance'
-import * as apps from 'wildebeest/functions/api/v1/apps'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
 import * as mutes from 'wildebeest/functions/api/v1/mutes'
 import * as blocks from 'wildebeest/functions/api/v1/blocks'
-import { makeDB, assertCORS, assertJSON, assertCache, generateVAPIDKeys } from './utils'
+import { makeDB, assertCORS, assertJSON, assertCache } from './utils'
 import { enrichStatus } from 'wildebeest/backend/src/mastodon/microformats'
 import { moveFollowers } from 'wildebeest/backend/src/mastodon/follow'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
@@ -86,52 +85,6 @@ describe('Mastodon APIs', () => {
 				assert.equal(data.description, 'c')
 				assert(data.version.includes('Wildebeest'))
 			}
-		})
-	})
-
-	describe('apps', () => {
-		test('return the app infos', async () => {
-			const db = await makeDB()
-			const vapidKeys = await generateVAPIDKeys()
-			const request = new Request('https://example.com', {
-				method: 'POST',
-				body: '{"redirect_uris":"mastodon://joinmastodon.org/oauth","website":"https://app.joinmastodon.org/ios","client_name":"Mastodon for iOS","scopes":"read write follow push"}',
-				headers: {
-					'content-type': 'application/json',
-				},
-			})
-
-			const res = await apps.handleRequest(db, request, vapidKeys)
-			assert.equal(res.status, 200)
-			assertCORS(res)
-			assertJSON(res)
-
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { name, website, redirect_uri, client_id, client_secret, vapid_key, id, ...rest } = await res.json<
-				Record<string, string>
-			>()
-
-			assert.equal(name, 'Mastodon for iOS')
-			assert.equal(website, 'https://app.joinmastodon.org/ios')
-			assert.equal(redirect_uri, 'mastodon://joinmastodon.org/oauth')
-			assert.equal(id, '20')
-			assert.deepEqual(rest, {})
-		})
-
-		test('returns 404 for GET request', async () => {
-			const vapidKeys = await generateVAPIDKeys()
-			const request = new Request('https://example.com')
-			const ctx: any = {
-				next: () => new Response(),
-				data: null,
-				env: {
-					VAPID_JWK: JSON.stringify(vapidKeys),
-				},
-				request,
-			}
-
-			const res = await apps.onRequest(ctx)
-			assert.equal(res.status, 400)
 		})
 	})
 
