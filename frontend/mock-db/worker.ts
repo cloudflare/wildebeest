@@ -1,7 +1,8 @@
 import { init } from './init'
+import { type Database } from 'wildebeest/backend/src/database'
 
 interface Env {
-	DATABASE: D1Database
+	DATABASE: Database
 }
 
 /**

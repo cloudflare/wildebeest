@@ -6,12 +6,13 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
 import type { CredentialAccount } from 'wildebeest/backend/src/types/account'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
+import { getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, env }) => {
 	if (!data.connectedActor) {
 		return errors.notAuthorized('no connected user')
 	}
-	const user = await loadLocalMastodonAccount(env.DATABASE, data.connectedActor)
+	const user = await loadLocalMastodonAccount(getDatabase(env), data.connectedActor)
 
 	const res: CredentialAccount = {
 		...user,

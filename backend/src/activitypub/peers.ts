@@ -1,13 +1,14 @@
 import { getResultsField } from 'wildebeest/backend/src/mastodon/utils'
+import { type Database } from 'wildebeest/backend/src/database'
 
-export async function getPeers(db: D1Database): Promise<Array<String>> {
+export async function getPeers(db: Database): Promise<Array<String>> {
 	const query = `SELECT domain FROM peers `
 	const statement = db.prepare(query)
 
 	return getResultsField(statement, 'domain')
 }
 
-export async function addPeer(db: D1Database, domain: string): Promise<void> {
+export async function addPeer(db: Database, domain: string): Promise<void> {
 	const query = `
 		INSERT OR IGNORE INTO peers (domain)
 		VALUES (?)

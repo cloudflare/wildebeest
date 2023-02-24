@@ -31,6 +31,7 @@ describe('Wildebeest', () => {
 					return new Response(
 						JSON.stringify({
 							id: 'https://social.com/someone',
+							type: 'Person',
 						})
 					)
 				}

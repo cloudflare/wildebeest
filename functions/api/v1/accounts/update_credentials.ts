@@ -1,6 +1,7 @@
 // https://docs.joinmastodon.org/methods/accounts/#update_credentials
 
 import { cors } from 'wildebeest/backend/src/utils/cors'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import type { Queue, DeliverMessageBody } from 'wildebeest/backend/src/types/queue'
 import * as errors from 'wildebeest/backend/src/errors'
 import * as activities from 'wildebeest/backend/src/activitypub/activities/update'
@@ -21,7 +22,7 @@ const headers = {
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, data, env }) => {
 	return handleRequest(
-		env.DATABASE,
+		getDatabase(env),
 		request,
 		data.connectedActor,
 		env.CF_ACCOUNT_ID,
@@ -32,7 +33,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 }
 
 export async function handleRequest(
-	db: D1Database,
+	db: Database,
 	request: Request,
 	connectedActor: Actor,
 

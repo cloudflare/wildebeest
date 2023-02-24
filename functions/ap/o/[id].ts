@@ -1,10 +1,11 @@
 import { cors } from 'wildebeest/backend/src/utils/cors'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as objects from 'wildebeest/backend/src/activitypub/objects'
 
 export const onRequest: PagesFunction<Env, any> = async ({ params, request, env }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, params.id as string)
+	return handleRequest(domain, getDatabase(env), params.id as string)
 }
 
 const headers = {
@@ -12,7 +13,7 @@ const headers = {
 	'content-type': 'application/activity+json; charset=utf-8',
 }
 
-export async function handleRequest(domain: string, db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(domain: string, db: Database, id: string): Promise<Response> {
 	const obj = await objects.getObjectById(db, objects.uri(domain, id))
 	if (obj === null) {
 		return new Response('', { status: 404 })

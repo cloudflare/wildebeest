@@ -2,6 +2,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { getPublicTimeline, LocalPreference } from 'wildebeest/backend/src/mastodon/timeline'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 const headers = {
 	...cors(),
@@ -15,12 +16,12 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	const only_media = searchParams.get('only_media') === 'true'
 	const offset = Number.parseInt(searchParams.get('offset') ?? '0')
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, env.DATABASE, { local, remote, only_media, offset })
+	return handleRequest(domain, getDatabase(env), { local, remote, only_media, offset })
 }
 
 export async function handleRequest(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: use only_media
 	{ local = false, remote = false, only_media = false, offset = 0 } = {}
 ): Promise<Response> {

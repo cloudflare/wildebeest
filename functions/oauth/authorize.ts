@@ -7,16 +7,17 @@ import * as errors from 'wildebeest/backend/src/errors'
 import { getClientById } from 'wildebeest/backend/src/mastodon/client'
 import * as access from 'wildebeest/backend/src/access'
 import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 // Extract the JWT token sent by Access (running before us).
 const extractJWTFromRequest = (request: Request) => request.headers.get('Cf-Access-Jwt-Assertion') || ''
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
-	return handleRequestPost(request, env.DATABASE, env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
+	return handleRequestPost(request, getDatabase(env), env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
 export async function buildRedirect(
-	db: D1Database,
+	db: Database,
 	request: Request,
 	isFirstLogin: boolean,
 	jwt: string
@@ -64,7 +65,7 @@ export async function buildRedirect(
 
 export async function handleRequestPost(
 	request: Request,
-	db: D1Database,
+	db: Database,
 	userKEK: string,
 	accessDomain: string,
 	accessAud: string

@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/notifications/#get-one
 
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import type { Notification, NotificationsQueryResult } from 'wildebeest/backend/src/types/notification'
 import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import { getActorById } from 'wildebeest/backend/src/activitypub/actors'
@@ -14,13 +15,13 @@ const headers = {
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, params.id as string, env.DATABASE, data.connectedActor)
+	return handleRequest(domain, params.id as string, getDatabase(env), data.connectedActor)
 }
 
 export async function handleRequest(
 	domain: string,
 	id: string,
-	db: D1Database,
+	db: Database,
 	connectedActor: Person
 ): Promise<Response> {
 	const query = `

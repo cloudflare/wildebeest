@@ -6,14 +6,15 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { MediaAttachment } from 'wildebeest/backend/src/types/media'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import { mastodonIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequestPost(request, env.DATABASE, data.connectedActor, env.CF_ACCOUNT_ID, env.CF_API_TOKEN)
+	return handleRequestPost(request, getDatabase(env), data.connectedActor, env.CF_ACCOUNT_ID, env.CF_API_TOKEN)
 }
 
 export async function handleRequestPost(
 	request: Request,
-	db: D1Database,
+	db: Database,
 	connectedActor: Person,
 
 	accountId: string,

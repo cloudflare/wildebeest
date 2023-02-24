@@ -5,6 +5,7 @@ import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
+import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
 export const statusesLoader = loader$<Promise<MastodonStatus[]>, { DATABASE: D1Database; domain: string }>(
 	async ({ platform, html }) => {
@@ -14,8 +15,10 @@ export const statusesLoader = loader$<Promise<MastodonStatus[]>, { DATABASE: D1D
 			const results = await response.text()
 			// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
 			return JSON.parse(results) as MastodonStatus[]
-		} catch {
-			throw html(500, 'The local timeline is unavailable')
+		} catch (e: unknown) {
+			const error = e as { stack: string; cause: string }
+			console.warn(error.stack, error.cause)
+			throw html(500, getErrorHtml('The local timeline is unavailable'))
 		}
 	}
 )

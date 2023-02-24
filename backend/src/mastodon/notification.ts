@@ -1,4 +1,5 @@
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database } from 'wildebeest/backend/src/database'
 import { defaultImages } from 'wildebeest/config/accounts'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import * as actors from 'wildebeest/backend/src/activitypub/actors'
@@ -18,7 +19,7 @@ import { getSubscriptionForAllClients } from 'wildebeest/backend/src/mastodon/su
 import type { Cache } from 'wildebeest/backend/src/cache'
 
 export async function createNotification(
-	db: D1Database,
+	db: Database,
 	type: NotificationType,
 	actor: Actor,
 	fromActor: Actor,
@@ -36,7 +37,7 @@ export async function createNotification(
 	return row.id
 }
 
-export async function insertFollowNotification(db: D1Database, actor: Actor, fromActor: Actor): Promise<string> {
+export async function insertFollowNotification(db: Database, actor: Actor, fromActor: Actor): Promise<string> {
 	const type: NotificationType = 'follow'
 
 	const query = `
@@ -49,7 +50,7 @@ export async function insertFollowNotification(db: D1Database, actor: Actor, fro
 }
 
 export async function sendFollowNotification(
-	db: D1Database,
+	db: Database,
 	follower: Actor,
 	actor: Actor,
 	notificationId: string,
@@ -81,7 +82,7 @@ export async function sendFollowNotification(
 }
 
 export async function sendLikeNotification(
-	db: D1Database,
+	db: Database,
 	fromActor: Actor,
 	actor: Actor,
 	notificationId: string,
@@ -113,7 +114,7 @@ export async function sendLikeNotification(
 }
 
 export async function sendMentionNotification(
-	db: D1Database,
+	db: Database,
 	fromActor: Actor,
 	actor: Actor,
 	notificationId: string,
@@ -145,7 +146,7 @@ export async function sendMentionNotification(
 }
 
 export async function sendReblogNotification(
-	db: D1Database,
+	db: Database,
 	fromActor: Actor,
 	actor: Actor,
 	notificationId: string,
@@ -176,7 +177,7 @@ export async function sendReblogNotification(
 	return sendNotification(db, actor, message, vapidKeys)
 }
 
-async function sendNotification(db: D1Database, actor: Actor, message: WebPushMessage, vapidKeys: JWK) {
+async function sendNotification(db: Database, actor: Actor, message: WebPushMessage, vapidKeys: JWK) {
 	const subscriptions = await getSubscriptionForAllClients(db, actor)
 
 	const promises = subscriptions.map(async (subscription) => {
@@ -195,7 +196,7 @@ async function sendNotification(db: D1Database, actor: Actor, message: WebPushMe
 	await Promise.allSettled(promises)
 }
 
-export async function getNotifications(db: D1Database, actor: Actor, domain: string): Promise<Array<Notification>> {
+export async function getNotifications(db: Database, actor: Actor, domain: string): Promise<Array<Notification>> {
 	const query = `
     SELECT
         objects.*,
@@ -278,7 +279,7 @@ export async function getNotifications(db: D1Database, actor: Actor, domain: str
 	return out
 }
 
-export async function pregenerateNotifications(db: D1Database, cache: Cache, actor: Actor, domain: string) {
+export async function pregenerateNotifications(db: Database, cache: Cache, actor: Actor, domain: string) {
 	const notifications = await getNotifications(db, actor, domain)
 	await cache.put(actor.id + '/notifications', notifications)
 }

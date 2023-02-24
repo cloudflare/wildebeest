@@ -2,6 +2,7 @@ import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import type { JWK } from 'wildebeest/backend/src/webpush/jwk'
 import { b64ToUrlEncoded, exportPublicKeyPair } from 'wildebeest/backend/src/webpush/util'
 import { Client } from './client'
+import { type Database } from 'wildebeest/backend/src/database'
 
 export type PushSubscription = {
 	endpoint: string
@@ -51,7 +52,7 @@ export type Subscription = {
 }
 
 export async function createSubscription(
-	db: D1Database,
+	db: Database,
 	actor: Actor,
 	client: Client,
 	req: CreateRequest
@@ -85,7 +86,7 @@ export async function createSubscription(
 	return subscriptionFromRow(row)
 }
 
-export async function getSubscription(db: D1Database, actor: Actor, client: Client): Promise<Subscription | null> {
+export async function getSubscription(db: Database, actor: Actor, client: Client): Promise<Subscription | null> {
 	const query = `
         SELECT * FROM subscriptions WHERE actor_id=? AND client_id=?
     `
@@ -103,7 +104,7 @@ export async function getSubscription(db: D1Database, actor: Actor, client: Clie
 	return subscriptionFromRow(row)
 }
 
-export async function getSubscriptionForAllClients(db: D1Database, actor: Actor): Promise<Array<Subscription>> {
+export async function getSubscriptionForAllClients(db: Database, actor: Actor): Promise<Array<Subscription>> {
 	const query = `
         SELECT * FROM subscriptions WHERE actor_id=? ORDER BY cdate DESC LIMIT 5
     `

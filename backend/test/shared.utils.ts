@@ -4,6 +4,7 @@
  * building.
  */
 
+import { type Database } from 'wildebeest/backend/src/database'
 import type { Actor } from '../src/activitypub/actors'
 import { addObjectInOutbox } from '../src/activitypub/actors/outbox'
 import { type Note, createPublicNote } from '../src/activitypub/objects/note'
@@ -13,14 +14,14 @@ import { insertReply } from '../src/mastodon/reply'
  * Creates a reply and inserts it in the reply author's outbox
  *
  * @param domain the domain to use
- * @param db D1Database
+ * @param db Database
  * @param actor Author of the reply
  * @param originalNote The original note
  * @param replyContent content of the reply
  */
 export async function createReply(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	actor: Actor,
 	originalNote: Note,
 	replyContent: string

@@ -11,16 +11,17 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import * as errors from 'wildebeest/backend/src/errors'
 import { updateObjectProperty } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestPut: PagesFunction<Env, any, ContextData> = async ({ params, env, request }) => {
-	return handleRequestPut(env.DATABASE, params.id as UUID, request)
+	return handleRequestPut(getDatabase(env), params.id as UUID, request)
 }
 
 type UpdateMedia = {
 	description?: string
 }
 
-export async function handleRequestPut(db: D1Database, id: UUID, request: Request): Promise<Response> {
+export async function handleRequestPut(db: Database, id: UUID, request: Request): Promise<Response> {
 	// Update the image properties
 	{
 		const image = (await getObjectByMastodonId(db, id)) as Image

@@ -7,7 +7,8 @@ import type { Client } from 'wildebeest/backend/src/mastodon/client'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import { BetaDatabase } from '@miniflare/d1'
-import * as Database from 'better-sqlite3'
+import * as SQLiteDatabase from 'better-sqlite3'
+import { type Database } from 'wildebeest/backend/src/database'
 
 export function isUrlValid(s: string) {
 	let url
@@ -19,8 +20,8 @@ export function isUrlValid(s: string) {
 	return url.protocol === 'https:'
 }
 
-export async function makeDB(): Promise<D1Database> {
-	const db = new Database(':memory:')
+export async function makeDB(): Promise<Database> {
+	const db = new SQLiteDatabase(':memory:')
 	const db2 = new BetaDatabase(db)!
 
 	// Manually run our migrations since @miniflare/d1 doesn't support it (yet).
@@ -31,7 +32,7 @@ export async function makeDB(): Promise<D1Database> {
 		db.exec(content)
 	}
 
-	return db2 as unknown as D1Database
+	return db2 as unknown as Database
 }
 
 export function assertCORS(response: Response) {
@@ -66,7 +67,7 @@ export async function streamToArrayBuffer(stream: ReadableStream) {
 }
 
 export async function createTestClient(
-	db: D1Database,
+	db: Database,
 	redirectUri: string = 'https://localhost',
 	scopes: string = 'read follow'
 ): Promise<Client> {

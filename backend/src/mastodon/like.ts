@@ -1,8 +1,9 @@
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database } from 'wildebeest/backend/src/database'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { getResultsField } from './utils'
 
-export async function insertLike(db: D1Database, actor: Actor, obj: APObject) {
+export async function insertLike(db: Database, actor: Actor, obj: APObject) {
 	const id = crypto.randomUUID()
 
 	const query = `
@@ -16,7 +17,7 @@ export async function insertLike(db: D1Database, actor: Actor, obj: APObject) {
 	}
 }
 
-export function getLikes(db: D1Database, obj: APObject): Promise<Array<string>> {
+export function getLikes(db: Database, obj: APObject): Promise<Array<string>> {
 	const query = `
 		SELECT actor_id FROM actor_favourites WHERE object_id=?
 	`

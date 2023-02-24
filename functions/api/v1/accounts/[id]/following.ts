@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/accounts/#following
 
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import type { Handle } from 'wildebeest/backend/src/utils/parse'
 import { actorURL } from 'wildebeest/backend/src/activitypub/actors'
 import { cors } from 'wildebeest/backend/src/utils/cors'
@@ -15,10 +16,10 @@ import * as webfinger from 'wildebeest/backend/src/webfinger'
 import { getFollowing, loadActors } from 'wildebeest/backend/src/activitypub/actors/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env }) => {
-	return handleRequest(request, env.DATABASE, params.id as string)
+	return handleRequest(request, getDatabase(env), params.id as string)
 }
 
-export async function handleRequest(request: Request, db: D1Database, id: string): Promise<Response> {
+export async function handleRequest(request: Request, db: Database, id: string): Promise<Response> {
 	const handle = parseHandle(id)
 	const domain = new URL(request.url).hostname
 
@@ -33,7 +34,7 @@ export async function handleRequest(request: Request, db: D1Database, id: string
 	}
 }
 
-async function getRemoteFollowing(request: Request, handle: Handle, db: D1Database): Promise<Response> {
+async function getRemoteFollowing(request: Request, handle: Handle, db: Database): Promise<Response> {
 	const acct = `${handle.localPart}@${handle.domain}`
 	const link = await webfinger.queryAcctLink(handle.domain!, acct)
 	if (link === null) {
@@ -57,7 +58,7 @@ async function getRemoteFollowing(request: Request, handle: Handle, db: D1Databa
 	return new Response(JSON.stringify(out), { headers })
 }
 
-async function getLocalFollowing(request: Request, handle: Handle, db: D1Database): Promise<Response> {
+async function getLocalFollowing(request: Request, handle: Handle, db: Database): Promise<Response> {
 	const domain = new URL(request.url).hostname
 	const actorId = actorURL(domain, handle.localPart)
 	const actor = await actors.getAndCache(actorId, db)

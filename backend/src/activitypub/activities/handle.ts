@@ -27,6 +27,7 @@ import type { Activity } from 'wildebeest/backend/src/activitypub/activities'
 import { originalActorIdSymbol, deleteObject } from 'wildebeest/backend/src/activitypub/objects'
 import { hasReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { getMetadata, loadItems } from 'wildebeest/backend/src/activitypub/objects/collection'
+import { type Database } from 'wildebeest/backend/src/database'
 
 function extractID(domain: string, s: string | URL): string {
 	return s.toString().replace(`https://${domain}/ap/users/`, '')
@@ -87,7 +88,7 @@ export function makeGetActorAsId(activity: Activity) {
 export async function handle(
 	domain: string,
 	activity: Activity,
-	db: D1Database,
+	db: Database,
 	userKEK: string,
 	adminEmail: string,
 	vapidKeys: JWK
@@ -115,7 +116,7 @@ export async function handle(
 			}
 
 			// check current object
-			const object = await objects.getObjectBy(db, 'original_object_id', objectId.toString())
+			const object = await objects.getObjectBy(db, objects.ObjectByKey.originalObjectId, objectId.toString())
 			if (object === null) {
 				throw new Error(`object ${objectId} does not exist`)
 			}
@@ -423,7 +424,7 @@ export async function handle(
 async function cacheObject(
 	domain: string,
 	obj: APObject,
-	db: D1Database,
+	db: Database,
 	originalActorId: URL,
 	originalObjectId: URL
 ): Promise<{ created: boolean; object: APObject } | null> {

@@ -19,7 +19,9 @@ export const statusLoader = loader$<
 	try {
 		const statusResponse = await statusAPI.handleRequestGet(platform.DATABASE, params.statusId, domain, {} as Person)
 		statusText = await statusResponse.text()
-	} catch {
+	} catch (e: unknown) {
+		const error = e as { stack: string; cause: string }
+		console.warn(error.stack, error.cause)
 		throw html(500, getErrorHtml('An error occurred whilst retrieving the status data, please try again later'))
 	}
 	if (!statusText) {
@@ -36,7 +38,9 @@ export const statusLoader = loader$<
 			throw new Error(`No context present for status with ${params.statusId}`)
 		}
 		return { status, statusTextContent, context }
-	} catch {
+	} catch (e: unknown) {
+		const error = e as { stack: string; cause: string }
+		console.warn(error.stack, error.cause)
 		throw html(500, getErrorHtml('No context for the status has been found, please try again later'))
 	}
 })

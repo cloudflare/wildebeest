@@ -976,24 +976,24 @@ describe('Mastodon APIs', () => {
 									{
 										rel: 'self',
 										type: 'application/activity+json',
-										href: 'https://social.com/sven',
+										href: `https://${domain}/ap/users/actor`,
 									},
 								],
 							})
 						)
 					}
 
-					if (request.url === 'https://social.com/sven') {
+					if (request.url === `https://${domain}/ap/users/actor`) {
 						return new Response(
 							JSON.stringify({
 								id: `https://${domain}/ap/users/actor`,
 								type: 'Person',
-								inbox: 'https://example.com/inbox',
+								inbox: `https://${domain}/ap/users/actor/inbox`,
 							})
 						)
 					}
 
-					if (request.url === 'https://example.com/inbox') {
+					if (request.url === `https://${domain}/ap/users/actor/inbox`) {
 						assert.equal(request.method, 'POST')
 						receivedActivity = await request.json()
 						return new Response('')
@@ -1040,7 +1040,7 @@ describe('Mastodon APIs', () => {
 
 				const connectedActor = actor
 
-				const req = new Request('https://example.com', { method: 'POST' })
+				const req = new Request('https://' + domain, { method: 'POST' })
 				const res = await accounts_unfollow.handleRequest(req, db, 'actor@' + domain, connectedActor, userKEK)
 				assert.equal(res.status, 200)
 				assertCORS(res)

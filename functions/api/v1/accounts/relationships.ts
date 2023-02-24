@@ -1,5 +1,6 @@
 // https://docs.joinmastodon.org/methods/accounts/#relationships
 
+import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
@@ -7,10 +8,10 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { getFollowingAcct, getFollowingRequestedAcct } from 'wildebeest/backend/src/mastodon/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, env.DATABASE, data.connectedActor)
+	return handleRequest(request, getDatabase(env), data.connectedActor)
 }
 
-export async function handleRequest(req: Request, db: D1Database, connectedActor: Person): Promise<Response> {
+export async function handleRequest(req: Request, db: Database, connectedActor: Person): Promise<Response> {
 	const url = new URL(req.url)
 
 	let ids = []

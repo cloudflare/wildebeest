@@ -6,11 +6,12 @@ import { createReblog } from 'wildebeest/backend/src/mastodon/reblog'
 import { createReply as createReplyInBackend } from 'wildebeest/backend/test/shared.utils'
 import { createStatus } from 'wildebeest/backend/src/mastodon/status'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import { type Database } from 'wildebeest/backend/src/database'
 
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.
  */
-export async function init(domain: string, db: D1Database) {
+export async function init(domain: string, db: Database) {
 	const loadedStatuses: { status: MastodonStatus; note: Note }[] = []
 	for (const status of statuses) {
 		const actor = await getOrCreatePerson(domain, db, status.account)
@@ -47,7 +48,7 @@ export async function init(domain: string, db: D1Database) {
  */
 async function createReply(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	reply: MastodonStatus,
 	loadedStatuses: { status: MastodonStatus; note: Note }[]
 ) {
@@ -70,7 +71,7 @@ async function createReply(
 
 async function getOrCreatePerson(
 	domain: string,
-	db: D1Database,
+	db: Database,
 	{ username, avatar, display_name }: Account
 ): Promise<Person> {
 	const person = await getPersonByEmail(db, username)
