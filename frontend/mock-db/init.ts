@@ -74,12 +74,21 @@ async function getOrCreatePerson(
 	db: Database,
 	{ username, avatar, display_name }: Account
 ): Promise<Person> {
-	const person = await getPersonByEmail(db, username)
+	const isAdmin = username === 'george'
+	const email = `${username}@test.email`
+	const person = await getPersonByEmail(db, email)
 	if (person) return person
-	const newPerson = await createPerson(domain, db, 'test-kek', username, {
-		icon: { url: avatar },
-		name: display_name,
-	})
+	const newPerson = await createPerson(
+		domain,
+		db,
+		'test-kek',
+		email,
+		{
+			icon: { url: avatar },
+			name: display_name,
+		},
+		isAdmin
+	)
 	if (!newPerson) {
 		throw new Error('Could not create Actor ' + username)
 	}
