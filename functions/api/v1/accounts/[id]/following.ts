@@ -68,10 +68,14 @@ async function getLocalFollowing(request: Request, handle: Handle, db: Database)
 
 	for (let i = 0, len = following.length; i < len; i++) {
 		const id = new URL(following[i])
-
 		const acct = urlToHandle(id)
-		const actor = await actors.get(id)
-		out.push(await loadExternalMastodonAccount(acct, actor))
+
+		try {
+			const actor = await actors.getAndCache(id, db)
+			out.push(await loadExternalMastodonAccount(acct, actor))
+		} catch (err: any) {
+			console.warn(`failed to retrieve following (${id}): ${err.message}`)
+		}
 	}
 
 	const headers = {

@@ -8,12 +8,13 @@ import { Avatar } from '~/components/avatar'
 import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import { buildRedirect } from 'wildebeest/functions/oauth/authorize'
+import { getDatabase } from 'wildebeest/backend/src/database'
 
 export const clientLoader = loader$<Promise<Client>, { DATABASE: D1Database }>(async ({ platform, query, html }) => {
 	const client_id = query.get('client_id') || ''
 	let client: Client | null = null
 	try {
-		client = await getClientById(platform.DATABASE, client_id)
+		client = await getClientById(getDatabase(platform), client_id)
 	} catch (e: unknown) {
 		const error = e as { stack: string; cause: string }
 		console.warn(error.stack, error.cause)
@@ -48,10 +49,10 @@ export const userLoader = loader$<
 		throw html(500, getErrorHtml("The Access JWT doesn't contain an email"))
 	}
 
-	const person = await getPersonByEmail(platform.DATABASE, payload.email)
+	const person = await getPersonByEmail(getDatabase(platform), payload.email)
 	if (person === null) {
 		const isFirstLogin = true
-		const res = await buildRedirect(platform.DATABASE, request as Request, isFirstLogin, jwt.value)
+		const res = await buildRedirect(getDatabase(platform), request as Request, isFirstLogin, jwt.value)
 		if (res.status === 302) {
 			throw redirect(302, res.headers.get('location') || '')
 		} else {

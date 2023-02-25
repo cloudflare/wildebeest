@@ -1,4 +1,5 @@
 import { $, component$ } from '@builder.io/qwik'
+import { getDatabase } from 'wildebeest/backend/src/database'
 import { MastodonStatus } from '~/types'
 import * as timelines from 'wildebeest/functions/api/v1/timelines/public'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
@@ -11,7 +12,7 @@ export const statusesLoader = loader$<Promise<MastodonStatus[]>, { DATABASE: D1D
 	async ({ platform, html }) => {
 		try {
 			// TODO: use the "trending" API endpoint here.
-			const response = await timelines.handleRequest(platform.domain, platform.DATABASE, { local: true })
+			const response = await timelines.handleRequest(platform.domain, getDatabase(platform), { local: true })
 			const results = await response.text()
 			// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
 			return JSON.parse(results) as MastodonStatus[]
