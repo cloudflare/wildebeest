@@ -15,6 +15,7 @@ If you attempted to deploy Wildebeest in your account and something failed, or y
 - Go to your account Workers / D1 and delete the `wildebeest-username` database.
 - Launch [Zero Trust](https://one.dash.cloudflare.com/), select your account, go to Access / Applications and delete the `wildebeest-username` application.
 - Go to https://deploy.workers.cloudflare.com/, open the site settings in your browser and delete all the cookies and local storage data.
+  - If you aren't prompted to fill any of the fields for admin email address, your domain name, instance title, etc., you'll need to add these values to the Actions Variables UI for your newly forked repo (`https://github.com/YOURUSERNAME/wildebeest/settings/variables/actions`): `ADMIN_EMAIL`, `CF_DEPLOY_DOMAIN`, `CF_ZONE_ID`, `INSTANCE_TITLE`, and `INSTANCE_DESCR`. You can re-run any action that failed on account of those values being missing once they are filled
 - Delete your GitHub wildebeest forked repo.
 
 You can now start a clean install.
