@@ -25,14 +25,14 @@ export const accountPageLoader = loader$<
 		const accountId = url.pathname.split('/')[1]
 
 		try {
-			const statusResponse = await statusAPI.handleRequestGet(getDatabase(platform), params.statusId, domain)
+			const statusResponse = await statusAPI.handleRequestGet(await getDatabase(platform), params.statusId, domain)
 			const statusText = await statusResponse.text()
 			isValidStatus = !!statusText
 		} catch {
 			isValidStatus = false
 		}
 
-		account = await getAccount(domain, accountId, getDatabase(platform))
+		account = await getAccount(domain, accountId, await getDatabase(platform))
 	} catch {
 		throw html(
 			500,

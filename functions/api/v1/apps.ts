@@ -17,7 +17,7 @@ type AppsPost = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
-	return handleRequest(getDatabase(env), request, getVAPIDKeys(env))
+	return handleRequest(await getDatabase(env), request, getVAPIDKeys(env))
 }
 
 export async function handleRequest(db: Database, request: Request, vapidKeys: JWK) {

@@ -19,7 +19,7 @@ export const statusLoader = loader$<
 	let statusText = ''
 	try {
 		const statusResponse = await statusAPI.handleRequestGet(
-			getDatabase(platform),
+			await getDatabase(platform),
 			params.statusId,
 			domain,
 			{} as Person
@@ -37,7 +37,7 @@ export const statusLoader = loader$<
 	const statusTextContent = await getTextContent(status.content)
 
 	try {
-		const contextResponse = await contextAPI.handleRequest(domain, getDatabase(platform), params.statusId)
+		const contextResponse = await contextAPI.handleRequest(domain, await getDatabase(platform), params.statusId)
 		const contextText = await contextResponse.text()
 		const context = JSON.parse(contextText ?? null) as StatusContext | null
 		if (!context) {

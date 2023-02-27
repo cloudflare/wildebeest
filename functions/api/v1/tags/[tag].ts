@@ -14,7 +14,7 @@ const headers = {
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ params, env, request }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequestGet(getDatabase(env), domain, params.tag as string)
+	return handleRequestGet(await getDatabase(env), domain, params.tag as string)
 }
 
 export async function handleRequestGet(db: Database, domain: string, value: string): Promise<Response> {
