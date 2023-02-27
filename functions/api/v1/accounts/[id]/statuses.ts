@@ -26,7 +26,7 @@ const headers = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
-	return handleRequest(request, getDatabase(env), params.id as string)
+	return handleRequest(request, await getDatabase(env), params.id as string)
 }
 
 export async function handleRequest(request: Request, db: Database, id: string): Promise<Response> {

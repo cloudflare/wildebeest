@@ -8,7 +8,7 @@ import * as errors from 'wildebeest/backend/src/errors'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ env, request, data }) => {
-	return handleRequestPost(getDatabase(env), request, data.connectedActor)
+	return handleRequestPost(await getDatabase(env), request, data.connectedActor)
 }
 
 type AddAliasRequest = {

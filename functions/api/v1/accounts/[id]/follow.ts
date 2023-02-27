@@ -13,7 +13,7 @@ import type { Relationship } from 'wildebeest/backend/src/types/account'
 import { addFollowing } from 'wildebeest/backend/src/mastodon/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params, data }) => {
-	return handleRequest(request, getDatabase(env), params.id as string, data.connectedActor, env.userKEK)
+	return handleRequest(request, await getDatabase(env), params.id as string, data.connectedActor, env.userKEK)
 }
 
 export async function handleRequest(

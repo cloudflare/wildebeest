@@ -39,7 +39,7 @@ type StatusCreate = {
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, data }) => {
-	return handleRequest(request, getDatabase(env), data.connectedActor, env.userKEK, env.QUEUE, cacheFromEnv(env))
+	return handleRequest(request, await getDatabase(env), data.connectedActor, env.userKEK, env.QUEUE, cacheFromEnv(env))
 }
 
 // FIXME: add tests for delivery to followers and mentions to a specific Actor.

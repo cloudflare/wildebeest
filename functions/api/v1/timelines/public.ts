@@ -16,7 +16,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	const only_media = searchParams.get('only_media') === 'true'
 	const offset = Number.parseInt(searchParams.get('offset') ?? '0')
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, getDatabase(env), { local, remote, only_media, offset })
+	return handleRequest(domain, await getDatabase(env), { local, remote, only_media, offset })
 }
 
 export async function handleRequest(

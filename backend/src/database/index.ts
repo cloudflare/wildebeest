@@ -23,6 +23,6 @@ export interface PreparedStatement {
 	raw<T = unknown>(): Promise<T[]>
 }
 
-export function getDatabase(env: Pick<Env, 'DATABASE'>): Database {
+export async function getDatabase(env: Pick<Env, 'DATABASE'>): Promise<Database> {
 	return d1(env)
 }

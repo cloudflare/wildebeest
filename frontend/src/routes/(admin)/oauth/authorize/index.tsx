@@ -14,7 +14,7 @@ export const clientLoader = loader$<Promise<Client>, { DATABASE: D1Database }>(a
 	const client_id = query.get('client_id') || ''
 	let client: Client | null = null
 	try {
-		client = await getClientById(getDatabase(platform), client_id)
+		client = await getClientById(await getDatabase(platform), client_id)
 	} catch (e: unknown) {
 		const error = e as { stack: string; cause: string }
 		console.warn(error.stack, error.cause)
@@ -49,10 +49,10 @@ export const userLoader = loader$<
 		throw html(500, getErrorHtml("The Access JWT doesn't contain an email"))
 	}
 
-	const person = await getPersonByEmail(getDatabase(platform), payload.email)
+	const person = await getPersonByEmail(await getDatabase(platform), payload.email)
 	if (person === null) {
 		const isFirstLogin = true
-		const res = await buildRedirect(getDatabase(platform), request as Request, isFirstLogin, jwt.value)
+		const res = await buildRedirect(await getDatabase(platform), request as Request, isFirstLogin, jwt.value)
 		if (res.status === 302) {
 			throw redirect(302, res.headers.get('location') || '')
 		} else {

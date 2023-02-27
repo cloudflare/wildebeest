@@ -14,7 +14,7 @@ import { updateObjectProperty } from 'wildebeest/backend/src/activitypub/objects
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequestPut: PagesFunction<Env, any, ContextData> = async ({ params, env, request }) => {
-	return handleRequestPut(getDatabase(env), params.id as UUID, request)
+	return handleRequestPut(await getDatabase(env), params.id as UUID, request)
 }
 
 type UpdateMedia = {

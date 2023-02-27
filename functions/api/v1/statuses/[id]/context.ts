@@ -10,7 +10,7 @@ import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, getDatabase(env), params.id as string)
+	return handleRequest(domain, await getDatabase(env), params.id as string)
 }
 
 const headers = {

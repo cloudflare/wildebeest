@@ -8,7 +8,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, getDatabase(env), params.id as string)
+	return handleRequest(domain, await getDatabase(env), params.id as string)
 }
 
 const headers = {

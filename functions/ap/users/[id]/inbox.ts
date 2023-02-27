@@ -41,7 +41,7 @@ export const onRequest: PagesFunction<Env, any> = async ({ params, request, env 
 	const domain = new URL(request.url).hostname
 	return handleRequest(
 		domain,
-		getDatabase(env),
+		await getDatabase(env),
 		params.id as string,
 		activity,
 		env.QUEUE,

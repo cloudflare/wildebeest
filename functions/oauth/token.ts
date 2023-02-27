@@ -12,7 +12,7 @@ type Body = {
 }
 
 export const onRequest: PagesFunction<Env, any> = async ({ request, env }) => {
-	return handleRequest(getDatabase(env), request)
+	return handleRequest(await getDatabase(env), request)
 }
 
 export async function handleRequest(db: Database, request: Request): Promise<Response> {
