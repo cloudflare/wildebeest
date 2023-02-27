@@ -38,8 +38,8 @@
 		"pages": "NO_D1_WARNING=true wrangler pages",
 		"database:migrate": "yarn d1 migrations apply DATABASE",
 		"database:create-mock": "rm -f .wrangler/state/d1/DATABASE.sqlite3 && CI=true yarn database:migrate --local && node ./frontend/mock-db/run.mjs",
-		"dev": "export COMMIT_HASH=$(git rev-parse HEAD) && yarn build && yarn database:migrate --local && yarn pages dev frontend/dist --d1 DATABASE --persist --compatibility-date=2022-12-20 --binding 'INSTANCE_TITLE=Test Wildebeest' 'INSTANCE_DESCR=My Wildebeest Instance' --live-reload",
-		"ci-dev-test-ui": "yarn build && yarn database:create-mock && yarn pages dev frontend/dist --d1 DATABASE --persist --port 8788  --binding 'INSTANCE_TITLE=Test Wildebeest' 'INSTANCE_DESCR=My Wildebeest Instance' --compatibility-date=2022-12-20",
+		"dev": "export COMMIT_HASH=$(git rev-parse HEAD) && yarn build && yarn database:migrate --local && yarn pages dev frontend/dist --d1 DATABASE --persist --compatibility-date=2022-12-20 --binding 'INSTANCE_TITLE=Test Wildebeest' 'INSTANCE_DESCR=My Wildebeest Instance' 'ACCESS_AUTH_DOMAIN=0.0.0.0.cloudflareaccess.com' 'ACCESS_AUD=DEV_AUD' --live-reload",
+		"ci-dev-test-ui": "yarn build && yarn database:create-mock && yarn pages dev frontend/dist --d1 DATABASE --persist --port 8788  --binding 'INSTANCE_TITLE=Test Wildebeest' 'INSTANCE_DESCR=My Wildebeest Instance' 'ACCESS_AUTH_DOMAIN=0.0.0.0.cloudflareaccess.com' 'ACCESS_AUD=DEV_AUD' --compatibility-date=2022-12-20",
 		"deploy:init": "yarn pages project create wildebeest && yarn d1 create wildebeest",
 		"deploy": "yarn build && yarn database:migrate && yarn pages publish frontend/dist --project-name=wildebeest"
 	},

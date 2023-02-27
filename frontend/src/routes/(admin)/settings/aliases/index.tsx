@@ -1,13 +1,17 @@
 import { component$ } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
+import { WildebeestEnv } from '~/types'
+import { checkAuth } from '~/utils/checkAuth'
 
-export const loader = loader$(({ redirect }) => {
-	redirect(303, '/explore')
+export const loader = loader$<WildebeestEnv, void>(async ({ request, platform, redirect }) => {
+	const isAuthorized = await checkAuth(request, platform)
+
+	if (!isAuthorized) {
+		redirect(303, '/explore')
+	}
 })
 
 export default component$(() => {
-	loader.use()
-
 	return (
 		<div class="max-w-4xl py-14 px-8">
 			<h2 class="text-2xl font-bold mb-6">Account Aliases</h2>
@@ -36,9 +40,9 @@ export default component$(() => {
 			/>
 			<button
 				type="submit"
-				class="w-full mb-9 bg-wildebeest-vibrant-600 hover:bg-wildebeest-vibrant-500 p-2 text-white text-uppercase border-wildebeest-vibrant-600 text-lg text-semi outline-none border rounded hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500"
+				class="w-full uppercase mb-9 bg-wildebeest-vibrant-600 hover:bg-wildebeest-vibrant-500 p-2 text-white text-uppercase border-wildebeest-vibrant-600 text-lg text-semi outline-none border rounded hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500"
 			>
-				CREATE ALIAS
+				Create Alias
 			</button>
 
 			<table class="table-auto w-full">
