@@ -1,6 +1,7 @@
 import { component$ } from '@builder.io/qwik'
 import { Link, useLocation } from '@builder.io/qwik-city'
 import { WildebeestLogo } from '~/components/MastodonLogo'
+import { accessLoader } from '~/routes/layout'
 
 type LinkConfig = {
 	iconName: string
@@ -10,6 +11,7 @@ type LinkConfig = {
 }
 
 export default component$(() => {
+	const accessData = accessLoader.use().value
 	const location = useLocation()
 
 	const renderNavLink = ({ iconName, linkText, linkTarget, linkActiveRegex }: LinkConfig) => {
@@ -52,6 +54,21 @@ export default component$(() => {
 					<hr class="border-t border-wildebeest-700 my-3" />
 					{renderNavLink(aboutLink)}
 				</div> */}
+
+				{!accessData.isAuthorized && (
+					<a
+						class="w-full block mb-4 no-underline text-center bg-wildebeest-vibrant-600 hover:bg-wildebeest-vibrant-500 p-2 text-white text-uppercase border-wildebeest-vibrant-600 text-lg text-semi outline-none border rounded hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500"
+						href={accessData.loginUrl}
+					>
+						Sign in
+					</a>
+				)}
+				{accessData.isAuthorized && (
+					<a class="text-semi no-underline" href="/settings/migration">
+						<i class="fa fa-gear mx-3 w-4" />
+						Preferences
+					</a>
+				)}
 			</div>
 		</div>
 	)
