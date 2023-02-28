@@ -14,8 +14,7 @@ If you attempted to deploy Wildebeest in your account and something failed, or y
 - Go to your account Workers / KV section and delete the `wildebeest-username-cache` and `wildebeest-terraform-username-state` namespaces.
 - Go to your account Workers / D1 and delete the `wildebeest-username` database.
 - Launch [Zero Trust](https://one.dash.cloudflare.com/), select your account, go to Access / Applications and delete the `wildebeest-username` application.
-- Go to https://deploy.workers.cloudflare.com/, open the site settings in your browser and delete all the cookies and local storage data.
-  - If you aren't prompted to fill any of the fields for admin email address, your domain name, instance title, etc., you'll need to add these values to the Actions Variables UI for your newly forked repo (`https://github.com/YOURUSERNAME/wildebeest/settings/variables/actions`): `ADMIN_EMAIL`, `CF_DEPLOY_DOMAIN`, `CF_ZONE_ID`, `INSTANCE_TITLE`, and `INSTANCE_DESCR`. You can re-run any action that failed on account of those values being missing once they are filled
+- Go back to the [Getting Started](getting-started.md) readme and open the Deploy to Workers button link in an incognito tab (or a browser window with a cleared session/storage cache)
 - Delete your GitHub wildebeest forked repo.
 
 You can now start a clean install.
@@ -43,16 +42,17 @@ If your zone is on Pro plan or above **and** you have deployed [WAF managed rule
 <summary>Block event example</summary>
 
 ![Block event example screenshot](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/ea58f6e2-a320-4322-9b13-9f747f5e6300/public)
+
 </details>
 
 Depending on your existing setup, you can:
 
 - Lower OWASP ruleset's [sensitivity](https://developers.cloudflare.com/waf/managed-rules/reference/owasp-core-ruleset/#configure-in-the-dashboard)
 - [Skip](https://developers.cloudflare.com/waf/managed-rules/waf-exceptions/) (part of) managed rules, matching hostname `social.example` which path contains `/ap/users/` and `/inbox`
-	<details>
-	<summary>Skip rule example</summary>
+  <details>
+  <summary>Skip rule example</summary>
 
-	![Skip rule example screenshot](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/96370b69-63c9-45a9-2b59-7267bf874c00/public)
-	</details>
+  ![Skip rule example screenshot](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/96370b69-63c9-45a9-2b59-7267bf874c00/public)
+  </details>
 
 [Index](../README.md) ┊ [Back](other-services.md)
