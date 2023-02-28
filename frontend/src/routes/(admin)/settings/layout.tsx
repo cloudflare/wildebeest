@@ -3,7 +3,7 @@ import { WildebeestLogo } from '~/components/MastodonLogo'
 
 export default component$(() => {
 	return (
-		<div class="flex w-screen h-screen justify-center">
+		<div class="flex w-screen min-h-screen justify-center">
 			<AccountSidebar />
 			<div class="flex-auto">
 				<Slot />
@@ -25,11 +25,11 @@ export const AccountSidebar = component$(() => {
 					<span class="hover:underline">Back to Wildebeest</span>
 				</a>
 				<ul class="mr-5">
-					<li class="mb-3">
+					{/* <li class="mb-3">
 						<a class="no-underline text-right text-wildebeest-400 hover:text-wildebeest-200" href="/settings/migration">
 							Account Migration
 						</a>
-					</li>
+					</li> */}
 					<li class="mb-3">
 						<a class="no-underline text-right text-wildebeest-400 hover:text-wildebeest-200" href="/settings/aliases">
 							Account Aliases

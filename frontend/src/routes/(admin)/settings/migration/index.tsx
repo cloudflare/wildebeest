@@ -1,14 +1,17 @@
 import { component$ } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
 import { WildebeestEnv } from '~/types'
-import { checkAuth } from '~/utils/checkAuth'
+// import { checkAuth } from '~/utils/checkAuth'
 
-export const loader = loader$<WildebeestEnv, void>(async ({ request, platform, redirect }) => {
-	const isAuthorized = await checkAuth(request, platform)
+export const loader = loader$<WildebeestEnv, void>(async ({ redirect }) => {
+	// Hiding this page for now
+	redirect(303, '/explore')
 
-	if (!isAuthorized) {
-		redirect(303, '/explore')
-	}
+	// const isAuthorized = await checkAuth(request, platform)
+
+	// if (!isAuthorized) {
+	// 	redirect(303, '/explore')
+	// }
 })
 
 export default component$(() => {
@@ -55,11 +58,12 @@ export default component$(() => {
 						class="bg-black text-white p-3 rounded outline-none border border-black hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500 w-full mb-5"
 						type="text"
 						name="old-account"
+						id="old-account"
 					/>
 				</div>
 				<div class="pl-3">
 					<div class="my-5">
-						<label class="font-semibold mb-3" for="old-account">
+						<label class="font-semibold mb-3" for="password">
 							Current Password
 							<span class="ml-1 text-red-500">*</span>
 						</label>
@@ -70,7 +74,8 @@ export default component$(() => {
 					<input
 						class="bg-black text-white p-3 rounded outline-none border border-red-500 hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500 w-full mb-5"
 						type="password"
-						name="old-account"
+						name="password"
+						id="password"
 					/>
 				</div>
 			</div>
