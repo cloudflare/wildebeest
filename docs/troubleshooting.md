@@ -42,7 +42,6 @@ If your zone is on Pro plan or above **and** you have deployed [WAF managed rule
 <summary>Block event example</summary>
 
 ![Block event example screenshot](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/ea58f6e2-a320-4322-9b13-9f747f5e6300/public)
-
 </details>
 
 Depending on your existing setup, you can:
