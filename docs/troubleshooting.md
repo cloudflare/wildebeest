@@ -49,10 +49,10 @@ Depending on your existing setup, you can:
 
 - Lower OWASP ruleset's [sensitivity](https://developers.cloudflare.com/waf/managed-rules/reference/owasp-core-ruleset/#configure-in-the-dashboard)
 - [Skip](https://developers.cloudflare.com/waf/managed-rules/waf-exceptions/) (part of) managed rules, matching hostname `social.example` which path contains `/ap/users/` and `/inbox`
-  <details>
-  <summary>Skip rule example</summary>
+	<details>
+	<summary>Skip rule example</summary>
 
-  ![Skip rule example screenshot](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/96370b69-63c9-45a9-2b59-7267bf874c00/public)
-  </details>
+	![Skip rule example screenshot](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/96370b69-63c9-45a9-2b59-7267bf874c00/public)
+	</details>
 
 [Index](../README.md) ┊ [Back](other-services.md)
