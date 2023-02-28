@@ -12,6 +12,7 @@ import { getDocumentHead } from '~/utils/getDocumentHead'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
 import { useAccountUrl } from '~/utils/useAccountUrl'
 import { getDatabase } from 'wildebeest/backend/src/database'
+import { Person } from 'wildebeest/backend/src/activitypub/actors'
 
 export const accountPageLoader = loader$<
 	Promise<{ account: MastodonAccount; accountHandle: string; isValidStatus: boolean }>,
@@ -25,7 +26,12 @@ export const accountPageLoader = loader$<
 		const accountId = url.pathname.split('/')[1]
 
 		try {
-			const statusResponse = await statusAPI.handleRequestGet(await getDatabase(platform), params.statusId, domain)
+			const statusResponse = await statusAPI.handleRequestGet(
+				await getDatabase(platform),
+				params.statusId,
+				domain,
+				null as unknown as Person
+			)
 			const statusText = await statusResponse.text()
 			isValidStatus = !!statusText
 		} catch {
