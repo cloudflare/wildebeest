@@ -76,12 +76,14 @@ describe('Mastodon APIs', () => {
 		})
 
 		test('GET /apps is bad request', async () => {
+			const db = await makeDB()
 			const vapidKeys = await generateVAPIDKeys()
 			const request = new Request('https://example.com')
 			const ctx: any = {
 				next: () => new Response(),
 				data: null,
 				env: {
+					DATABASE: db,
 					VAPID_JWK: JSON.stringify(vapidKeys),
 				},
 				request,

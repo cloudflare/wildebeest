@@ -9,6 +9,7 @@ import * as path from 'path'
 import { BetaDatabase } from '@miniflare/d1'
 import * as SQLiteDatabase from 'better-sqlite3'
 import { type Database } from 'wildebeest/backend/src/database'
+import d1 from 'wildebeest/backend/src/database/d1'
 
 export function isUrlValid(s: string) {
 	let url
@@ -32,7 +33,8 @@ export async function makeDB(): Promise<Database> {
 		db.exec(content)
 	}
 
-	return db2 as unknown as Database
+	const env = { DATABASE: db2 } as any
+	return d1(env)
 }
 
 export function assertCORS(response: Response) {
