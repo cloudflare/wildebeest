@@ -21,6 +21,10 @@ const qb: QueryBuilder = {
 	insertOrIgnore(q: string): string {
 		return `INSERT OR IGNORE ${q}`
 	},
+
+	psqlOnly(): string {
+		return ''
+	},
 }
 
 export default function make({ DATABASE }: Pick<Env, 'DATABASE'>): Database {
