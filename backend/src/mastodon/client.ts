@@ -6,16 +6,16 @@ export interface Client {
 	secret: string
 	name: string
 	redirect_uris: string
-	website: string
 	scopes: string
+	website?: string
 }
 
 export async function createClient(
 	db: Database,
 	name: string,
 	redirect_uris: string,
-	website: string,
-	scopes: string
+	scopes: string,
+	website?: string
 ): Promise<Client> {
 	const id = crypto.randomUUID()
 
