@@ -41,6 +41,7 @@ export default async function make(env: Pick<Env, 'NEON_DATABASE_URL'>): Promise
 	await client.connect()
 
 	return {
+		client: 'neon',
 		qb,
 
 		prepare(query: string) {
