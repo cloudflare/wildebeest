@@ -143,7 +143,7 @@ WHERE objects.type='Note'
       ${withReplies ? '' : 'AND ' + db.qb.jsonExtractIsNull('objects.properties', 'inReplyTo')}
       AND outbox_objects.target = '${PUBLIC_GROUP}'
       AND outbox_objects.actor_id = ?1
-      AND outbox_objects.cdate > ?2
+      AND outbox_objects.cdate > ?2${db.qb.psqlOnly('::timestamp')}
 ORDER by outbox_objects.published_date DESC
 LIMIT ?3 OFFSET ?4
 `

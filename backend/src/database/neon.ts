@@ -30,6 +30,10 @@ const qb: QueryBuilder = {
 	insertOrIgnore(q: string): string {
 		return `INSERT ${q} ON CONFLICT DO NOTHING`
 	},
+
+	psqlOnly(q: string): string {
+		return q
+	},
 }
 
 export default async function make(env: Pick<Env, 'NEON_DATABASE_URL'>): Promise<Database> {
