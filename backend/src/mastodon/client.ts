@@ -28,7 +28,10 @@ export async function createClient(
           INSERT INTO clients (id, secret, name, redirect_uris, website, scopes)
           VALUES (?, ?, ?, ?, ?, ?)
     `
-	const { success, error } = await db.prepare(query).bind(id, secret, name, redirect_uris, website, scopes).run()
+	const { success, error } = await db
+		.prepare(query)
+		.bind(id, secret, name, redirect_uris, website === undefined ? null : website, scopes)
+		.run()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}
