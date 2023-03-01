@@ -97,7 +97,7 @@ export async function main(context: EventContext<Env, any, any>) {
 		// configuration, which are used to verify the JWT.
 		// TODO: since we don't load the instance configuration anymore, we
 		// don't need to load the user before anymore.
-		if (!(await loadContextData(getDatabase(context.env), clientId, payload.email, context))) {
+		if (!(await loadContextData(await getDatabase(context.env), clientId, payload.email, context))) {
 			return errors.notAuthorized('failed to load context data')
 		}
 

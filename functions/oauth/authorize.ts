@@ -13,7 +13,7 @@ import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 const extractJWTFromRequest = (request: Request) => request.headers.get('Cf-Access-Jwt-Assertion') || ''
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {
-	return handleRequestPost(request, getDatabase(env), env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
+	return handleRequestPost(request, await getDatabase(env), env.userKEK, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
 export async function buildRedirect(

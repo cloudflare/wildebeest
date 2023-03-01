@@ -4,7 +4,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import { getPeers } from 'wildebeest/backend/src/activitypub/peers'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env }) => {
-	return handleRequest(getDatabase(env))
+	return handleRequest(await getDatabase(env))
 }
 
 export async function handleRequest(db: Database): Promise<Response> {

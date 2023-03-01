@@ -24,7 +24,7 @@ export async function getAccount(domain: string, accountId: string, db: Database
 	}
 }
 
-async function getRemoteAccount(handle: Handle, acct: string, db: D1Database): Promise<MastodonAccount | null> {
+async function getRemoteAccount(handle: Handle, acct: string, db: Database): Promise<MastodonAccount | null> {
 	// TODO: using webfinger isn't the optimal implementation. We could cache
 	// the object in D1 and directly query the remote API, indicated by the actor's
 	// url field. For now, let's keep it simple.

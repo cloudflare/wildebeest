@@ -11,7 +11,7 @@ export const statusesLoader = loader$<Promise<MastodonStatus[]>, { DATABASE: D1D
 	async ({ platform, html }) => {
 		try {
 			// TODO: use the "trending" API endpoint here.
-			const response = await timelines.handleRequest(platform.domain, getDatabase(platform))
+			const response = await timelines.handleRequest(platform.domain, await getDatabase(platform))
 			const results = await response.text()
 			// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
 			return JSON.parse(results) as MastodonStatus[]

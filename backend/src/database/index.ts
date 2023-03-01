@@ -13,6 +13,7 @@ export interface Database {
 	dump(): Promise<ArrayBuffer>
 	batch<T = unknown>(statements: PreparedStatement[]): Promise<Result<T>[]>
 	exec<T = unknown>(query: string): Promise<Result<T>>
+	qb: QueryBuilder
 }
 
 export interface PreparedStatement {
@@ -23,6 +24,13 @@ export interface PreparedStatement {
 	raw<T = unknown>(): Promise<T[]>
 }
 
-export function getDatabase(env: Pick<Env, 'DATABASE'>): Database {
+export interface QueryBuilder {
+	jsonExtract(obj: string, prop: string): string
+	jsonExtractIsNull(obj: string, prop: string): string
+	set(array: string): string
+	epoch(): string
+}
+
+export async function getDatabase(env: Pick<Env, 'DATABASE'>): Promise<Database> {
 	return d1(env)
 }
