@@ -89,5 +89,12 @@ SELECT
 export async function getSigningKey(instanceKey: string, db: Database, actor: Actor): Promise<CryptoKey> {
 	const stmt = db.prepare('SELECT privkey, privkey_salt FROM actors WHERE id=?').bind(actor.id.toString())
 	const { privkey, privkey_salt } = (await stmt.first()) as any
-	return unwrapPrivateKey(instanceKey, new Uint8Array(privkey), new Uint8Array(privkey_salt))
+
+	if (privkey.buffer && privkey_salt.buffer) {
+		// neon.tech
+		return unwrapPrivateKey(instanceKey, new Uint8Array(privkey.buffer), new Uint8Array(privkey_salt.buffer))
+	} else {
+		// D1
+		return unwrapPrivateKey(instanceKey, new Uint8Array(privkey), new Uint8Array(privkey_salt))
+	}
 }

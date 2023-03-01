@@ -63,7 +63,7 @@ WHERE
      AND outbox_objects.actor_id IN ${db.qb.set('?2')}
      AND ${db.qb.jsonExtractIsNull('objects.properties', 'inReplyTo')}
      AND (outbox_objects.target = '${PUBLIC_GROUP}' OR outbox_objects.target IN ${db.qb.set('?3')})
-GROUP BY objects.id
+GROUP BY objects.id ${db.qb.psqlOnly(', actors.id, outbox_objects.actor_id, outbox_objects.published_date')}
 ORDER by outbox_objects.published_date DESC
 LIMIT ?4
 `
@@ -139,7 +139,9 @@ WHERE objects.type='Note'
       AND ${db.qb.jsonExtractIsNull('objects.properties', 'inReplyTo')}
       AND outbox_objects.target = '${PUBLIC_GROUP}'
       ${hashtagFilter}
-GROUP BY objects.id
+GROUP BY objects.id ${db.qb.psqlOnly(
+		', actors.id, actors.cdate, actors.properties, outbox_objects.actor_id, outbox_objects.published_date'
+	)}
 ORDER by outbox_objects.published_date DESC
 LIMIT ?1 OFFSET ?2
 `

@@ -17,11 +17,20 @@ const qb: QueryBuilder = {
 	epoch(): string {
 		return '00-00-00 00:00:00'
 	},
+
+	insertOrIgnore(q: string): string {
+		return `INSERT OR IGNORE ${q}`
+	},
+
+	psqlOnly(): string {
+		return ''
+	},
 }
 
 export default function make({ DATABASE }: Pick<Env, 'DATABASE'>): Database {
 	const db = DATABASE as any
 	db.qb = qb
+	db.client = 'd1'
 
 	return db as Database
 }

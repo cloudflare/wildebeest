@@ -31,7 +31,15 @@ const mastodonRawStatuses: MastodonStatus[] = [
 		content: '<span>A very simple update: all good!</span>',
 		account: ben,
 	}),
-	generateDummyStatus({ content: '<p>Hi! My name is Rafael! 👋</p>', account: rafael, spoiler_text: 'who am I?' }),
+	generateDummyStatus({
+		content: '<p>Hi! My name is Rafael! 👋</p>',
+		account: rafael,
+		spoiler_text: 'who am I?',
+	}),
+	generateDummyStatus({
+		content: '<p>Hi! I made a funny! 🤭 <a href="/tags/joke" class="status-link hashtag">#joke</a></p>',
+		account: george,
+	}),
 	generateDummyStatus({
 		content: "<div><p>I'm Rafael and I am a web designer!</p><p>💪💪</p></div>",
 		account: rafael,
