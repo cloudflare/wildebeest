@@ -9,10 +9,9 @@ export async function getPeers(db: Database): Promise<Array<String>> {
 }
 
 export async function addPeer(db: Database, domain: string): Promise<void> {
-	const query = `
-		INSERT OR IGNORE INTO peers (domain)
-		VALUES (?)
-	`
+	const query = db.qb.insertOrIgnore(`
+		INTO peers (domain) VALUES (?)
+	`)
 
 	const out = await db.prepare(query).bind(domain).run()
 	if (!out.success) {

@@ -17,6 +17,10 @@ const qb: QueryBuilder = {
 	epoch(): string {
 		return '00-00-00 00:00:00'
 	},
+
+	insertOrIgnore(q: string): string {
+		return `INSERT OR IGNORE ${q}`
+	},
 }
 
 export default function make({ DATABASE }: Pick<Env, 'DATABASE'>): Database {

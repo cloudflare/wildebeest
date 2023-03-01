@@ -29,6 +29,7 @@ export interface QueryBuilder {
 	jsonExtractIsNull(obj: string, prop: string): string
 	set(array: string): string
 	epoch(): string
+	insertOrIgnore(q: string): string
 }
 
 export async function getDatabase(env: Pick<Env, 'DATABASE'>): Promise<Database> {

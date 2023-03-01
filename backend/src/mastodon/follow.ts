@@ -10,11 +10,12 @@ const STATE_ACCEPTED = 'accepted'
 // During a migration we move the followers from the old Actor to the new
 export async function moveFollowers(db: Database, actor: Actor, followers: Array<string>): Promise<void> {
 	const batch = []
-	const stmt = db.prepare(`
-		INSERT OR IGNORE
+	const stmt = db.prepare(
+		db.qb.insertOrIgnore(`
         INTO actor_following (id, actor_id, target_actor_id, target_actor_acct, state)
-		VALUES (?1, ?2, ?3, ?4, 'accepted');
+		VALUES (?1, ?2, ?3, ?4, 'accepted')
     `)
+	)
 
 	const actorId = actor.id.toString()
 	const actorAcc = urlToHandle(actor.id)
@@ -32,11 +33,12 @@ export async function moveFollowers(db: Database, actor: Actor, followers: Array
 
 export async function moveFollowing(db: Database, actor: Actor, followingActors: Array<string>): Promise<void> {
 	const batch = []
-	const stmt = db.prepare(`
-		INSERT OR IGNORE
+	const stmt = db.prepare(
+		db.qb.insertOrIgnore(`
         INTO actor_following (id, actor_id, target_actor_id, target_actor_acct, state)
-		VALUES (?1, ?2, ?3, ?4, 'accepted');
+		VALUES (?1, ?2, ?3, ?4, 'accepted')
     `)
+	)
 
 	const actorId = actor.id.toString()
 
@@ -56,10 +58,10 @@ export async function moveFollowing(db: Database, actor: Actor, followingActors:
 export async function addFollowing(db: Database, actor: Actor, target: Actor, targetAcct: string): Promise<string> {
 	const id = crypto.randomUUID()
 
-	const query = `
-		INSERT OR IGNORE INTO actor_following (id, actor_id, target_actor_id, state, target_actor_acct)
+	const query = db.qb.insertOrIgnore(`
+		INTO actor_following (id, actor_id, target_actor_id, state, target_actor_acct)
 		VALUES (?, ?, ?, ?, ?)
-	`
+	`)
 
 	const out = await db
 		.prepare(query)
