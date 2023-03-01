@@ -25,4 +25,6 @@ export interface Env {
 	SENTRY_DSN: string
 	SENTRY_ACCESS_CLIENT_ID: string
 	SENTRY_ACCESS_CLIENT_SECRET: string
+
+	NEON_DATABASE_URL?: string
 }

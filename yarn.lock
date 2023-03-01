@@ -807,6 +807,11 @@
     undici "5.9.1"
     ws "^8.2.2"
 
+"@neondatabase/serverless@^0.2.5":
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/@neondatabase/serverless/-/serverless-0.2.5.tgz#78bd4a905f50d087d06f16c02711fdd05b2a851d"
+  integrity sha512-Qu/nNZftfoqw4ojVCXU/EgYlfII3mzLm82iXNOUljFumPhoZ/Wp8NJG5DgSAKCWC0zwTyJsojdPLQDj/UPs2vg==
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.npmjs.org/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz"
