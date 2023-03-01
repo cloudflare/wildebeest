@@ -198,6 +198,51 @@ describe('Mastodon APIs', () => {
 				assert.equal(enrichStatus(`@!@£${link}!!!`, []), `<p>@!@£<a href="${link}">${urlDisplayText}</a>!!!</p>`)
 			})
 		})
+
+		test('convert tags to HTML', async () => {
+			const tagsToTest = [
+				{
+					tag: '#test',
+					expectedTagAnchor: '<a href="/tags/test" class="status-link hashtag">#test</a>',
+				},
+				{
+					tag: '#123_joke_123',
+					expectedTagAnchor: '<a href="/tags/123_joke_123" class="status-link hashtag">#123_joke_123</a>',
+				},
+				{
+					tag: '#_123',
+					expectedTagAnchor: '<a href="/tags/_123" class="status-link hashtag">#_123</a>',
+				},
+				{
+					tag: '#example:',
+					expectedTagAnchor: '<a href="/tags/example" class="status-link hashtag">#example</a>:',
+				},
+				{
+					tag: '#tagA#tagB',
+					expectedTagAnchor:
+						'<a href="/tags/tagA" class="status-link hashtag">#tagA</a><a href="/tags/tagB" class="status-link hashtag">#tagB</a>',
+				},
+			]
+
+			for (let i = 0, len = tagsToTest.length; i < len; i++) {
+				const { tag, expectedTagAnchor } = tagsToTest[i]
+
+				assert.equal(enrichStatus(`hey ${tag} hi`, []), `<p>hey ${expectedTagAnchor} hi</p>`)
+				assert.equal(enrichStatus(`${tag} hi`, []), `<p>${expectedTagAnchor} hi</p>`)
+				assert.equal(enrichStatus(`${tag}\n\thein`, []), `<p>${expectedTagAnchor}\n\thein</p>`)
+				assert.equal(enrichStatus(`hey ${tag}`, []), `<p>hey ${expectedTagAnchor}</p>`)
+				assert.equal(enrichStatus(`${tag}`, []), `<p>${expectedTagAnchor}</p>`)
+				assert.equal(enrichStatus(`@!@£${tag}!!!`, []), `<p>@!@£${expectedTagAnchor}!!!</p>`)
+			}
+		})
+
+		test('ignore invalid tags', () => {
+			assert.equal(enrichStatus('tags cannot be empty like: #', []), `<p>tags cannot be empty like: #</p>`)
+			assert.equal(
+				enrichStatus('tags cannot contain only numbers like: #123', []),
+				`<p>tags cannot contain only numbers like: #123</p>`
+			)
+		})
 	})
 
 	describe('Follow', () => {
