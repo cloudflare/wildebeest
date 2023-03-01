@@ -15,8 +15,7 @@ import { getDatabase } from 'wildebeest/backend/src/database'
 import { Person } from 'wildebeest/backend/src/activitypub/actors'
 
 export const accountPageLoader = loader$<
-	Promise<{ account: MastodonAccount; accountHandle: string; isValidStatus: boolean }>,
-	{ DATABASE: D1Database }
+	Promise<{ account: MastodonAccount; accountHandle: string; isValidStatus: boolean }>
 >(async ({ platform, params, request, html }) => {
 	let isValidStatus = false
 	let account: MastodonAccount | null = null

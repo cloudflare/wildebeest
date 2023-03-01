@@ -1,5 +1,4 @@
 import { component$ } from '@builder.io/qwik'
-import * as access from 'wildebeest/backend/src/access'
 import type { Client } from 'wildebeest/backend/src/mastodon/client'
 import { getClientById } from 'wildebeest/backend/src/mastodon/client'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
@@ -9,8 +8,9 @@ import { getPersonByEmail } from 'wildebeest/backend/src/activitypub/actors'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import { buildRedirect } from 'wildebeest/functions/oauth/authorize'
 import { getDatabase } from 'wildebeest/backend/src/database'
+import { getJwtEmail } from '~/utils/getJwtEmail'
 
-export const clientLoader = loader$<Promise<Client>, { DATABASE: D1Database }>(async ({ platform, query, html }) => {
+export const clientLoader = loader$<Promise<Client>>(async ({ platform, query, html }) => {
 	const client_id = query.get('client_id') || ''
 	let client: Client | null = null
 	try {
@@ -26,50 +26,41 @@ export const clientLoader = loader$<Promise<Client>, { DATABASE: D1Database }>(a
 	return client
 })
 
-export const userLoader = loader$<
-	Promise<{ email: string; avatar: URL; name: string; url: URL }>,
-	{ DATABASE: D1Database; domain: string }
->(async ({ cookie, platform, html, request, redirect, text }) => {
-	const jwt = cookie.get('CF_Authorization')
-	if (jwt === null) {
-		throw html(500, getErrorHtml('Missing Authorization'))
-	}
-	let payload: access.JWTPayload
-	try {
-		// TODO: eventually, verify the JWT with Access, however this
-		// is not critical.
-		payload = access.getPayload(jwt.value)
-	} catch (e: unknown) {
-		const error = e as { stack: string; cause: string }
-		console.warn(error.stack, error.cause)
-		throw html(500, getErrorHtml('Failed to validate Access JWT'))
-	}
-
-	if (!payload.email) {
-		throw html(500, getErrorHtml("The Access JWT doesn't contain an email"))
-	}
-
-	const person = await getPersonByEmail(await getDatabase(platform), payload.email)
-	if (person === null) {
-		const isFirstLogin = true
-		const res = await buildRedirect(await getDatabase(platform), request as Request, isFirstLogin, jwt.value)
-		if (res.status === 302) {
-			throw redirect(302, res.headers.get('location') || '')
-		} else {
-			throw text(res.status, await res.text())
+export const userLoader = loader$<Promise<{ email: string; avatar: URL; name: string; url: URL }>>(
+	async ({ cookie, platform, html, request, redirect, text }) => {
+		const jwt = cookie.get('CF_Authorization')
+		let email = ''
+		try {
+			email = getJwtEmail(jwt?.value ?? '')
+		} catch (e) {
+			throw html(500, getErrorHtml((e as Error)?.message))
 		}
+
+		const person = await getPersonByEmail(await getDatabase(platform), email)
+		if (person === null) {
+			const isFirstLogin = true
+			/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				-- jwt is defined otherwise getJwtEmail would have thrown
+			*/
+			const res = await buildRedirect(await getDatabase(platform), request as Request, isFirstLogin, jwt!.value)
+			if (res.status === 302) {
+				throw redirect(302, res.headers.get('location') || '')
+			} else {
+				throw text(res.status, await res.text())
+			}
+		}
+
+		const name = person.name
+		const avatar = person.icon?.url
+		const url = person.url
+
+		if (!name || !avatar) {
+			throw html(500, getErrorHtml("The person associated with the Access JWT doesn't include a name or avatar"))
+		}
+
+		return { email, avatar, name, url }
 	}
-
-	const name = person.name
-	const avatar = person.icon?.url
-	const url = person.url
-
-	if (!name || !avatar) {
-		throw html(500, getErrorHtml("The person associated with the Access JWT doesn't include a name or avatar"))
-	}
-
-	return { email: payload.email, avatar, name, url }
-})
+)
 
 export default component$(() => {
 	const client = clientLoader().value

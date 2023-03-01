@@ -151,7 +151,8 @@ export async function createPerson(
 	db: Database,
 	userKEK: string,
 	email: string,
-	properties: PersonProperties = {}
+	properties: PersonProperties = {},
+	admin: boolean = false
 ): Promise<Person> {
 	const userKeyPair = await generateUserKey(userKEK)
 
@@ -199,12 +200,12 @@ export async function createPerson(
 	const row = await db
 		.prepare(
 			`
-              INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt, properties)
-              VALUES(?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt, properties, is_admin)
+              VALUES(?, ?, ?, ?, ?, ?, ?, ?)
               RETURNING *
           `
 		)
-		.bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt, JSON.stringify(properties))
+		.bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt, JSON.stringify(properties), admin ? 1 : null)
 		.first()
 
 	return personFromRow(row)
