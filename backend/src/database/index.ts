@@ -15,6 +15,7 @@ export interface Database {
 	batch<T = unknown>(statements: PreparedStatement[]): Promise<Result<T>[]>
 	exec<T = unknown>(query: string): Promise<Result<T>>
 	qb: QueryBuilder
+    client: string,
 }
 
 export interface PreparedStatement {
