@@ -52,8 +52,20 @@ export default async function make(env: Pick<Env, 'NEON_DATABASE_URL'>): Promise
 		},
 
 		async batch<T = unknown>(statements: PreparedStatement[]): Promise<Result<T>[]> {
-			throw new Error('not implemented')
-			console.log(statements)
+			const results = []
+
+			for (let i = 0, len = statements.length; i < len; i++) {
+				const query = sqliteToPsql(statements[i].query)
+				const result = await client.query(query, statements[i].values)
+
+				results.push({
+					results: result.rows as T[],
+					success: true,
+					meta: {},
+				})
+			}
+
+			return results
 		},
 
 		async exec<T = unknown>(query: string): Promise<Result<T>> {
@@ -66,8 +78,8 @@ export default async function make(env: Pick<Env, 'NEON_DATABASE_URL'>): Promise
 export class PreparedStatement {
 	private env: Pick<Env, 'NEON_DATABASE_URL'>
 	private client: neon.Client
-	private query: string
-	private values: any[]
+	public query: string
+	public values: any[]
 
 	constructor(env: Pick<Env, 'NEON_DATABASE_URL'>, query: string, values: any[], client: neon.Client) {
 		this.env = env
