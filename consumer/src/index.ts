@@ -22,10 +22,10 @@ export type Env = {
 export default {
 	async queue(batch: MessageBatch<MessageBody>, env: Env, ctx: ExecutionContext) {
 		const sentry = initSentryQueue(env, ctx)
-		const db = await getDatabase(env)
 
 		try {
 			for (const message of batch.messages) {
+				const db = await getDatabase(env)
 				const actor = await actors.getActorById(db, new URL(message.body.actorId))
 				if (actor === null) {
 					console.warn(`actor ${message.body.actorId} is missing`)
