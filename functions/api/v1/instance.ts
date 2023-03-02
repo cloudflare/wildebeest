@@ -2,17 +2,17 @@
 // https://docs.joinmastodon.org/methods/instance/
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { cors } from 'wildebeest/backend/src/utils/cors'
-import * as error from '../../../backend/src/errors'
+import * as error from 'wildebeest/backend/src/errors'
 import { DEFAULT_THUMBNAIL } from 'wildebeest/backend/src/config'
-import { getVersion } from '../../../config/versions'
+import { getVersion } from 'wildebeest/config/versions'
 import { calculateInstanceStatistics } from 'wildebeest/backend/src/mastodon/instance'
-import { MastodonInstance, InstanceStatistics } from '../../../backend/src/types/instance'
-import { MastodonAccount } from '../../../backend/src/types/account'
-import { loadLocalMastodonAccount } from '../../../backend/src/mastodon/account'
+import { MastodonInstance, InstanceStatistics } from 'wildebeest/backend/src/types/instance'
+import { MastodonAccount } from 'wildebeest/backend/src/types/account'
+import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { Database, getDatabase } from 'wildebeest/backend/src/database'
-import { getAdmins } from '../wb/settings/server/admins'
-import { Actor, emailSymbol, Person } from '../../../backend/src/activitypub/actors'
-import { APObject } from '../../../backend/src/activitypub/objects'
+import { getAdmins } from 'wildebeest/functions/api/wb/settings/server/admins'
+import { Actor, emailSymbol, Person } from 'wildebeest/backend/src/activitypub/actors'
+import { APObject } from 'wildebeest/backend/src/activitypub/objects'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain: string = new URL(request.url).hostname
