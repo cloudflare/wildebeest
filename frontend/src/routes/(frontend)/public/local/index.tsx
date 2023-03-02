@@ -8,21 +8,19 @@ import { getDocumentHead } from '~/utils/getDocumentHead'
 import { StatusesPanel } from '~/components/StatusesPanel/StatusesPanel'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
-export const statusesLoader = loader$<Promise<MastodonStatus[]>, { DATABASE: D1Database; domain: string }>(
-	async ({ platform, html }) => {
-		try {
-			// TODO: use the "trending" API endpoint here.
-			const response = await timelines.handleRequest(platform.domain, await getDatabase(platform), { local: true })
-			const results = await response.text()
-			// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
-			return JSON.parse(results) as MastodonStatus[]
-		} catch (e: unknown) {
-			const error = e as { stack: string; cause: string }
-			console.warn(error.stack, error.cause)
-			throw html(500, getErrorHtml('The local timeline is unavailable'))
-		}
+export const statusesLoader = loader$<Promise<MastodonStatus[]>>(async ({ platform, html }) => {
+	try {
+		// TODO: use the "trending" API endpoint here.
+		const response = await timelines.handleRequest(platform.domain, await getDatabase(platform), { local: true })
+		const results = await response.text()
+		// Manually parse the JSON to ensure that Qwik finds the resulting objects serializable.
+		return JSON.parse(results) as MastodonStatus[]
+	} catch (e: unknown) {
+		const error = e as { stack: string; cause: string }
+		console.warn(error.stack, error.cause)
+		throw html(500, getErrorHtml('The local timeline is unavailable'))
 	}
-)
+})
 
 export default component$(() => {
 	const statuses = statusesLoader().value

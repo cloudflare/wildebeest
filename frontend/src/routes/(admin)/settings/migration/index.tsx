@@ -1,9 +1,8 @@
 import { component$ } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
-import { WildebeestEnv } from '~/types'
 // import { checkAuth } from '~/utils/checkAuth'
 
-export const loader = loader$<WildebeestEnv, void>(async ({ redirect }) => {
+export const loader = loader$(async ({ redirect }) => {
 	// Hiding this page for now
 	redirect(303, '/explore')
 

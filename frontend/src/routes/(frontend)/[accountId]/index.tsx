@@ -11,8 +11,7 @@ export const statusesLoader = loader$<
 	Promise<{
 		accountId: string
 		statuses: MastodonStatus[]
-	}>,
-	{ DATABASE: D1Database }
+	}>
 >(async ({ platform, request, html }) => {
 	let statuses: MastodonStatus[] = []
 	let accountId = ''

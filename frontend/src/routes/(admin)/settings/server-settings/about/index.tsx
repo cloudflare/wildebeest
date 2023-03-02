@@ -16,7 +16,7 @@ export const action = action$(async (data, { request, platform }) => {
 	let success = false
 	try {
 		const response = await handleRequestPost(
-			getDatabase(platform),
+			await getDatabase(platform),
 			new Request(request, { body: JSON.stringify(data) })
 		)
 		success = response.ok

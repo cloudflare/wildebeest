@@ -1,7 +1,6 @@
 import { component$, Slot } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
 import * as access from 'wildebeest/backend/src/access'
-import { WildebeestEnv } from '~/types'
 import { checkAuth } from '~/utils/checkAuth'
 
 type AccessLoaderData = {
@@ -9,7 +8,7 @@ type AccessLoaderData = {
 	isAuthorized: boolean
 }
 
-export const accessLoader = loader$<WildebeestEnv, Promise<AccessLoaderData>>(async ({ platform, request }) => {
+export const accessLoader = loader$<Promise<AccessLoaderData>>(async ({ platform, request }) => {
 	const isAuthorized = await checkAuth(request, platform)
 
 	return {
