@@ -1,4 +1,5 @@
 import { component$, useContext } from '@builder.io/qwik'
+import { Link } from '@builder.io/qwik-city'
 import { InstanceConfigContext } from '~/utils/instanceConfig'
 import { useDomain } from '~/utils/useDomain'
 
@@ -16,6 +17,12 @@ export default component$(() => {
 				<img class="w-full" src={config.thumbnail} alt="Wildebeest instance thumbnail" />
 				<p>{config.description}</p>
 			</div>
+			<Link
+				class="block text-wildebeest-500 border border-current my-4 p-2 text-center rounded-md no-underline"
+				href="/about"
+			>
+				Learn More
+			</Link>
 		</div>
 	)
 })
