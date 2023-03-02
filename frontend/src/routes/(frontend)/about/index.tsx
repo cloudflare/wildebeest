@@ -15,7 +15,6 @@ import { getAdmins } from 'wildebeest/functions/api/wb/settings/server/admins'
 import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { AccountCard } from '~/components/AccountCard/AccountCard'
-import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 
 type AboutInfo = {
 	image: string
@@ -27,9 +26,7 @@ type AboutInfo = {
 	}
 }
 
-export const aboutInfoLoader = loader$<Promise<AboutInfo>>(async ({ resolveValue, request, platform, html }) => {
-	throw html(404, getNotFoundHtml())
-
+export const aboutInfoLoader = loader$<Promise<AboutInfo>>(async ({ resolveValue, request, platform }) => {
 	// TODO: fetching the instance for the thumbnail, but that should be part of the settings
 	const instance = await resolveValue(instanceLoader)
 
