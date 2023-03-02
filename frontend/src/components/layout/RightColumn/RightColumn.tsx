@@ -11,7 +11,7 @@ type LinkConfig = {
 }
 
 export default component$(() => {
-	const accessData = accessLoader.use().value
+	const accessData = accessLoader().value
 	const location = useLocation()
 
 	const renderNavLink = ({ iconName, linkText, linkTarget, linkActiveRegex }: LinkConfig) => {
