@@ -7,7 +7,7 @@ import * as peers from 'wildebeest/functions/api/v1/instance/peers'
 import { makeDB, assertCORS, assertJSON } from 'wildebeest/backend/test/utils'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { createPublicNote } from 'wildebeest/backend/src/activitypub/objects/note'
-import { MastodonInstance, InstanceStatistics } from 'wildebeest/backend/src/types/instance'
+import { MastodonInstance } from 'wildebeest/backend/src/types/instance'
 
 const adminKEK = 'admin'
 const userKEK = 'test_kek2'

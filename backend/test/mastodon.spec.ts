@@ -1,5 +1,4 @@
 import { strict as assert } from 'node:assert/strict'
-import type { Env } from 'wildebeest/backend/src/types/env'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
 import * as mutes from 'wildebeest/functions/api/v1/mutes'
 import * as blocks from 'wildebeest/functions/api/v1/blocks'
