@@ -1,9 +1,8 @@
 import { component$, useStore, useSignal, $ } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
-import { WildebeestEnv } from '~/types'
 import { checkAuth } from '~/utils/checkAuth'
 
-export const loader = loader$<void, WildebeestEnv>(async ({ request, platform, redirect }) => {
+export const loader = loader$(async ({ request, platform, redirect }) => {
 	const isAuthorized = await checkAuth(request, platform)
 
 	if (!isAuthorized) {
