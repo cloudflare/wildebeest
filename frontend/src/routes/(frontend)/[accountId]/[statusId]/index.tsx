@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik'
-import { Database, getDatabase } from 'wildebeest/backend/src/database'
+import { getDatabase } from 'wildebeest/backend/src/database'
 import { MastodonStatus, StatusContext } from '~/types'
 import Status from '~/components/Status'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
@@ -12,8 +12,7 @@ import { getDocumentHead } from '~/utils/getDocumentHead'
 import { Person } from 'wildebeest/backend/src/activitypub/actors'
 
 export const statusLoader = loader$<
-	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>,
-	{ DATABASE: Database }
+	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>
 >(async ({ request, html, platform, params }) => {
 	const domain = new URL(request.url).hostname
 	let statusText = ''

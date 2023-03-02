@@ -8,7 +8,7 @@ import StickyHeader from '~/components/StickyHeader/StickyHeader'
 import { MastodonStatus } from '~/types'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 
-export const loader = loader$<Promise<{ tag: string; statuses: MastodonStatus[] }>, { DATABASE: D1Database }>(
+export const loader = loader$<Promise<{ tag: string; statuses: MastodonStatus[] }>>(
 	async ({ request, platform, params }) => {
 		const tag = params.tag
 		const response = await handleRequest(await getDatabase(platform), request, getDomain(request.url), tag)
