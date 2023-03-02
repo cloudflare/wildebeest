@@ -19,7 +19,7 @@ export async function handleRequest(domain: string, db: Database, env: Env) {
 	const res: InstanceConfigV2 = {
 		domain,
 		title: env.INSTANCE_TITLE,
-		version: getVersion(),
+		version: getVersion(domain),
 		source_url: 'https://github.com/cloudflare/wildebeest',
 		description: env.INSTANCE_DESCR,
 		thumbnail: {

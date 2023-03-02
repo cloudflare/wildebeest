@@ -5,7 +5,11 @@ import * as v1_instance from 'wildebeest/functions/api/v1/instance'
 import * as v2_instance from 'wildebeest/functions/api/v2/instance'
 import * as peers from 'wildebeest/functions/api/v1/instance/peers'
 import { makeDB, assertCORS, assertJSON } from '../utils'
+import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
+import { MastodonInstance } from 'wildebeest/backend/src/types/instance'
 
+const adminKEK = 'admin'
+const admin_email = 'admin@cloudflare.com'
 const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
@@ -35,8 +39,31 @@ describe('Mastodon APIs', () => {
 			assert.equal(data[1], 'b')
 		})
 
+		test('return the correct instance admin', async () => {
+			const db = await makeDB()
+			await createPerson(domain, db, adminKEK, admin_email, {}, true)
+
+			const env = {
+				INSTANCE_TITLE: 'a',
+				ADMIN_EMAIL: admin_email,
+				INSTANCE_DESCR: 'c',
+			} as Env
+
+			const res = await v1_instance.handleRequest(domain, db, env)
+			assert.equal(res.status, 200)
+			assertCORS(res)
+			assertJSON(res)
+
+			{
+				const data = await res.json<MastodonInstance>()
+				assert.equal(data.email, admin_email)
+				assert.equal(data?.contact_account?.acct, adminKEK)
+			}
+		})
+
 		test('return the instance infos v1', async () => {
 			const db = await makeDB()
+			await createPerson(domain, db, adminKEK, admin_email, {}, true)
 
 			const env = {
 				INSTANCE_TITLE: 'a',
@@ -62,6 +89,7 @@ describe('Mastodon APIs', () => {
 
 		test('adds a short_description if missing v1', async () => {
 			const db = await makeDB()
+			await createPerson(domain, db, adminKEK, admin_email, {}, true)
 
 			const env = {
 				INSTANCE_DESCR: 'c',
@@ -78,6 +106,7 @@ describe('Mastodon APIs', () => {
 
 		test('return the instance infos v2', async () => {
 			const db = await makeDB()
+			await createPerson(domain, db, adminKEK, admin_email, {}, true)
 
 			const env = {
 				INSTANCE_TITLE: 'a',
