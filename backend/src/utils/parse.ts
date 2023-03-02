@@ -14,21 +14,15 @@ export function parseHandle(query: string): Handle {
 	query = decodeURIComponent(query)
 
 	const parts = query.split('@')
-	if (parts.length > 0) {
-		const localPart = parts[0]
+	const localPart = parts[0]
 
-		if (!/^[\w-.]+$/.test(localPart)) {
-			throw new Error('invalid handle: localPart: ' + localPart)
-		}
+	if (!/^[\w-.]+$/.test(localPart)) {
+		throw new Error('invalid handle: localPart: ' + localPart)
+	}
 
-		if (parts.length > 1) {
-			return { localPart, domain: parts[1] }
-		} else {
-			return { localPart, domain: null }
-		}
+	if (parts.length > 1) {
+		return { localPart, domain: parts[1] }
 	} else {
-		// it's a URI handle?
-		const urlParts = query.replace(/^https?:\/\//, '').split('/')
-		return { domain: urlParts[0], localPart: urlParts[urlParts.length - 1] }
+		return { localPart, domain: null }
 	}
 }

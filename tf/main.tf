@@ -143,13 +143,12 @@ resource "cloudflare_pages_project" "wildebeest_pages_project" {
 }
 
 resource "cloudflare_record" "record" {
-  allow_overwrite = true
-  zone_id         = trimspace(var.cloudflare_zone_id)
-  name            = trimspace(var.cloudflare_deploy_domain)
-  value           = cloudflare_pages_project.wildebeest_pages_project.subdomain
-  type            = "CNAME"
-  ttl             = 1
-  proxied         = true
+  zone_id = trimspace(var.cloudflare_zone_id)
+  name    = trimspace(var.cloudflare_deploy_domain)
+  value   = cloudflare_pages_project.wildebeest_pages_project.subdomain
+  type    = "CNAME"
+  ttl     = 1
+  proxied = true
 }
 
 resource "cloudflare_pages_domain" "domain" {
@@ -168,6 +167,6 @@ resource "cloudflare_access_application" "wildebeest_access" {
   name                      = "wildebeest-${lower(var.name_suffix)}"
   domain                    = "${trimspace(var.cloudflare_deploy_domain)}/oauth/authorize"
   type                      = "self_hosted"
-  session_duration          = "24h"
+  session_duration          = "730h"
   auto_redirect_to_identity = false
 }
