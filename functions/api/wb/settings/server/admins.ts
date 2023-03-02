@@ -3,7 +3,6 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 import { Actor, Person, personFromRow } from 'wildebeest/backend/src/activitypub/actors'
 import { Result } from 'wildebeest/backend/src/database'
-import * as error from 'wildebeest/backend/src/errors'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ env }) => {
 	return handleRequestGet(await getDatabase(env))

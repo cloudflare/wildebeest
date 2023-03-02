@@ -11,8 +11,7 @@ import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { Database, getDatabase } from 'wildebeest/backend/src/database'
 import { getAdmins } from 'wildebeest/functions/api/wb/settings/server/admins'
-import { Actor, emailSymbol, Person } from 'wildebeest/backend/src/activitypub/actors'
-import { APObject } from 'wildebeest/backend/src/activitypub/objects'
+import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain: string = new URL(request.url).hostname
