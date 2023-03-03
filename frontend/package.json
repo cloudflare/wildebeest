@@ -7,6 +7,8 @@
 	},
 	"private": true,
 	"scripts": {
+		"pretypes-check": "yarn build",
+		"types-check": "tsc",
 		"lint": "eslint src mock-db adaptors",
 		"build": "vite build && vite build -c adaptors/cloudflare-pages/vite.config.ts",
 		"dev": "vite --mode ssr",
