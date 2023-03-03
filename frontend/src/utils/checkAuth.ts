@@ -1,4 +1,3 @@
-import { RequestContext } from '@builder.io/qwik-city/middleware/request-handler'
 import * as access from 'wildebeest/backend/src/access'
 
 type Env = {
@@ -6,7 +5,7 @@ type Env = {
 	ACCESS_AUD: string
 }
 
-export const checkAuth = async (request: RequestContext, platform: Env) => {
+export const checkAuth = async (request: Request, platform: Env) => {
 	const jwt = request.headers.get('Cf-Access-Jwt-Assertion') || ''
 	if (!jwt) return false
 
