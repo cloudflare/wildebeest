@@ -8,3 +8,8 @@ export function urlToHandle(input: URL): string {
 	const localPart = parts[parts.length - 1]
 	return `${localPart}@${host}`
 }
+
+export function isHandle(input: string): boolean {
+	const r: RegExp = /^[A-Za-z0-9_]{1,16}(@[A-Za-z0-9]([A-Za-z0-9-]{1,32})?\.[A-Za-z]{2,16})?$/i
+	return input.search(r) !== -1
+}

@@ -46,6 +46,16 @@ export function internalServerError(): Response {
 	return generateErrorResponse('Internal Server Error', 500)
 }
 
+export function malformedMastodonAccountRequest(id: string): Response {
+	console.warn(`Mastodon account ID is not a numeric value: ${id}`)
+	return resourceNotFound('account', id)
+}
+
+export function malformedMastodonAccountLookup(acct: string): Response {
+	console.warn(`Lookup value is not a username or Webfinger address: '${acct}'`)
+	return resourceNotFound('account', acct)
+}
+
 export function statusNotFound(id: string): Response {
 	return resourceNotFound('status', id)
 }
