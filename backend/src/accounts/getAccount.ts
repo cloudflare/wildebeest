@@ -8,6 +8,7 @@ import { queryAcct } from 'wildebeest/backend/src/webfinger/index'
 import { loadExternalMastodonAccount, loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { MastodonAccount } from '../types'
 import { adjustLocalHostDomain } from '../utils/adjustLocalHostDomain'
+import { findMastodonAccountIDByEmailQuery } from 'wildebeest/backend/src/mastodon/sql/account'
 
 export async function getAccount(domain: string, accountId: string, db: Database): Promise<MastodonAccount | null> {
 	const handle = parseHandle(accountId)
@@ -45,4 +46,10 @@ async function getLocalAccount(domain: string, db: Database, handle: Handle): Pr
 	}
 
 	return await loadLocalMastodonAccount(db, actor)
+}
+
+export async function getAccountByEmail(domain: string, email: string, db: Database): Promise<MastodonAccount | null> {
+	const row: any = await db.prepare(findMastodonAccountIDByEmailQuery).bind(email).first()
+
+	return await getAccount(domain, row?.id, db)
 }
