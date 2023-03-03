@@ -27,6 +27,7 @@
 	"scripts": {
 		"pretty": "npx prettier --list-different './**/*.ts'",
 		"test": "NODE_OPTIONS=--experimental-vm-modules yarn jest",
+		"prelint": "tsc",
 		"lint": "run-s lint:* --print-label",
 		"lint:frontend": "npm --prefix frontend run lint",
 		"lint:backend": "npx eslint backend",
