@@ -28,7 +28,7 @@ async function loadContextData(db: Database, clientId: string, email: string, ct
 		return false
 	}
 
-	const person = actors.personFromRow(row)
+	const person = await actors.personFromRow(row, db)
 
 	ctx.data.connectedActor = person
 	ctx.data.identity = { email }

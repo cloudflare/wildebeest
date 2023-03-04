@@ -11,9 +11,11 @@ import * as images from 'wildebeest/backend/src/media/image'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { updateActorProperty } from 'wildebeest/backend/src/activitypub/actors'
-import type { CredentialAccount } from 'wildebeest/backend/src/types/account'
+import type { MastodonAccount, CredentialAccount } from 'wildebeest/backend/src/types/account'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import { parseHandle, type Handle } from 'wildebeest/backend/src/utils/parse'
 
 const headers = {
 	...cors(),
@@ -51,7 +53,7 @@ export async function handleRequest(
 		return new Response('', { headers, status: 400 })
 	}
 
-	const domain = new URL(request.url).hostname
+	const localDomain = new URL(request.url).hostname
 
 	// update actor
 	{
@@ -90,13 +92,17 @@ export async function handleRequest(
 		if (actor === null) {
 			return errors.notAuthorized('user not found')
 		}
-		const user = await loadLocalMastodonAccount(db, actor)
+		const handle: Handle = parseHandle(urlToHandle(connectedActor.id))
+		const mastodonAccount: MastodonAccount | null = await loadLocalMastodonAccount(handle, localDomain, db)
+		if (mastodonAccount === null) {
+			return errors.mastodonAccountNotFound(handle.localPart)
+		}
 
 		const res: CredentialAccount = {
-			...user,
+			...mastodonAccount,
 			source: {
-				note: user.note,
-				fields: user.fields,
+				note: mastodonAccount.note!,
+				fields: mastodonAccount.fields!,
 				privacy: 'public',
 				sensitive: false,
 				language: 'en',
@@ -115,7 +121,7 @@ export async function handleRequest(
 		}
 
 		// send updates
-		const activity = activities.create(domain, connectedActor, actor)
+		const activity = activities.create(localDomain, connectedActor, actor)
 		await deliverFollowers(db, userKEK, connectedActor, activity, queue)
 
 		return new Response(JSON.stringify(res), { headers })

@@ -18,6 +18,7 @@ import { addObjectInOutbox } from '../activitypub/actors/outbox'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 import { type Database } from 'wildebeest/backend/src/database'
+import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 
 export async function getMentions(input: string, instanceDomain: string, db: Database): Promise<Array<Actor>> {
 	const mentions: Array<Actor> = []
@@ -60,7 +61,10 @@ export async function toMastodonStatusFromObject(
 	const actor = await actors.getAndCache(actorId, db)
 
 	const acct = urlToHandle(actorId)
-	const account = await loadExternalMastodonAccount(acct, actor)
+	const mastodonAccount: MastodonAccount | null = await loadExternalMastodonAccount(acct, actor)
+	if (mastodonAccount === null) {
+		return null
+	}
 
 	// FIXME: temporarly disable favourites and reblogs counts
 	const favourites = []
@@ -90,7 +94,7 @@ export async function toMastodonStatusFromObject(
 		uri: obj.id,
 		url: new URL(`/@${actor.preferredUsername}/${obj[mastodonIdSymbol]}`, 'https://' + domain),
 		created_at: obj.published || '',
-		account,
+		account: mastodonAccount,
 
 		favourites_count: favourites.length,
 		reblogs_count: reblogs.length,
@@ -108,14 +112,20 @@ export async function toMastodonStatusFromRow(domain: string, db: Database, row:
 	const properties = JSON.parse(row.properties)
 	const actorId = new URL(row.publisher_actor_id)
 
-	const author = actors.personFromRow({
-		id: row.actor_id,
-		cdate: row.actor_cdate,
-		properties: row.actor_properties,
-	})
+	const author = await actors.personFromRow(
+		{
+			id: row.actor_id,
+			cdate: row.actor_cdate,
+			properties: row.actor_properties,
+		},
+		db
+	)
 
 	const acct = urlToHandle(actorId)
-	const account = await loadExternalMastodonAccount(acct, author)
+	const mastodonAccount: MastodonAccount | null = await loadExternalMastodonAccount(acct, author)
+	if (mastodonAccount === null) {
+		return null
+	}
 
 	if (row.favourites_count === undefined || row.reblogs_count === undefined || row.replies_count === undefined) {
 		throw new Error('logic error; missing fields.')
@@ -139,7 +149,7 @@ export async function toMastodonStatusFromRow(domain: string, db: Database, row:
 		media_attachments: mediaAttachments,
 		tags: [],
 		mentions: [],
-		account,
+		account: mastodonAccount,
 		spoiler_text: properties.spoiler_text ?? '',
 
 		// TODO: stub values
@@ -165,12 +175,15 @@ export async function toMastodonStatusFromRow(domain: string, db: Database, row:
 		const actorId = new URL(properties.attributedTo)
 		const acct = urlToHandle(actorId)
 		const author = await actors.getAndCache(actorId, db)
-		const account = await loadExternalMastodonAccount(acct, author)
+		const mastodonAccount: MastodonAccount | null = await loadExternalMastodonAccount(acct, author)
+		if (mastodonAccount === null) {
+			return null
+		}
 
 		// Restore reblogged status
 		status.reblog = {
 			...status,
-			account,
+			account: mastodonAccount,
 		}
 	}
 

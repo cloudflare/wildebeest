@@ -1,7 +1,8 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
-import { Person, personFromRow } from 'wildebeest/backend/src/activitypub/actors'
+import { Actor, Person, personFromRow } from 'wildebeest/backend/src/activitypub/actors'
+import { Result } from 'wildebeest/backend/src/database'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ env }) => {
 	return handleRequestGet(await getDatabase(env))
@@ -13,14 +14,28 @@ export async function handleRequestGet(db: Database) {
 }
 
 export async function getAdmins(db: Database): Promise<Person[]> {
-	let rows: unknown[] = []
-	try {
-		const stmt = db.prepare('SELECT * FROM actors WHERE is_admin=TRUE')
-		const result = await stmt.all<unknown>()
-		rows = result.success ? (result.results as unknown[]) : []
-	} catch {
-		/* empty */
+	const stmt = db.prepare('SELECT * FROM actors WHERE is_admin=1 ORDER BY cdate ASC')
+	const queryResult: Result<Actor> = await stmt.all<Actor>()
+
+	if (queryResult.success === false) {
+		console.error(`SQL error encountered while retrieving server admin(s): ${queryResult.error}`)
+		return Array<Person>()
 	}
 
-	return rows.map(personFromRow)
+	const rows: Array<Actor> = (queryResult?.results as Actor[]) ?? []
+	if (rows.length === 0) {
+		console.warn('Server lacks an admin')
+		return Array<Person>()
+	}
+
+	const persons: Person[] = []
+	for (const row of rows) {
+		try {
+			const person: Person = await personFromRow(row, db)
+			persons.push(person)
+		} catch (e) {
+			console.error(`Error while reviving Person from Actor: ${e}`)
+		}
+	}
+	return persons
 }

@@ -1,24 +1,36 @@
 // https://docs.joinmastodon.org/methods/accounts/#verify_credentials
 
 import { cors } from 'wildebeest/backend/src/utils/cors'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import { parseHandle, type Handle } from 'wildebeest/backend/src/utils/parse'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import * as errors from 'wildebeest/backend/src/errors'
-import type { CredentialAccount } from 'wildebeest/backend/src/types/account'
+import type { MastodonAccount, CredentialAccount } from 'wildebeest/backend/src/types/account'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { getDatabase } from 'wildebeest/backend/src/database'
+import type { Actor } from 'wildebeest/backend/src/activitypub/actors'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, env }) => {
 	if (!data.connectedActor) {
 		return errors.notAuthorized('no connected user')
 	}
-	const user = await loadLocalMastodonAccount(await getDatabase(env), data.connectedActor)
+	const connectedActor: Actor = data.connectedActor
+	const handle: Handle = parseHandle(urlToHandle(connectedActor.id))
+	const mastodonAccount: MastodonAccount | null = await loadLocalMastodonAccount(
+		handle,
+		env.DOMAIN,
+		await getDatabase(env)
+	)
+	if (mastodonAccount === null) {
+		return errors.mastodonAccountNotFound(handle.localPart)
+	}
 
 	const res: CredentialAccount = {
-		...user,
+		...mastodonAccount,
 		source: {
-			note: user.note,
-			fields: user.fields,
+			note: mastodonAccount.note!,
+			fields: mastodonAccount.fields!,
 			privacy: 'public',
 			sensitive: false,
 			language: 'en',
