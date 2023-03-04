@@ -17,6 +17,7 @@ import type {
 } from 'wildebeest/backend/src/types/notification'
 import { getSubscriptionForAllClients } from 'wildebeest/backend/src/mastodon/subscription'
 import type { Cache } from 'wildebeest/backend/src/cache'
+import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 
 export async function createNotification(
 	db: Database,
@@ -235,45 +236,47 @@ export async function getNotifications(db: Database, actor: Actor, domain: strin
 		}
 
 		const acct = urlToHandle(notifFromActorId)
-		const notifFromAccount = await loadExternalMastodonAccount(acct, notifFromActor)
-
-		const notif: Notification = {
-			id: result.notif_id.toString(),
-			type: result.type,
-			created_at: new Date(result.notif_cdate).toISOString(),
-			account: notifFromAccount,
-		}
-
-		if (result.type === 'mention' || result.type === 'favourite') {
-			const actorId = new URL(result.original_actor_id)
-			const actor = await actors.getAndCache(actorId, db)
-
-			const acct = urlToHandle(actorId)
-			const account = await loadExternalMastodonAccount(acct, actor)
-
-			notif.status = {
-				id: result.mastodon_id,
-				content: properties.content,
-				uri: result.id,
-				url: new URL(`/@${actor.preferredUsername}/${result.mastodon_id}`, 'https://' + domain),
-				created_at: new Date(result.cdate).toISOString(),
-
-				account,
-
-				// TODO: stub values
-				emojis: [],
-				media_attachments: [],
-				tags: [],
-				mentions: [],
-				replies_count: 0,
-				reblogs_count: 0,
-				favourites_count: 0,
-				visibility: 'public',
-				spoiler_text: '',
+		const notifFromAccount: MastodonAccount | null = await loadExternalMastodonAccount(acct, notifFromActor)
+		if (notifFromAccount !== null) {
+			const notif: Notification = {
+				id: result.notif_id.toString(),
+				type: result.type,
+				created_at: new Date(result.notif_cdate).toISOString(),
+				account: notifFromAccount,
 			}
-		}
 
-		out.push(notif)
+			if (result.type === 'mention' || result.type === 'favourite') {
+				const actorId = new URL(result.original_actor_id)
+				const actor = await actors.getAndCache(actorId, db)
+
+				const acct = urlToHandle(actorId)
+				const account: MastodonAccount | null = await loadExternalMastodonAccount(acct, actor)
+				if (account !== null) {
+					notif.status = {
+						id: result.mastodon_id,
+						content: properties.content,
+						uri: result.id,
+						url: new URL(`/@${actor.preferredUsername}/${result.mastodon_id}`, 'https://' + domain),
+						created_at: new Date(result.cdate).toISOString(),
+
+						account,
+
+						// TODO: stub values
+						emojis: [],
+						media_attachments: [],
+						tags: [],
+						mentions: [],
+						replies_count: 0,
+						reblogs_count: 0,
+						favourites_count: 0,
+						visibility: 'public',
+						spoiler_text: '',
+					}
+				}
+			}
+
+			out.push(notif)
+		}
 	}
 
 	return out

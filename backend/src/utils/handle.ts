@@ -10,6 +10,9 @@ export function urlToHandle(input: URL): string {
 }
 
 export function isHandle(input: string): boolean {
-	const r: RegExp = /^[A-Za-z0-9_]{1,16}(@[A-Za-z0-9]([A-Za-z0-9-]{1,32})?\.[A-Za-z]{2,16})?$/i
+	// Loosely based on https://github.com/mastodon/mastodon/blob/aa98c8fbeb02fecac2681464fd7c0445deb466b1/app/models/account.rb#LL65
+	// and https://www.regextester.com/103452 but removes the potentially exploitable patterns
+	const r: RegExp =
+		/^([a-z0-9_]+(?:[a-z0-9_-]+[a-z0-9_]+)?(?:@(?:(?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+[a-zA-Z]{2,63})?)$/i
 	return input.search(r) !== -1
 }

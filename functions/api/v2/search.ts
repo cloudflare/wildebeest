@@ -52,7 +52,10 @@ export async function handleRequest(db: Database, request: Request): Promise<Res
 		const acct = `${query.localPart}@${query.domain}`
 		const res = await queryAcct(query.domain, db, acct)
 		if (res !== null) {
-			out.accounts.push(await loadExternalMastodonAccount(acct, res))
+			const mastodonAccount: MastodonAccount | null = await loadExternalMastodonAccount(acct, res)
+			if (mastodonAccount !== null) {
+				out.accounts.push(mastodonAccount)
+			}
 		}
 	}
 
@@ -74,9 +77,12 @@ export async function handleRequest(db: Database, request: Request): Promise<Res
 			if (results !== undefined) {
 				for (let i = 0, len = results.length; i < len; i++) {
 					const row: any = results[i]
-					const actor = personFromRow(row)
+					const actor = await personFromRow(row, db)
 					const acct = urlToHandle(new URL(row.id))
-					out.accounts.push(await loadExternalMastodonAccount(acct, actor))
+					const mastodonAccount: MastodonAccount | null = await loadExternalMastodonAccount(acct, actor)
+					if (mastodonAccount !== null) {
+						out.accounts.push(mastodonAccount)
+					}
 				}
 			}
 		} catch (err: any) {

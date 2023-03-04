@@ -12,6 +12,7 @@ import * as accounts_follow from 'wildebeest/functions/api/v1/accounts/[id]/foll
 import * as accounts_unfollow from 'wildebeest/functions/api/v1/accounts/[id]/unfollow'
 import * as accounts_statuses from 'wildebeest/functions/api/v1/accounts/[id]/statuses'
 import * as accounts_lookup from 'wildebeest/functions/api/v1/accounts/lookup'
+// import * as accounts_get from 'wildebeest/functions/api/v1/accounts/[id]'
 import { isUUID, isUrlValid, makeDB, assertCORS, assertJSON, makeQueue } from '../utils'
 import * as accounts_verify_creds from 'wildebeest/functions/api/v1/accounts/verify_credentials'
 import * as accounts_update_creds from 'wildebeest/functions/api/v1/accounts/update_credentials'

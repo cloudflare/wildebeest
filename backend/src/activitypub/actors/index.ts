@@ -1,9 +1,10 @@
 import { defaultImages } from 'wildebeest/config/accounts'
 import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
-import { type APObject, sanitizeContent, getTextContent } from '../objects'
+import { type APObject, sanitizeContent, getTextContent } from 'wildebeest/backend/src/activitypub/objects'
 import { addPeer } from 'wildebeest/backend/src/activitypub/peers'
 import { type Database } from 'wildebeest/backend/src/database'
 import { Buffer } from 'buffer'
+import { createMastodonId } from 'wildebeest/backend/src/utils/id'
 
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
@@ -32,6 +33,10 @@ export interface Person extends Actor {
 		owner: URL
 		publicKeyPem: string
 	}
+}
+
+export interface WBActor extends Actor {
+	mastodon_id?: string
 }
 
 export async function get(url: string | URL): Promise<Actor> {
@@ -99,7 +104,10 @@ export async function getAndCache(url: URL, db: Database): Promise<Actor> {
 		throw new Error('missing fields on Actor')
 	}
 
-	const properties = actor
+	const properties = actor as WBActor
+	if (properties.mastodon_id === undefined) {
+		properties.mastodon_id = createMastodonId(actor.id.toString())
+	}
 
 	const sql = `
   INSERT INTO actors (id, type, properties)
@@ -129,10 +137,11 @@ export async function getPersonByEmail(db: Database, email: string): Promise<Per
 		return null
 	}
 	const row: any = results[0]
-	return personFromRow(row)
+	return await personFromRow(row, db)
 }
 
 type PersonProperties = {
+	mastodon_id?: string
 	name?: string
 	summary?: string
 	icon?: { url: string }
@@ -181,6 +190,11 @@ export async function createPerson(
 
 	const id = actorURL(domain, properties.preferredUsername).toString()
 
+	if (properties.mastodon_id === undefined) {
+		const mastodon_id: string = createMastodonId(actorURL.toString())
+		properties.mastodon_id = mastodon_id
+	}
+
 	if (properties.inbox === undefined) {
 		properties.inbox = id + '/inbox'
 	}
@@ -208,7 +222,7 @@ export async function createPerson(
 		.bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt, JSON.stringify(properties), admin ? 1 : null)
 		.first()
 
-	return personFromRow(row)
+	return await personFromRow(row, db)
 }
 
 export async function updateActorProperty(db: Database, actorId: URL, key: string, value: string) {
@@ -238,11 +252,47 @@ export async function getActorById(db: Database, id: URL): Promise<Actor | null>
 		return null
 	}
 	const row: any = results[0]
-	return personFromRow(row)
+	return await personFromRow(row, db)
 }
 
-export function personFromRow(row: any): Person {
-	const properties = JSON.parse(row.properties) as PersonProperties
+export async function getPersonByMastodonId(mastodon_id: string, db: Database): Promise<Person | null> {
+	const stmt = db.prepare("SELECT * FROM actors WHERE properties ->> '$.mastodon_id' =?").bind(mastodon_id)
+	const { results } = await stmt.all()
+	if (!results || results.length === 0) {
+		return null
+	}
+	const row: any = results[0]
+	return await personFromRow(row, db)
+}
+
+export async function getPersonByMastodonAcct(acct: string, db: Database): Promise<Person | null> {
+	const stmt = db.prepare("SELECT * FROM actors WHERE properties ->> '$.preferredUsername' =?").bind(acct)
+	const { results } = await stmt.all()
+	if (!results || results.length === 0) {
+		return null
+	}
+	const row: any = results[0]
+	return await personFromRow(row, db)
+}
+
+export async function personFromRow(row: any, db: Database): Promise<Person> {
+	const properties: PersonProperties = JSON.parse(row.properties) as PersonProperties
+	// Old actors weren't created with `mastodon_id` add it now if missing
+	if (properties.mastodon_id === undefined) {
+		console.warn(`${properties.preferredUsername ?? 'unknown'} is missing 'mastodon_id'; adding now.`)
+		const mastodon_id: string = createMastodonId(row.id)
+		const { success, error } = await db
+			.prepare(`UPDATE actors SET properties = json_set(properties, '$.mastodon_id', ?) WHERE id=?`)
+			.bind(mastodon_id)
+			.run()
+		if (!success) {
+			throw new Error(`Unable to set 'mastodon_id' due to SQL error: ${error}`)
+		} else {
+			console.info(`Successfully added 'mastodon_id'`)
+			properties.mastodon_id = mastodon_id
+		}
+	}
+
 	const icon = properties.icon ?? {
 		type: 'Image',
 		mediaType: 'image/jpeg',
@@ -273,26 +323,6 @@ export function personFromRow(row: any): Person {
 	let domain = id.hostname
 	if (row.original_actor_id) {
 		domain = new URL(row.original_actor_id).hostname
-	}
-
-	// Old local actors weren't created with inbox/outbox/etc properties, so add
-	// them if missing.
-	{
-		if (properties.inbox === undefined) {
-			properties.inbox = id + '/inbox'
-		}
-
-		if (properties.outbox === undefined) {
-			properties.outbox = id + '/outbox'
-		}
-
-		if (properties.following === undefined) {
-			properties.following = id + '/following'
-		}
-
-		if (properties.followers === undefined) {
-			properties.followers = id + '/followers'
-		}
 	}
 
 	return {

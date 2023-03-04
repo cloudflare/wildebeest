@@ -56,6 +56,11 @@ export function malformedMastodonAccountLookup(acct: string): Response {
 	return resourceNotFound('account', acct)
 }
 
+export function mastodonAccountNotFound(acct: string): Response {
+	console.warn(`Mastodon account not found: '${acct}'`)
+	return resourceNotFound('account', acct)
+}
+
 export function statusNotFound(id: string): Response {
 	return resourceNotFound('status', id)
 }

@@ -72,7 +72,10 @@ async function getLocalFollowing(request: Request, handle: Handle, db: Database)
 
 		try {
 			const actor = await actors.getAndCache(id, db)
-			out.push(await loadExternalMastodonAccount(acct, actor))
+			const mastodonAccount = await loadExternalMastodonAccount(acct, actor)
+			if (mastodonAccount !== null) {
+				out.push(mastodonAccount)
+			}
 		} catch (err: any) {
 			console.warn(`failed to retrieve following (${id}): ${err.message}`)
 		}

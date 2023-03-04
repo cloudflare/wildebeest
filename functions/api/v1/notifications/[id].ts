@@ -8,6 +8,8 @@ import { loadExternalMastodonAccount } from 'wildebeest/backend/src/mastodon/acc
 import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
+import { MastodonAccount } from 'wildebeest/backend/src/types/account'
+import * as errors from 'wildebeest/backend/src/errors'
 
 const headers = {
 	'content-type': 'application/json; charset=utf-8',
@@ -46,7 +48,10 @@ export async function handleRequest(
 	}
 
 	const acct = urlToHandle(from_actor_id)
-	const fromAccount = await loadExternalMastodonAccount(acct, fromActor)
+	const fromAccount: MastodonAccount | null = await loadExternalMastodonAccount(acct, fromActor)
+	if (fromAccount === null) {
+		return errors.mastodonAccountNotFound(acct)
+	}
 
 	const out: Notification = {
 		id: row.notif_id.toString(),

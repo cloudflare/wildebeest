@@ -14,6 +14,8 @@ import { getAdmins } from 'wildebeest/functions/api/wb/settings/server/admins'
 import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { AccountCard } from '~/components/AccountCard/AccountCard'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
+import { type Handle } from 'wildebeest/backend/src/utils/parse'
 
 type AboutInfo = {
 	image: string
@@ -54,7 +56,8 @@ export const aboutInfoLoader = loader$<Promise<AboutInfo>>(async ({ resolveValue
 
 	if (adminPerson) {
 		try {
-			adminAccount = (await loadLocalMastodonAccount(database, adminPerson)) as Account
+			const handle: Handle = urlToHandle(adminPerson)
+			adminAccount = (await loadLocalMastodonAccount(handle, platform.DOMAIN, database)) as Account
 		} catch {
 			/* empty */
 		}
