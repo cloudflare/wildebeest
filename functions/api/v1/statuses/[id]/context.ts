@@ -13,9 +13,10 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	return handleRequest(domain, await getDatabase(env), params.id as string)
 }
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 }
 
 export async function handleRequest(domain: string, db: Database, id: string): Promise<Response> {

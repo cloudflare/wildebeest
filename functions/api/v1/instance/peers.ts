@@ -8,9 +8,10 @@ export const onRequest: PagesFunction<Env, any> = async ({ env }) => {
 }
 
 export async function handleRequest(db: Database): Promise<Response> {
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	const peers = await getPeers(db)
 	return new Response(JSON.stringify(peers), { headers })

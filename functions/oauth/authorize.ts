@@ -71,9 +71,10 @@ export async function handleRequestPost(
 	accessAud: string
 ): Promise<Response> {
 	if (request.method === 'OPTIONS') {
+		// prettier-ignore
 		const headers = {
-			...cors(),
 			'content-type': 'application/json',
+			...cors()
 		}
 		return new Response('', { headers })
 	}

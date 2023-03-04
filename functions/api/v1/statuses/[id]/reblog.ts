@@ -60,9 +60,10 @@ export async function handleRequest(
 	await createReblog(db, connectedActor, obj)
 	status.reblogged = true
 
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	return new Response(JSON.stringify(status), { headers })
 }

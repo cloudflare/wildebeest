@@ -11,9 +11,10 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request,
 	return handleRequest(request, cacheFromEnv(env), data.connectedActor)
 }
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 }
 
 export async function handleRequest(request: Request, cache: Cache, connectedActor: Person): Promise<Response> {

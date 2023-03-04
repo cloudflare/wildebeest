@@ -55,9 +55,10 @@ export async function handleRequestGet(
 	}
 	*/
 
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	return new Response(JSON.stringify(status), { headers })
 }
@@ -92,9 +93,10 @@ export async function handleRequestDelete(
 
 	await timeline.pregenerateTimelines(domain, db, cache, connectedActor)
 
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	return new Response(JSON.stringify(status), { headers })
 }

@@ -36,9 +36,11 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, en
 		},
 	}
 
+	// prettier-ignore
+
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	return new Response(JSON.stringify(res), { headers })
 }

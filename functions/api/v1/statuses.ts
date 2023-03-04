@@ -56,9 +56,10 @@ export async function handleRequest(
 	}
 
 	const domain = new URL(request.url).hostname
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 
 	const idempotencyKey = request.headers.get('Idempotency-Key')

@@ -1,10 +1,11 @@
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json',
 	'cache-control': 'max-age=259200, public',
+	...cors()
 }
 
 export const onRequest: PagesFunction<Env, any> = async ({ env }) => {

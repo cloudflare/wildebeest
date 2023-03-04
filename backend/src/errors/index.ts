@@ -5,9 +5,10 @@ type ErrorResponse = {
 	error_description?: string
 }
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 } as const
 
 function generateErrorResponse(error: string, status: number, errorDescription?: string): Response {

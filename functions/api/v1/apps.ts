@@ -60,9 +60,10 @@ export async function handleRequest(db: Database, request: Request, vapidKeys: J
 		// FIXME: stub value
 		id: '20',
 	}
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	return new Response(JSON.stringify(res), { headers })
 }

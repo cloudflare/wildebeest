@@ -11,9 +11,10 @@ export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 }
 
 export async function handleRequest(domain: string, db: Database, env: Env) {
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 
 	const res: InstanceConfigV2 = {

@@ -51,9 +51,10 @@ async function getRemoteFollowers(request: Request, handle: Handle, db: Database
 	})
 
 	const out = await Promise.all(promises)
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	return new Response(JSON.stringify(out), { headers })
 }
@@ -78,9 +79,10 @@ async function getLocalFollowers(request: Request, handle: Handle, db: Database)
 		}
 	}
 
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	return new Response(JSON.stringify(out), { headers })
 }

@@ -6,9 +6,10 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { getAccount } from 'wildebeest/backend/src/accounts/getAccount'
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {

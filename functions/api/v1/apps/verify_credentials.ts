@@ -16,9 +16,10 @@ export type CredentialApp = {
 	vapid_key: string
 }
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {

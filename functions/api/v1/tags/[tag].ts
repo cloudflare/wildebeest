@@ -7,9 +7,10 @@ import * as errors from 'wildebeest/backend/src/errors'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json',
+	...cors()
 } as const
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ params, env, request }) => {

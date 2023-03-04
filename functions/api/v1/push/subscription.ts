@@ -19,9 +19,10 @@ export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ requ
 	return handlePostRequest(await getDatabase(env), request, data.connectedActor, data.clientId, getVAPIDKeys(env))
 }
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 }
 
 export async function handleGetRequest(

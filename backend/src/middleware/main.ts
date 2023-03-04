@@ -39,9 +39,10 @@ async function loadContextData(db: Database, clientId: string, email: string, ct
 
 export async function main(context: EventContext<Env, any, any>) {
 	if (context.request.method === 'OPTIONS') {
+		// prettier-ignore
 		const headers = {
-			...cors(),
 			'content-type': 'application/json',
+			...cors()
 		}
 		return new Response('', { headers })
 	}

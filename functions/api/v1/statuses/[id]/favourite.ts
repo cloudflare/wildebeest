@@ -52,9 +52,10 @@ export async function handleRequest(
 	await insertLike(db, connectedActor, obj)
 	status.favourited = true
 
+	// prettier-ignore
 	const headers = {
-		...cors(),
 		'content-type': 'application/json; charset=utf-8',
+		...cors()
 	}
 	return new Response(JSON.stringify(status), { headers })
 }

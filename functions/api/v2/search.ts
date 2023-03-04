@@ -10,9 +10,10 @@ import { personFromRow } from 'wildebeest/backend/src/activitypub/actors'
 import type { Handle } from 'wildebeest/backend/src/utils/parse'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 }
 
 type SearchResult = {

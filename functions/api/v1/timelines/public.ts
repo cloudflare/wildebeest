@@ -4,9 +4,10 @@ import type { ContextData } from 'wildebeest/backend/src/types/context'
 import { getPublicTimeline, LocalPreference } from 'wildebeest/backend/src/mastodon/timeline'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env }) => {

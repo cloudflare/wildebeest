@@ -20,9 +20,10 @@ import * as actors from 'wildebeest/backend/src/activitypub/actors'
 import { toMastodonStatusFromRow } from 'wildebeest/backend/src/mastodon/status'
 import { adjustLocalHostDomain } from 'wildebeest/backend/src/utils/adjustLocalHostDomain'
 
+// prettier-ignore
 const headers = {
-	...cors(),
 	'content-type': 'application/json; charset=utf-8',
+	...cors()
 }
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, env, params }) => {
