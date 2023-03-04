@@ -157,11 +157,14 @@ export async function generateDigestHeader(body: string): Promise<string> {
 
 export async function sign(request: Request, opts: SignOptions): Promise<void> {
 	const signingComponents: Component[] = opts.components ?? defaultSigningComponents
+
+	// prettier-ignore
 	const signingParams: Parameters = {
-		...opts.parameters,
 		keyid: opts.keyId,
 		alg: opts.signer.alg,
+		...opts.parameters
 	}
+
 	const signatureInputString = buildSignatureInputString(signingComponents, signingParams)
 	const dataToSign = buildSignedData(request, signingComponents, signingParams)
 	const signature = await opts.signer(dataToSign)

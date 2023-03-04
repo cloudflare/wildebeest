@@ -60,6 +60,7 @@ LIMIT ?2
 			const result: any = results[i]
 			const properties = JSON.parse(result.properties)
 
+			// prettier-ignore
 			const note: Note = {
 				id: new URL(result.id),
 				atomUri: new URL(result.id),
@@ -82,9 +83,9 @@ LIMIT ?2
 					id: 'https://example.com/users/a/statuses/109372762645660352/replies',
 					type: 'Collection',
 				},
-
-				...properties,
+				...properties
 			}
+
 			const activity = activityCreate.create(domain, actor, note)
 			delete activity['@context']
 			activity.id = note.id + '/activity'

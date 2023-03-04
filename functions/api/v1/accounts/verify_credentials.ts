@@ -14,8 +14,8 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, en
 	}
 	const user = await loadLocalMastodonAccount(await getDatabase(env), data.connectedActor)
 
+	// prettier-ignore
 	const res: CredentialAccount = {
-		...user,
 		source: {
 			note: user.note,
 			fields: user.fields,
@@ -34,6 +34,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, en
 			created_at: '2022-09-08T22:48:07.983Z',
 			updated_at: '2022-09-08T22:48:07.983Z',
 		},
+		...user
 	}
 
 	// prettier-ignore

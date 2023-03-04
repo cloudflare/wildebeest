@@ -93,8 +93,8 @@ export async function handleRequest(
 		}
 		const user = await loadLocalMastodonAccount(db, actor)
 
+		// prettier-ignore
 		const res: CredentialAccount = {
-			...user,
 			source: {
 				note: user.note,
 				fields: user.fields,
@@ -113,6 +113,7 @@ export async function handleRequest(
 				created_at: '2022-09-08T22:48:07.983Z',
 				updated_at: '2022-09-08T22:48:07.983Z',
 			},
+			...user
 		}
 
 		// send updates

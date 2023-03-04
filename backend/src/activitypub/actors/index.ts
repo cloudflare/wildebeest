@@ -295,11 +295,11 @@ export function personFromRow(row: any): Person {
 		}
 	}
 
+	// prettier-ignore
 	return {
 		// Hidden values
 		[emailSymbol]: row.email,
 
-		...properties,
 		name,
 		icon,
 		image,
@@ -311,5 +311,6 @@ export function personFromRow(row: any): Person {
 		published: new Date(row.cdate).toISOString(),
 
 		url: new URL('@' + preferredUsername, 'https://' + domain),
+		...properties
 	} as unknown as Person
 }

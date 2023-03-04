@@ -57,14 +57,15 @@ export async function createObject<Type extends APObject>(
 		.bind(apId, type, JSON.stringify(sanitizedProperties), originalActorId.toString(), local ? 1 : 0, uuid)
 		.first()
 
+	// prettier-ignore
 	return {
-		...sanitizedProperties,
 		type,
 		id: new URL(row.id),
 		published: new Date(row.cdate).toISOString(),
 
 		[mastodonIdSymbol]: row.mastodon_id,
 		[originalActorIdSymbol]: row.original_actor_id,
+		...sanitizedProperties
 	} as Type
 }
 
@@ -129,9 +130,10 @@ export async function cacheObject(
 
 	{
 		const properties = JSON.parse(row.properties)
+
+		// prettier-ignore
 		const object = {
 			published: new Date(row.cdate).toISOString(),
-			...properties,
 
 			type: row.type,
 			id: new URL(row.id),
@@ -139,6 +141,8 @@ export async function cacheObject(
 			[mastodonIdSymbol]: row.mastodon_id,
 			[originalActorIdSymbol]: row.original_actor_id,
 			[originalObjectIdSymbol]: row.original_object_id,
+
+			...properties
 		} as APObject
 
 		return { object, created: true }
@@ -208,9 +212,9 @@ export async function getObjectBy(db: Database, key: ObjectByKey, value: string)
 	const result: any = results[0]
 	const properties = JSON.parse(result.properties)
 
+	// prettier-ignore
 	return {
 		published: new Date(result.cdate).toISOString(),
-		...properties,
 
 		type: result.type,
 		id: new URL(result.id),
@@ -218,6 +222,7 @@ export async function getObjectBy(db: Database, key: ObjectByKey, value: string)
 		[mastodonIdSymbol]: result.mastodon_id,
 		[originalActorIdSymbol]: result.original_actor_id,
 		[originalObjectIdSymbol]: result.original_object_id,
+		...properties
 	} as APObject
 }
 
@@ -231,9 +236,12 @@ export async function sanitizeObjectProperties(properties: unknown): Promise<APO
 	if (!isAPObject(properties)) {
 		throw new Error('Invalid object properties. Expected an object but got ' + JSON.stringify(properties))
 	}
+
+	// prettier-ignore
 	const sanitized: APObject = {
-		...properties,
+		...properties
 	}
+
 	if ('content' in properties) {
 		sanitized.content = await sanitizeContent(properties.content as string)
 	}

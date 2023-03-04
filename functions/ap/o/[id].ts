@@ -20,6 +20,7 @@ export async function handleRequest(domain: string, db: Database, id: string): P
 		return new Response('', { status: 404 })
 	}
 
+	// prettier-ignore
 	const res = {
 		// TODO: should this be part of the object?
 		'@context': [
@@ -34,8 +35,7 @@ export async function handleRequest(domain: string, db: Database, id: string): P
 				votersCount: 'toot:votersCount',
 			},
 		],
-
-		...obj,
+		...obj
 	}
 
 	return new Response(JSON.stringify(res), { status: 200, headers })

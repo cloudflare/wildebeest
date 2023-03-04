@@ -168,9 +168,10 @@ export async function toMastodonStatusFromRow(domain: string, db: Database, row:
 		const account = await loadExternalMastodonAccount(acct, author)
 
 		// Restore reblogged status
+		// prettier-ignore
 		status.reblog = {
-			...status,
 			account,
+			...status
 		}
 	}
 

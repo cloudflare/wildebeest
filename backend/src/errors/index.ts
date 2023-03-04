@@ -12,10 +12,12 @@ const headers = {
 } as const
 
 function generateErrorResponse(error: string, status: number, errorDescription?: string): Response {
+	// prettier-ignore
 	const res: ErrorResponse = {
 		error: `${error}. If the problem persists please contact your instance administrator.`,
-		...(errorDescription ? { error_description: errorDescription } : {}),
+		...(errorDescription ? { error_description: errorDescription } : {})
 	}
+
 	return new Response(JSON.stringify(res), { headers, status })
 }
 

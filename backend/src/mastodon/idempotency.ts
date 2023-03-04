@@ -38,15 +38,14 @@ export async function hasKey(db: Database, key: string): Promise<APObject | null
 	const result = results[0]
 	const properties = JSON.parse(result.properties)
 
+	// prettier-ignore
 	return {
 		published: new Date(result.cdate).toISOString(),
-		...properties,
-
 		type: result.type,
 		id: new URL(result.id),
-
 		[mastodonIdSymbol]: result.mastodon_id,
 		[originalActorIdSymbol]: result.original_actor_id,
 		[originalObjectIdSymbol]: result.original_object_id,
+		...properties
 	} as APObject
 }

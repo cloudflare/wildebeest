@@ -14,10 +14,11 @@ export async function handleRequestGet(db: Database) {
 	const query = `SELECT * from server_settings`
 	const result = await db.prepare(query).all<{ setting_name: string; setting_value: string }>()
 
+	// prettier-ignore
 	const data = (result.results ?? []).reduce(
 		(settings, { setting_name, setting_value }) => ({
-			...settings,
 			[setting_name]: setting_value,
+			...settings
 		}),
 		{} as Object
 	)

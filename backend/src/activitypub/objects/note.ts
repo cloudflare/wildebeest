@@ -32,6 +32,7 @@ export async function createPublicNote(
 ): Promise<Note> {
 	const actorId = new URL(actor.id)
 
+	// prettier-ignore
 	const properties = {
 		attributedTo: actorId,
 		content,
@@ -46,7 +47,7 @@ export async function createPublicNote(
 
 		attachment: attachments,
 		inReplyTo: null,
-		...extraProperties,
+		...extraProperties
 	}
 
 	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
@@ -63,6 +64,7 @@ export async function createDirectNote(
 ): Promise<Note> {
 	const actorId = new URL(actor.id)
 
+	// prettier-ignore
 	const properties = {
 		attributedTo: actorId,
 		content,
@@ -77,7 +79,7 @@ export async function createDirectNote(
 		tag: [],
 		attachment,
 
-		...extraProperties,
+		...extraProperties
 	}
 
 	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
