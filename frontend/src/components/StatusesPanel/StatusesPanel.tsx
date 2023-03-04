@@ -21,6 +21,9 @@ export const StatusesPanel = component$(({ initialStatuses, fetchMoreStatuses: f
 		const newStatuses = await fetchMoreStatusesFn(statuses.value.length)
 		fetchingMoreStatuses.value = false
 		noMoreStatusesAvailable.value = newStatuses.length === 0
+		// TODO: Double-check that this is working as intended
+		// because this syntax will silently fail with multi-dimensional arrays
+		// ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#sect1
 		statuses.value = [...statuses.value, ...newStatuses]
 	})
 

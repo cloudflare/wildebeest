@@ -143,6 +143,9 @@ export async function handle(
 			let target = PUBLIC_GROUP
 
 			if (Array.isArray(activity.to) && activity.to.length > 0) {
+				// TODO: Double-check that this is working as intended
+				// because this syntax will silently fail if `recipients` or `activity.to` are multi-dimensional arrays
+				// ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#sect1
 				recipients = [...recipients, ...activity.to]
 
 				if (activity.to.length !== 1) {
@@ -151,6 +154,9 @@ export async function handle(
 				target = activity.to[0]
 			}
 			if (Array.isArray(activity.cc) && activity.cc.length > 0) {
+				// TODO: Double-check that this is working as intended
+				// because this syntax will silently fail if `recipients` or `activity.cc` are multi-dimensional arrays
+				// ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#sect1
 				recipients = [...recipients, ...activity.cc]
 			}
 

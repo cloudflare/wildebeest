@@ -90,6 +90,9 @@ export class PreparedStatement {
 	}
 
 	bind(...values: any[]): PreparedStatement {
+		// TODO: Double-check that this is working as intended
+		// because this syntax will silently fail if `this.values` or `values` are multi-dimensional arrays
+		// ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#sect1
 		return new PreparedStatement(this.env, this.query, [...this.values, ...values], this.client)
 	}
 
