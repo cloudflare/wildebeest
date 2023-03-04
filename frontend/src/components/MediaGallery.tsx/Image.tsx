@@ -32,7 +32,7 @@ export default component$<Props>(({ mediaAttachment, onOpenImagesModal$ }) => {
 				<img
 					class="object-cover w-full h-full rounded cursor-pointer"
 					style={{
-						...(objectFit && { 'object-position': `${objectFit.x}% ${objectFit.y}%` }),
+						...(objectFit && { 'object-position': `${objectFit.x}% ${objectFit.y}%` })
 					}}
 					src={mediaAttachment.preview_url || mediaAttachment.url}
 					onClick$={() => onOpenImagesModal$(mediaAttachment.id)}

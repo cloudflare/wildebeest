@@ -65,12 +65,13 @@ export default component$(() => {
 	const location = useLocation()
 	const currentPath = location.pathname.replace(/\/$/, '')
 
+	// prettier-ignore
 	const fields = [
 		{
 			name: 'Joined',
 			value: formatDateTime(pageDetails.account.created_at, false),
 		},
-		...pageDetails.account.fields,
+		...pageDetails.account.fields
 	]
 
 	const stats = [

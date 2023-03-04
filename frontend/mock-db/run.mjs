@@ -22,7 +22,7 @@ async function main() {
 		define: ['jest:{}'],
 	}
 	const workerPath = resolve(__dirname, './worker.ts')
-	const worker = await unstable_dev(workerPath, { ...options, experimental: { disableExperimentalWarning: true } })
+	const worker = await unstable_dev(workerPath, { experimental: { disableExperimentalWarning: true }, ...options })
 	await worker.fetch()
 	await worker.stop()
 }

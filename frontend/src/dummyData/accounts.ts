@@ -41,11 +41,11 @@ export const rafael = generateDummyAccount({
 	avatar_static: getAvatarUrl(309),
 })
 
+// prettier-ignore
 function generateDummyAccount(
 	details: Pick<Account, 'username' | 'acct' | 'display_name' | 'avatar' | 'avatar_static'>
 ): Account {
 	return {
-		...details,
 		id: `${Math.round(Math.random() * 9999999)}`.padStart(7, '0'),
 		locked: false,
 		bot: false,
@@ -88,6 +88,7 @@ function generateDummyAccount(
 				verified_at: null,
 			},
 		],
+		...details
 	}
 }
 

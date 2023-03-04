@@ -54,12 +54,13 @@ const mastodonRawStatuses: MastodonStatus[] = [
 	}),
 ]
 
+// prettier-ignore
 export const statuses: MastodonStatus[] = mastodonRawStatuses.map((rawStatus) => ({
-	...rawStatus,
 	media_attachments: rawStatus.media_attachments.map((mediaAttachment) => ({
-		...mediaAttachment,
 		type: getStandardMediaType(mediaAttachment.type),
+		...mediaAttachment
 	})),
+	...rawStatus
 }))
 
 export const replies: MastodonStatus[] = [

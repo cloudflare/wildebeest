@@ -43,25 +43,26 @@ const config: PlaywrightTestConfig = {
 	},
 
 	/* Configure projects for major browsers */
+	// prettier-ignore
 	projects: [
 		{
 			name: 'chromium',
 			use: {
-				...devices['Desktop Chrome'],
+				...devices['Desktop Chrome']
 			},
 		},
 
 		{
 			name: 'firefox',
 			use: {
-				...devices['Desktop Firefox'],
+				...devices['Desktop Firefox']
 			},
 		},
 
 		{
 			name: 'webkit',
 			use: {
-				...devices['Desktop Safari'],
+				...devices['Desktop Safari']
 			},
 		},
 
@@ -69,13 +70,13 @@ const config: PlaywrightTestConfig = {
 		{
 			name: 'Mobile Chrome',
 			use: {
-				...devices['Pixel 5'],
+				...devices['Pixel 5']
 			},
 		},
 		{
 			name: 'Mobile Safari',
 			use: {
-				...devices['iPhone 12'],
+				...devices['iPhone 12']
 			},
 		},
 
