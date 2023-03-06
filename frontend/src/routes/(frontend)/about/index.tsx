@@ -146,7 +146,7 @@ export const head: DocumentHead = ({ resolveValue, head }) => {
 	return getDocumentHead(
 		{
 			title: `About - ${instance.title}`,
-			description: `About page for the ${instance.title}`,
+			description: `About page for ${instance.title}`,
 			og: {
 				type: 'website',
 				image: instance.thumbnail,
