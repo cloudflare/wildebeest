@@ -15,7 +15,7 @@ export async function handleRequestGet(db: Database) {
 export async function getAdmins(db: Database): Promise<Person[]> {
 	let rows: unknown[] = []
 	try {
-		const stmt = db.prepare('SELECT * FROM actors WHERE is_admin=TRUE')
+		const stmt = db.prepare('SELECT * FROM actors WHERE is_admin=1')
 		const result = await stmt.all<unknown>()
 		rows = result.success ? (result.results as unknown[]) : []
 	} catch {
