@@ -6,16 +6,16 @@ export interface Client {
 	secret: string
 	name: string
 	redirect_uris: string
-	website: string
 	scopes: string
+	website?: string
 }
 
 export async function createClient(
 	db: Database,
 	name: string,
 	redirect_uris: string,
-	website: string,
-	scopes: string
+	scopes: string,
+	website?: string
 ): Promise<Client> {
 	const id = crypto.randomUUID()
 
@@ -28,7 +28,10 @@ export async function createClient(
           INSERT INTO clients (id, secret, name, redirect_uris, website, scopes)
           VALUES (?, ?, ?, ?, ?, ?)
     `
-	const { success, error } = await db.prepare(query).bind(id, secret, name, redirect_uris, website, scopes).run()
+	const { success, error } = await db
+		.prepare(query)
+		.bind(id, secret, name, redirect_uris, website === undefined ? null : website, scopes)
+		.run()
 	if (!success) {
 		throw new Error('SQL error: ' + error)
 	}

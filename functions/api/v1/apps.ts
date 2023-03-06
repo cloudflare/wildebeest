@@ -11,7 +11,7 @@ import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 type AppsPost = {
 	redirect_uris: string
-	website: string
+	website?: string
 	client_name: string
 	scopes: string
 }
@@ -42,9 +42,18 @@ export async function handleRequest(db: Database, request: Request, vapidKeys: J
 		} catch {
 			return errors.unprocessableEntity('redirect_uris must be a valid URI')
 		}
+	} else if (body.website) {
+		if (body.website.length > 2000) {
+			return errors.unprocessableEntity('website cannot exceed 2000 characters')
+		}
+		try {
+			new URL('', body.website)
+		} catch {
+			return errors.unprocessableEntity('website is invalid URI')
+		}
 	}
 
-	const client = await createClient(db, body.client_name, body.redirect_uris, body.website, body.scopes)
+	const client = await createClient(db, body.client_name, body.redirect_uris, body.scopes, body.website)
 	const vapidKey = VAPIDPublicKey(vapidKeys)
 
 	const res = {

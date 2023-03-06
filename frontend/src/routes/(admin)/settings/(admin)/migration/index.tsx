@@ -1,17 +1,4 @@
 import { component$ } from '@builder.io/qwik'
-import { loader$ } from '@builder.io/qwik-city'
-// import { checkAuth } from '~/utils/checkAuth'
-
-export const loader = loader$(async ({ redirect }) => {
-	// Hiding this page for now
-	redirect(303, '/explore')
-
-	// const isAuthorized = await checkAuth(request, platform)
-
-	// if (!isAuthorized) {
-	// 	redirect(303, '/explore')
-	// }
-})
 
 export default component$(() => {
 	return (

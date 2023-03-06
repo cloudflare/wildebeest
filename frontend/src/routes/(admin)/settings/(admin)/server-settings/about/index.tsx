@@ -17,7 +17,9 @@ export const action = action$(async (data, { request, platform }) => {
 	try {
 		const response = await handleRequestPost(
 			await getDatabase(platform),
-			new Request(request, { body: JSON.stringify(data) })
+			new Request(request, { body: JSON.stringify(data) }),
+			platform.ACCESS_AUTH_DOMAIN,
+			platform.ACCESS_AUD
 		)
 		success = response.ok
 	} catch (e: unknown) {

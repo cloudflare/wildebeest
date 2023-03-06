@@ -36,6 +36,33 @@ describe('Mastodon APIs', () => {
 			assert.deepEqual(rest, {})
 		})
 
+		test('POST /apps registers client without website', async () => {
+			const db = await makeDB()
+			const vapidKeys = await generateVAPIDKeys()
+			const request = new Request('https://example.com', {
+				method: 'POST',
+				body: '{"redirect_uris":"mastodon://example.com/oauth","client_name":"Example mastodon client","scopes":"read write follow push"}',
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+
+			const res = await apps.handleRequest(db, request, vapidKeys)
+			assert.equal(res.status, 200)
+			assertCORS(res)
+			assertJSON(res)
+
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { name, redirect_uri, client_id, client_secret, vapid_key, id, ...rest } = await res.json<
+				Record<string, string>
+			>()
+
+			assert.equal(name, 'Example mastodon client')
+			assert.equal(redirect_uri, 'mastodon://example.com/oauth')
+			assert.equal(id, '20')
+			assert.deepEqual(rest, {})
+		})
+
 		test('POST /apps returns 422 for malformed requests', async () => {
 			// client_name and redirect_uris are required according to https://docs.joinmastodon.org/methods/apps/#form-data-parameters
 			const db = await makeDB()
