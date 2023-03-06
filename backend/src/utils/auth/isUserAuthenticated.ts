@@ -1,6 +1,6 @@
 import * as access from 'wildebeest/backend/src/access'
 
-export const checkAuth = async (request: Request, jwt: string, accessAuthDomain: string, accessAud: string) => {
+export async function isUserAuthenticated(request: Request, jwt: string, accessAuthDomain: string, accessAud: string) {
 	if (!jwt) return false
 
 	try {

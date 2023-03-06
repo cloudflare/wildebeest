@@ -6,7 +6,7 @@ import { handleRequestGet as settingsHandleRequestGet } from 'wildebeest/functio
 import { handleRequestGet as rulesHandleRequestGet } from 'wildebeest/functions/api/v1/instance/rules'
 import { Accordion } from '~/components/Accordion/Accordion'
 import { HtmlContent } from '~/components/HtmlContent/HtmlContent'
-import { ServerSettingsData } from '~/routes/(admin)/settings/server-settings/layout'
+import { ServerSettingsData } from '~/routes/(admin)/settings/(admin)/server-settings/layout'
 import { Account } from '~/types'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { instanceLoader } from '../layout'
