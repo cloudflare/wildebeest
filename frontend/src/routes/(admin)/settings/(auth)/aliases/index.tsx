@@ -1,14 +1,4 @@
 import { component$, useStore, useSignal, $ } from '@builder.io/qwik'
-import { loader$ } from '@builder.io/qwik-city'
-import { checkAuth } from '~/utils/checkAuth'
-
-export const loader = loader$(async ({ request, platform, redirect }) => {
-	const isAuthorized = await checkAuth(request, platform)
-
-	if (!isAuthorized) {
-		redirect(303, '/explore')
-	}
-})
 
 export default component$(() => {
 	const ref = useSignal<Element>()

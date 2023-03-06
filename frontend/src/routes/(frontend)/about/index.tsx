@@ -6,14 +6,14 @@ import { handleRequestGet as settingsHandleRequestGet } from 'wildebeest/functio
 import { handleRequestGet as rulesHandleRequestGet } from 'wildebeest/functions/api/v1/instance/rules'
 import { Accordion } from '~/components/Accordion/Accordion'
 import { HtmlContent } from '~/components/HtmlContent/HtmlContent'
-import { ServerSettingsData } from '~/routes/(admin)/settings/server-settings/layout'
+import { ServerSettingsData } from '~/routes/(admin)/settings/(admin)/server-settings/layout'
 import { Account } from '~/types'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { instanceLoader } from '../layout'
-import { getAdmins } from 'wildebeest/functions/api/wb/settings/server/admins'
 import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { AccountCard } from '~/components/AccountCard/AccountCard'
+import { getAdmins } from 'wildebeest/backend/src/utils/auth/getAdmins'
 
 type AboutInfo = {
 	image: string
@@ -84,9 +84,13 @@ export default component$(() => {
 					</h2>
 					<p data-testid="social-text" class="mb-6 text-wildebeest-500">
 						<span>
-							Decentralised social media powered by{' '}
-							<a href="https://joinmastodon.org" class="no-underline text-wildebeest-200 font-semibold" target="_blank">
-								Mastodon
+							Decentralized social network powered by{' '}
+							<a
+								href="https://github.com/cloudflare/wildebeest"
+								class="no-underline text-wildebeest-200 font-semibold"
+								target="_blank"
+							>
+								Wildebeest
 							</a>
 						</span>
 					</p>
@@ -142,7 +146,7 @@ export const head: DocumentHead = ({ resolveValue, head }) => {
 	return getDocumentHead(
 		{
 			title: `About - ${instance.title}`,
-			description: `About page for the ${instance.title} Mastodon instance`,
+			description: `About page for ${instance.title}`,
 			og: {
 				type: 'website',
 				image: instance.thumbnail,

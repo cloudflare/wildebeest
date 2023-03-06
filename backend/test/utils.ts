@@ -73,7 +73,7 @@ export async function createTestClient(
 	redirectUri: string = 'https://localhost',
 	scopes: string = 'read follow'
 ): Promise<Client> {
-	return createClient(db, 'test client', redirectUri, 'https://cloudflare.com', scopes)
+	return createClient(db, 'test client', redirectUri, scopes, 'https://cloudflare.com')
 }
 
 type TestQueue = Queue<any> & { messages: Array<any> }

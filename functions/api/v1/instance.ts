@@ -10,7 +10,7 @@ import { MastodonInstance, InstanceStatistics } from 'wildebeest/backend/src/typ
 import { MastodonAccount } from 'wildebeest/backend/src/types/account'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { Database, getDatabase } from 'wildebeest/backend/src/database'
-import { getAdmins } from 'wildebeest/functions/api/wb/settings/server/admins'
+import { getAdmins } from 'wildebeest/backend/src/utils/auth/getAdmins'
 import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
