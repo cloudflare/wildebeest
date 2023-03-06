@@ -10,10 +10,10 @@ import { ServerSettingsData } from '~/routes/(admin)/settings/(admin)/server-set
 import { Account } from '~/types'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { instanceLoader } from '../layout'
-import { getAdmins } from 'wildebeest/functions/api/wb/settings/server/admins'
 import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors'
 import { loadLocalMastodonAccount } from 'wildebeest/backend/src/mastodon/account'
 import { AccountCard } from '~/components/AccountCard/AccountCard'
+import { getAdmins } from 'wildebeest/backend/src/utils/auth/getAdmins'
 
 type AboutInfo = {
 	image: string
