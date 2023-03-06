@@ -7,7 +7,7 @@ import { isUserAdmin } from 'wildebeest/frontend/src/utils/isUserAdmin'
 import { ServerSettingsData } from 'wildebeest/frontend/src/routes/(admin)/settings/server-settings/layout'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ env, request }) => {
-	return handleRequestPost(await getDatabase(env), request)
+	return handleRequestPost(await getDatabase(env), request, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
 export async function handleRequestGet(db: Database) {
@@ -30,13 +30,13 @@ export async function handleRequestGet(db: Database) {
 }
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ env, request }) => {
-	return handleRequestPost(await getDatabase(env), request)
+	return handleRequestPost(await getDatabase(env), request, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
-export async function handleRequestPost(db: Database, request: Request) {
+export async function handleRequestPost(db: Database, request: Request, accessAuthDomain: string, accessAud: string) {
 	const cookie = parse(request.headers.get('Cookie') || '')
 	const jwt = cookie['CF_Authorization']
-	const isAdmin = await isUserAdmin(jwt, db)
+	const isAdmin = await isUserAdmin(request, jwt, accessAuthDomain, accessAud, db)
 
 	if (!isAdmin) {
 		return errors.notAuthorized('Lacking authorization rights to edit server settings')

@@ -8,8 +8,9 @@ type AccessLoaderData = {
 	isAuthorized: boolean
 }
 
-export const accessLoader = loader$<Promise<AccessLoaderData>>(async ({ platform, request }) => {
-	const isAuthorized = await checkAuth(request, platform)
+export const accessLoader = loader$<Promise<AccessLoaderData>>(async ({ platform, request, cookie }) => {
+	const jwt = cookie.get('CF_Authorization')?.value ?? ''
+	const isAuthorized = await checkAuth(request, jwt, platform.ACCESS_AUTH_DOMAIN, platform.ACCESS_AUD)
 
 	return {
 		isAuthorized,

@@ -1,14 +1,16 @@
 import { component$, Slot } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
+import { parse } from 'cookie'
 import { getDatabase } from 'wildebeest/backend/src/database'
 import { WildebeestLogo } from '~/components/MastodonLogo'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import { isUserAdmin } from '~/utils/isUserAdmin'
 
-export const authLoader = loader$(async ({ cookie, platform, html }) => {
+export const authLoader = loader$(async ({ request, platform, html }) => {
 	const database = await getDatabase(platform)
-	const jwt = cookie.get('CF_Authorization')?.value ?? ''
-	const isAdmin = await isUserAdmin(jwt, database)
+	const cookie = parse(request.headers.get('Cookie') || '')
+	const jwtCookie = cookie.CF_Authorization ?? ''
+	const isAdmin = await isUserAdmin(request, jwtCookie, platform.ACCESS_AUTH_DOMAIN, platform.ACCESS_AUD, database)
 
 	if (!isAdmin) {
 		return html(401, getErrorHtml("You're unauthorized to view this page"))
