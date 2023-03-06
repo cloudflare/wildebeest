@@ -84,9 +84,13 @@ export default component$(() => {
 					</h2>
 					<p data-testid="social-text" class="mb-6 text-wildebeest-500">
 						<span>
-							Decentralised social media powered by{' '}
-							<a href="https://joinmastodon.org" class="no-underline text-wildebeest-200 font-semibold" target="_blank">
-								Mastodon
+							Decentralized social network powered by{' '}
+							<a
+								href="https://github.com/cloudflare/wildebeest"
+								class="no-underline text-wildebeest-200 font-semibold"
+								target="_blank"
+							>
+								Wildebeest
 							</a>
 						</span>
 					</p>
@@ -142,7 +146,7 @@ export const head: DocumentHead = ({ resolveValue, head }) => {
 	return getDocumentHead(
 		{
 			title: `About - ${instance.title}`,
-			description: `About page for the ${instance.title} Mastodon instance`,
+			description: `About page for the ${instance.title}`,
 			og: {
 				type: 'website',
 				image: instance.thumbnail,
