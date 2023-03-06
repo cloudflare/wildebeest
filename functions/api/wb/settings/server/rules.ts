@@ -2,11 +2,11 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import * as errors from 'wildebeest/backend/src/errors'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
-import { parse } from 'cookie'
 import { isUserAdmin } from 'wildebeest/frontend/src/utils/isUserAdmin'
+import { parse } from 'cookie'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ env, request }) => {
-	return handleRequestPost(await getDatabase(env), request)
+	return handleRequestPost(await getDatabase(env), request, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
 export async function handleRequestGet(db: Database) {
@@ -21,13 +21,13 @@ export async function handleRequestGet(db: Database) {
 }
 
 export const onRequestPost: PagesFunction<Env, any, ContextData> = async ({ env, request }) => {
-	return handleRequestPost(await getDatabase(env), request)
+	return handleRequestPost(await getDatabase(env), request, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
 }
 
-export async function handleRequestPost(db: Database, request: Request) {
+export async function handleRequestPost(db: Database, request: Request, accessAuthDomain: string, accessAud: string) {
 	const cookie = parse(request.headers.get('Cookie') || '')
 	const jwt = cookie['CF_Authorization']
-	const isAdmin = await isUserAdmin(jwt, db)
+	const isAdmin = await isUserAdmin(request, jwt, accessAuthDomain, accessAud, db)
 
 	if (!isAdmin) {
 		return errors.notAuthorized('Lacking authorization rights to edit server rules')
@@ -56,10 +56,10 @@ export async function upsertRule(db: Database, rule: { id?: number; text: string
 		.run()
 }
 
-export async function handleRequestDelete(db: Database, request: Request) {
+export async function handleRequestDelete(db: Database, request: Request, accessAuthDomain: string, accessAud: string) {
 	const cookie = parse(request.headers.get('Cookie') || '')
 	const jwt = cookie['CF_Authorization']
-	const isAdmin = await isUserAdmin(jwt, db)
+	const isAdmin = await isUserAdmin(request, jwt, accessAuthDomain, accessAud, db)
 
 	if (!isAdmin) {
 		return errors.notAuthorized('Lacking authorization rights to edit server rules')

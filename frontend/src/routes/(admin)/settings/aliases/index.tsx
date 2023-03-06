@@ -2,8 +2,9 @@ import { component$, useStore, useSignal, $ } from '@builder.io/qwik'
 import { loader$ } from '@builder.io/qwik-city'
 import { checkAuth } from '~/utils/checkAuth'
 
-export const loader = loader$(async ({ request, platform, redirect }) => {
-	const isAuthorized = await checkAuth(request, platform)
+export const loader = loader$(async ({ cookie, request, platform, redirect }) => {
+	const jwt = cookie.get('CF_Authorization')?.value ?? ''
+	const isAuthorized = await checkAuth(request, jwt, platform.ACCESS_AUTH_DOMAIN, platform.ACCESS_AUD)
 
 	if (!isAuthorized) {
 		redirect(303, '/explore')
