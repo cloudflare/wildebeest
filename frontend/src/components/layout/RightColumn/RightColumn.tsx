@@ -37,7 +37,7 @@ export default component$(() => {
 		{ iconName: 'fa-globe', linkText: 'Federated', linkTarget: '/public', linkActiveRegex: /^\/public\/?$/ },
 	]
 
-	// const aboutLink = { iconName: 'fa-ellipsis', linkText: 'About', linkTarget: '/about', linkActiveRegex: /^\/about/ }
+	const aboutLink = { iconName: 'fa-ellipsis', linkText: 'About', linkTarget: '/about', linkActiveRegex: /^\/about/ }
 
 	return (
 		<div class="bg-wildebeest-600 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-wildebeest-200 flex-1 z-10">
@@ -49,11 +49,10 @@ export default component$(() => {
 				</div>
 				<hr class="hidden xl:block border-t border-wildebeest-700 my-3" />
 				{links.map((link) => renderNavLink(link))}
-				{/* *********** Hiding the about link until the backend support is available ***************** */}
-				{/* <div class="xl:hidden">
+				<div class="xl:hidden">
 					<hr class="border-t border-wildebeest-700 my-3" />
 					{renderNavLink(aboutLink)}
-				</div> */}
+				</div>
 
 				{!isAuthorized && (
 					<a
