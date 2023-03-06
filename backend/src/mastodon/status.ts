@@ -158,7 +158,7 @@ export async function toMastodonStatusFromRow(domain: string, db: Database, row:
 	}
 
 	// FIXME: add unit tests for reblog
-	console.error(
+	console.debug(
 		`properties.attributedTo ??? row.publisher_actor_id: ${properties.attributedTo} ??? ${row.publisher_actor_id}`
 	)
 	if (properties.attributedTo && properties.attributedTo !== row.publisher_actor_id) {
@@ -168,17 +168,17 @@ export async function toMastodonStatusFromRow(domain: string, db: Database, row:
 		// The actor that introduced the Object in the instance isn't the same
 		// as the object has been attributed to. Likely means it's a reblog.
 
-		// const actorId = new URL(properties.attributedTo)
-		// const acct = urlToHandle(actorId)
-		// const author = await actors.getAndCache(actorId, db)
-		// const account = await loadExternalMastodonAccount(acct, author)
+		const actorId = new URL(properties.attributedTo)
+		const acct = urlToHandle(actorId)
+		const author = await actors.getAndCache(actorId, db)
+		const account = await loadExternalMastodonAccount(acct, author)
 
 		// Restore reblogged status
 		// prettier-ignore
 		status.reblog = {
 			...status
 		}
-		// status.reblog.account = account
+		status.reblog.account = account
 	}
 
 	return status

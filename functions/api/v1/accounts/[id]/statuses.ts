@@ -97,7 +97,7 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: Database)
 				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
 			}
 
-			const localObject = await objects.getObjectById(db, objectId, objects.ObjectByKey.id)
+			const localObject = await objects.getObjectById(db, objectId)
 			if (localObject === null) {
 				try {
 					// Object doesn't exists locally, we'll need to download it.

@@ -165,7 +165,6 @@ export async function cacheObject(
 		} as APObject
 		retrievedFederatedObject.id = new URL(apId)
 		retrievedFederatedObject.type = sanitizedProperties.type
-		console.debug(`retrievedFederatedObject = ${JSON.stringify(retrievedFederatedObject, null, 2)}`)
 
 		return { object: retrievedFederatedObject, created: true }
 	}
@@ -193,24 +192,30 @@ export async function updateObjectProperty(db: Database, obj: APObject, key: str
 	}
 }
 
-export async function getObjectById(db: Database, id: string | URL, idType: ObjectByKey): Promise<APObject | null> {
+async function _getObjectByIdType(db: Database, id: string | URL, idType: ObjectByKey): Promise<APObject | null> {
 	if (typeof id === 'object') {
 		const apObject: APObject | null = await getObjectBy(db, idType, id.toString())
-		// console.log(`getObjectById | idType = ${idType} | id = ${id.toString()} | apObject = ${JSON.stringify((apObject ?? {}), null, 2)}`)
+		// prettier-ignore
+		console.debug(`_getObjectByIdType | idType = ${idType} | id = ${id.toString()} | apObject = ${JSON.stringify((apObject ?? { result: 'NOT FOUND' }), null, 2)}`)
 		return apObject
 	} else {
-		const apObject: APObject | null = await getObjectBy(db, ObjectByKey.id, id)
-		// console.log(`getObjectById | idType = ${idType} | id = ${id} | apObject = ${JSON.stringify((apObject ?? {}), null, 2)}`)
+		const apObject: APObject | null = await getObjectBy(db, idType, id)
+		// prettier-ignore
+		console.debug(`_getObjectByIdType | idType = ${idType} | id = ${id} | apObject = ${JSON.stringify((apObject ?? { result: 'NOT FOUND' }), null, 2)}`)
 		return apObject
 	}
 }
 
+export async function getObjectById(db: Database, id: string | URL): Promise<APObject | null> {
+	return await _getObjectByIdType(db, id, ObjectByKey.id)
+}
+
 export async function getObjectByOriginalId(db: Database, id: string | URL): Promise<APObject | null> {
-	return await getObjectById(db, id, ObjectByKey.originalObjectId)
+	return await _getObjectByIdType(db, id, ObjectByKey.originalObjectId)
 }
 
 export async function getObjectByMastodonId(db: Database, id: UUID): Promise<APObject | null> {
-	return await getObjectById(db, id, ObjectByKey.mastodonId)
+	return await _getObjectByIdType(db, id, ObjectByKey.mastodonId)
 }
 
 export enum ObjectByKey {
@@ -225,15 +230,6 @@ export async function getObjectBy(db: Database, key: ObjectByKey, value: string)
 	if (!allowedObjectByKeysSet.has(key)) {
 		throw new Error('getObjectBy run with invalid key: ' + key)
 	}
-	// const query = `
-	// 	SELECT *
-	// 	FROM objects
-	// 	WHERE
-	// 		objects.${key}=? OR
-	// 		objects.properties ->> '$.id' = ?
-	// 	ORDER BY cdate DESC
-	// 	LIMIT 1
-	// `
 	const query = `
 		SELECT *
 		FROM objects

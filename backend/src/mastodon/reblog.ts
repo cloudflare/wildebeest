@@ -15,7 +15,7 @@ import { addObjectInOutbox } from '../activitypub/actors/outbox'
  */
 export async function createReblog(db: Database, actor: Actor, obj: APObject) {
 	await insertReblog(db, actor, obj).then(async (result: string) => {
-		if(result === 'success') {
+		if (result === 'success') {
 			await addObjectInOutbox(db, actor, obj)
 		} else {
 			throw new Error(result)
@@ -26,28 +26,21 @@ export async function createReblog(db: Database, actor: Actor, obj: APObject) {
 export async function insertReblog(db: Database, actor: Actor, obj: APObject) {
 	const id = crypto.randomUUID()
 
-	// const query = `
-	// 	INSERT INTO actor_reblogs (id, actor_id, object_id)
-	// 	VALUES (?, ?, ?)
-	// `
-
-	// const out = await db.prepare(query).bind(id, actor.id.toString(), obj.id.toString()).run()
-	// if (!out.success) {
-	// 	throw new Error('SQL error: ' + out.error)
-	// }
 	const insertQuery = `
 		INSERT INTO actor_reblogs (id, actor_id, object_id)
 		VALUES (?, ?, ?)
 		RETURNING *
 	;`
-	
+
 	try {
-		const insertQueryResults: Result = await db.prepare(insertQuery).bind(id, actor.id.toString(), obj.id.toString()).run()
-		return (insertQueryResults.success === true) ? 'success' : 'Unexpected error occurred'
+		const insertQueryResults: Result = await db
+			.prepare(insertQuery)
+			.bind(id, actor.id.toString(), obj.id.toString())
+			.run()
+		return insertQueryResults.success === true ? 'success' : 'Unexpected error occurred'
 	} catch (e: any) {
-		const message: string = `Mastodon reblog of '${obj.id.toString()}' by user '${actor.id.toString()}' failed due to SQL error: ${e.message}\n${
-			e.cause?.message ?? e.cause
-		}\nobj.type, actor.id.toString(), obj.id.toString() = ${obj.type}, ${actor.id.toString()}, ${obj.id.toString()}`
+		// prettier-ignore
+		const message: string = `Mastodon reblog of '${obj.id.toString()}' by user '${actor.id.toString()}' failed due to SQL error: ${e.message}\n${e.cause?.message ?? e.cause}\nobj.type, actor.id.toString(), obj.id.toString() = ${obj.type}, ${actor.id.toString()}, ${obj.id.toString()}`
 		console.error(message)
 		return message
 	}

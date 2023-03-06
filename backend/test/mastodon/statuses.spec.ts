@@ -310,8 +310,7 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 
 			const data = await res.json<any>()
-
-			const note = (await getObjectByMastodonId(db, data.id)) as unknown as Note
+			const note = (await getObjectByMastodonId(db, data.id)) as Note
 			assert.equal(note.tag.length, 1)
 			assert.equal(note.tag[0].href, actor.id.toString())
 			assert.equal(note.tag[0].name, 'sven@' + domain)

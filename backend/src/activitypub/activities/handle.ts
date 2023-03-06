@@ -115,9 +115,7 @@ export async function handle(
 				// TODO: Double-check that this is working as intended
 				// because this syntax will silently fail if `recipients` or `activity.to` are multi-dimensional arrays
 				// ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#sect1
-				console.debug(`recipients (pre): ${recipients.toString()}\n activity.to: ${JSON.stringify(activity.to)}`)
 				recipients = [...recipients, ...activity.to]
-				console.debug(`recipients (post): ${recipients.toString()}`)
 
 				if (activity.to.length !== 1) {
 					console.warn("multiple `Activity.to` isn't supported")
@@ -128,9 +126,7 @@ export async function handle(
 				// TODO: Double-check that this is working as intended
 				// because this syntax will silently fail if `recipients` or `activity.cc` are multi-dimensional arrays
 				// ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#sect1
-				console.debug(`recipients (pre): ${recipients.toString()}\n activity.cc: ${JSON.stringify(activity.cc)}`)
 				recipients = [...recipients, ...activity.cc]
-				console.debug(`recipients (post): ${recipients.toString()}`)
 			}
 
 			const res = await cacheObject(domain, activity.object, db, actorId, objectId)
@@ -156,7 +152,6 @@ export async function handle(
 				if (inReplyToObject === null) {
 					const remoteObject = await objects.get(inReplyToObjectId)
 					const res = await objects.cacheObject(domain, db, remoteObject, actorId, inReplyToObjectId, false)
-					console.debug(`activitypub/activities/handle | 'Create' | remoteObject:\n${JSON.stringify(remoteObject, null, 2)}\nres:\n${JSON.stringify(res, null, 2)}`)
 					inReplyToObject = res.object
 				}
 
@@ -227,7 +222,7 @@ export async function handle(
 			if (announcedAPObjectId === null) {
 				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
 			}
-			
+
 			const announcingActor = await actors.getAndCache(announcingActorId, db)
 			if (announcingActor === null) {
 				const message: string = `Actor for 'Announce' does not exist or is inaccessible: '${announcingActorId}'`
@@ -241,20 +236,20 @@ export async function handle(
 				)
 				break
 			}
-			
+
 			const announcedAPObject = activity.object
-			if ((announcedAPObject === null) || announcedAPObject?.content === undefined) {
+			if (announcedAPObject === null || announcedAPObject?.content === undefined) {
+				// prettier-ignore
 				const message: string = `'Announce' from '${announcingActorHandle.localPart}@${announcingActorHandle.domain}' contains an invalid APObject: '${JSON.stringify(activity.object, null, 2)}'`
 				console.error(message)
 				throw new Error(message)
 			}
-			
-			let actorIdToNotify: URL;
-			let actorToNotify: any = null;
-			let objectToAnnounce: any = null;
 
-			const idType = (announcingActorId.hostname === domain) ? objects.ObjectByKey.id : objects.ObjectByKey.originalObjectId
-			const localObject = await objects.getObjectById(db, announcedAPObjectId, idType)
+			let actorIdToNotify: URL
+			let actorToNotify: any = null
+			let objectToAnnounce: any = null
+
+			const localObject = await objects.getObjectById(db, announcedAPObjectId)
 			if (localObject === null) {
 				console.debug(`Announced APObject is not cached locally, fetching '${announcedAPObjectId}' now ...`)
 				try {
@@ -269,9 +264,8 @@ export async function handle(
 
 					// Object doesn't exist locally, try to fetch it
 					const remoteObject = await objects.get<Note>(announcedAPObjectId)
-					
-					
-					const originalObjectId = (remoteObject?.id as URL)
+
+					const originalObjectId = remoteObject?.id as URL
 					const res = await cacheObject(domain, remoteObject, db, originalActorId, originalObjectId)
 					if (res === null) {
 						break
@@ -285,7 +279,6 @@ export async function handle(
 				}
 			} else {
 				// Object already exists locally, we can just use it.
-				console.debug(`Local object found:\n${JSON.stringify(localObject, null, 2)}\n`)
 				actorIdToNotify = new URL(localObject[originalActorIdSymbol]!)
 				actorToNotify = await actors.getAndCache(actorIdToNotify, db)
 				if (actorToNotify === null) {
@@ -297,35 +290,46 @@ export async function handle(
 			}
 
 			if (await hasReblog(db, announcingActorId, objectToAnnounce?.id)) {
-				// A reblog already exists. To avoid duplicated reblog we ignore.
-				// TODO: Improve business logic for reblog handling
+				// A reblog already exists. Ignore to avoid duplicated
+				// prettier-ignore
 				console.warn(`Ignoring reblog request from '${announcingActorId}' regarding ${objectToAnnounce?.type} authored by '${actorIdToNotify}' (id: ${objectToAnnounce?.id})'\nProbably duplicated Announce message`)
 				break
 			}
-			console.debug(`'${announcingActorId}' reblogged ${objectToAnnounce?.type} authored by '${actorIdToNotify}': ${objectToAnnounce?.id}'\n${JSON.stringify(objectToAnnounce, null, 2)}`)
 
-			// notify the actor attributed for the post
-			if (actorToNotify === null) {
-				console.warn('object actor not found')
+			try {
+				await createReblog(db, announcingActor, objectToAnnounce)
+
+				// prettier-ignore
+				console.debug(`'${announcingActorId}' reblogged ${objectToAnnounce?.type} authored by '${actorIdToNotify}': ${objectToAnnounce?.id}'`)
+			} catch (e: any) {
+				// prettier-ignore
+				console.error(`Unexpected error prevented Announce of ${objectToAnnounce?.type} (id: ${objectToAnnounce?.id}) by Actor '${announcingActorId}': ${JSON.stringify(e, null, 2)}\n'`)
 				break
 			}
+
 			if (announcingActorId.toString() === actorIdToNotify.toString()) {
-				console.trace(
-					`Notification not sent because the sender (${announcingActorId}) and recipient (${actorIdToNotify}) are the same.`
-				)
+				// prettier-ignore
+				console.trace(`Notification not sent because the sender (${announcingActorId}) and recipient (${actorIdToNotify}) are the same.`)
 				break
 			}
-			const notifId = await createNotification(db, 'reblog', actorToNotify, announcingActor, objectToAnnounce)
-			console.debug(`Notified original author (${actorIdToNotify}) that someone on this instance (${announcingActorId}) reblogged their post (id: ${announcedAPObjectId})`)
 
-			await Promise.all([
-				createReblog(db, announcingActor, objectToAnnounce),
-				sendReblogNotification(db, announcingActor, actorToNotify, notifId, adminEmail, vapidKeys),
-			])
+			try {
+				const notifId = await createNotification(db, 'reblog', actorToNotify, announcingActor, objectToAnnounce)
+				await sendReblogNotification(db, announcingActor, actorToNotify, notifId, adminEmail, vapidKeys)
 
+				// prettier-ignore
+				console.debug(`Notified Actor '${actorIdToNotify}' of ${objectToAnnounce?.type} '${announcedAPObjectId}' Announce (reblog) by Actor '${announcingActorId}'`)
+				break
+			} catch (e: any) {
+				// prettier-ignore
+				console.error(`Unexpected error prevented sending notification regarding Announce to attributed author: ${JSON.stringify(e, null, 2)}\n'`)
+				break
+			}
+
+			throw new Error(`Unexpected error: this message should never be visible`)
 			break
 		}
-				
+
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-delete
 		case 'Delete': {
 			const actorId: URL | null = makeGetActorAsId(activity)()
@@ -358,7 +362,7 @@ export async function handle(
 				console.error(deleteOperationResult)
 				throw new Error(deleteOperationResult)
 			}
-			
+
 			break
 		}
 
@@ -397,7 +401,7 @@ export async function handle(
 
 			break
 		}
-		
+
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-like
 		case 'Like': {
 			const actorId: URL | null = makeGetActorAsId(activity)()
@@ -409,7 +413,7 @@ export async function handle(
 				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
 			}
 
-			const obj = await objects.getObjectById(db, objectId, objects.ObjectByKey.originalObjectId)
+			const obj = await objects.getObjectById(db, objectId)
 			if (obj === null || !obj[originalActorIdSymbol]) {
 				console.warn('unknown object')
 				break

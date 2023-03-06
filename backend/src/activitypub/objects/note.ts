@@ -50,8 +50,8 @@ export async function createPublicNote(
 		inReplyTo: null,
 		...extraProperties
 	}
-	
-	const createdNote: Note = await objects.createObject(domain, db, NOTE, properties, actorId, true) as Note
+
+	const createdNote: Note = (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
 
 	return createdNote
 }

@@ -33,7 +33,7 @@ export async function handleRequestPost(
 	}
 	const domain = new URL(request.url).hostname
 	const image = await createImage(domain, db, connectedActor, properties)
-	console.log({ image })
+	console.debug({ image })
 
 	const res: MediaAttachment = {
 		id: image[mastodonIdSymbol]!,
