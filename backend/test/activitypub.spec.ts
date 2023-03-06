@@ -279,7 +279,7 @@ describe('ActivityPub', () => {
 			assert.equal(res1.object.b, 2)
 			assert(res1.created)
 
-			result = await db.prepare('SELECT count(*) as count from objects').first()
+			result = await db.prepare('SELECT count(1) as count from objects').first()
 			assert.equal(result.count, 1)
 
 			// Cache object second time updates the first one
@@ -291,7 +291,7 @@ describe('ActivityPub', () => {
 			assert.equal(res1.object.published, res2.object.published)
 			assert(!res2.created)
 
-			result = await db.prepare('SELECT count(*) as count from objects').first()
+			result = await db.prepare('SELECT count(1) as count from objects').first()
 			assert.equal(result.count, 1)
 		})
 

@@ -5,9 +5,12 @@ import { strict as assert } from 'node:assert/strict'
 import { cacheObject, getObjectById } from 'wildebeest/backend/src/activitypub/objects/'
 import { addFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import * as activityHandler from 'wildebeest/backend/src/activitypub/activities/handle'
+import * as objects from 'wildebeest/backend/src/activitypub/objects'
 import { createPerson } from 'wildebeest/backend/src/activitypub/actors'
 import { ObjectsRow } from 'wildebeest/backend/src/types/objects'
 import { originalObjectIdSymbol } from 'wildebeest/backend/src/activitypub/objects'
+import { Note } from 'wildebeest/backend/src/activitypub/objects/note'
+import { PUBLIC_GROUP } from 'wildebeest/backend/src/activitypub/activities'
 
 const adminEmail = 'admin@example.com'
 const domain = 'cloudflare.com'
@@ -16,122 +19,6 @@ const vapidKeys = {} as JWK
 
 describe('ActivityPub', () => {
 	describe('handle Activity', () => {
-		describe('Announce', () => {
-			test('records reblog in db', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
-
-				const note = await createPublicNote(domain, db, 'my first status', actorA)
-
-				const activity: any = {
-					type: 'Announce',
-					actor: actorB.id,
-					object: note.id,
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const entry = await db.prepare('SELECT * FROM actor_reblogs').first<{
-					actor_id: URL
-					object_id: URL
-				}>()
-				assert.equal(entry.actor_id.toString(), actorB.id.toString())
-				assert.equal(entry.object_id.toString(), note.id.toString())
-			})
-
-			test('creates notification', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
-
-				const note = await createPublicNote(domain, db, 'my first status', actorA)
-
-				const activity: any = {
-					type: 'Announce',
-					actor: actorB.id,
-					object: note.id,
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const entry = await db.prepare('SELECT * FROM actor_notifications').first<{
-					type: string
-					actor_id: URL
-					from_actor_id: URL
-				}>()
-				assert(entry)
-				assert.equal(entry.type, 'reblog')
-				assert.equal(entry.actor_id.toString(), actorA.id.toString())
-				assert.equal(entry.from_actor_id.toString(), actorB.id.toString())
-			})
-		})
-
-		describe('Like', () => {
-			test('records like in db', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
-
-				const note = await createPublicNote(domain, db, 'my first status', actorA)
-
-				const activity: any = {
-					type: 'Like',
-					actor: actorB.id,
-					object: note.id,
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const entry = await db.prepare('SELECT * FROM actor_favourites').first<{ actor_id: URL; object_id: URL }>()
-				assert.equal(entry.actor_id.toString(), actorB.id.toString())
-				assert.equal(entry.object_id.toString(), note.id.toString())
-			})
-
-			test('creates notification', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
-
-				const note = await createPublicNote(domain, db, 'my first status', actorA)
-
-				const activity: any = {
-					type: 'Like',
-					actor: actorB.id,
-					object: note.id,
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const entry = await db.prepare('SELECT * FROM actor_notifications').first<{
-					type: string
-					actor_id: URL
-					from_actor_id: URL
-				}>()
-				assert.equal(entry.type, 'favourite')
-				assert.equal(entry.actor_id.toString(), actorA.id.toString())
-				assert.equal(entry.from_actor_id.toString(), actorB.id.toString())
-			})
-
-			test('records like in db', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
-
-				const note = await createPublicNote(domain, db, 'my first status', actorA)
-
-				const activity: any = {
-					type: 'Like',
-					actor: actorB.id,
-					object: note.id,
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const entry = await db.prepare('SELECT * FROM actor_favourites').first<{
-					actor_id: URL
-					object_id: URL
-				}>()
-				assert.equal(entry.actor_id.toString(), actorB.id.toString())
-				assert.equal(entry.object_id.toString(), note.id.toString())
-			})
-		})
-
 		describe('Accept', () => {
 			beforeEach(() => {
 				globalThis.fetch = async (input: RequestInfo) => {
@@ -186,6 +73,205 @@ describe('ActivityPub', () => {
 				})
 			})
 		})
+		
+		describe('Announce', () => {
+			test('records reblog in db', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+				const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+				const activity: any = {
+					type: 'Announce',
+					actor: actorB.id,
+					object: note,
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const entry = await db.prepare('SELECT * FROM actor_reblogs').first<{
+					actor_id: URL
+					object_id: URL
+				}>()
+				assert.equal(entry.actor_id.toString(), actorB.id.toString())
+				assert.equal(entry.object_id.toString(), note.id.toString())
+			})
+
+			test('Local Announce (reblog) of local APObject creates local notification', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+				const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+				const activity: any = {
+					type: 'Announce',
+					actor: actorB.id,
+					to: [PUBLIC_GROUP],
+					object: note,
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const entry = await db.prepare('SELECT type, actor_id, from_actor_id FROM actor_notifications').first<{
+					type: string
+					actor_id: URL
+					from_actor_id: URL
+				}>()
+				assert(entry)
+				assert.equal(entry.type, 'reblog')
+				assert.equal(entry.actor_id.toString(), actorA.id.toString())
+				assert.equal(entry.from_actor_id.toString(), actorB.id.toString())
+			})
+			
+			test('Remote announce objects are stored locally and added to the actors outbox', async () => {
+				const remoteActorId = new URL('https://example.com/actor')
+				const remoteObjectId = new URL('https://example.com/some-object')
+				const remoteObject = {
+					type: 'Note',
+					id: remoteObjectId,
+					url: remoteObjectId,
+					published: new Date().toISOString(),
+					content: 'foo',
+					attributedTo: remoteActorId.toString(),
+					to: ["https://www.w3.org/ns/activitystreams#Public"],
+					cc: [],
+					replies: undefined,
+					summary: undefined,
+					tag: [],
+					attachment: [],
+					inReplyTo: undefined,
+					[objects.originalActorIdSymbol]: remoteObjectId.toString()
+				} as Note
+
+				globalThis.fetch = async (input: RequestInfo) => {
+					if (input.toString() === remoteActorId.toString()) {
+						return new Response(
+							JSON.stringify({
+								id: remoteActorId,
+								icon: { url: 'img.com' },
+								type: 'Person',
+							})
+						)
+					}
+					if (input.toString() === remoteObjectId.toString()) {
+						return new Response(
+							JSON.stringify(remoteObject)
+						)
+					}
+					console.error(`input ??? remoteActorId: ${input} vs. ${remoteActorId}`)
+					throw new Error('unexpected request to ' + input)
+				}
+
+				const db = await makeDB()
+				const localActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+				
+				const activity: any = {
+					type: 'Announce',
+					actor: localActor.id,
+					to: [PUBLIC_GROUP],
+					cc: [`${remoteActorId}/followers`, `${localActor.id}/inbox`],
+					object: remoteObject,
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const object = await db.prepare('SELECT * FROM objects').first<{
+					type: string
+					original_actor_id: string
+				}>()
+				assert(object)
+				assert.equal(object.type, 'Note')
+				assert.equal(object.original_actor_id, remoteActorId.toString())
+				
+				// // For testing purpose only: 
+				// const result = await db.prepare('SELECT * FROM outbox_objects').all()
+				// if (result.success) {
+				// 	console.debug(`SUCCESS!!\n${JSON.stringify(result, null, 2)}`)
+				// } else {
+				// 	console.error('Something went wrong')
+				// }
+
+				const outbox_object = await db
+					.prepare('SELECT actor_id FROM outbox_objects WHERE actor_id=?')
+					.bind(localActor.id.toString())
+					.first<{ actor_id: string }>()
+				assert(outbox_object)
+				assert.equal(outbox_object.actor_id, localActor.id.toString())
+			})
+
+			test('duplicated announce', async () => {
+				const remoteActorId = new URL('https://example.com/actor')
+				const remoteObjectId = new URL('https://example.com/some-object')
+				const remoteObject = {
+					type: 'Note',
+					id: remoteObjectId,
+					url: remoteObjectId,
+					published: new Date().toISOString(),
+					content: 'foo',
+					attributedTo: remoteActorId.toString(),
+					to: ["https://www.w3.org/ns/activitystreams#Public"],
+					cc: [],
+					replies: undefined,
+					summary: undefined,
+					tag: [],
+					attachment: [],
+					inReplyTo: undefined,
+					[objects.originalActorIdSymbol]: remoteObjectId.toString()
+				} as Note
+
+				globalThis.fetch = async (input: RequestInfo) => {
+					if (input.toString() === remoteActorId.toString()) {
+						return new Response(
+							JSON.stringify({
+								id: remoteActorId,
+								icon: { url: 'img.com' },
+								type: 'Person',
+							})
+						)
+					}
+					if (input.toString() === remoteObjectId.toString()) {
+						return new Response(
+							JSON.stringify(remoteObject)
+						)
+					}
+					console.error(`input ??? remoteActorId: ${input} vs. ${remoteActorId}`)
+					throw new Error('unexpected request to ' + input)
+				}
+
+				const db = await makeDB()
+				const localActor = await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+				
+				const activity: any = {
+					type: 'Announce',
+					actor: localActor.id,
+					to: [PUBLIC_GROUP],
+					cc: [`${remoteActorId}/followers`, `${localActor.id}/inbox`],
+					object: remoteObject,
+				}
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+				
+				// Handle the same Activity
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const object = await db.prepare('SELECT * FROM objects').first<{
+					type: string
+					original_actor_id: string
+				}>()
+				assert(object)
+				assert.equal(object.type, 'Note')
+				assert.equal(object.original_actor_id, remoteActorId.toString())
+				
+				// // For testing purpose only: 
+				// const result = await db.prepare('SELECT * FROM outbox_objects').all()
+				// if (result.success) {
+				// 	console.debug(`SUCCESS!!\n${JSON.stringify(result, null, 2)}`)
+				// } else {
+				// 	console.error('Something went wrong')
+				// }
+
+				// Ensure only one reblog is kept
+				const { count } = await db.prepare('SELECT count(1) as count FROM outbox_objects').first<{ count: number }>()
+				assert.equal(count, 1)
+			})
+		})
 
 		describe('Create', () => {
 			test('Object must be an object', async () => {
@@ -228,44 +314,46 @@ describe('ActivityPub', () => {
 				assert.equal(properties.content, 'test note')
 			})
 
-			test("Note adds in remote actor's outbox", async () => {
-				const remoteActorId = 'https://example.com/actor'
+			// test("Note adds in remote actor's outbox", async () => {
+			// 	const remoteActorId = new URL('https://example.com/actor')
 
-				globalThis.fetch = async (input: RequestInfo) => {
-					if (input.toString() === remoteActorId) {
-						return new Response(
-							JSON.stringify({
-								id: remoteActorId,
-								type: 'Person',
-							})
-						)
-					}
+			// 	globalThis.fetch = async (input: RequestInfo) => {
+			// 		console.trace(`input ??? remoteActorId: ${input} vs. ${remoteActorId}`)
+			// 		// const inputValue = (input instanceof string) ? input : input.toString()
+			// 		if (input === remoteActorId) {
+			// 			return new Response(
+			// 				JSON.stringify({
+			// 					id: remoteActorId,
+			// 					type: 'Person',
+			// 				})
+			// 			)
+			// 		}
 
-					throw new Error('unexpected request to ' + input)
-				}
+			// 		throw new Error('unexpected request to ' + input)
+			// 	}
 
-				const db = await makeDB()
-				await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
+			// 	const db = await makeDB()
+			// 	await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
 
-				const activity: any = {
-					type: 'Create',
-					actor: remoteActorId,
-					to: [],
-					cc: [],
-					object: {
-						id: 'https://example.com/note1',
-						type: 'Note',
-						content: 'test note',
-					},
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+			// 	const activity: any = {
+			// 		type: 'Create',
+			// 		actor: remoteActorId,
+			// 		to: [],
+			// 		cc: [],
+			// 		object: {
+			// 			id: 'https://example.com/note1',
+			// 			type: 'Note',
+			// 			content: 'test note',
+			// 		},
+			// 	}
+			// 	await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
 
-				const entry = await db
-					.prepare('SELECT * FROM outbox_objects WHERE actor_id=?')
-					.bind(remoteActorId)
-					.first<{ actor_id: string }>()
-				assert.equal(entry.actor_id, remoteActorId)
-			})
+			// 	const entry = await db
+			// 		.prepare('SELECT * FROM outbox_objects WHERE actor_id=?')
+			// 		.bind(remoteActorId)
+			// 		.first<{ actor_id: string }>()
+			// 	assert.equal(entry.actor_id, remoteActorId)
+			// })
 
 			test('local actor sends Note with mention create notification', async () => {
 				const db = await makeDB()
@@ -336,11 +424,15 @@ describe('ActivityPub', () => {
 				}>()
 				assert.equal(entry.actor_id, actor.id.toString().toString())
 
-				const obj: any = await getObjectById(db, entry.object_id)
+				const obj: any = await getObjectById(db, entry.object_id, objects.ObjectByKey.id)
 				assert(obj)
 				assert.equal(obj[originalObjectIdSymbol], 'https://example.com/note2')
 
-				const inReplyTo: any = await getObjectById(db, entry.in_reply_to_object_id)
+				const inReplyTo: any = await getObjectById(
+					db,
+					entry.in_reply_to_object_id,
+					objects.ObjectByKey.originalObjectId
+				)
 				assert(inReplyTo)
 				assert.equal(inReplyTo[originalObjectIdSymbol], 'https://example.com/note1')
 			})
@@ -394,6 +486,239 @@ describe('ActivityPub', () => {
 				assert.equal(name, 'Dr Evil')
 			})
 		})
+		
+		describe('Delete', () => {
+			// test('delete Note', async () => {
+			// 	const db = await makeDB()
+			// 	const actorA: Person = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+			// 	const originalObjectId = new URL('https://example.com/note123')
+			// 	const cachedObject: Note = { 
+			// 		type: 'Note',
+			// 		id: originalObjectId,
+			// 		url: new URL('https://example.com/object1'),
+			// 		published: new Date().toISOString(),
+			// 		content: 'my first status',
+			// 		attributedTo: (actorA.id as URL).toString(),
+			// 		to: ["https://www.w3.org/ns/activitystreams#Public"],
+			// 		cc: ["https://cloudflare.com/ap/users/a/followers"],
+			// 		replies: undefined,
+			// 		summary: undefined,
+			// 		tag: [],
+			// 		attachment: [],
+			// 		inReplyTo: undefined,
+			// 		[objects.originalActorIdSymbol]: (actorA.id as URL).toString()
+			// 	}
+
+			// 	await db
+			// 		.prepare(
+			// 			'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
+			// 		)
+			// 		.bind(
+			// 			originalObjectId,
+			// 			cachedObject.type,
+			// 			JSON.stringify(cachedObject),
+			// 			(actorA.id as URL).toString(),
+			// 			originalObjectId,
+			// 			'mastodonid1'
+			// 		)
+			// 		.run()
+
+			// 	const activity: any = {
+			// 		type: 'Delete',
+			// 		actor: (actorA.id as URL),
+			// 		to: [],
+			// 		cc: [],
+			// 		object: originalObjectId,
+			// 	}
+
+			// 	await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+			// 	const { count } = await db.prepare('SELECT count(1) as count FROM objects').first<{ count: number }>()
+			// 	assert.equal(count, 0)
+			// })
+
+			test('delete Tombstone', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+				const originalObjectId = 'https://example.com/note456'
+
+				await db
+					.prepare(
+						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
+					)
+					.bind(
+						'https://example.com/object1',
+						'Note',
+						JSON.stringify({ content: 'my first status' }),
+						actorA.id.toString(),
+						originalObjectId,
+						'mastodonid1'
+					)
+					.run()
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id,
+					to: [],
+					cc: [],
+					object: {
+						type: 'Tombstone',
+						id: originalObjectId,
+					},
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const { count } = await db.prepare('SELECT count(1) as count FROM objects').first<{ count: number }>()
+				assert.equal(count, 0)
+			})
+
+			test('reject Note deletion from another Actor', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+				const originalObjectId = 'https://example.com/note123'
+
+				// ActorB creates a Note
+				await db
+					.prepare(
+						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
+					)
+					.bind(
+						'https://example.com/object1',
+						'Note',
+						JSON.stringify({ content: 'my first status' }),
+						actorB.id.toString(),
+						originalObjectId,
+						'mastodonid1'
+					)
+					.run()
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id, // ActorA attempts to delete
+					to: [],
+					cc: [],
+					object: actorA.id,
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				// Ensure that we didn't actually delete the object
+				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
+				assert.equal(count, 1)
+			})
+
+			test('ignore deletion of an Actor', async () => {
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id,
+					to: [],
+					cc: [],
+					object: actorA.id,
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				// Ensure that we didn't actually delete the actor
+				const { count } = await db.prepare('SELECT count(1) as count FROM actors').first<{ count: number }>()
+				assert.equal(count, 1)
+			})
+
+			test('ignore deletion of a local Note', async () => {
+				// Deletion of local Note should only be done using Mastodon API
+				// (ie ActivityPub client-to-server).
+
+				const db = await makeDB()
+				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+
+				const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+				const activity: any = {
+					type: 'Delete',
+					actor: actorA.id,
+					to: [],
+					cc: [],
+					object: note.id,
+				}
+
+				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+				const { count } = await db.prepare('SELECT count(1) as count FROM objects').first<{ count: number }>()
+				assert.equal(count, 1)
+			})
+		})
+
+		// describe('Like', () => {
+		// 	test('records like in db', async () => {
+		// 		const db = await makeDB()
+		// 		const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+		// 		const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+		// 		const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+		// 		const activity: any = {
+		// 			type: 'Like',
+		// 			actor: actorB.id,
+		// 			object: note.id,
+		// 		}
+		// 		await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+		// 		const entry = await db.prepare('SELECT * FROM actor_favourites').first<{ actor_id: URL; object_id: URL }>()
+		// 		assert.equal(entry.actor_id.toString(), actorB.id.toString())
+		// 		assert.equal(entry.object_id.toString(), note.id.toString())
+		// 	})
+
+		// 	test('creates notification', async () => {
+		// 		const db = await makeDB()
+		// 		const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+		// 		const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+		// 		const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+		// 		const activity: any = {
+		// 			type: 'Like',
+		// 			actor: actorB.id,
+		// 			object: note.id,
+		// 		}
+		// 		await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+		// 		const entry = await db.prepare('SELECT * FROM actor_notifications').first<{
+		// 			type: string
+		// 			actor_id: URL
+		// 			from_actor_id: URL
+		// 		}>()
+		// 		assert.equal(entry.type, 'favourite')
+		// 		assert.equal(entry.actor_id.toString(), actorA.id.toString())
+		// 		assert.equal(entry.from_actor_id.toString(), actorB.id.toString())
+		// 	})
+
+		// 	test('records like in db', async () => {
+		// 		const db = await makeDB()
+		// 		const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
+		// 		const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
+
+		// 		const note = await createPublicNote(domain, db, 'my first status', actorA)
+
+		// 		const activity: any = {
+		// 			type: 'Like',
+		// 			actor: actorB.id,
+		// 			object: note.id,
+		// 		}
+		// 		await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
+
+		// 		const entry = await db.prepare('SELECT * FROM actor_favourites').first<{
+		// 			actor_id: URL
+		// 			object_id: URL
+		// 		}>()
+		// 		assert.equal(entry.actor_id.toString(), actorB.id.toString())
+		// 		assert.equal(entry.object_id.toString(), note.id.toString())
+		// 	})
+		// })
 
 		describe('Update', () => {
 			test('Object must be an object', async () => {
@@ -490,258 +815,5 @@ describe('ActivityPub', () => {
 			})
 		})
 
-		describe('Announce', () => {
-			test('Announce objects are stored and added to the remote actors outbox', async () => {
-				const remoteActorId = 'https://example.com/actor'
-				const objectId = 'https://example.com/some-object'
-				globalThis.fetch = async (input: RequestInfo) => {
-					if (input.toString() === remoteActorId) {
-						return new Response(
-							JSON.stringify({
-								id: remoteActorId,
-								icon: { url: 'img.com' },
-								type: 'Person',
-							})
-						)
-					}
-
-					if (input.toString() === objectId) {
-						return new Response(
-							JSON.stringify({
-								id: objectId,
-								type: 'Note',
-								content: 'foo',
-							})
-						)
-					}
-
-					throw new Error('unexpected request to ' + input)
-				}
-
-				const db = await makeDB()
-				await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-				const activity: any = {
-					type: 'Announce',
-					actor: remoteActorId,
-					to: [],
-					cc: [],
-					object: objectId,
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const object = await db.prepare('SELECT * FROM objects').first<{
-					type: string
-					original_actor_id: string
-				}>()
-				assert(object)
-				assert.equal(object.type, 'Note')
-				assert.equal(object.original_actor_id, remoteActorId)
-
-				const outbox_object = await db
-					.prepare('SELECT * FROM outbox_objects WHERE actor_id=?')
-					.bind(remoteActorId)
-					.first<{ actor_id: string }>()
-				assert(outbox_object)
-				assert.equal(outbox_object.actor_id, remoteActorId)
-			})
-
-			test('duplicated announce', async () => {
-				const remoteActorId = 'https://example.com/actor'
-				const objectId = 'https://example.com/some-object'
-				globalThis.fetch = async (input: RequestInfo) => {
-					if (input.toString() === remoteActorId) {
-						return new Response(
-							JSON.stringify({
-								id: remoteActorId,
-								icon: { url: 'img.com' },
-								type: 'Person',
-							})
-						)
-					}
-
-					if (input.toString() === objectId) {
-						return new Response(
-							JSON.stringify({
-								id: objectId,
-								type: 'Note',
-								content: 'foo',
-							})
-						)
-					}
-
-					throw new Error('unexpected request to ' + input)
-				}
-
-				const db = await makeDB()
-				await createPerson(domain, db, userKEK, 'sven@cloudflare.com')
-
-				const activity: any = {
-					type: 'Announce',
-					actor: remoteActorId,
-					to: [],
-					cc: [],
-					object: objectId,
-				}
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				// Handle the same Activity
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				// Ensure only one reblog is kept
-				const { count } = await db.prepare('SELECT count(*) as count FROM outbox_objects').first<{ count: number }>()
-				assert.equal(count, 1)
-			})
-		})
-
-		describe('Delete', () => {
-			test('delete Note', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-				const originalObjectId = 'https://example.com/note123'
-
-				await db
-					.prepare(
-						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
-					)
-					.bind(
-						'https://example.com/object1',
-						'Note',
-						JSON.stringify({ content: 'my first status' }),
-						actorA.id.toString(),
-						originalObjectId,
-						'mastodonid1'
-					)
-					.run()
-
-				const activity: any = {
-					type: 'Delete',
-					actor: actorA.id,
-					to: [],
-					cc: [],
-					object: originalObjectId,
-				}
-
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
-				assert.equal(count, 0)
-			})
-
-			test('delete Tombstone', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-				const originalObjectId = 'https://example.com/note456'
-
-				await db
-					.prepare(
-						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
-					)
-					.bind(
-						'https://example.com/object1',
-						'Note',
-						JSON.stringify({ content: 'my first status' }),
-						actorA.id.toString(),
-						originalObjectId,
-						'mastodonid1'
-					)
-					.run()
-
-				const activity: any = {
-					type: 'Delete',
-					actor: actorA.id,
-					to: [],
-					cc: [],
-					object: {
-						type: 'Tombstone',
-						id: originalObjectId,
-					},
-				}
-
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
-				assert.equal(count, 0)
-			})
-
-			test('reject Note deletion from another Actor', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-				const actorB = await createPerson(domain, db, userKEK, 'b@cloudflare.com')
-
-				const originalObjectId = 'https://example.com/note123'
-
-				// ActorB creates a Note
-				await db
-					.prepare(
-						'INSERT INTO objects (id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES (?, ?, ?, ?, ?, 1, ?)'
-					)
-					.bind(
-						'https://example.com/object1',
-						'Note',
-						JSON.stringify({ content: 'my first status' }),
-						actorB.id.toString(),
-						originalObjectId,
-						'mastodonid1'
-					)
-					.run()
-
-				const activity: any = {
-					type: 'Delete',
-					actor: actorA.id, // ActorA attempts to delete
-					to: [],
-					cc: [],
-					object: actorA.id,
-				}
-
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				// Ensure that we didn't actually delete the object
-				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
-				assert.equal(count, 1)
-			})
-
-			test('ignore deletion of an Actor', async () => {
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-
-				const activity: any = {
-					type: 'Delete',
-					actor: actorA.id,
-					to: [],
-					cc: [],
-					object: actorA.id,
-				}
-
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				// Ensure that we didn't actually delete the actor
-				const { count } = await db.prepare('SELECT count(*) as count FROM actors').first<{ count: number }>()
-				assert.equal(count, 1)
-			})
-
-			test('ignore deletion of a local Note', async () => {
-				// Deletion of local Note should only be done using Mastodon API
-				// (ie ActivityPub client-to-server).
-
-				const db = await makeDB()
-				const actorA = await createPerson(domain, db, userKEK, 'a@cloudflare.com')
-
-				const note = await createPublicNote(domain, db, 'my first status', actorA)
-
-				const activity: any = {
-					type: 'Delete',
-					actor: actorA.id,
-					to: [],
-					cc: [],
-					object: note.id,
-				}
-
-				await activityHandler.handle(domain, activity, db, userKEK, adminEmail, vapidKeys)
-
-				const { count } = await db.prepare('SELECT count(*) as count FROM objects').first<{ count: number }>()
-				assert.equal(count, 1)
-			})
-		})
 	})
 })

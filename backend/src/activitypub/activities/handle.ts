@@ -15,7 +15,8 @@ import {
 	sendReblogNotification,
 } from 'wildebeest/backend/src/mastodon/notification'
 import { type APObject, updateObject } from 'wildebeest/backend/src/activitypub/objects'
-import { parseHandle } from 'wildebeest/backend/src/utils/parse'
+import { parseHandle, Handle } from 'wildebeest/backend/src/utils/parse'
+import { urlToHandle } from 'wildebeest/backend/src/utils/handle'
 import type { Note } from 'wildebeest/backend/src/activitypub/objects/note'
 import { addFollowing, acceptFollowing, moveFollowers, moveFollowing } from 'wildebeest/backend/src/mastodon/follow'
 import { deliverToActor } from 'wildebeest/backend/src/activitypub/deliver'
@@ -33,54 +34,45 @@ function extractID(domain: string, s: string | URL): string {
 	return s.toString().replace(`https://${domain}/ap/users/`, '')
 }
 
-export function makeGetObjectAsId(activity: Activity) {
+export function makeGetObjectAsId(activity: Activity): () => URL | null {
 	return () => {
-		let url: any = null
-		if (activity.object.id !== undefined) {
-			url = activity.object.id
-		}
-		if (typeof activity.object === 'string') {
-			url = activity.object
-		}
-		if (activity.object instanceof URL) {
-			// This is used for testing only.
-			return activity.object as URL
-		}
-		if (url === null) {
-			throw new Error('unknown value: ' + JSON.stringify(activity.object))
-		}
-
 		try {
-			return new URL(url)
-		} catch (err) {
-			console.warn('invalid URL: ' + url)
-			throw err
+			if (activity?.object?.id !== undefined) {
+				return new URL(activity?.object?.id)
+			} else if (typeof activity.object === 'string') {
+				return new URL(activity.object)
+			} else if (activity.object instanceof URL) {
+				// This is used for testing only.
+				return activity.object as URL
+			} else {
+				console.error(`makeGetObjectAsId | Unable to process Activity:\n${JSON.stringify(activity, null, 2)}`)
+				return null
+			}
+		} catch {
+			console.error(`Unable to extract APObject URL from Activity:\n${JSON.stringify(activity, null, 2)}`)
+			return null
 		}
 	}
 }
 
-export function makeGetActorAsId(activity: Activity) {
+export function makeGetActorAsId(activity: Activity): () => URL | null {
 	return () => {
-		let url: any = null
-		if (activity.actor.id !== undefined) {
-			url = activity.actor.id
-		}
-		if (typeof activity.actor === 'string') {
-			url = activity.actor
-		}
-		if (activity.actor instanceof URL) {
-			// This is used for testing only.
-			return activity.actor as URL
-		}
-		if (url === null) {
-			throw new Error('unknown value: ' + JSON.stringify(activity.actor))
-		}
-
 		try {
-			return new URL(url)
-		} catch (err) {
-			console.warn('invalid URL: ' + url)
-			throw err
+			if (activity?.actor?.id !== undefined) {
+				return new URL(activity.actor.id)
+			} else if (typeof activity.actor === 'string') {
+				return new URL(activity.actor)
+			} else if (activity.actor instanceof URL) {
+				// This is used for testing only.
+				// console.warn(`TESTING PURPOSES ONLY`)
+				return activity.actor as URL
+			} else {
+				console.error(`makeGetActorAsId | Unable to process Activity:\n${JSON.stringify(activity, null, 2)}`)
+				return null
+			}
+		} catch {
+			console.error(`Unable to extract APObject URL from Activity:\n${JSON.stringify(activity, null, 2)}`)
+			return null
 		}
 	}
 }
@@ -101,41 +93,18 @@ export async function handle(
 		}
 	}
 
-	const getObjectAsId = makeGetObjectAsId(activity)
-	const getActorAsId = makeGetActorAsId(activity)
-
 	switch (activity.type) {
-		case 'Update': {
-			requireComplexObject()
-			const actorId = getActorAsId()
-			const objectId = getObjectAsId()
-
-			if (!['Note', 'Person', 'Service'].includes(activity.object.type)) {
-				console.warn('unsupported Update for Object type: ' + activity.object.type)
-				return
-			}
-
-			// check current object
-			const object = await objects.getObjectBy(db, objects.ObjectByKey.originalObjectId, objectId.toString())
-			if (object === null) {
-				throw new Error(`object ${objectId} does not exist`)
-			}
-
-			if (actorId.toString() !== object[originalActorIdSymbol]) {
-				throw new Error('actorid mismatch when updating object')
-			}
-
-			const updated = await updateObject(db, activity.object, object.id)
-			if (!updated) {
-				throw new Error('could not update object in database')
-			}
-			break
-		}
-
 		// https://www.w3.org/TR/activitypub/#create-activity-inbox
 		case 'Create': {
 			requireComplexObject()
-			const actorId = getActorAsId()
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			if (actorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
+			const objectId: URL | null = makeGetObjectAsId(activity)()
+			if (objectId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
+			}
 
 			// FIXME: download any attachment Objects
 
@@ -146,7 +115,9 @@ export async function handle(
 				// TODO: Double-check that this is working as intended
 				// because this syntax will silently fail if `recipients` or `activity.to` are multi-dimensional arrays
 				// ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#sect1
+				console.debug(`recipients (pre): ${recipients.toString()}\n activity.to: ${JSON.stringify(activity.to)}`)
 				recipients = [...recipients, ...activity.to]
+				console.debug(`recipients (post): ${recipients.toString()}`)
 
 				if (activity.to.length !== 1) {
 					console.warn("multiple `Activity.to` isn't supported")
@@ -157,10 +128,11 @@ export async function handle(
 				// TODO: Double-check that this is working as intended
 				// because this syntax will silently fail if `recipients` or `activity.cc` are multi-dimensional arrays
 				// ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#sect1
+				console.debug(`recipients (pre): ${recipients.toString()}\n activity.cc: ${JSON.stringify(activity.cc)}`)
 				recipients = [...recipients, ...activity.cc]
+				console.debug(`recipients (post): ${recipients.toString()}`)
 			}
 
-			const objectId = getObjectAsId()
 			const res = await cacheObject(domain, activity.object, db, actorId, objectId)
 			if (res === null) {
 				break
@@ -178,19 +150,20 @@ export async function handle(
 			// This note is actually a reply to another one, record it in the replies
 			// table.
 			if (obj.type === 'Note' && obj.inReplyTo) {
-				const inReplyToObjectId = new URL(obj.inReplyTo)
+				const inReplyToObjectId: URL = new URL(obj.inReplyTo)
 				let inReplyToObject = await objects.getObjectByOriginalId(db, inReplyToObjectId)
 
 				if (inReplyToObject === null) {
 					const remoteObject = await objects.get(inReplyToObjectId)
 					const res = await objects.cacheObject(domain, db, remoteObject, actorId, inReplyToObjectId, false)
+					console.debug(`activitypub/activities/handle | 'Create' | remoteObject:\n${JSON.stringify(remoteObject, null, 2)}\nres:\n${JSON.stringify(res, null, 2)}`)
 					inReplyToObject = res.object
 				}
 
 				await insertReply(db, actor, obj, inReplyToObject)
 			}
 
-			const fromActor = await actors.getAndCache(getActorAsId(), db)
+			const fromActor = await actors.getAndCache(actorId, db)
 			// Add the object in the originating actor's outbox, allowing other
 			// actors on this instance to see the note in their timelines.
 			await addObjectInOutbox(db, fromActor, obj, activity.published, target)
@@ -228,7 +201,10 @@ export async function handle(
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
 		case 'Accept': {
 			requireComplexObject()
-			const actorId = getActorAsId()
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			if (actorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
 
 			const actor = await actors.getActorById(db, activity.object.actor)
 			if (actor !== null) {
@@ -241,10 +217,161 @@ export async function handle(
 			break
 		}
 
+		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-announce
+		case 'Announce': {
+			const announcingActorId: URL | null = makeGetActorAsId(activity)()
+			if (announcingActorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
+			const announcedAPObjectId: URL | null = makeGetObjectAsId(activity)()
+			if (announcedAPObjectId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
+			}
+			
+			const announcingActor = await actors.getAndCache(announcingActorId, db)
+			if (announcingActor === null) {
+				const message: string = `Actor for 'Announce' does not exist or is inaccessible: '${announcingActorId}'`
+				console.error(message)
+				throw new Error(message)
+			}
+			const announcingActorHandle: Handle = parseHandle(urlToHandle(announcingActorId))
+			if (announcingActorHandle.domain !== domain) {
+				console.warn(
+					`Actor for 'Announce' activity is not hosted locally: '${announcingActorHandle.localPart}@${announcingActorHandle.domain}'`
+				)
+				break
+			}
+			
+			const announcedAPObject = activity.object
+			if ((announcedAPObject === null) || announcedAPObject?.content === undefined) {
+				const message: string = `'Announce' from '${announcingActorHandle.localPart}@${announcingActorHandle.domain}' contains an invalid APObject: '${JSON.stringify(activity.object, null, 2)}'`
+				console.error(message)
+				throw new Error(message)
+			}
+			
+			let actorIdToNotify: URL;
+			let actorToNotify: any = null;
+			let objectToAnnounce: any = null;
+
+			const idType = (announcingActorId.hostname === domain) ? objects.ObjectByKey.id : objects.ObjectByKey.originalObjectId
+			const localObject = await objects.getObjectById(db, announcedAPObjectId, idType)
+			if (localObject === null) {
+				console.debug(`Announced APObject is not cached locally, fetching '${announcedAPObjectId}' now ...`)
+				try {
+					// If original Actor doesn't exist locally, try to fetch it
+					const originalActorId = new URL(announcedAPObject.attributedTo!)
+					const originalActor = await actors.getAndCache(announcedAPObject.attributedTo, db)
+					if (originalActor === null) {
+						const message: string = `APObject in 'Announce' is attributed to an Actor that does not exist or is inaccessible: '${originalActorId}'`
+						console.info(message)
+						break
+					}
+
+					// Object doesn't exist locally, try to fetch it
+					const remoteObject = await objects.get<Note>(announcedAPObjectId)
+					
+					
+					const originalObjectId = (remoteObject?.id as URL)
+					const res = await cacheObject(domain, remoteObject, db, originalActorId, originalObjectId)
+					if (res === null) {
+						break
+					}
+					actorIdToNotify = originalActorId
+					actorToNotify = originalActor
+					objectToAnnounce = res.object
+				} catch (err: any) {
+					console.warn(`failed to retrieve announced object (id: ${announcedAPObjectId}): ${err.message}`)
+					break
+				}
+			} else {
+				// Object already exists locally, we can just use it.
+				console.debug(`Local object found:\n${JSON.stringify(localObject, null, 2)}\n`)
+				actorIdToNotify = new URL(localObject[originalActorIdSymbol]!)
+				actorToNotify = await actors.getAndCache(actorIdToNotify, db)
+				if (actorToNotify === null) {
+					const message: string = `APObject in 'Announce' is attributed to an Actor that does not exist or is inaccessible: '${actorIdToNotify}'`
+					console.info(message)
+					break
+				}
+				objectToAnnounce = localObject
+			}
+
+			if (await hasReblog(db, announcingActorId, objectToAnnounce?.id)) {
+				// A reblog already exists. To avoid duplicated reblog we ignore.
+				// TODO: Improve business logic for reblog handling
+				console.warn(`Ignoring reblog request from '${announcingActorId}' regarding ${objectToAnnounce?.type} authored by '${actorIdToNotify}' (id: ${objectToAnnounce?.id})'\nProbably duplicated Announce message`)
+				break
+			}
+			console.debug(`'${announcingActorId}' reblogged ${objectToAnnounce?.type} authored by '${actorIdToNotify}': ${objectToAnnounce?.id}'\n${JSON.stringify(objectToAnnounce, null, 2)}`)
+
+			// notify the actor attributed for the post
+			if (actorToNotify === null) {
+				console.warn('object actor not found')
+				break
+			}
+			if (announcingActorId.toString() === actorIdToNotify.toString()) {
+				console.trace(
+					`Notification not sent because the sender (${announcingActorId}) and recipient (${actorIdToNotify}) are the same.`
+				)
+				break
+			}
+			const notifId = await createNotification(db, 'reblog', actorToNotify, announcingActor, objectToAnnounce)
+			console.debug(`Notified original author (${actorIdToNotify}) that someone on this instance (${announcingActorId}) reblogged their post (id: ${announcedAPObjectId})`)
+
+			await Promise.all([
+				createReblog(db, announcingActor, objectToAnnounce),
+				sendReblogNotification(db, announcingActor, actorToNotify, notifId, adminEmail, vapidKeys),
+			])
+
+			break
+		}
+				
+		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-delete
+		case 'Delete': {
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			if (actorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
+			const objectId: URL | null = makeGetObjectAsId(activity)()
+			if (objectId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
+			}
+
+			const obj = await objects.getObjectByOriginalId(db, objectId)
+			if (obj === null || !obj[originalActorIdSymbol]) {
+				console.warn('unknown object or missing originalActorId')
+				break
+			}
+
+			if (actorId.toString() !== obj[originalActorIdSymbol]) {
+				console.warn(`authorized Delete (${actorId} vs ${obj[originalActorIdSymbol]})`)
+				return
+			}
+
+			if (!['Note'].includes(obj.type)) {
+				console.warn('unsupported Update for Object type: ' + activity.object.type)
+				return
+			}
+			const deleteOperationResult: string = await deleteObject(db, obj)
+
+			if (deleteOperationResult !== 'success') {
+				console.error(deleteOperationResult)
+				throw new Error(deleteOperationResult)
+			}
+			
+			break
+		}
+
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-follow
 		case 'Follow': {
-			const objectId = getObjectAsId()
-			const actorId = getActorAsId()
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			if (actorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
+			const objectId: URL | null = makeGetObjectAsId(activity)()
+			if (objectId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
+			}
 
 			const receiver = await actors.getActorById(db, objectId)
 			if (receiver !== null) {
@@ -263,70 +390,26 @@ export async function handle(
 				const notifId = await insertFollowNotification(db, receiver, originalActor)
 				await sendFollowNotification(db, originalActor, receiver, notifId, adminEmail, vapidKeys)
 			} else {
-				console.warn(`actor ${objectId} not found`)
+				const m: string = `'${activity.type}' request failed because actor '${objectId}' was not found`
+				console.error(m)
+				throw new Error(m)
 			}
 
 			break
 		}
-
-		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-announce
-		case 'Announce': {
-			const actorId = getActorAsId()
-			const objectId = getObjectAsId()
-
-			let obj: any = null
-
-			const localObject = await objects.getObjectById(db, objectId)
-			if (localObject === null) {
-				try {
-					// Object doesn't exists locally, we'll need to download it.
-					const remoteObject = await objects.get<Note>(objectId)
-
-					const res = await cacheObject(domain, remoteObject, db, actorId, objectId)
-					if (res === null) {
-						break
-					}
-					obj = res.object
-				} catch (err: any) {
-					console.warn(`failed to retrieve object ${objectId}: ${err.message}`)
-					break
-				}
-			} else {
-				// Object already exists locally, we can just use it.
-				obj = localObject
-			}
-
-			const fromActor = await actors.getAndCache(actorId, db)
-
-			if (await hasReblog(db, fromActor, obj)) {
-				// A reblog already exists. To avoid dulicated reblog we ignore.
-				console.warn('probably duplicated Announce message')
-				break
-			}
-
-			// notify the user
-			const targetActor = await actors.getActorById(db, new URL(obj[originalActorIdSymbol]))
-			if (targetActor === null) {
-				console.warn('object actor not found')
-				break
-			}
-
-			const notifId = await createNotification(db, 'reblog', targetActor, fromActor, obj)
-
-			await Promise.all([
-				createReblog(db, fromActor, obj),
-				sendReblogNotification(db, fromActor, targetActor, notifId, adminEmail, vapidKeys),
-			])
-
-			break
-		}
-
+		
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-like
 		case 'Like': {
-			const actorId = getActorAsId()
-			const objectId = getObjectAsId()
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			if (actorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
+			const objectId: URL | null = makeGetObjectAsId(activity)()
+			if (objectId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
+			}
 
-			const obj = await objects.getObjectById(db, objectId)
+			const obj = await objects.getObjectById(db, objectId, objects.ObjectByKey.originalObjectId)
 			if (obj === null || !obj[originalActorIdSymbol]) {
 				console.warn('unknown object')
 				break
@@ -350,34 +433,12 @@ export async function handle(
 			break
 		}
 
-		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-delete
-		case 'Delete': {
-			const objectId = getObjectAsId()
-			const actorId = getActorAsId()
-
-			const obj = await objects.getObjectByOriginalId(db, objectId)
-			if (obj === null || !obj[originalActorIdSymbol]) {
-				console.warn('unknown object or missing originalActorId')
-				break
-			}
-
-			if (actorId.toString() !== obj[originalActorIdSymbol]) {
-				console.warn(`authorized Delete (${actorId} vs ${obj[originalActorIdSymbol]})`)
-				return
-			}
-
-			if (!['Note'].includes(obj.type)) {
-				console.warn('unsupported Update for Object type: ' + activity.object.type)
-				return
-			}
-
-			await deleteObject(db, obj)
-			break
-		}
-
 		// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-move
 		case 'Move': {
-			const fromActorId = getActorAsId()
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			if (actorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
 			const target = new URL(activity.target)
 
 			if (target.hostname !== domain) {
@@ -385,7 +446,7 @@ export async function handle(
 				break
 			}
 
-			const fromActor = await actors.getAndCache(fromActorId, db)
+			const fromActor = await actors.getAndCache(actorId, db)
 
 			const localActor = await actors.getActorById(db, target)
 			if (localActor === null) {
@@ -419,6 +480,40 @@ export async function handle(
 				}
 			}
 
+			break
+		}
+
+		case 'Update': {
+			requireComplexObject()
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			if (actorId === null) {
+				console.error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+				throw new Error()
+			}
+			const objectId: URL | null = makeGetObjectAsId(activity)()
+			if (objectId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
+			}
+
+			if (!['Note', 'Person', 'Service'].includes(activity.object.type)) {
+				console.warn('unsupported Update for Object type: ' + activity.object.type)
+				return
+			}
+
+			// check current object
+			const object = await objects.getObjectBy(db, objects.ObjectByKey.originalObjectId, objectId.toString())
+			if (object === null) {
+				throw new Error(`object ${objectId} does not exist`)
+			}
+
+			if (actorId.toString() !== object[originalActorIdSymbol]) {
+				throw new Error('actorid mismatch when updating object')
+			}
+
+			const updated = await updateObject(db, activity.object, object.id)
+			if (!updated) {
+				throw new Error('could not update object in database')
+			}
 			break
 		}
 

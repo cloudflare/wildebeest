@@ -49,24 +49,43 @@ export async function createObject<Type extends APObject>(
 	const uuid = crypto.randomUUID()
 	const apId = uri(domain, uuid).toString()
 	const sanitizedProperties = await sanitizeObjectProperties(properties)
+	const insertQuery = `
+					INSERT INTO objects(id, type, properties, original_actor_id, local, mastodon_id) 
+					VALUES(?, ?, ?, ?, ?, ?)
+					RETURNING *
+	;`
+	try {
+		await db
+			.prepare(insertQuery)
+			.bind(apId, type, JSON.stringify(sanitizedProperties), originalActorId.toString(), local ? 1 : 0, uuid)
+			.run()
+	} catch (e: any) {
+		const message: string = `Unable to create '${type}' object due to SQL error: ${e.message}\n${
+			e.cause?.message ?? e.cause
+		}\nid, type, properties, original_actor_id, local, uuid = ${apId}, ${type}, ${JSON.stringify(
+			sanitizedProperties
+		)}, ${originalActorId.toString()}, ${local ? 1 : 0}, ${uuid}`
+		console.error(message)
+		throw Error(message)
+	}
 
-	const row: any = await db
-		.prepare(
-			'INSERT INTO objects(id, type, properties, original_actor_id, local, mastodon_id) VALUES(?, ?, ?, ?, ?, ?) RETURNING *'
-		)
-		.bind(apId, type, JSON.stringify(sanitizedProperties), originalActorId.toString(), local ? 1 : 0, uuid)
-		.first()
-
+	const searchQueryResults = await db
+		.prepare('SELECT cdate FROM objects WHERE id=?;')
+		.bind(apId)
+		.first<{ cdate: string }>()
 	// prettier-ignore
-	return {
-		type,
-		id: new URL(row.id),
-		published: new Date(row.cdate).toISOString(),
-
-		[mastodonIdSymbol]: row.mastodon_id,
-		[originalActorIdSymbol]: row.original_actor_id,
+	const santitizedObject = {
+		published: new Date(searchQueryResults.cdate).toISOString(),
+		[mastodonIdSymbol]: uuid,
+		[originalActorIdSymbol]: originalActorId.toString(),
 		...sanitizedProperties
-	} as Type
+	}
+	santitizedObject.type = type
+	santitizedObject.id = new URL(apId)
+	// console.info(`\ntype = ${type}\nnew URL(apId) = ${new URL(apId).toString()}`)
+	// console.info(`santitizedObject = ${JSON.stringify(santitizedObject, null, 2)}`)
+
+	return santitizedObject as Type
 }
 
 export async function get<T>(url: URL): Promise<T> {
@@ -107,7 +126,7 @@ export async function cacheObject(
 	const uuid = crypto.randomUUID()
 	const apId = uri(domain, uuid).toString()
 
-	const row: any = await db
+	await db
 		.prepare(
 			'INSERT INTO objects(id, type, properties, original_actor_id, original_object_id, local, mastodon_id) VALUES(?, ?, ?, ?, ?, ?, ?) RETURNING *'
 		)
@@ -120,7 +139,12 @@ export async function cacheObject(
 			local ? 1 : 0,
 			uuid
 		)
-		.first()
+		.run()
+
+	const searchQueryResults = await db
+		.prepare('SELECT cdate FROM objects WHERE id=?;')
+		.bind(apId)
+		.first<{ cdate: string }>()
 
 	// Add peer
 	{
@@ -129,23 +153,21 @@ export async function cacheObject(
 	}
 
 	{
-		const properties = JSON.parse(row.properties)
-
 		// prettier-ignore
-		const object = {
-			published: new Date(row.cdate).toISOString(),
+		const retrievedFederatedObject = {
+			published: new Date(searchQueryResults.cdate).toISOString(),
 
-			type: row.type,
-			id: new URL(row.id),
+			[mastodonIdSymbol]: uuid,
+			[originalActorIdSymbol]: originalActorId.toString(),
+			[originalObjectIdSymbol]: originalObjectId.toString(),
 
-			[mastodonIdSymbol]: row.mastodon_id,
-			[originalActorIdSymbol]: row.original_actor_id,
-			[originalObjectIdSymbol]: row.original_object_id,
-
-			...properties
+			...sanitizedProperties
 		} as APObject
+		retrievedFederatedObject.id = new URL(apId)
+		retrievedFederatedObject.type = sanitizedProperties.type
+		console.debug(`retrievedFederatedObject = ${JSON.stringify(retrievedFederatedObject, null, 2)}`)
 
-		return { object, created: true }
+		return { object: retrievedFederatedObject, created: true }
 	}
 }
 
@@ -171,16 +193,24 @@ export async function updateObjectProperty(db: Database, obj: APObject, key: str
 	}
 }
 
-export async function getObjectById(db: Database, id: string | URL): Promise<APObject | null> {
-	return getObjectBy(db, ObjectByKey.id, id.toString())
+export async function getObjectById(db: Database, id: string | URL, idType: ObjectByKey): Promise<APObject | null> {
+	if (typeof id === 'object') {
+		const apObject: APObject | null = await getObjectBy(db, idType, id.toString())
+		// console.log(`getObjectById | idType = ${idType} | id = ${id.toString()} | apObject = ${JSON.stringify((apObject ?? {}), null, 2)}`)
+		return apObject
+	} else {
+		const apObject: APObject | null = await getObjectBy(db, ObjectByKey.id, id)
+		// console.log(`getObjectById | idType = ${idType} | id = ${id} | apObject = ${JSON.stringify((apObject ?? {}), null, 2)}`)
+		return apObject
+	}
 }
 
 export async function getObjectByOriginalId(db: Database, id: string | URL): Promise<APObject | null> {
-	return getObjectBy(db, ObjectByKey.originalObjectId, id.toString())
+	return await getObjectById(db, id, ObjectByKey.originalObjectId)
 }
 
 export async function getObjectByMastodonId(db: Database, id: UUID): Promise<APObject | null> {
-	return getObjectBy(db, ObjectByKey.mastodonId, id)
+	return await getObjectById(db, id, ObjectByKey.mastodonId)
 }
 
 export enum ObjectByKey {
@@ -195,10 +225,22 @@ export async function getObjectBy(db: Database, key: ObjectByKey, value: string)
 	if (!allowedObjectByKeysSet.has(key)) {
 		throw new Error('getObjectBy run with invalid key: ' + key)
 	}
+	// const query = `
+	// 	SELECT *
+	// 	FROM objects
+	// 	WHERE
+	// 		objects.${key}=? OR
+	// 		objects.properties ->> '$.id' = ?
+	// 	ORDER BY cdate DESC
+	// 	LIMIT 1
+	// `
 	const query = `
 		SELECT *
 		FROM objects
-		WHERE objects.${key}=?
+		WHERE 
+			objects.${key}=?
+		ORDER BY cdate DESC
+		LIMIT 1
 	`
 	const { results, success, error } = await db.prepare(query).bind(value).all()
 	if (!success) {
@@ -213,7 +255,7 @@ export async function getObjectBy(db: Database, key: ObjectByKey, value: string)
 	const properties = JSON.parse(result.properties)
 
 	// prettier-ignore
-	return {
+	const localObject = {
 		published: new Date(result.cdate).toISOString(),
 
 		type: result.type,
@@ -224,6 +266,15 @@ export async function getObjectBy(db: Database, key: ObjectByKey, value: string)
 		[originalObjectIdSymbol]: result.original_object_id,
 		...properties
 	} as APObject
+
+	// console.trace(`\nresult.type = ${result.type}\nresult.id = ${result.id}\nlocalObject.type = ${localObject.type}\nlocalObject.id = ${localObject.id}\nproperties = ${JSON.stringify(properties, null, 2)}`)
+
+	;(localObject.type = result.type), (localObject.id = new URL(result.id))
+
+	// console.trace(`\nresult.type = ${result.type}\nresult.id = ${result.id}\nlocalObject.type = ${localObject.type}\nlocalObject.id = ${localObject.id}\nproperties = ${JSON.stringify(properties, null, 2)}`)
+
+	// console.info(`localObject = ${JSON.stringify(localObject, null, 2)}`)
+	return localObject as APObject
 }
 
 /** Is the given `value` an ActivityPub Object? */
@@ -309,7 +360,7 @@ function getTextContentRewriter() {
 // TODO: eventually use SQLite's `ON DELETE CASCADE` but requires writing the DB
 // schema directly into D1, which D1 disallows at the moment.
 // Some context at: https://stackoverflow.com/questions/13150075/add-on-delete-cascade-behavior-to-an-sqlite3-table-after-it-has-been-created
-export async function deleteObject<T extends APObject>(db: Database, note: T) {
+export async function deleteObject<T extends APObject>(db: Database, note: T): Promise<string> {
 	const nodeId = note.id.toString()
 	const batch = [
 		db.prepare('DELETE FROM outbox_objects WHERE object_id=?').bind(nodeId),
@@ -327,7 +378,10 @@ export async function deleteObject<T extends APObject>(db: Database, note: T) {
 
 	for (let i = 0, len = res.length; i < len; i++) {
 		if (!res[i].success) {
-			throw new Error('SQL error: ' + res[i].error)
+			const message: string = `SQL error: ${res[i].error}`
+			console.error(message)
+			return message
 		}
 	}
+	return 'success'
 }

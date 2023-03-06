@@ -135,7 +135,7 @@ describe('Mastodon APIs', () => {
 			const res = await subscription.handlePostRequest(db, req, connectedActor, client.id, vapidKeys)
 			assert.equal(res.status, 200)
 
-			const { count } = await db.prepare('SELECT count(*) as count FROM subscriptions').first<{ count: number }>()
+			const { count } = await db.prepare('SELECT count(1) as count FROM subscriptions').first<{ count: number }>()
 			assert.equal(count, 1)
 		})
 

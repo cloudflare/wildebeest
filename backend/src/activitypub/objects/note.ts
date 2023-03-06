@@ -34,8 +34,9 @@ export async function createPublicNote(
 
 	// prettier-ignore
 	const properties = {
+		type: NOTE,
 		attributedTo: actorId,
-		content,
+		content: content,
 		to: [PUBLIC_GROUP],
 		cc: [actor.followers.toString()],
 
@@ -49,8 +50,10 @@ export async function createPublicNote(
 		inReplyTo: null,
 		...extraProperties
 	}
+	
+	const createdNote: Note = await objects.createObject(domain, db, NOTE, properties, actorId, true) as Note
 
-	return (await objects.createObject(domain, db, NOTE, properties, actorId, true)) as Note
+	return createdNote
 }
 
 export async function createDirectNote(

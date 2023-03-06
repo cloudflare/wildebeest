@@ -576,7 +576,7 @@ describe('Mastodon APIs', () => {
 
 			// Statuses were imported locally and once was a reblog of an already
 			// existing local object.
-			const row: { count: number } = await db.prepare(`SELECT count(*) as count FROM objects`).first()
+			const row: { count: number } = await db.prepare(`SELECT count(1) as count FROM objects`).first()
 			assert.equal(row.count, 2)
 		})
 
@@ -1051,7 +1051,7 @@ describe('Mastodon APIs', () => {
 				assert.equal(receivedActivity.object.type, 'Follow')
 
 				const row = await db
-					.prepare(`SELECT count(*) as count FROM actor_following WHERE actor_id=?`)
+					.prepare(`SELECT count(1) as count FROM actor_following WHERE actor_id=?`)
 					.bind(actor.id.toString())
 					.first<{ count: number }>()
 				assert(row)

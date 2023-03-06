@@ -13,22 +13,27 @@ export async function addObjectInOutbox(
 	published_date?: string,
 	target: string = PUBLIC_GROUP
 ) {
-	const id = crypto.randomUUID()
-	let out: any = null
+	// console.log(`actor.id: ${actor.id}\npublished_date: ${published_date}\nobj: ${JSON.stringify(obj, null, 2)}\n`)
+	try {
+		const id = crypto.randomUUID()
 
-	if (published_date !== undefined) {
-		out = await db
-			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, published_date, target) VALUES(?, ?, ?, ?, ?)')
-			.bind(id, actor.id.toString(), obj.id.toString(), published_date, target)
-			.run()
-	} else {
-		out = await db
-			.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, target) VALUES(?, ?, ?, ?)')
-			.bind(id, actor.id.toString(), obj.id.toString(), target)
-			.run()
-	}
-	if (!out.success) {
-		throw new Error('SQL error: ' + out.error)
+		if (published_date !== undefined) {
+			await db
+				.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, published_date, target) VALUES(?, ?, ?, ?, ?)')
+				.bind(id, actor.id.toString(), obj.id.toString(), published_date, target)
+				.run()
+		} else {
+			await db
+				.prepare('INSERT INTO outbox_objects(id, actor_id, object_id, target) VALUES(?, ?, ?, ?)')
+				.bind(id, actor.id.toString(), obj.id.toString(), target)
+				.run()
+		}
+	} catch (e: any) {
+		const message: string = `Unable to add object to outbox due to SQL error: ${e.message}\n${
+			e.cause?.message ?? e.cause
+		}`
+		console.error(message)
+		throw Error(message)
 	}
 }
 

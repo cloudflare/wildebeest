@@ -72,12 +72,15 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: Database)
 	const account = await loadExternalMastodonAccount(acct, actor)
 
 	const promises = activities.items.map(async (activity: Activity) => {
-		const getObjectAsId = makeGetObjectAsId(activity)
-		const getActorAsId = makeGetActorAsId(activity)
-
 		if (activity.type === 'Create') {
-			const actorId = getActorAsId()
-			const originalObjectId = getObjectAsId()
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			const originalObjectId: URL | null = makeGetObjectAsId(activity)()
+			if (actorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
+			if (originalObjectId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
+			}
 			const res = await objects.cacheObject(domain, db, activity.object, actorId, originalObjectId, false)
 			return toMastodonStatusFromObject(db, res.object as Note, domain)
 		}
@@ -85,10 +88,16 @@ async function getRemoteStatuses(request: Request, handle: Handle, db: Database)
 		if (activity.type === 'Announce') {
 			let obj: any
 
-			const actorId = getActorAsId()
-			const objectId = getObjectAsId()
+			const actorId: URL | null = makeGetActorAsId(activity)()
+			const objectId: URL | null = makeGetObjectAsId(activity)()
+			if (actorId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an actor with a valid ID`)
+			}
+			if (objectId === null) {
+				throw new Error(`Activity type '${activity.type}' requires an object with a valid ID`)
+			}
 
-			const localObject = await objects.getObjectById(db, objectId)
+			const localObject = await objects.getObjectById(db, objectId, objects.ObjectByKey.id)
 			if (localObject === null) {
 				try {
 					// Object doesn't exists locally, we'll need to download it.
@@ -134,9 +143,9 @@ SELECT objects.*,
        actors.cdate as actor_cdate,
        actors.properties as actor_properties,
        outbox_objects.actor_id as publisher_actor_id,
-       (SELECT count(*) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
-       (SELECT count(*) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count,
-       (SELECT count(*) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count
+       (SELECT count(1) FROM actor_favourites WHERE actor_favourites.object_id=objects.id) as favourites_count,
+       (SELECT count(1) FROM actor_reblogs WHERE actor_reblogs.object_id=objects.id) as reblogs_count,
+       (SELECT count(1) FROM actor_replies WHERE actor_replies.in_reply_to_object_id=objects.id) as replies_count
 FROM outbox_objects
 INNER JOIN objects ON objects.id=outbox_objects.object_id
 INNER JOIN actors ON actors.id=outbox_objects.actor_id

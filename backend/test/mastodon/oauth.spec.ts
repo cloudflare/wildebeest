@@ -114,7 +114,7 @@ describe('Mastodon APIs', () => {
 			)
 
 			// actor isn't created yet
-			const { count } = await db.prepare('SELECT count(*) as count FROM actors').first<{ count: number }>()
+			const { count } = await db.prepare('SELECT count(1) as count FROM actors').first<{ count: number }>()
 			assert.equal(count, 0)
 		})
 

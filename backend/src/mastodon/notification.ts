@@ -25,28 +25,90 @@ export async function createNotification(
 	fromActor: Actor,
 	obj: APObject
 ): Promise<string> {
-	const query = `
+	// ON CONFLICT DO NOTHING
+	const insertQuery = `
           INSERT INTO actor_notifications (type, actor_id, from_actor_id, object_id)
           VALUES (?, ?, ?, ?)
           RETURNING id
-`
-	const row = await db
-		.prepare(query)
-		.bind(type, actor.id.toString(), fromActor.id.toString(), obj.id.toString())
-		.first<{ id: string }>()
-	return row.id
+	;`
+	try {
+		await db.prepare(insertQuery).bind(type, actor.id.toString(), fromActor.id.toString(), obj.id.toString()).run()
+	} catch (e: any) {
+		const message: string = `Unable to create '${type}' notification due to SQL error: ${e.message}\n${
+			e.cause?.message ?? e.cause
+		}\ntype, actor.id.toString(), fromActor.id.toString(), obj.id.toString() = ${type}, ${actor.id.toString()}, ${fromActor.id.toString()}, ${obj.id.toString()}`
+		console.error(message)
+		throw new Error(message)
+	}
+
+	const selectQuery = `
+          SELECT
+						id
+					FROM actor_notifications
+					WHERE
+						type=? AND 
+						actor_id=? AND 
+						from_actor_id=? AND 
+						object_id=?
+					ORDER BY cdate DESC
+					LIMIT 1
+	;`
+	try {
+		const selectQueryResults = await db
+			.prepare(selectQuery)
+			.bind(type, actor.id.toString(), fromActor.id.toString(), obj.id.toString())
+			.first<{ id: string }>()
+		return selectQueryResults.id
+	} catch (e: any) {
+		const message: string = `Unable to retrieve 'id' of newly-created '${type}' notification due to SQL error: ${
+			e.message
+		}\n${e.cause?.message ?? e.cause}`
+		console.error(message)
+		throw new Error(message)
+	}
 }
 
 export async function insertFollowNotification(db: Database, actor: Actor, fromActor: Actor): Promise<string> {
 	const type: NotificationType = 'follow'
-
-	const query = `
-          INSERT INTO actor_notifications (type, actor_id, from_actor_id)
+	const insertQuery = `
+					INSERT INTO actor_notifications (type, actor_id, from_actor_id)
           VALUES (?, ?, ?)
           RETURNING id
-`
-	const row = await db.prepare(query).bind(type, actor.id.toString(), fromActor.id.toString()).first<{ id: string }>()
-	return row.id
+	;`
+	try {
+		await db.prepare(insertQuery).bind(type, actor.id.toString(), fromActor.id.toString()).run()
+	} catch (e: any) {
+		const message: string = `Unable to create '${type}' notification due to SQL error: ${e.message}\n${
+			e.cause?.message ?? e.cause
+		}`
+		console.error(message)
+		throw new Error(message)
+	}
+
+	const selectQuery = `
+          SELECT
+						id
+					FROM actor_notifications
+					WHERE
+						type=? AND 
+						actor_id=? AND 
+						from_actor_id=?
+					ORDER BY cdate DESC
+					LIMIT 1
+	;`
+	try {
+		const selectQueryResults = await db
+			.prepare(selectQuery)
+			.bind(type, actor.id.toString(), fromActor.id.toString())
+			.first<{ id: string }>()
+		return selectQueryResults.id
+	} catch (e: any) {
+		const message: string = `Unable to retrieve 'id' of newly-created '${type}' notification due to SQL error: ${
+			e.message
+		}\n${e.cause?.message ?? e.cause}`
+		console.error(message)
+		throw new Error(message)
+	}
 }
 
 export async function sendFollowNotification(

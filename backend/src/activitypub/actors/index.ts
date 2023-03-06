@@ -197,7 +197,7 @@ export async function createPerson(
 		properties.followers = id + '/followers'
 	}
 
-	const row = await db
+	await db
 		.prepare(
 			`
               INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt, properties, is_admin)
@@ -206,7 +206,9 @@ export async function createPerson(
           `
 		)
 		.bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt, JSON.stringify(properties), admin ? 1 : null)
-		.first()
+		.run()
+
+	const row = await db.prepare(`SELECT * FROM actors WHERE id=?`).bind(id).first()
 
 	return personFromRow(row)
 }
@@ -296,21 +298,27 @@ export function personFromRow(row: any): Person {
 	}
 
 	// prettier-ignore
-	return {
+	const personObject = {
 		// Hidden values
 		[emailSymbol]: row.email,
-
-		name,
+		
 		icon,
 		image,
-		preferredUsername,
-		discoverable: true,
 		publicKey,
+		name: name,
+		preferredUsername: preferredUsername,
+		discoverable: true,
+		
 		type: PERSON,
-		id,
+		id: id,
 		published: new Date(row.cdate).toISOString(),
 
 		url: new URL('@' + preferredUsername, 'https://' + domain),
 		...properties
-	} as unknown as Person
+	}
+
+	// console.info(`\npersonObject.id = ${personObject.id}`)
+	// console.info(`personObject:\n ${JSON.stringify(personObject, null, 2)}`)
+
+	return personObject as unknown as Person
 }

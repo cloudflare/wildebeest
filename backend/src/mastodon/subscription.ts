@@ -62,7 +62,7 @@ export async function createSubscription(
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           RETURNING *
     `
-	const row = await db
+	await db
 		.prepare(query)
 		.bind(
 			actor.id.toString(),
@@ -82,6 +82,22 @@ export async function createSubscription(
 			req.data.alerts.admin_report === false ? 0 : 1,
 			req.data.policy ?? 'all'
 		)
+		.run()
+
+	const row = await db
+		.prepare(
+			`
+			SELECT * 
+			FROM subscriptions 
+			WHERE 
+				actor_id=? AND 
+				client_id=? AND 
+				endpoint=? AND 
+				key_auth=?
+			ORDER BY cdate DESC
+			LIMIT 1;`
+		)
+		.bind(actor.id.toString(), client.id, req.subscription.endpoint, req.subscription.keys.auth)
 		.first<any>()
 	return subscriptionFromRow(row)
 }

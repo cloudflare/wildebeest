@@ -140,7 +140,7 @@ describe('Mastodon APIs', () => {
 			const res = await statuses.handleRequest(req, db, connectedActor, userKEK, queue, cache)
 			assert.equal(res.status, 200)
 
-			const row = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first<{ count: number }>()
+			const row = await db.prepare(`SELECT count(1) as count FROM outbox_objects`).first<{ count: number }>()
 			assert.equal(row.count, 1)
 		})
 
@@ -874,11 +874,11 @@ describe('Mastodon APIs', () => {
 			assert.equal(res.status, 200)
 
 			{
-				const { count } = await db.prepare(`SELECT count(*) as count FROM outbox_objects`).first<any>()
+				const { count } = await db.prepare(`SELECT count(1) as count FROM outbox_objects`).first<any>()
 				assert.equal(count, 0)
 			}
 			{
-				const { count } = await db.prepare(`SELECT count(*) as count FROM objects`).first<any>()
+				const { count } = await db.prepare(`SELECT count(1) as count FROM objects`).first<any>()
 				assert.equal(count, 0)
 			}
 		})
@@ -974,12 +974,12 @@ describe('Mastodon APIs', () => {
 			assert.deepEqual(data1, data2)
 
 			{
-				const row = await db.prepare(`SELECT count(*) as count FROM objects`).first<{ count: number }>()
+				const row = await db.prepare(`SELECT count(1) as count FROM objects`).first<{ count: number }>()
 				assert.equal(row.count, 1)
 			}
 
 			{
-				const row = await db.prepare(`SELECT count(*) as count FROM idempotency_keys`).first<{ count: number }>()
+				const row = await db.prepare(`SELECT count(1) as count FROM idempotency_keys`).first<{ count: number }>()
 				assert.equal(row.count, 1)
 			}
 		})
