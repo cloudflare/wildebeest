@@ -2,8 +2,8 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import type { ContextData } from 'wildebeest/backend/src/types/context'
 import * as errors from 'wildebeest/backend/src/errors'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
-import { isUserAdmin } from 'wildebeest/frontend/src/utils/isUserAdmin'
 import { parse } from 'cookie'
+import { isUserAdmin } from 'wildebeest/backend/src/utils/auth/isUserAdmin'
 
 export const onRequestGet: PagesFunction<Env, any, ContextData> = async ({ env, request }) => {
 	return handleRequestPost(await getDatabase(env), request, env.ACCESS_AUTH_DOMAIN, env.ACCESS_AUD)
