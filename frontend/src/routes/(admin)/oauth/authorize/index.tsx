@@ -21,7 +21,7 @@ export const clientLoader = loader$<Promise<Client>>(async ({ platform, query, h
 		throw html(500, getErrorHtml('An error occurred while trying to fetch the client data, please try again later'))
 	}
 	if (client === null) {
-		throw new Error('client not found')
+		throw html(500, getErrorHtml('client not found'))
 	}
 	return client
 })
