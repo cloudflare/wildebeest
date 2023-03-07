@@ -23,7 +23,7 @@ import type { Person } from 'wildebeest/backend/src/activitypub/actors'
 const qwikHandler = createQwikCity({ render, qwikCityPlan })
 
 type QwikContextData = {
-    connectedActor: Person | null,
+	connectedActor: Person | null
 }
 
 // eslint-disable-next-line
