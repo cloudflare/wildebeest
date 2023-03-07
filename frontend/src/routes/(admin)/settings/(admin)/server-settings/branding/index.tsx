@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik'
 import { action$, Form, zod$, z } from '@builder.io/qwik-city'
 import { getDatabase } from 'wildebeest/backend/src/database'
-import { handleRequestPost } from 'wildebeest/functions/api/wb/settings/server/server'
+import { updateSettings } from 'wildebeest/backend/src/config/server'
 import { TextArea } from '~/components/Settings/TextArea'
 import { TextInput } from '~/components/Settings/TextInput'
 import { serverSettingsLoader } from '../layout'
@@ -13,16 +13,12 @@ const zodSchema = zod$({
 
 export type ServerBrandingData = Awaited<typeof zodSchema>['_type']
 
-export const action = action$(async (data, { request, platform }) => {
+export const action = action$(async (data, { platform }) => {
+	const db = await getDatabase(platform)
 	let success = false
 	try {
-		const response = await handleRequestPost(
-			await getDatabase(platform),
-			new Request(request, { body: JSON.stringify(data) }),
-			platform.ACCESS_AUTH_DOMAIN,
-			platform.ACCESS_AUD
-		)
-		success = response.ok
+		await updateSettings(db, data)
+		success = true
 	} catch (e: unknown) {
 		success = false
 	}
