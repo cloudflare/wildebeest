@@ -4,7 +4,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 
 function sqliteToPsql(query: string): string {
 	let c = 0
-	return query.replaceAll(/\?([0-9])?/g, (match: string, p1: string) => {
+	return query.replace(/\?([0-9])?/g, (match: string, p1: string) => {
 		c += 1
 		return `$${p1 || c}`
 	})

@@ -1,4 +1,4 @@
-import { cloudflarePagesAdaptor } from '@builder.io/qwik-city/adaptors/cloudflare-pages/vite'
+import { cloudflarePagesAdapter } from '@builder.io/qwik-city/adapters/cloudflare-pages/vite'
 import { extendConfig } from '@builder.io/qwik-city/vite'
 import baseConfig from '../../vite.config'
 
@@ -11,7 +11,7 @@ export default extendConfig(baseConfig, () => {
 			},
 		},
 		plugins: [
-			cloudflarePagesAdaptor({
+			cloudflarePagesAdapter({
 				// Do not SSG as the D1 database is not available at build time, I think.
 				// staticGenerate: true,
 			}),

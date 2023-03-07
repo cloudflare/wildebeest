@@ -57,7 +57,7 @@ export default component$(() => {
 				{!isAuthorized && (
 					<a
 						class="w-full block mb-4 no-underline text-center bg-wildebeest-vibrant-600 hover:bg-wildebeest-vibrant-500 p-2 text-white text-uppercase border-wildebeest-vibrant-600 text-lg text-semi outline-none border rounded hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500"
-						href={loginUrl}
+						href={`${loginUrl}`}
 					>
 						Sign in
 					</a>
