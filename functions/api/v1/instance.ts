@@ -15,50 +15,31 @@ import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain: string = new URL(request.url).hostname
-	const db: Database = await getDatabase(env)
-	return handleRequest(domain, db, env)
+	const dbOverride: Database = await getDatabase(env)
+	return handleRequest(domain, env, dbOverride)
 }
 
-export async function handleRequest(domain: string, db: Database, env: Env) {
+export async function handleRequest(domain: string, env: Env, dbOverride?: Database) {
 	const headers = {
 		...cors(),
 		'content-type': 'application/json; charset=utf-8',
 	}
 
-	const adminActors = await getAdmins(db)
-	if (adminActors.length === 0) {
-		console.error('Server misconfiguration: missing admin account')
-		return error.internalServerError()
-	}
-
-	const adminAccounts: Map<string, MastodonAccount> = new Map()
-	for (const adminActor of adminActors) {
-		const adminAccount = await loadLocalMastodonAccount(db, adminActor)
-		adminAccounts.set(adminActor[emailSymbol], adminAccount)
-	}
-
-	const contactAccount: MastodonAccount | undefined = adminAccounts.has(env.ADMIN_EMAIL)
-		? adminAccounts.get(env.ADMIN_EMAIL)
-		: Array.from(adminAccounts.values())[0]
-	const instanceStatistics: InstanceStatistics = await calculateInstanceStatistics(domain, db)
-
 	const res: MastodonInstance = {
 		uri: domain,
-		title: env.INSTANCE_TITLE,
-		description: env.INSTANCE_DESCR,
-		short_description: env.INSTANCE_DESCR,
-		email: env.ADMIN_EMAIL,
+		title: env?.INSTANCE_TITLE,
+		description: env?.INSTANCE_DESCR,
+		short_description: env?.INSTANCE_DESCR,
+		email: env?.ADMIN_EMAIL,
 		version: getVersion(domain),
 		languages: ['en'],
-		registrations: env.INSTANCE_ACCEPTING_REGISTRATIONS ?? false,
-		approval_required: env.INSTANCE_REGISTRATIONS_REQUIRE_APPROVAL ?? false,
+		registrations: env?.INSTANCE_ACCEPTING_REGISTRATIONS ?? false,
+		approval_required: env?.INSTANCE_REGISTRATIONS_REQUIRE_APPROVAL ?? false,
 		invites_enabled: false,
-		urls: undefined,
 		thumbnail: DEFAULT_THUMBNAIL,
-		contact_account: contactAccount,
 		configuration: {
 			statuses: {
-				max_characters: env.INSTANCE_CONFIG_STATUSES_MAX_CHARACTERS ?? 500,
+				max_characters: env?.INSTANCE_CONFIG_STATUSES_MAX_CHARACTERS ?? 500,
 				max_media_attachments: 4,
 				characters_reserved_per_url: 23,
 			},
@@ -77,8 +58,36 @@ export async function handleRequest(domain: string, db: Database, env: Env) {
 				max_expiration: 2629746,
 			},
 		},
-		stats: instanceStatistics,
 		rules: [],
 	}
-	return new Response(JSON.stringify(res), { headers })
+	try {
+		const db = dbOverride ?? (await getDatabase(env))
+		if (db === undefined) {
+			console.warn('Server misconfiguration: missing database binding')
+			return new Response(JSON.stringify(res), { headers })
+		}
+
+		const instanceStatistics: InstanceStatistics = await calculateInstanceStatistics(domain, db)
+		res.stats = instanceStatistics
+
+		const adminActors = await getAdmins(db)
+		if (adminActors?.length > 0 === false) {
+			console.warn('Server misconfiguration: missing admin account')
+			return error.internalServerError()
+			// return new Response(JSON.stringify(res), { headers })
+		} else {
+			const adminAccounts: Map<string, MastodonAccount> = new Map()
+			for (const adminActor of adminActors) {
+				const adminAccount = await loadLocalMastodonAccount(db, adminActor)
+				adminAccounts.set(adminActor[emailSymbol], adminAccount)
+			}
+
+			// prettier-ignore
+			res.contact_account = adminAccounts.has(env?.ADMIN_EMAIL) ? adminAccounts.get(env?.ADMIN_EMAIL) : Array.from(adminAccounts.values())[0]
+		}
+		return new Response(JSON.stringify(res), { headers })
+	} catch (e: any) {
+		console.error(`Server misconfiguration.`)
+		return new Response(JSON.stringify(res), { headers })
+	}
 }

@@ -27,7 +27,7 @@ describe('Mastodon APIs', () => {
 				const db = await makeDB()
 				await createPerson(domain, db, adminKEK, admin_email, {}, true)
 
-				const res = await v1_instance.handleRequest(domain, db, env)
+				const res = await v1_instance.handleRequest(domain, env, db)
 				assert.equal(res.status, 200)
 				assertCORS(res)
 				assertJSON(res)
@@ -47,7 +47,7 @@ describe('Mastodon APIs', () => {
 				await addPeer(db, 'b')
 				await createPublicNote(domain, db, 'my first status', person)
 
-				const res = await v1_instance.handleRequest(domain, db, env)
+				const res = await v1_instance.handleRequest(domain, env, db)
 				assert.equal(res.status, 200)
 				assertCORS(res)
 				assertJSON(res)
@@ -64,7 +64,7 @@ describe('Mastodon APIs', () => {
 				const db = await makeDB()
 				await createPerson(domain, db, adminKEK, admin_email, {}, true)
 
-				const res = await v1_instance.handleRequest(domain, db, env)
+				const res = await v1_instance.handleRequest(domain, env, db)
 				assert.equal(res.status, 200)
 				assertCORS(res)
 				assertJSON(res)
@@ -84,7 +84,7 @@ describe('Mastodon APIs', () => {
 				const db = await makeDB()
 				await createPerson(domain, db, adminKEK, admin_email, {}, true)
 
-				const res = await v1_instance.handleRequest(domain, db, env)
+				const res = await v1_instance.handleRequest(domain, env, db)
 				assert.equal(res.status, 200)
 
 				{
