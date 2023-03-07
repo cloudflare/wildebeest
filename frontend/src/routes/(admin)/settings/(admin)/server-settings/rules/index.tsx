@@ -72,7 +72,7 @@ export default component$(() => {
 					While most claim to have read and agree to the terms of service, usually people do not read through until
 					after a problem arises. Make it easier to see your server's rules at a glance by providing them in a flat
 					bullet point list. Try to keep individual rules short and simple, but try not to split them up into many
-					separate items either.
+					separate items either
 				</p>
 
 				<div class="mb-12">
