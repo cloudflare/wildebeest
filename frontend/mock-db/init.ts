@@ -7,8 +7,8 @@ import { createReply as createReplyInBackend } from 'wildebeest/backend/test/sha
 import { createStatus } from 'wildebeest/backend/src/mastodon/status'
 import type { APObject } from 'wildebeest/backend/src/activitypub/objects'
 import { type Database } from 'wildebeest/backend/src/database'
-import { upsertRule } from 'wildebeest/functions/api/wb/settings/server/rules'
-import { upsertServerSettings } from 'wildebeest/functions/api/wb/settings/server/server'
+import { upsertRule } from 'wildebeest/backend/src/config/rules'
+import { upsertServerSettings } from 'wildebeest/backend/src/config/server'
 
 /**
  * Run helper commands to initialize the database with actors, statuses, etc.

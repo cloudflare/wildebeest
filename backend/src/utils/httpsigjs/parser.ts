@@ -281,11 +281,12 @@ export function parseRequest(request: Request, options?: Options): ParsedSignatu
 
 		if (h === 'request-line') {
 			if (!options.strict) {
+				const cf = (request as { cf?: IncomingRequestCfProperties }).cf
 				/*
 				 * We allow headers from the older spec drafts if strict parsing isn't
 				 * specified in options.
 				 */
-				parsed.signingString += request.method + ' ' + request.url + ' ' + request.cf?.httpProtocol
+				parsed.signingString += request.method + ' ' + request.url + ' ' + cf?.httpProtocol
 			} else {
 				/* Strict parsing doesn't allow older draft headers. */
 				throw new StrictParsingError('request-line is not a valid header ' + 'with strict parsing enabled.')
