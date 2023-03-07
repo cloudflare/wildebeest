@@ -8,6 +8,7 @@ import { Buffer } from 'buffer'
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
 export const emailSymbol = Symbol()
+export const isAdminSymbol = Symbol()
 
 export function actorURL(domain: string, id: string): URL {
 	return new URL(`/ap/users/${id}`, 'https://' + domain)
@@ -23,6 +24,7 @@ export interface Actor extends APObject {
 	alsoKnownAs?: string
 
 	[emailSymbol]: string
+	[isAdminSymbol]: boolean
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
@@ -298,6 +300,7 @@ export function personFromRow(row: any): Person {
 	return {
 		// Hidden values
 		[emailSymbol]: row.email,
+		[isAdminSymbol]: row.is_admin === 1,
 
 		...properties,
 		name,
