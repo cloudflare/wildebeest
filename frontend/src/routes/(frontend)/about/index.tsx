@@ -122,10 +122,10 @@ export default component$(() => {
 						<div class="my-1">
 							<Accordion title="Server rules">
 								<ol class="list-none flex flex-col gap-1 my-5 px-6">
-									{aboutInfo.rules.map(({ id, text }) => (
+									{aboutInfo.rules.map(({ id, text }, idx) => (
 										<li key={id} class="flex items-center border-wildebeest-700 border-b last-of-type:border-b-0 py-2">
 											<span class="bg-wildebeest-vibrant-400 text-wildebeest-900 mr-4 my-1 p-4 rounded-full w-5 h-5 grid place-content-center">
-												{id}
+												{idx + 1}
 											</span>
 											<span>{text}</span>
 										</li>
