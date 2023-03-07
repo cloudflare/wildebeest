@@ -63,7 +63,7 @@ export default component$(() => {
 
 	return (
 		<>
-			<Form action={editActionObj} spaReset>
+			<Form action={editActionObj}>
 				<p class="mt-12 mb-9">
 					While most claim to have read and agree to the terms of service, usually people do not read through until
 					after a problem arises. Make it easier to see your server's rules at a glance by providing them in a flat

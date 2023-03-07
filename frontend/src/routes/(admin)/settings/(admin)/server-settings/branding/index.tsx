@@ -37,7 +37,7 @@ export default component$(() => {
 	const saveAction = action()
 
 	return (
-		<Form action={saveAction} spaReset>
+		<Form action={saveAction}>
 			<p class="mt-12 mb-9">
 				Your server's branding differentiates it from other servers in the network. This information may be displayed
 				across a variety of environments, such as Mastodon's web interface, native applications, in link previews on
