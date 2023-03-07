@@ -50,7 +50,7 @@
 		"http-message-signatures": "^0.1.2",
 		"toucan-js": "^3.1.0"
 	},
-  "simple-git-hooks": {
-    "pre-commit": "yarn lint"
-  }
+	"simple-git-hooks": {
+		"pre-commit": "yarn lint"
+	}
 }
