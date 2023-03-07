@@ -36,7 +36,7 @@ export default component$(() => {
 	const saveAction = action()
 
 	return (
-		<Form action={saveAction} spaReset>
+		<Form action={saveAction}>
 			<p class="mt-12 mb-9">Provide in-depth information about how the server is operated, moderated, funded.</p>
 
 			<div class="mb-12">
