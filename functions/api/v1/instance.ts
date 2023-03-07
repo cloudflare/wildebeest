@@ -4,7 +4,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import * as error from 'wildebeest/backend/src/errors'
 import { DEFAULT_THUMBNAIL } from 'wildebeest/backend/src/config'
-import { getVersion } from 'wildebeest/config/versions'
+import { getFederationUA } from 'wildebeest/config/ua'
 import { calculateInstanceStatistics } from 'wildebeest/backend/src/mastodon/instance'
 import { MastodonInstance, InstanceStatistics } from 'wildebeest/backend/src/types/instance'
 import { MastodonAccount } from 'wildebeest/backend/src/types/account'
@@ -31,20 +31,20 @@ export async function handleRequest(domain: string, env: Env, dbOverride?: Datab
 		description: env?.INSTANCE_DESCR,
 		short_description: env?.INSTANCE_DESCR,
 		email: env?.ADMIN_EMAIL,
-		version: getVersion(domain),
+		version: getFederationUA(domain),
 		languages: ['en'],
-		registrations: env?.INSTANCE_ACCEPTING_REGISTRATIONS ?? false,
-		approval_required: env?.INSTANCE_REGISTRATIONS_REQUIRE_APPROVAL ?? false,
+		registrations: false,
+		approval_required: false,
 		invites_enabled: false,
 		thumbnail: DEFAULT_THUMBNAIL,
 		configuration: {
 			statuses: {
-				max_characters: env?.INSTANCE_CONFIG_STATUSES_MAX_CHARACTERS ?? 500,
+				max_characters: 500,
 				max_media_attachments: 4,
 				characters_reserved_per_url: 23,
 			},
 			media_attachments: {
-				supported_mime_types: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4'],
+				supported_mime_types: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
 				image_size_limit: 10485760,
 				image_matrix_limit: 16777216,
 				video_size_limit: 41943040,
@@ -52,10 +52,10 @@ export async function handleRequest(domain: string, env: Env, dbOverride?: Datab
 				video_matrix_limit: 2304000,
 			},
 			polls: {
-				max_options: 4,
-				max_characters_per_option: 50,
-				min_expiration: 300,
-				max_expiration: 2629746,
+				max_options: 0,
+				max_characters_per_option: 1,
+				min_expiration: 1,
+				max_expiration: 1,
 			},
 		},
 		rules: [],

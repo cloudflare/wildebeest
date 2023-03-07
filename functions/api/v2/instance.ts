@@ -2,7 +2,7 @@ import type { Env } from 'wildebeest/backend/src/types/env'
 import { cors } from 'wildebeest/backend/src/utils/cors'
 import { DEFAULT_THUMBNAIL } from 'wildebeest/backend/src/config'
 import type { InstanceConfigV2 } from 'wildebeest/backend/src/types/configs'
-import { getVersion } from 'wildebeest/config/versions'
+import { getFederationUA } from 'wildebeest/config/ua'
 import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
@@ -19,7 +19,7 @@ export async function handleRequest(domain: string, db: Database, env: Env) {
 	const res: InstanceConfigV2 = {
 		domain,
 		title: env.INSTANCE_TITLE,
-		version: getVersion(domain),
+		version: getFederationUA(domain),
 		source_url: 'https://github.com/cloudflare/wildebeest',
 		description: env.INSTANCE_DESCR,
 		thumbnail: {
