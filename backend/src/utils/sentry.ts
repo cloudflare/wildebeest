@@ -19,8 +19,7 @@ export function initSentry(request: Request, env: Env, context: any) {
 		request,
 		transportOptions: { headers },
 	})
-	const cf = (request as { cf?: IncomingRequestCfProperties }).cf
-	const colo = cf?.colo ? cf.colo : 'UNKNOWN'
+	const colo = request.cf && request.cf.colo ? request.cf.colo : 'UNKNOWN'
 	sentry.setTag('colo', colo)
 
 	// cf-connecting-ip should always be present, but if not we can fallback to XFF.

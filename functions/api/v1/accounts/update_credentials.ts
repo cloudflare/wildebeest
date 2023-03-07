@@ -60,12 +60,12 @@ export async function handleRequest(
 
 		if (formData.has('display_name')) {
 			const value = formData.get('display_name')!
-			await updateActorProperty(db, connectedActor.id, 'name', value as string)
+			await updateActorProperty(db, connectedActor.id, 'name', value)
 		}
 
 		if (formData.has('note')) {
 			const value = formData.get('note')!
-			await updateActorProperty(db, connectedActor.id, 'summary', value as string)
+			await updateActorProperty(db, connectedActor.id, 'summary', value)
 		}
 
 		if (formData.has('avatar')) {

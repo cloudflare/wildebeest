@@ -42,11 +42,11 @@ export async function handlePostRequest(
 	const properties: Record<string, string> = {}
 
 	if (formData.has('username')) {
-		properties.preferredUsername = (formData.get('username') as string) || ''
+		properties.preferredUsername = formData.get('username') || ''
 	}
 
 	if (formData.has('name')) {
-		properties.name = (formData.get('name') as string) || ''
+		properties.name = formData.get('name') || ''
 	}
 
 	await createPerson(domain, db, userKEK, email, properties)

@@ -325,8 +325,7 @@ function getContentRewriter() {
 	contentRewriter.on('*', {
 		element(el) {
 			if (!['p', 'span', 'br', 'a'].includes(el.tagName)) {
-				const element = el as { tagName: string }
-				element.tagName = 'p'
+				el.tagName = 'p'
 			}
 
 			if (el.hasAttribute('class')) {

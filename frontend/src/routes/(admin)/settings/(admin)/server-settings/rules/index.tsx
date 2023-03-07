@@ -1,7 +1,8 @@
 import { component$ } from '@builder.io/qwik'
 import { action$, Form, Link, loader$, z, zod$ } from '@builder.io/qwik-city'
 import { getDatabase } from 'wildebeest/backend/src/database'
-import { getRules, deleteRule, upsertRule } from 'wildebeest/backend/src/config/rules'
+import { handleRequestGet } from 'wildebeest/functions/api/v1/instance/rules'
+import { deleteRule, upsertRule } from 'wildebeest/functions/api/wb/settings/server/rules'
 import { TextArea } from '~/components/Settings/TextArea'
 
 export type ServerSettingsData = { rules: string[] }
@@ -47,7 +48,15 @@ export const deleteAction = action$(
 
 export const rulesLoader = loader$<Promise<{ id: number; text: string }[]>>(async ({ platform }) => {
 	const database = await getDatabase(platform)
-	const rules = await getRules(database)
+
+	const settingsResp = await handleRequestGet(database)
+	let rules: { id: number; text: string }[] = []
+	try {
+		rules = await settingsResp.json()
+	} catch {
+		rules = []
+	}
+
 	return JSON.parse(JSON.stringify(rules))
 })
 
@@ -85,11 +94,11 @@ export default component$(() => {
 			</Form>
 			<div>
 				{rules.value.map(({ id, text }, idx) => {
-					const ruleNumber = idx + 1
-					const ruleBtnText = `${ruleNumber}. ${text.slice(0, 27)}${text.length > 27 ? '...' : ''}`
+					const ruleId = idx + 1
+					const ruleBtnText = `${ruleId}. ${text.slice(0, 27)}${text.length > 27 ? '...' : ''}`
 					return (
 						<div key={id} class="p-4 my-4 bg-wildebeest-600 rounded">
-							<Link href={`./edit/${id}`} class="max-w-max inline-block mb-4 no-underline text-lg font-semibold">
+							<Link href={`./edit/${ruleId}`} class="max-w-max inline-block mb-4 no-underline text-lg font-semibold">
 								{ruleBtnText}
 							</Link>
 							<div class="flex justify-between text-wildebeest-400">

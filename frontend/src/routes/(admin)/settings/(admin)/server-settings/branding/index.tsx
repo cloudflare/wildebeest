@@ -1,7 +1,7 @@
 import { component$ } from '@builder.io/qwik'
 import { action$, Form, zod$, z } from '@builder.io/qwik-city'
 import { getDatabase } from 'wildebeest/backend/src/database'
-import { updateSettings } from 'wildebeest/backend/src/config/server'
+import { handleRequestPost } from 'wildebeest/functions/api/wb/settings/server/server'
 import { TextArea } from '~/components/Settings/TextArea'
 import { TextInput } from '~/components/Settings/TextInput'
 import { serverSettingsLoader } from '../layout'
@@ -13,12 +13,16 @@ const zodSchema = zod$({
 
 export type ServerBrandingData = Awaited<typeof zodSchema>['_type']
 
-export const action = action$(async (data, { platform }) => {
-	const db = await getDatabase(platform)
+export const action = action$(async (data, { request, platform }) => {
 	let success = false
 	try {
-		await updateSettings(db, data)
-		success = true
+		const response = await handleRequestPost(
+			await getDatabase(platform),
+			new Request(request, { body: JSON.stringify(data) }),
+			platform.ACCESS_AUTH_DOMAIN,
+			platform.ACCESS_AUD
+		)
+		success = response.ok
 	} catch (e: unknown) {
 		success = false
 	}
@@ -33,7 +37,7 @@ export default component$(() => {
 	const saveAction = action()
 
 	return (
-		<Form action={saveAction}>
+		<Form action={saveAction} spaReset>
 			<p class="mt-12 mb-9">
 				Your server's branding differentiates it from other servers in the network. This information may be displayed
 				across a variety of environments, such as Mastodon's web interface, native applications, in link previews on

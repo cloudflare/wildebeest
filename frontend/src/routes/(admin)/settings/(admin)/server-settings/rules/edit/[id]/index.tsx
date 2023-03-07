@@ -1,7 +1,8 @@
 import { component$ } from '@builder.io/qwik'
 import { action$, Form, loader$, useNavigate, z, zod$ } from '@builder.io/qwik-city'
 import { getDatabase } from 'wildebeest/backend/src/database'
-import { getRules, upsertRule } from 'wildebeest/backend/src/config/rules'
+import { handleRequestGet } from 'wildebeest/functions/api/v1/instance/rules'
+import { upsertRule } from 'wildebeest/functions/api/wb/settings/server/rules'
 import { TextArea } from '~/components/Settings/TextArea'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
@@ -32,7 +33,14 @@ export const editAction = action$(
 
 export const ruleLoader = loader$<Promise<{ id: number; text: string }>>(async ({ params, platform, html }) => {
 	const database = await getDatabase(platform)
-	const rules = await getRules(database)
+
+	const settingsResp = await handleRequestGet(database)
+	let rules: { id: number; text: string }[] = []
+	try {
+		rules = await settingsResp.json()
+	} catch {
+		rules = []
+	}
 
 	const rule: { id: number; text: string } | undefined = rules.find((r) => r.id === +params['id'])
 
@@ -55,7 +63,7 @@ export default component$(() => {
 
 	return (
 		<>
-			<Form action={editActionObj}>
+			<Form action={editActionObj} spaReset>
 				<p class="mt-12 mb-9">
 					While most claim to have read and agree to the terms of service, usually people do not read through until
 					after a problem arises. Make it easier to see your server's rules at a glance by providing them in a flat

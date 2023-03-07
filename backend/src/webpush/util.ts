@@ -26,12 +26,12 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
 }
 
 export function b64ToUrlEncoded(str: string): string {
-	return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+/g, '')
+	return str.replaceAll(/\+/g, '-').replaceAll(/\//g, '_').replace(/=+/g, '')
 }
 
 export function urlEncodedToB64(str: string): string {
 	const padding = '='.repeat((4 - (str.length % 4)) % 4)
-	return str.replace(/-/g, '+').replace(/_/g, '/') + padding
+	return str.replaceAll(/-/g, '+').replaceAll(/_/g, '/') + padding
 }
 
 export function stringToU8Array(str: string): Uint8Array {
