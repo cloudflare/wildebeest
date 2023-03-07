@@ -94,11 +94,11 @@ export default component$(() => {
 			</Form>
 			<div>
 				{rules.value.map(({ id, text }, idx) => {
-					const ruleId = idx + 1
-					const ruleBtnText = `${ruleId}. ${text.slice(0, 27)}${text.length > 27 ? '...' : ''}`
+					const ruleNumber = idx + 1
+					const ruleBtnText = `${ruleNumber}. ${text.slice(0, 27)}${text.length > 27 ? '...' : ''}`
 					return (
 						<div key={id} class="p-4 my-4 bg-wildebeest-600 rounded">
-							<Link href={`./edit/${ruleId}`} class="max-w-max inline-block mb-4 no-underline text-lg font-semibold">
+							<Link href={`./edit/${id}`} class="max-w-max inline-block mb-4 no-underline text-lg font-semibold">
 								{ruleBtnText}
 							</Link>
 							<div class="flex justify-between text-wildebeest-400">
