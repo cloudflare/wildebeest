@@ -2,11 +2,10 @@ import { component$ } from '@builder.io/qwik'
 import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import { getDatabase } from 'wildebeest/backend/src/database'
 import { getDomain } from 'wildebeest/backend/src/utils/getDomain'
-import { handleRequestGet as settingsHandleRequestGet } from 'wildebeest/functions/api/wb/settings/server/server'
-import { handleRequestGet as rulesHandleRequestGet } from 'wildebeest/functions/api/v1/instance/rules'
+import { getSettings } from 'wildebeest/backend/src/config/server'
+import { getRules } from 'wildebeest/backend/src/config/rules'
 import { Accordion } from '~/components/Accordion/Accordion'
 import { HtmlContent } from '~/components/HtmlContent/HtmlContent'
-import { ServerSettingsData } from '~/routes/(admin)/settings/(admin)/server-settings/layout'
 import { Account } from '~/types'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { instanceLoader } from '../layout'
@@ -28,25 +27,9 @@ type AboutInfo = {
 export const aboutInfoLoader = loader$<Promise<AboutInfo>>(async ({ resolveValue, request, platform }) => {
 	// TODO: fetching the instance for the thumbnail, but that should be part of the settings
 	const instance = await resolveValue(instanceLoader)
-
 	const database = await getDatabase(platform)
-
-	const brandingDataResp = await settingsHandleRequestGet(database)
-	let brandingData: ServerSettingsData | null
-	try {
-		brandingData = await brandingDataResp.json()
-	} catch {
-		brandingData = null
-	}
-
-	const rulesResp = await rulesHandleRequestGet(database)
-	let rules: { id: number; text: string }[] = []
-	try {
-		rules = await rulesResp.json()
-	} catch {
-		rules = []
-	}
-
+	const brandingData = await getSettings(database)
+	const rules = await getRules(database)
 	const admins = await getAdmins(database)
 	let adminAccount: Account | null = null
 
