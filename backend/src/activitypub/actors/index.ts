@@ -225,7 +225,7 @@ export async function updateActorProperty(db: Database, actorId: URL, key: strin
 
 export async function setActorAlias(db: Database, actorId: URL, alias: URL) {
 	const { success, error } = await db
-		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', json_array(?)) WHERE id=?`)
+		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', ${db.qb.jsonArray('?1')}) WHERE id=?2`)
 		.bind(alias.toString(), actorId.toString())
 		.run()
 	if (!success) {
