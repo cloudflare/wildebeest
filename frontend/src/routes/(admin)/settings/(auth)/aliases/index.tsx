@@ -1,7 +1,35 @@
 import { component$, useStore, useSignal, $ } from '@builder.io/qwik'
+import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
+import { getDatabase } from 'wildebeest/backend/src/database'
+import { action$, Form, zod$, z } from '@builder.io/qwik-city'
+import { addAlias } from 'wildebeest/backend/src/accounts/alias'
+
+const zodSchema = zod$({
+	alias: z.string().min(1),
+})
+
+export const action = action$(async (data, { env, platform, html }) => {
+	const db = await getDatabase(platform)
+	// eslint-disable-next-line
+	const connectedActor = (env as any).data.connectedActor
+	if (connectedActor === null) {
+		throw html(500, getErrorHtml('user not present in context'))
+	}
+
+	let success = false
+	try {
+		await addAlias(db, data.alias, connectedActor)
+		success = true
+	} catch (e: unknown) {
+		success = false
+	}
+
+	return {
+		success,
+	}
+}, zodSchema)
 
 export default component$(() => {
-	const ref = useSignal<Element>()
 	const state = useStore({ alias: '' })
 	const toast = useSignal<'success' | 'failure' | null>(null)
 
@@ -9,17 +37,10 @@ export default component$(() => {
 		state.alias = (event.target as HTMLInputElement).value
 	})
 
-	const handleSubmit = $(async () => {
-		const res = await fetch('/api/wb/settings/account/alias', { method: 'POST', body: JSON.stringify(state) })
-		if (res.status == 200) {
-			toast.value = 'success'
-		} else {
-			toast.value = 'failure'
-		}
-	})
+	const saveAction = action()
 
 	return (
-		<form ref={ref} class="login-form" preventdefault:submit onSubmit$={handleSubmit}>
+		<Form class="login-form" preventdefault:submit action={saveAction}>
 			<div class="max-w-4xl py-14 px-8">
 				<h2 class="text-2xl font-bold mb-6">Account Aliases</h2>
 
@@ -92,6 +113,6 @@ export default component$(() => {
 					</tbody>
 				</table> */}
 			</div>
-		</form>
+		</Form>
 	)
 })
