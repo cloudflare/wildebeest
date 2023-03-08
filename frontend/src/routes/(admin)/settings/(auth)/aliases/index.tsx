@@ -8,10 +8,9 @@ const zodSchema = zod$({
 	alias: z.string().min(1),
 })
 
-export const action = action$(async (data, { env, platform, html }) => {
+export const action = action$(async (data, { platform, html }) => {
 	const db = await getDatabase(platform)
-	// eslint-disable-next-line
-	const connectedActor = (env as any).data.connectedActor
+	const connectedActor = platform.data.connectedActor
 	if (connectedActor === null) {
 		throw html(500, getErrorHtml('user not present in context'))
 	}
@@ -40,7 +39,7 @@ export default component$(() => {
 	const saveAction = action()
 
 	return (
-		<Form class="login-form" preventdefault:submit action={saveAction}>
+		<Form class="login-form" action={saveAction}>
 			<div class="max-w-4xl py-14 px-8">
 				<h2 class="text-2xl font-bold mb-6">Account Aliases</h2>
 
