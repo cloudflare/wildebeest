@@ -33,6 +33,7 @@ export interface QueryBuilder {
 	epoch(): string
 	insertOrIgnore(q: string): string
 	psqlOnly(raw: string): string
+	jsonArray(r: string): string
 }
 
 export async function getDatabase(env: Pick<Env, 'DATABASE' | 'NEON_DATABASE_URL'>): Promise<Database> {

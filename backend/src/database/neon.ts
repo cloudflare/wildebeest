@@ -34,6 +34,10 @@ const qb: QueryBuilder = {
 	psqlOnly(q: string): string {
 		return q
 	},
+
+	jsonArray(r: string): string {
+		return `json_array_elements_text(${r})`
+	},
 }
 
 export default async function make(env: Pick<Env, 'NEON_DATABASE_URL'>): Promise<Database> {

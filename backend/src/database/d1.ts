@@ -25,6 +25,10 @@ const qb: QueryBuilder = {
 	psqlOnly(): string {
 		return ''
 	},
+
+	jsonArray(r: string): string {
+		return `json_array(${r})`
+	},
 }
 
 export default function make({ DATABASE }: Pick<Env, 'DATABASE'>): Database {
