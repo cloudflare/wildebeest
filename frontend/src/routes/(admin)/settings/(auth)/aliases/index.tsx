@@ -1,5 +1,4 @@
 import { component$, useStore, useSignal, $ } from '@builder.io/qwik'
-import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 import { getDatabase } from 'wildebeest/backend/src/database'
 import { action$, Form, zod$, z } from '@builder.io/qwik-city'
 import { addAlias } from 'wildebeest/backend/src/accounts/alias'
@@ -8,23 +7,23 @@ const zodSchema = zod$({
 	alias: z.string().min(1),
 })
 
-export const action = action$(async (data, { platform, html }) => {
+export const action = action$(async (data, { platform, json }) => {
 	const db = await getDatabase(platform)
 	const connectedActor = platform.data.connectedActor
 	if (connectedActor === null) {
-		throw html(500, getErrorHtml('user not present in context'))
+		throw json(500, { error: 'user not present in context' })
 	}
 
-	let success = false
 	try {
 		await addAlias(db, data.alias, connectedActor)
-		success = true
 	} catch (e: unknown) {
-		success = false
+		const error = e as { stack: string; cause: string }
+		console.error(error.stack, error.cause)
+		throw json(500, { error: 'failed to add alias' })
 	}
 
 	return {
-		success,
+		success: true,
 	}
 }, zodSchema)
 

@@ -16,7 +16,7 @@ export const statusesLoader = loader$<Promise<MastodonStatus[]>>(async ({ platfo
 		return JSON.parse(results) as MastodonStatus[]
 	} catch (e: unknown) {
 		const error = e as { stack: string; cause: string }
-		console.warn(error.stack, error.cause)
+		console.error(error.stack, error.cause)
 		throw html(500, getErrorHtml('The timeline is unavailable, please try again later'))
 	}
 })
