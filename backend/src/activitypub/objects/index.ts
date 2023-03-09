@@ -159,7 +159,7 @@ export async function updateObject(db: Database, properties: any, id: URL): Prom
 
 export async function updateObjectProperty(db: Database, obj: APObject, key: string, value: string) {
 	const { success, error } = await db
-		.prepare(`UPDATE objects SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
+		.prepare(`UPDATE objects SET properties=${db.qb.jsonSet('properties', key, '?1')} WHERE id=?2`)
 		.bind(value, obj.id.toString())
 		.run()
 	if (!success) {
