@@ -1,8 +1,8 @@
 import { emailSymbol } from 'wildebeest/backend/src/activitypub/actors'
 import { Database } from 'wildebeest/backend/src/database'
 import { getJwtEmail } from 'wildebeest/backend/src/utils/auth/getJwtEmail'
-import { getAdmins } from './getAdmins'
-import { isUserAuthenticated } from './isUserAuthenticated'
+import { getAdmins } from 'wildebeest/backend/src/utils/auth/getAdmins'
+import { isUserAuthenticated } from 'wildebeest/backend/src/utils/auth/isUserAuthenticated'
 
 export async function isUserAdmin(
 	request: Request,

@@ -2,9 +2,9 @@ import type { InstanceStatistics } from 'wildebeest/backend/src/types/instance'
 import { sqlMastoV1InstanceStats } from 'wildebeest/backend/src/mastodon/sql/instance'
 import { Database } from 'wildebeest/backend/src/database'
 
-export async function calculateInstanceStatistics(origin: string, db: Database): Promise<InstanceStatistics> {
+export async function calculateInstanceStatistics(domain: string, db: Database): Promise<InstanceStatistics> {
 	const row: any = await db
-		.prepare(sqlMastoV1InstanceStats(origin))
+		.prepare(sqlMastoV1InstanceStats(domain))
 		.first<{ user_count: number; status_count: number; domain_count: number }>()
 
 	return {

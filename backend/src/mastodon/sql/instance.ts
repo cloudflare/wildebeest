@@ -7,13 +7,13 @@
  *
  *
  * ```
- *  const sqlQuery: string = sqlMastoV1InstanceStats('https://example.com')
+ *  const sqlQuery: string = sqlMastoV1InstanceStats('example.com')
  *  const row: any = await db.prepare(sqlQuery).first<{ user_count: number, status_count: number, domain_count: number }>()
  *
  *
  * ```
  *
- * @param domain expects an HTTP **origin** (i.e. must include the https://)
+ * @param domain expects an HTTP origin or hostname
  * @return a string value representing a SQL statement that can be used to
  * calculate instance-level aggregate statistics
  */

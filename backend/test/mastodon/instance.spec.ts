@@ -21,6 +21,7 @@ describe('Mastodon APIs', () => {
 				INSTANCE_TITLE: 'a',
 				ADMIN_EMAIL: admin_email,
 				INSTANCE_DESCR: 'c',
+				DOMAIN: domain,
 			} as Env
 
 			test('return the correct instance admin', async () => {
