@@ -29,6 +29,10 @@ const qb: QueryBuilder = {
 	jsonArray(r: string): string {
 		return `json_array(${r})`
 	},
+
+	jsonSet(obj: string, field: string, value: string): string {
+		return `json_set(${obj}, '$.${field}', ${value})`
+	},
 }
 
 export default function make({ DATABASE }: Pick<Env, 'DATABASE'>): Database {

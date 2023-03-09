@@ -215,7 +215,7 @@ export async function createPerson(
 
 export async function updateActorProperty(db: Database, actorId: URL, key: string, value: string) {
 	const { success, error } = await db
-		.prepare(`UPDATE actors SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
+		.prepare(`UPDATE actors SET properties=${db.qb.jsonSet('properties', key, '?1')} WHERE id=?2`)
 		.bind(value, actorId.toString())
 		.run()
 	if (!success) {
@@ -225,7 +225,9 @@ export async function updateActorProperty(db: Database, actorId: URL, key: strin
 
 export async function setActorAlias(db: Database, actorId: URL, alias: URL) {
 	const { success, error } = await db
-		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', ${db.qb.jsonArray('?1')}) WHERE id=?2`)
+		.prepare(
+			`UPDATE actors SET properties=${db.qb.jsonSet('properties', 'alsoKnownAs', db.qb.jsonArray('?1'))} WHERE id=?2`
+		)
 		.bind(alias.toString(), actorId.toString())
 		.run()
 	if (!success) {
