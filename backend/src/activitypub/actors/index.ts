@@ -8,6 +8,7 @@ import { Buffer } from 'buffer'
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
 export const emailSymbol = Symbol()
+export const isAdminSymbol = Symbol()
 
 export function actorURL(domain: string, id: string): URL {
 	return new URL(`/ap/users/${id}`, 'https://' + domain)
@@ -23,6 +24,7 @@ export interface Actor extends APObject {
 	alsoKnownAs?: string
 
 	[emailSymbol]: string
+	[isAdminSymbol]: boolean
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
@@ -223,7 +225,7 @@ export async function updateActorProperty(db: Database, actorId: URL, key: strin
 
 export async function setActorAlias(db: Database, actorId: URL, alias: URL) {
 	const { success, error } = await db
-		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', json_array(?)) WHERE id=?`)
+		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', ${db.qb.jsonArray('?1')}) WHERE id=?2`)
 		.bind(alias.toString(), actorId.toString())
 		.run()
 	if (!success) {
@@ -298,6 +300,7 @@ export function personFromRow(row: any): Person {
 	return {
 		// Hidden values
 		[emailSymbol]: row.email,
+		[isAdminSymbol]: row.is_admin === 1,
 
 		...properties,
 		name,

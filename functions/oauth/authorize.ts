@@ -50,7 +50,7 @@ export async function buildRedirect(
 
 	const redirect_uri = url.searchParams.get('redirect_uri')
 	if (client.redirect_uris !== redirect_uri) {
-		return new Response('', { status: 403 })
+		return errors.validationError('redirect_uri not allowed')
 	}
 
 	const code = `${client.id}.${jwt}`
