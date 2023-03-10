@@ -12,7 +12,7 @@ function sqliteToPsql(query: string): string {
 
 const qb: QueryBuilder = {
 	jsonExtract(obj: string, prop: string): string {
-		return `json_extract_path(${obj}::json, '${prop}')::text`
+		return `jsonb_extract_path(${obj}, '${prop}')::text`
 	},
 
 	jsonExtractIsNull(obj: string, prop: string): string {
@@ -35,12 +35,8 @@ const qb: QueryBuilder = {
 		return q
 	},
 
-	jsonArray(r: string): string {
-		return `json_array_elements_text(${r})`
-	},
-
 	jsonSet(obj: string, field: string, value: string): string {
-		return `jsonb_set(${obj}, '${field}', ${value})`
+		return `jsonb_set(${obj}, '{${field}}', ${value})`
 	},
 }
 
