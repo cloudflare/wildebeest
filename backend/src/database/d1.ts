@@ -35,6 +35,7 @@ export default function make({ DATABASE }: Pick<Env, 'DATABASE'>): Database {
 	const db = DATABASE as any
 	db.qb = qb
 	db.client = 'd1'
+	db.closeConnection = async () => {}
 
 	return db as Database
 }

@@ -22,10 +22,12 @@ export type Env = {
 export default {
 	async queue(batch: MessageBatch<MessageBody>, env: Env, ctx: ExecutionContext) {
 		const sentry = initSentryQueue(env, ctx)
-		const db = await getDatabase(env)
 
-		try {
-			for (const message of batch.messages) {
+		for (const message of batch.messages) {
+			console.log(JSON.stringify(message))
+			const db = await getDatabase(env)
+
+			try {
 				const actor = await actors.getActorById(db, new URL(message.body.actorId))
 				if (actor === null) {
 					console.warn(`actor ${message.body.actorId} is missing`)
@@ -42,14 +44,17 @@ export default {
 						break
 					}
 					default:
-						throw new Error('unsupported message type: ' + message.body.type)
+						console.warn('unsupported message type: ' + message.body.type)
 				}
+			} catch (err: any) {
+				if (sentry !== null) {
+					sentry.captureException(err)
+				}
+				console.error(err.stack, err.cause)
+				throw err
+			} finally {
+				await db.closeConnection()
 			}
-		} catch (err: any) {
-			if (sentry !== null) {
-				sentry.captureException(err)
-			}
-			console.error(err.stack, err.cause)
 		}
 	},
 }

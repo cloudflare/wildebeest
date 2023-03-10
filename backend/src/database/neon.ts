@@ -48,6 +48,12 @@ export default async function make(env: Pick<Env, 'NEON_DATABASE_URL'>): Promise
 		client: 'neon',
 		qb,
 
+		async closeConnection() {
+            console.log("closeConnection");
+			await client.end()
+            console.log("did closeConnection");
+		},
+
 		prepare(query: string) {
 			return new PreparedStatement(env, query, [], client)
 		},
@@ -102,6 +108,7 @@ export class PreparedStatement {
 			throw new Error('not implemented')
 		}
 		const query = sqliteToPsql(this.query)
+			console.log({ query })
 
 		const results = await this.client.query(query, this.values)
 		if (results.rows.length !== 1) {
@@ -117,6 +124,7 @@ export class PreparedStatement {
 
 	async all<T = unknown>(): Promise<Result<T>> {
 		const query = sqliteToPsql(this.query)
+			console.log({ query })
 		const results = await this.client.query(query, this.values)
 
 		return {

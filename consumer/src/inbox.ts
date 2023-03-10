@@ -13,7 +13,6 @@ export async function handleInboxMessage(env: Env, actor: Actor, message: InboxM
 	const adminEmail = env.ADMIN_EMAIL
 	const cache = cacheFromEnv(env)
 	const activity = message.activity
-	console.log(JSON.stringify(activity))
 
 	await activityHandler.handle(domain, activity, db, message.userKEK, adminEmail, message.vapidKeys)
 

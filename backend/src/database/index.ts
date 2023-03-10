@@ -16,6 +16,7 @@ export interface Database {
 	exec<T = unknown>(query: string): Promise<Result<T>>
 	qb: QueryBuilder
 	client: string
+	closeConnection(): Promise<void>
 }
 
 export interface PreparedStatement {

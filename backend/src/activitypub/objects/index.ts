@@ -128,7 +128,16 @@ export async function cacheObject(
 	}
 
 	{
-		const properties = JSON.parse(row.properties)
+		let properties
+		if (typeof row.properties === 'object') {
+			// neon uses JSONB for properties which is returned as a deserialized
+			// object.
+			properties = row.properties
+		} else {
+			// D1 uses a string for JSON properties
+			properties = JSON.parse(row.properties)
+		}
+
 		const object = {
 			published: new Date(row.cdate).toISOString(),
 			...properties,
@@ -206,7 +215,16 @@ export async function getObjectBy(db: Database, key: ObjectByKey, value: string)
 	}
 
 	const result: any = results[0]
-	const properties = JSON.parse(result.properties)
+
+	let properties
+	if (typeof row.properties === 'object') {
+		// neon uses JSONB for properties which is returned as a deserialized
+		// object.
+		properties = row.properties
+	} else {
+		// D1 uses a string for JSON properties
+		properties = JSON.parse(row.properties)
+	}
 
 	return {
 		published: new Date(result.cdate).toISOString(),
