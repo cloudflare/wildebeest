@@ -101,7 +101,7 @@ resource "random_password" "user_key" {
 resource "cloudflare_pages_project" "wildebeest_pages_project" {
   account_id = var.cloudflare_account_id
   name              = "wildebeest-${lower(var.name_suffix)}"
-  production_branch = "main"
+  production_branch = "sven/debug4"
 
   deployment_configs {
     production {
