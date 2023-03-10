@@ -224,14 +224,24 @@ export async function updateActorProperty(db: Database, actorId: URL, key: strin
 }
 
 export async function setActorAlias(db: Database, actorId: URL, alias: URL) {
-	const { success, error } = await db
-		.prepare(
-			`UPDATE actors SET properties=${db.qb.jsonSet('properties', 'alsoKnownAs', db.qb.jsonArray('?1'))} WHERE id=?2`
-		)
-		.bind(alias.toString(), actorId.toString())
-		.run()
-	if (!success) {
-		throw new Error('SQL error: ' + error)
+	if (db.client === 'neon') {
+		const { success, error } = await db
+			.prepare(`UPDATE actors SET properties=${db.qb.jsonSet('properties', 'alsoKnownAs,0', '?1')} WHERE id=?2`)
+			.bind('"' + alias.toString() + '"', actorId.toString())
+			.run()
+		if (!success) {
+			throw new Error('SQL error: ' + error)
+		}
+	} else {
+		const { success, error } = await db
+			.prepare(
+				`UPDATE actors SET properties=${db.qb.jsonSet('properties', 'alsoKnownAs', 'json_array(?1)')} WHERE id=?2`
+			)
+			.bind(alias.toString(), actorId.toString())
+			.run()
+		if (!success) {
+			throw new Error('SQL error: ' + error)
+		}
 	}
 }
 
@@ -246,7 +256,16 @@ export async function getActorById(db: Database, id: URL): Promise<Actor | null>
 }
 
 export function personFromRow(row: any): Person {
-	const properties = JSON.parse(row.properties) as PersonProperties
+	let properties
+	if (typeof row.properties === 'object') {
+		// neon uses JSONB for properties which is returned as a deserialized
+		// object.
+		properties = row.properties as PersonProperties
+	} else {
+		// D1 uses a string for JSON properties
+		properties = JSON.parse(row.properties) as PersonProperties
+	}
+
 	const icon = properties.icon ?? {
 		type: 'Image',
 		mediaType: 'image/jpeg',

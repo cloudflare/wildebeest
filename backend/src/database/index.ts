@@ -33,7 +33,6 @@ export interface QueryBuilder {
 	epoch(): string
 	insertOrIgnore(q: string): string
 	psqlOnly(raw: string): string
-	jsonArray(r: string): string
 	jsonSet(obj: string, field: string, value: string): string
 }
 
