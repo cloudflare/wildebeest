@@ -15,7 +15,7 @@
 		"watch": "nodemon -w ./src --ext tsx,ts --exec npm run build"
 	},
 	"devDependencies": {
-		"@builder.io/qwik": "0.19.2",
+		"@builder.io/qwik": "0.21.0",
 		"@builder.io/qwik-city": "0.4.0",
 		"@types/eslint": "8.4.10",
 		"@types/jest": "^29.2.4",
