@@ -2,7 +2,7 @@ import { component$, Slot, useContextProvider } from '@builder.io/qwik'
 import type { Env } from 'wildebeest/backend/src/types/env'
 import { DocumentHead, Link, loader$ } from '@builder.io/qwik-city'
 import * as instance from 'wildebeest/functions/api/v1/instance'
-import type { InstanceConfig } from 'wildebeest/backend/src/types/configs'
+import type { MastodonInstance } from 'wildebeest/backend/src/types/instance'
 import LeftColumn from '~/components/layout/LeftColumn/LeftColumn'
 import RightColumn from '~/components/layout/RightColumn/RightColumn'
 import { WildebeestLogo } from '~/components/MastodonLogo'
@@ -11,16 +11,18 @@ import { InstanceConfigContext } from '~/utils/instanceConfig'
 import { getDocumentHead } from '~/utils/getDocumentHead'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
 
-export const instanceLoader = loader$<Promise<InstanceConfig>>(async ({ platform, html }) => {
+export const instanceLoader = loader$<Promise<MastodonInstance>>(async ({ platform, html }) => {
 	const env = {
 		INSTANCE_DESCR: platform.INSTANCE_DESCR,
 		INSTANCE_TITLE: platform.INSTANCE_TITLE,
 		ADMIN_EMAIL: platform.ADMIN_EMAIL,
+		DOMAIN: platform.DOMAIN,
+		DATABASE: platform.DATABASE
 	} as Env
 	try {
-		const response = await instance.handleRequest('', env)
+		const response = await instance.handleRequest(platform.DOMAIN, env)
 		const results = await response.text()
-		const json = JSON.parse(results) as InstanceConfig
+		const json = JSON.parse(results) as MastodonInstance
 		return json
 	} catch (e: unknown) {
 		const error = e as { stack: string; cause: string }

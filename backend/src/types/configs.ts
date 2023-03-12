@@ -1,15 +1,4 @@
 // https://docs.joinmastodon.org/entities/Instance/
-export type InstanceConfig = {
-	uri: string
-	title: string
-	thumbnail: string
-	languages: Array<string>
-	email: string
-	description: string
-	short_description?: string
-	rules: Array<Rule>
-}
-
 export type InstanceConfigV2 = {
 	domain: string
 	title: string
