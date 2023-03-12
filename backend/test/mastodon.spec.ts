@@ -187,6 +187,9 @@ describe('Mastodon APIs', () => {
 				'http://www.cloudflare.co.uk?test=test@123',
 				'http://www.cloudflare.com/.com/?test=test@~123&a=b',
 				'https://developers.cloudflare.com/workers/runtime-apis/request/#background',
+				'https://a.test',
+				'https://a.test/test',
+				'https://a.test/test?test=test',
 			]
 			linksToTest.forEach((link) => {
 				const url = new URL(link)

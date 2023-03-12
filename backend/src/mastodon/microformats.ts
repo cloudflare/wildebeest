@@ -11,7 +11,7 @@ function tag(name: string, content: string, attrs: Record<string, string> = {}):
 	return `<${name}${htmlAttrs}>${content}</${name}>`
 }
 
-const linkRegex = /(^|\s|\b)(https?:\/\/[-\w@:%._+~#=]{2,256}\.[a-z]{2,6}\b(?:[-\w@:%_+.~#?&/=]*))(\b|\s|$)/g
+const linkRegex = /(^|\s|\b)(https?:\/\/[-\w@:%._+~#=]{1,256}\.[a-z]{2,6}\b(?:[-\w@:%_+.~#?&/=]*))(\b|\s|$)/g
 const mentionedEmailRegex = /(^|\s|\b|\W)@(\w+(?:[.-]?\w+)+@\w+(?:[.-]?\w+)+(?:\.\w{2,63})+)(\b|\s|$)/g
 const tagRegex = /(^|\s|\b|\W)#(\w{2,63})(\b|\s|$)/g
 
