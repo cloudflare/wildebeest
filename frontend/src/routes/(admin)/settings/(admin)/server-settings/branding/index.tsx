@@ -5,6 +5,8 @@ import { updateSettings } from 'wildebeest/backend/src/config/server'
 import { TextArea } from '~/components/Settings/TextArea'
 import { TextInput } from '~/components/Settings/TextInput'
 import { serverSettingsLoader } from '../layout'
+import ResultMessage from '~/components/ResultMessage'
+import { SubmitButton } from '~/components/Settings/SubmitButton'
 
 const zodSchema = zod$({
 	'server name': z.string().min(1),
@@ -32,6 +34,9 @@ export default component$(() => {
 	const existingSettings = serverSettingsLoader()
 	const saveAction = action()
 
+	const showSuccessfulResult = !!saveAction.value?.success
+	const showUnsuccessfulResult = !!saveAction.value && !saveAction.value.success
+
 	return (
 		<Form action={saveAction}>
 			<p class="mt-12 mb-9">
@@ -58,12 +63,13 @@ export default component$(() => {
 				description="A short description to help uniquely identify your server. Who is running it, who is it for?"
 			/>
 
-			<button
-				type="submit"
-				class="w-full my-10 bg-wildebeest-vibrant-600 hover:bg-wildebeest-vibrant-500 p-2 text-white text-uppercase border-wildebeest-vibrant-600 text-lg text-semi outline-none border rounded hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500"
-			>
-				Save Changes
-			</button>
+			{showSuccessfulResult && <ResultMessage type="success" message="The changes have been saved successfully." />}
+
+			{showUnsuccessfulResult && (
+				<ResultMessage type="failure" message="There was an error and changes couldn't be saved." />
+			)}
+
+			<SubmitButton text="Save Changes" loading={saveAction.isRunning} />
 		</Form>
 	)
 })

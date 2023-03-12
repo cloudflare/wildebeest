@@ -17,10 +17,10 @@ export async function getSettings(db: Database): Promise<ServerSettingsData> {
 		throw new Error('SQL Error: ' + result.error)
 	}
 
-	return data
+	return data as ServerSettingsData
 }
 
-export async function updateSettings(db: Database, data: ServerSettingsData) {
+export async function updateSettings(db: Database, data: Partial<ServerSettingsData>) {
 	const result = await upsertServerSettings(db, data)
 	if (result && !result.success) {
 		throw new Error('SQL Error: ' + result.error)
