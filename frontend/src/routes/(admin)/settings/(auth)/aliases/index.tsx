@@ -1,7 +1,8 @@
-import { component$, useStore, useSignal, $ } from '@builder.io/qwik'
+import { component$, useStore, $ } from '@builder.io/qwik'
 import { getDatabase } from 'wildebeest/backend/src/database'
 import { action$, Form, zod$, z } from '@builder.io/qwik-city'
 import { addAlias } from 'wildebeest/backend/src/accounts/alias'
+import ResultMessage from '~/components/ResultMessage'
 
 const zodSchema = zod$({
 	alias: z.string().min(1),
@@ -29,7 +30,6 @@ export const action = action$(async (data, { platform, json }) => {
 
 export default component$(() => {
 	const state = useStore({ alias: '' })
-	const toast = useSignal<'success' | 'failure' | null>(null)
 
 	const handleInput = $((event: Event) => {
 		state.alias = (event.target as HTMLInputElement).value
@@ -42,16 +42,15 @@ export default component$(() => {
 			<div class="max-w-4xl py-14 px-8">
 				<h2 class="text-2xl font-bold mb-6">Account Aliases</h2>
 
-				{toast.value === 'success' && (
-					<div class="bg-green-800 border-green-700 text-green-100 border mb-5 p-5 text-center rounded">
-						Successfully created a new alias. You can now initiate the move from the old account.
-					</div>
-				)}
-
-				{toast.value === 'failure' && (
-					<div class="bg-red-800 border-red-700 text-red-100 border mb-5 p-5 text-center rounded">
-						Failed to create alias.
-					</div>
+				{!!saveAction.value && (
+					<ResultMessage
+						type={saveAction.value.success ? 'success' : 'failure'}
+						message={
+							saveAction.value.success
+								? 'Successfully created a new alias. You can now initiate the move from the old account.'
+								: 'Failed to create alias.'
+						}
+					/>
 				)}
 
 				<p class="text-sm text-wildebeest-400 mb-10">
