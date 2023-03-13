@@ -14,7 +14,7 @@ If you attempted to deploy Wildebeest in your account and something failed, or y
 - Go to your account Workers / KV section and delete the `wildebeest-username-cache` and `wildebeest-terraform-username-state` namespaces.
 - Go to your account Workers / D1 and delete the `wildebeest-username` database.
 - Launch [Zero Trust](https://one.dash.cloudflare.com/), select your account, go to Access / Applications and delete the `wildebeest-username` application.
-- Go to https://deploy.workers.cloudflare.com/, open the site settings in your browser and delete all the cookies and local storage data.
+- Go back to the [Getting Started](getting-started.md) readme and open the Deploy to Workers button link in an incognito tab (or a browser window with a cleared session/storage cache)
 - Delete your GitHub wildebeest forked repo.
 
 You can now start a clean install.
