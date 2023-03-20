@@ -105,7 +105,15 @@ export async function toMastodonStatusFromRow(domain: string, db: Database, row:
 		console.warn('missing `row.publisher_actor_id`')
 		return null
 	}
-	const properties = JSON.parse(row.properties)
+	let properties
+	if (typeof row.properties === 'object') {
+		// neon uses JSONB for properties which is returned as a deserialized
+		// object.
+		properties = row.properties
+	} else {
+		// D1 uses a string for JSON properties
+		properties = JSON.parse(row.properties)
+	}
 	const actorId = new URL(row.publisher_actor_id)
 
 	const author = actors.personFromRow({
