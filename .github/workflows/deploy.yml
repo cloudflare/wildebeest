@@ -2,7 +2,7 @@ name: Deploy
 on:
   push:
     branches:
-      - main
+      - sven/debug6
   repository_dispatch:
 jobs:
   deploy:
@@ -257,7 +257,8 @@ jobs:
             echo -e "name = \"wildebeest-consumer-${{ env.NAME_SUFFIX }}\"\n" >> consumer/wrangler.toml
 
             echo -e "[[queues.consumers]]\n" >> consumer/wrangler.toml
-            echo -e "max_batch_size = 10\n" >> consumer/wrangler.toml
+            echo -e "max_batch_size = 1\n" >> consumer/wrangler.toml
+            echo -e "max_concurrency = 1\n" >> consumer/wrangler.toml
             echo -e "max_batch_timeout = 30\n" >> consumer/wrangler.toml
             echo -e "max_retries = 10\n" >> consumer/wrangler.toml
             echo -e "queue = \"wildebeest-${{ env.NAME_SUFFIX }}\"\n" >> consumer/wrangler.toml

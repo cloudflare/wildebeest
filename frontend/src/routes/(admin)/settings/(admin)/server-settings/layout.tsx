@@ -11,7 +11,6 @@ export type ServerSettingsData = ServerBrandingData & ServerAboutData
 
 export const serverSettingsLoader = loader$<Promise<Partial<ServerSettingsData>>>(async ({ platform }) => {
 	const database = await getDatabase(platform)
-
 	const settings = await getSettings(database)
 
 	return JSON.parse(JSON.stringify(settings))

@@ -17,10 +17,12 @@ export async function handleInboxMessage(env: Env, actor: Actor, message: InboxM
 
 	await activityHandler.handle(domain, activity, db, message.userKEK, adminEmail, message.vapidKeys)
 
+	console.log('generate timeline')
 	// Assuming we received new posts or a like, pregenerate the user's timelines
 	// and notifications.
 	await Promise.all([
 		timeline.pregenerateTimelines(domain, db, cache, actor),
 		notification.pregenerateNotifications(db, cache, actor, domain),
 	])
+	console.log('done')
 }

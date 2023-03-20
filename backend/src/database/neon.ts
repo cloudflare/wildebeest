@@ -41,12 +41,16 @@ const qb: QueryBuilder = {
 }
 
 export default async function make(env: Pick<Env, 'NEON_DATABASE_URL'>): Promise<Database> {
-	const client = new neon.Client(env.NEON_DATABASE_URL)
+	const client = new neon.Pool({ connectionString: env.NEON_DATABASE_URL })
 	await client.connect()
 
 	return {
 		client: 'neon',
 		qb,
+
+		async close() {
+			await client.end()
+		},
 
 		prepare(query: string) {
 			return new PreparedStatement(env, query, [], client)
@@ -82,11 +86,11 @@ export default async function make(env: Pick<Env, 'NEON_DATABASE_URL'>): Promise
 
 export class PreparedStatement {
 	private env: Pick<Env, 'NEON_DATABASE_URL'>
-	private client: neon.Client
+	private client: neon.Pool
 	public query: string
 	public values: any[]
 
-	constructor(env: Pick<Env, 'NEON_DATABASE_URL'>, query: string, values: any[], client: neon.Client) {
+	constructor(env: Pick<Env, 'NEON_DATABASE_URL'>, query: string, values: any[], client: neon.Pool) {
 		this.env = env
 		this.query = query
 		this.values = values
@@ -103,7 +107,9 @@ export class PreparedStatement {
 		}
 		const query = sqliteToPsql(this.query)
 
+		console.log({ query })
 		const results = await this.client.query(query, this.values)
+		console.log('res')
 		if (results.rows.length !== 1) {
 			throw new Error(`expected a single row, returned ${results.rows.length} row(s)`)
 		}
@@ -117,7 +123,9 @@ export class PreparedStatement {
 
 	async all<T = unknown>(): Promise<Result<T>> {
 		const query = sqliteToPsql(this.query)
+		console.log({ query })
 		const results = await this.client.query(query, this.values)
+		console.log('res')
 
 		return {
 			results: results.rows as T[],

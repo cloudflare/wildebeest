@@ -12,6 +12,7 @@ export interface Result<T = unknown> {
 export interface Database {
 	prepare(query: string): PreparedStatement
 	dump(): Promise<ArrayBuffer>
+	close(): Promise<void>
 	batch<T = unknown>(statements: PreparedStatement[]): Promise<Result<T>[]>
 	exec<T = unknown>(query: string): Promise<Result<T>>
 	qb: QueryBuilder
@@ -37,9 +38,9 @@ export interface QueryBuilder {
 }
 
 export async function getDatabase(env: Pick<Env, 'DATABASE' | 'NEON_DATABASE_URL'>): Promise<Database> {
-	if (env.NEON_DATABASE_URL !== undefined) {
-		return neon(env)
-	}
+	// if (env.NEON_DATABASE_URL !== undefined) {
+	// 	return neon(env)
+	// }
 
 	return d1(env)
 }
