@@ -4,6 +4,7 @@ import { getDatabase } from 'wildebeest/backend/src/database'
 import { getRules, upsertRule } from 'wildebeest/backend/src/config/rules'
 import { TextArea } from '~/components/Settings/TextArea'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
+import { SubmitButton } from '~/components/Settings/SubmitButton'
 
 export type ServerSettingsData = { rules: string[] }
 
@@ -34,7 +35,7 @@ export const ruleLoader = loader$<Promise<{ id: number; text: string }>>(async (
 	const database = await getDatabase(platform)
 	const rules = await getRules(database)
 
-	const rule: { id: number; text: string } | undefined = rules.find((r) => r.id === +params['id'])
+	const rule: { id: string; text: string } | undefined = rules.find((r) => r.id === params['id'])
 
 	if (!rule) {
 		throw html(404, getErrorHtml('The selected rule could not be found'))
@@ -76,12 +77,7 @@ export default component$(() => {
 					/>
 				</div>
 
-				<button
-					type="submit"
-					class="w-full my-5 bg-wildebeest-vibrant-600 hover:bg-wildebeest-vibrant-500 p-2 text-white text-uppercase border-wildebeest-vibrant-600 text-lg text-semi outline-none border rounded hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500"
-				>
-					Save Changes
-				</button>
+				<SubmitButton text="Save Changes" loading={editActionObj.isRunning} />
 			</Form>
 		</>
 	)

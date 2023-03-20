@@ -3,6 +3,7 @@ import { action$, Form, Link, loader$, z, zod$ } from '@builder.io/qwik-city'
 import { getDatabase } from 'wildebeest/backend/src/database'
 import { getRules, deleteRule, upsertRule } from 'wildebeest/backend/src/config/rules'
 import { TextArea } from '~/components/Settings/TextArea'
+import { SubmitButton } from '~/components/Settings/SubmitButton'
 
 export type ServerSettingsData = { rules: string[] }
 
@@ -76,12 +77,7 @@ export default component$(() => {
 					/>
 				</div>
 
-				<button
-					type="submit"
-					class="w-full my-5 bg-wildebeest-vibrant-600 hover:bg-wildebeest-vibrant-500 p-2 text-white text-uppercase border-wildebeest-vibrant-600 text-lg text-semi outline-none border rounded hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500"
-				>
-					Add Rule
-				</button>
+				<SubmitButton text="Add Rule" loading={addActionObj.isRunning} />
 			</Form>
 			<div>
 				{rules.value.map(({ id, text }, idx) => {
