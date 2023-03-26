@@ -12,7 +12,7 @@ export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, en
 	if (!data.connectedActor) {
 		return errors.notAuthorized('no connected user')
 	}
-	const user = await loadLocalMastodonAccount(getDatabase(env), data.connectedActor)
+	const user = await loadLocalMastodonAccount(await getDatabase(env), data.connectedActor)
 
 	const res: CredentialAccount = {
 		...user,

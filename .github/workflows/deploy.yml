@@ -273,6 +273,7 @@ jobs:
             echo -e "DOMAIN=\"${{ vars.CF_DEPLOY_DOMAIN }}\"\n" >> consumer/wrangler.toml
             echo -e "ADMIN_EMAIL=\"${{ vars.ADMIN_EMAIL }}\"\n" >> consumer/wrangler.toml
 
+            yarn
             yarn --cwd consumer/
             echo "******"
           command: publish --config consumer/wrangler.toml

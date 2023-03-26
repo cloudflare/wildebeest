@@ -81,7 +81,7 @@ describe('Mastodon APIs', () => {
 				.prepare(
 					`
           SELECT
-              json_extract(properties, '$.content') as content,
+              ${db.qb.jsonExtract('properties', 'content')} as content,
               original_actor_id,
               original_object_id
           FROM objects
@@ -758,7 +758,7 @@ describe('Mastodon APIs', () => {
 				const row = await db
 					.prepare(
 						`
-                    SELECT json_extract(properties, '$.inReplyTo') as inReplyTo
+                    SELECT ${db.qb.jsonExtract('properties', 'inReplyTo')} as inReplyTo
                     FROM objects
                     WHERE mastodon_id=?
                 `

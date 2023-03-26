@@ -16,7 +16,7 @@ export async function getHomeTimeline(domain: string, db: Database, actor: Actor
 			`
             SELECT
                 actor_following.target_actor_id as id,
-                json_extract(actors.properties, '$.followers') as actorFollowersURL
+                ${db.qb.jsonExtract('actors.properties', 'followers')} as actorFollowersURL
             FROM actor_following
             INNER JOIN actors ON actors.id = actor_following.target_actor_id
             WHERE actor_id=? AND state='accepted'
@@ -60,10 +60,10 @@ INNER JOIN objects ON objects.id = outbox_objects.object_id
 INNER JOIN actors ON actors.id = outbox_objects.actor_id
 WHERE
      objects.type = 'Note'
-     AND outbox_objects.actor_id IN (SELECT value FROM json_each(?2))
-     AND json_extract(objects.properties, '$.inReplyTo') IS NULL
-     AND (outbox_objects.target = '${PUBLIC_GROUP}' OR outbox_objects.target IN (SELECT value FROM json_each(?3)))
-GROUP BY objects.id
+     AND outbox_objects.actor_id IN ${db.qb.set('?2')}
+     AND ${db.qb.jsonExtractIsNull('objects.properties', 'inReplyTo')}
+     AND (outbox_objects.target = '${PUBLIC_GROUP}' OR outbox_objects.target IN ${db.qb.set('?3')})
+GROUP BY objects.id ${db.qb.psqlOnly(', actors.id, outbox_objects.actor_id, outbox_objects.published_date')}
 ORDER by outbox_objects.published_date DESC
 LIMIT ?4
 `
@@ -101,7 +101,7 @@ export enum LocalPreference {
 function localPreferenceQuery(preference: LocalPreference): string {
 	switch (preference) {
 		case LocalPreference.NotSet:
-			return '1'
+			return 'true'
 		case LocalPreference.OnlyLocal:
 			return 'objects.local = 1'
 		case LocalPreference.OnlyRemote:
@@ -136,10 +136,12 @@ INNER JOIN actors ON actors.id=outbox_objects.actor_id
 LEFT JOIN note_hashtags ON objects.id=note_hashtags.object_id
 WHERE objects.type='Note'
       AND ${localPreferenceQuery(localPreference)}
-      AND json_extract(objects.properties, '$.inReplyTo') IS NULL
+      AND ${db.qb.jsonExtractIsNull('objects.properties', 'inReplyTo')}
       AND outbox_objects.target = '${PUBLIC_GROUP}'
       ${hashtagFilter}
-GROUP BY objects.id
+GROUP BY objects.id ${db.qb.psqlOnly(
+		', actors.id, actors.cdate, actors.properties, outbox_objects.actor_id, outbox_objects.published_date'
+	)}
 ORDER by outbox_objects.published_date DESC
 LIMIT ?1 OFFSET ?2
 `

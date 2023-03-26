@@ -3,6 +3,7 @@
 name = "wildebeest"
 main = "src/index.ts"
 compatibility_date = "2022-12-05"
+node_compat = true
 
 # Specify your account id here so that all commands run agains the correct account.
 # account_id = "<your account id>"

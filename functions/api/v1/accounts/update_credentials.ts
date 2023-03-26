@@ -22,7 +22,7 @@ const headers = {
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ request, data, env }) => {
 	return handleRequest(
-		getDatabase(env),
+		await getDatabase(env),
 		request,
 		data.connectedActor,
 		env.CF_ACCOUNT_ID,
@@ -59,12 +59,12 @@ export async function handleRequest(
 
 		if (formData.has('display_name')) {
 			const value = formData.get('display_name')!
-			await updateActorProperty(db, connectedActor.id, 'name', value)
+			await updateActorProperty(db, connectedActor.id, 'name', value as string)
 		}
 
 		if (formData.has('note')) {
 			const value = formData.get('note')!
-			await updateActorProperty(db, connectedActor.id, 'summary', value)
+			await updateActorProperty(db, connectedActor.id, 'summary', value as string)
 		}
 
 		if (formData.has('avatar')) {

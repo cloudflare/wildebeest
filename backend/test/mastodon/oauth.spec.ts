@@ -85,7 +85,7 @@ describe('Mastodon APIs', () => {
 				headers,
 			})
 			const res = await oauth_authorize.handleRequestPost(req, db, userKEK, accessDomain, accessAud)
-			assert.equal(res.status, 403)
+			assert.equal(res.status, 422)
 		})
 
 		test('authorize redirects with code on success and show first login', async () => {

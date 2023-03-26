@@ -7,7 +7,7 @@ import { type Database, getDatabase } from 'wildebeest/backend/src/database'
 
 export const onRequest: PagesFunction<Env, any> = async ({ env, request }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, getDatabase(env), env)
+	return handleRequest(domain, await getDatabase(env), env)
 }
 
 export async function handleRequest(domain: string, db: Database, env: Env) {

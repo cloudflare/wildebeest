@@ -15,12 +15,14 @@ export type Env = {
 	SENTRY_DSN: string
 	SENTRY_ACCESS_CLIENT_ID: string
 	SENTRY_ACCESS_CLIENT_SECRET: string
+
+	NEON_DATABASE_URL?: string
 }
 
 export default {
 	async queue(batch: MessageBatch<MessageBody>, env: Env, ctx: ExecutionContext) {
 		const sentry = initSentryQueue(env, ctx)
-		const db = getDatabase(env)
+		const db = await getDatabase(env)
 
 		try {
 			for (const message of batch.messages) {

@@ -7,14 +7,16 @@
 	},
 	"private": true,
 	"scripts": {
+		"pretypes-check": "yarn build",
+		"types-check": "tsc",
 		"lint": "eslint src mock-db adaptors",
 		"build": "vite build && vite build -c adaptors/cloudflare-pages/vite.config.ts",
 		"dev": "vite --mode ssr",
-		"watch": "concurrently \"vite build -w\" \"vite build -w -c adaptors/cloudflare-pages/vite.config.ts\""
+		"watch": "nodemon -w ./src --ext tsx,ts --exec npm run build"
 	},
 	"devDependencies": {
-		"@builder.io/qwik": "0.18.1",
-		"@builder.io/qwik-city": "0.2.1",
+		"@builder.io/qwik": "0.21.0",
+		"@builder.io/qwik-city": "0.4.0",
 		"@types/eslint": "8.4.10",
 		"@types/jest": "^29.2.4",
 		"@types/node": "^18.11.16",
@@ -22,12 +24,12 @@
 		"@typescript-eslint/eslint-plugin": "5.46.1",
 		"@typescript-eslint/parser": "5.46.1",
 		"autoprefixer": "10.4.11",
-		"concurrently": "^7.6.0",
 		"eslint": "8.30.0",
 		"eslint-plugin-qwik": "0.16.1",
 		"jest": "^29.3.1",
 		"lorem-ipsum": "^2.0.8",
 		"node-fetch": "3.3.0",
+		"nodemon": "^2.0.20",
 		"postcss": "^8.4.16",
 		"prettier": "2.8.1",
 		"sass": "^1.57.0",

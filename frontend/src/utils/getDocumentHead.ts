@@ -10,6 +10,8 @@ type DocumentHeadData = {
 	}
 }
 
+type NoReadonly<T> = { -readonly [P in keyof T]: NoReadonly<T[P]> }
+
 /**
  * Generates a head to provide to QwikCity
  *
@@ -18,7 +20,7 @@ type DocumentHeadData = {
  * @returns the QwikCity head ready to use
  */
 export function getDocumentHead(data: DocumentHeadData, head?: DocumentHeadValue) {
-	const result: DocumentHeadValue = { meta: [] }
+	const result: NoReadonly<DocumentHeadValue> = { meta: [] }
 
 	const setMeta = (name: string, content: string) => {
 		if (head?.meta?.some((meta) => meta.name === name)) {

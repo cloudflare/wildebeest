@@ -11,16 +11,26 @@ function tag(name: string, content: string, attrs: Record<string, string> = {}):
 	return `<${name}${htmlAttrs}>${content}</${name}>`
 }
 
-const linkRegex = /(^|\s|\b)(https?:\/\/[-\w@:%._+~#=]{2,256}\.[a-z]{2,6}\b(?:[-\w@:%_+.~#?&/=]*))(\b|\s|$)/g
+const linkRegex = /(^|\s|\b)(https?:\/\/[-\w@:%._+~#=]{1,256}\.[a-z]{2,6}\b(?:[-\w@:%_+.~#?&/=]*))(\b|\s|$)/g
 const mentionedEmailRegex = /(^|\s|\b|\W)@(\w+(?:[.-]?\w+)+@\w+(?:[.-]?\w+)+(?:\.\w{2,63})+)(\b|\s|$)/g
+const tagRegex = /(^|\s|\b|\W)#(\w{2,63})(\b|\s|$)/g
 
-/// Transform a text status into a HTML status; enriching it with links / mentions.
+// Transform a text status into a HTML status; enriching it with links / mentions.
 export function enrichStatus(status: string, mentions: Array<Actor>): string {
-	const enrichedStatus = status
+	const anchorsPlaceholdersMap = new Map<string, string>()
+
+	const getLinkAnchorPlaceholder = (link: string) => {
+		const anchor = getLinkAnchor(link)
+		const placeholder = `%%%___-LINK-PLACEHOLDER-${crypto.randomUUID()}-__%%%`
+		anchorsPlaceholdersMap.set(placeholder, anchor)
+		return placeholder
+	}
+
+	let enrichedStatus = status
 		.replace(
 			linkRegex,
 			(_, matchPrefix: string, link: string, matchSuffix: string) =>
-				`${matchPrefix}${getLinkAnchor(link)}${matchSuffix}`
+				`${matchPrefix}${getLinkAnchorPlaceholder(link)}${matchSuffix}`
 		)
 		.replace(mentionedEmailRegex, (_, matchPrefix: string, email: string, matchSuffix: string) => {
 			// ensure that the match is part of the mentions array
@@ -33,6 +43,15 @@ export function enrichStatus(status: string, mentions: Array<Actor>): string {
 			// otherwise the match isn't valid and we don't add HTML
 			return `${matchPrefix}${email}${matchSuffix}`
 		})
+		.replace(
+			tagRegex,
+			(_, matchPrefix: string, tag: string, matchSuffix: string) =>
+				`${matchPrefix}${/^\d+$/.test(tag) ? `#${tag}` : getTagAnchor(tag)}${matchSuffix}`
+		)
+
+	for (const [placeholder, anchor] of anchorsPlaceholdersMap.entries()) {
+		enrichedStatus = enrichedStatus.replace(placeholder, anchor)
+	}
 
 	return tag('p', enrichedStatus)
 }
@@ -58,5 +77,14 @@ function getLinkAnchor(link: string) {
 	} catch (err: unknown) {
 		console.warn('failed to parse link', err)
 		return link
+	}
+}
+
+function getTagAnchor(hashTag: string) {
+	try {
+		return tag('a', `#${hashTag}`, { href: `/tags/${hashTag.replace(/^#/, '')}`, class: 'status-link hashtag' })
+	} catch (err: unknown) {
+		console.warn('failed to parse link', err)
+		return tag
 	}
 }

@@ -1,6 +1,7 @@
 import { component$ } from '@builder.io/qwik'
 import { Link, useLocation } from '@builder.io/qwik-city'
 import { WildebeestLogo } from '~/components/MastodonLogo'
+import { authLoader } from '~/routes/layout'
 
 type LinkConfig = {
 	iconName: string
@@ -10,6 +11,7 @@ type LinkConfig = {
 }
 
 export default component$(() => {
+	const { isAuthorized, loginUrl } = authLoader().value
 	const location = useLocation()
 
 	const renderNavLink = ({ iconName, linkText, linkTarget, linkActiveRegex }: LinkConfig) => {
@@ -35,7 +37,7 @@ export default component$(() => {
 		{ iconName: 'fa-globe', linkText: 'Federated', linkTarget: '/public', linkActiveRegex: /^\/public\/?$/ },
 	]
 
-	// const aboutLink = { iconName: 'fa-ellipsis', linkText: 'About', linkTarget: '/about', linkActiveRegex: /^\/about/ }
+	const aboutLink = { iconName: 'fa-ellipsis', linkText: 'About', linkTarget: '/about', linkActiveRegex: /^\/about/ }
 
 	return (
 		<div class="bg-wildebeest-600 xl:bg-transparent flex flex-col justify-between right-column-wrapper text-wildebeest-200 flex-1 z-10">
@@ -47,11 +49,25 @@ export default component$(() => {
 				</div>
 				<hr class="hidden xl:block border-t border-wildebeest-700 my-3" />
 				{links.map((link) => renderNavLink(link))}
-				{/* *********** Hiding the about link until the backend support is available ***************** */}
-				{/* <div class="xl:hidden">
+				<div class="xl:hidden">
 					<hr class="border-t border-wildebeest-700 my-3" />
 					{renderNavLink(aboutLink)}
-				</div> */}
+				</div>
+
+				{!isAuthorized && (
+					<a
+						class="w-full block mb-4 no-underline text-center bg-wildebeest-vibrant-600 hover:bg-wildebeest-vibrant-500 p-2 text-white text-uppercase border-wildebeest-vibrant-600 text-lg text-semi outline-none border rounded hover:border-wildebeest-vibrant-500 focus:border-wildebeest-vibrant-500"
+						href={`${loginUrl}`}
+					>
+						Sign in
+					</a>
+				)}
+				{isAuthorized && (
+					<a class="text-semi no-underline" href="/settings/migration">
+						<i class="fa fa-gear mx-3 w-4" />
+						Preferences
+					</a>
+				)}
 			</div>
 		</div>
 	)

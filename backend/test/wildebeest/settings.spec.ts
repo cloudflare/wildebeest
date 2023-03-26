@@ -1,7 +1,7 @@
 import { makeDB } from '../utils'
 import { strict as assert } from 'node:assert/strict'
 import { createPerson, getActorById } from 'wildebeest/backend/src/activitypub/actors'
-import * as account_alias from 'wildebeest/functions/api/wb/settings/account/alias'
+import * as alias from 'wildebeest/backend/src/accounts/alias'
 
 const domain = 'cloudflare.com'
 const userKEK = 'test_kek22'
@@ -39,14 +39,7 @@ describe('Wildebeest', () => {
 				throw new Error('unexpected request to ' + input)
 			}
 
-			const alias = 'test@example.com'
-
-			const req = new Request('https://example.com', {
-				method: 'POST',
-				body: JSON.stringify({ alias }),
-			})
-			const res = await account_alias.handleRequestPost(db, req, actor)
-			assert.equal(res.status, 201)
+			await alias.addAlias(db, 'test@example.com', actor)
 
 			// Ensure the actor has the alias set
 			const newActor = await getActorById(db, actor.id)

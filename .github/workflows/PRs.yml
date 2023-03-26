@@ -53,6 +53,9 @@ jobs:
       - name: Check frontend linting
         run: yarn lint:frontend
 
+      - name: Check frontend types
+        run: yarn --cwd types-check
+
   test-ui:
     runs-on: ubuntu-latest
     steps:

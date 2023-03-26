@@ -216,3 +216,8 @@ export type History = {
 	accounts: string
 	uses: string
 }
+
+export type WildebeestEnv = {
+	ACCESS_AUTH_DOMAIN: string
+	ACCESS_AUD: string
+}

@@ -16,7 +16,7 @@ import * as webfinger from 'wildebeest/backend/src/webfinger'
 import { getFollowing, loadActors } from 'wildebeest/backend/src/activitypub/actors/follow'
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ params, request, env }) => {
-	return handleRequest(request, getDatabase(env), params.id as string)
+	return handleRequest(request, await getDatabase(env), params.id as string)
 }
 
 export async function handleRequest(request: Request, db: Database, id: string): Promise<Response> {

@@ -71,6 +71,17 @@ test.describe('Presence of appropriate SEO metadata across the application', () 
 		})
 	})
 
+	test('in tag page', async ({ page }) => {
+		await page.goto('http://127.0.0.1:8788/tags/my-tag')
+		await checkPageSeoData(page, {
+			title: '#my-tag - Wildebeest',
+			description: '#my-tag tag page - Wildebeest',
+			ogType: 'website',
+			ogUrl: 'http://127.0.0.1:8788/tags/my-tag',
+			ogImage: 'https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/b24caf12-5230-48c4-0bf7-2f40063bd400/thumbnail',
+		})
+	})
+
 	// To unskip when we enable the about page
 	test.skip('in about page', async ({ page }) => {
 		await page.goto('http://127.0.0.1:8788/about')

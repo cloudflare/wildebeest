@@ -225,7 +225,15 @@ export async function getNotifications(db: Database, actor: Actor, domain: strin
 
 	for (let i = 0, len = results.length; i < len; i++) {
 		const result = results[i]
-		const properties = JSON.parse(result.properties)
+		let properties
+		if (typeof result.properties === 'object') {
+			// neon uses JSONB for properties which is returned as a deserialized
+			// object.
+			properties = result.properties
+		} else {
+			// D1 uses a string for JSON properties
+			properties = JSON.parse(result.properties)
+		}
 		const notifFromActorId = new URL(result.notif_from_actor_id)
 
 		const notifFromActor = await getActorById(db, notifFromActorId)

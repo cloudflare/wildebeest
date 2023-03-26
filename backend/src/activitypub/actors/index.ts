@@ -3,10 +3,12 @@ import { generateUserKey } from 'wildebeest/backend/src/utils/key-ops'
 import { type APObject, sanitizeContent, getTextContent } from '../objects'
 import { addPeer } from 'wildebeest/backend/src/activitypub/peers'
 import { type Database } from 'wildebeest/backend/src/database'
+import { Buffer } from 'buffer'
 
 const PERSON = 'Person'
 const isTesting = typeof jest !== 'undefined'
 export const emailSymbol = Symbol()
+export const isAdminSymbol = Symbol()
 
 export function actorURL(domain: string, id: string): URL {
 	return new URL(`/ap/users/${id}`, 'https://' + domain)
@@ -22,6 +24,7 @@ export interface Actor extends APObject {
 	alsoKnownAs?: string
 
 	[emailSymbol]: string
+	[isAdminSymbol]: boolean
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
@@ -150,7 +153,8 @@ export async function createPerson(
 	db: Database,
 	userKEK: string,
 	email: string,
-	properties: PersonProperties = {}
+	properties: PersonProperties = {},
+	admin: boolean = false
 ): Promise<Person> {
 	const userKeyPair = await generateUserKey(userKEK)
 
@@ -158,7 +162,7 @@ export async function createPerson(
 	// Since D1 and better-sqlite3 behaviors don't exactly match, presumable
 	// because Buffer support is different in Node/Worker. We have to transform
 	// the values depending on the platform.
-	if (isTesting) {
+	if (isTesting || db.client === 'neon') {
 		privkey = Buffer.from(userKeyPair.wrappedPrivKey)
 		salt = Buffer.from(userKeyPair.salt)
 	} else {
@@ -198,12 +202,12 @@ export async function createPerson(
 	const row = await db
 		.prepare(
 			`
-              INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt, properties)
-              VALUES(?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO actors(id, type, email, pubkey, privkey, privkey_salt, properties, is_admin)
+              VALUES(?, ?, ?, ?, ?, ?, ?, ?)
               RETURNING *
           `
 		)
-		.bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt, JSON.stringify(properties))
+		.bind(id, PERSON, email, userKeyPair.pubKey, privkey, salt, JSON.stringify(properties), admin ? 1 : null)
 		.first()
 
 	return personFromRow(row)
@@ -211,7 +215,7 @@ export async function createPerson(
 
 export async function updateActorProperty(db: Database, actorId: URL, key: string, value: string) {
 	const { success, error } = await db
-		.prepare(`UPDATE actors SET properties=json_set(properties, '$.${key}', ?) WHERE id=?`)
+		.prepare(`UPDATE actors SET properties=${db.qb.jsonSet('properties', key, '?1')} WHERE id=?2`)
 		.bind(value, actorId.toString())
 		.run()
 	if (!success) {
@@ -220,12 +224,24 @@ export async function updateActorProperty(db: Database, actorId: URL, key: strin
 }
 
 export async function setActorAlias(db: Database, actorId: URL, alias: URL) {
-	const { success, error } = await db
-		.prepare(`UPDATE actors SET properties=json_set(properties, '$.alsoKnownAs', json_array(?)) WHERE id=?`)
-		.bind(alias.toString(), actorId.toString())
-		.run()
-	if (!success) {
-		throw new Error('SQL error: ' + error)
+	if (db.client === 'neon') {
+		const { success, error } = await db
+			.prepare(`UPDATE actors SET properties=${db.qb.jsonSet('properties', 'alsoKnownAs,0', '?1')} WHERE id=?2`)
+			.bind('"' + alias.toString() + '"', actorId.toString())
+			.run()
+		if (!success) {
+			throw new Error('SQL error: ' + error)
+		}
+	} else {
+		const { success, error } = await db
+			.prepare(
+				`UPDATE actors SET properties=${db.qb.jsonSet('properties', 'alsoKnownAs', 'json_array(?1)')} WHERE id=?2`
+			)
+			.bind(alias.toString(), actorId.toString())
+			.run()
+		if (!success) {
+			throw new Error('SQL error: ' + error)
+		}
 	}
 }
 
@@ -240,7 +256,16 @@ export async function getActorById(db: Database, id: URL): Promise<Actor | null>
 }
 
 export function personFromRow(row: any): Person {
-	const properties = JSON.parse(row.properties) as PersonProperties
+	let properties
+	if (typeof row.properties === 'object') {
+		// neon uses JSONB for properties which is returned as a deserialized
+		// object.
+		properties = row.properties as PersonProperties
+	} else {
+		// D1 uses a string for JSON properties
+		properties = JSON.parse(row.properties) as PersonProperties
+	}
+
 	const icon = properties.icon ?? {
 		type: 'Image',
 		mediaType: 'image/jpeg',
@@ -296,6 +321,7 @@ export function personFromRow(row: any): Person {
 	return {
 		// Hidden values
 		[emailSymbol]: row.email,
+		[isAdminSymbol]: row.is_admin === 1,
 
 		...properties,
 		name,

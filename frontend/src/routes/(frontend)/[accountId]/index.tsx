@@ -11,8 +11,7 @@ export const statusesLoader = loader$<
 	Promise<{
 		accountId: string
 		statuses: MastodonStatus[]
-	}>,
-	{ DATABASE: D1Database }
+	}>
 >(async ({ platform, request, html }) => {
 	let statuses: MastodonStatus[] = []
 	let accountId = ''
@@ -22,7 +21,7 @@ export const statusesLoader = loader$<
 
 		const handle = parseHandle(accountId)
 		accountId = handle.localPart
-		const response = await getLocalStatuses(request as Request, getDatabase(platform), handle, 0, false)
+		const response = await getLocalStatuses(request as Request, await getDatabase(platform), handle, 0, false)
 		statuses = await response.json<Array<MastodonStatus>>()
 	} catch {
 		throw html(

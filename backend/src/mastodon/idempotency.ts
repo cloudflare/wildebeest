@@ -36,7 +36,15 @@ export async function hasKey(db: Database, key: string): Promise<APObject | null
 	}
 
 	const result = results[0]
-	const properties = JSON.parse(result.properties)
+	let properties
+	if (typeof result.properties === 'object') {
+		// neon uses JSONB for properties which is returned as a deserialized
+		// object.
+		properties = result.properties
+	} else {
+		// D1 uses a string for JSON properties
+		properties = JSON.parse(result.properties)
+	}
 
 	return {
 		published: new Date(result.cdate).toISOString(),

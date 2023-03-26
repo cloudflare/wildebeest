@@ -15,7 +15,7 @@ const headers = {
 
 export const onRequest: PagesFunction<Env, any, ContextData> = async ({ data, request, env, params }) => {
 	const domain = new URL(request.url).hostname
-	return handleRequest(domain, params.id as string, getDatabase(env), data.connectedActor)
+	return handleRequest(domain, params.id as string, await getDatabase(env), data.connectedActor)
 }
 
 export async function handleRequest(
