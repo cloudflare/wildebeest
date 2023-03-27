@@ -5,6 +5,8 @@ import { getSettings } from 'wildebeest/backend/src/config/server'
 import { ServerAboutData } from './about'
 import { ServerBrandingData } from './branding'
 
+export { adminLoader } from '~/utils/adminLoader'
+
 export type ServerSettingsData = ServerBrandingData & ServerAboutData
 
 export const serverSettingsLoader = loader$<Promise<Partial<ServerSettingsData>>>(async ({ platform }) => {
