@@ -5,6 +5,7 @@ export default component$(() => {
 		<div class="max-w-4xl py-14 px-8">
 			<h2 class="text-2xl font-bold mb-10">Account Migration</h2>
 
+			{/*
 			<div class="text-green-700 mb-10">Your account is not currently being redirected to any other account.</div>
 
 			<h3 class="text-xl mb-6">Move to a different account</h3>
@@ -73,6 +74,7 @@ export default component$(() => {
 				Create Alias
 			</button>
 
+            */}
 			<h3 class="text-xl mt-4 mb-8">Moving from a different account</h3>
 
 			<p class="text-sm text-wildebeest-400 mb-5">
