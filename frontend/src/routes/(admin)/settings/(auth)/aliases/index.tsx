@@ -8,7 +8,9 @@ const zodSchema = zod$({
 	alias: z.string().min(1),
 })
 
-export const action = action$(async (data, { platform, json }) => {
+export const action = action$(async (data, { platform, json, request }) => {
+	const url = new URL(request.url)
+	const domain = url.hostname
 	const db = await getDatabase(platform)
 	const connectedActor = platform.data.connectedActor
 	if (connectedActor === null) {
@@ -16,7 +18,7 @@ export const action = action$(async (data, { platform, json }) => {
 	}
 
 	try {
-		await addAlias(db, data.alias, connectedActor)
+		await addAlias(db, data.alias, connectedActor, platform.userKEK, domain)
 	} catch (e: unknown) {
 		const error = e as { stack: string; cause: string }
 		console.error(error.stack, error.cause)
