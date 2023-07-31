@@ -1,4 +1,4 @@
-> :warning:  This project has been archived and is no longer actively maintained or supported. Feel free to for this repository, explore the codebase, and adapt it to your needs. Wildebeest was an opportunity to showcase our technology stack's power and versatility and prove how anyone can use Cloudflare to build larger applications that involve multiple systems and complex requirements.
+> :warning:  This project has been archived and is no longer actively maintained or supported. Feel free to fork this repository, explore the codebase, and adapt it to your needs. Wildebeest was an opportunity to showcase our technology stack's power and versatility and prove how anyone can use Cloudflare to build larger applications that involve multiple systems and complex requirements.
 
 # Wildebeest
 
