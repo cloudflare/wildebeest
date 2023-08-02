@@ -19,6 +19,14 @@ If you attempted to deploy Wildebeest in your account and something failed, or y
 
 You can now start a clean install.
 
+### Finding error causes
+
+If you get an error page or 500 status error for the main HTML document you can find the source of the error using the wrangler CLI:
+
+- Get wrangler CLI if you don't already have it (see [installation instructions](https://developers.cloudflare.com/workers/wrangler/install-and-update/)).
+- Run `wrangler pages deployment tail` and select your project from the list.
+- Refetch the page with the error and you should see the errors in the console.
+
 ### Error 1102
 
 Wildebeest runs cryptographic functions and can process lots of data internally, depending on the size of the instance and social graph. It's possible that, in some cases, a request exceeds the Worker's resource limits in the free plan.
@@ -42,6 +50,7 @@ If your zone is on Pro plan or above **and** you have deployed [WAF managed rule
 <summary>Block event example</summary>
 
 ![Block event example screenshot](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/ea58f6e2-a320-4322-9b13-9f747f5e6300/public)
+
 </details>
 
 Depending on your existing setup, you can:
