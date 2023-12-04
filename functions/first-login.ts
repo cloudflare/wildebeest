@@ -55,6 +55,10 @@ export async function handlePostRequest(
 		return new Response('', { status: 400 })
 	}
 
-	const redirect_uri = decodeURIComponent(url.searchParams.get('redirect_uri') || '')
+	let redirect_uri = decodeURIComponent(url.searchParams.get('redirect_uri') || '')
+	if (redirect_uri.startsWith('/')) {
+		// URL is a relative URL, prepend the domain to it.
+		redirect_uri = 'https://' + url.hostname + redirect_uri
+	}
 	return Response.redirect(redirect_uri, 302)
 }

@@ -387,6 +387,8 @@ export async function handle(
 				break
 			}
 
+			// FIXME: Requires alsoKnownAs to be set in both directions
+
 			// move followers
 			{
 				const collection = await getMetadata(fromActor.followers)

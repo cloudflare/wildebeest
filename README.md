@@ -1,3 +1,5 @@
+> :warning:  This project has been archived and is no longer actively maintained or supported. Feel free to fork this repository, explore the codebase, and adapt it to your needs. Wildebeest was an opportunity to showcase our technology stack's power and versatility and prove how anyone can use Cloudflare to build larger applications that involve multiple systems and complex requirements.
+
 # Wildebeest
 
 ![wildebeest illustration](https://imagedelivery.net/NkfPDviynOyTAOI79ar_GQ/3654789b-089c-493a-85b4-be3f8f594c00/header)
@@ -15,6 +17,7 @@ Currently, Wildebeest supports the following features:
 - You can search for content.
 - You can register one or multiple accounts under your instance. Authentication can be email-based on or using any Cloudflare Access compatible IdP, like GitHub or Google.
 - You can edit your profile information, avatar, and header image.
+- You can do [account migrations](https://docs.joinmastodon.org/user/moving/) from Mastodon to Wildebeest servers.
 
 Cloudflare will continue to evolve this open-source project with additional features over time and listen to the community feedback to steer our priorities. Pull requests and issues are welcome too.
 
