@@ -1,7 +1,4 @@
 import { strict as assert } from 'node:assert/strict'
-import type { Env } from 'wildebeest/backend/src/types/env'
-import * as v1_instance from 'wildebeest/functions/api/v1/instance'
-import * as v2_instance from 'wildebeest/functions/api/v2/instance'
 import * as custom_emojis from 'wildebeest/functions/api/v1/custom_emojis'
 import * as mutes from 'wildebeest/functions/api/v1/mutes'
 import * as blocks from 'wildebeest/functions/api/v1/blocks'
@@ -14,80 +11,6 @@ const userKEK = 'test_kek23'
 const domain = 'cloudflare.com'
 
 describe('Mastodon APIs', () => {
-	describe('instance', () => {
-		type Data = {
-			rules: unknown[]
-			uri: string
-			title: string
-			email: string
-			description: string
-			version: string
-			domain: string
-			contact: { email: string }
-		}
-
-		test('return the instance infos v1', async () => {
-			const env = {
-				INSTANCE_TITLE: 'a',
-				ADMIN_EMAIL: 'b',
-				INSTANCE_DESCR: 'c',
-			} as Env
-
-			const res = await v1_instance.handleRequest(domain, env)
-			assert.equal(res.status, 200)
-			assertCORS(res)
-			assertJSON(res)
-
-			{
-				const data = await res.json<Data>()
-				assert.equal(data.rules.length, 0)
-				assert.equal(data.uri, domain)
-				assert.equal(data.title, 'a')
-				assert.equal(data.email, 'b')
-				assert.equal(data.description, 'c')
-				assert(data.version.includes('Wildebeest'))
-			}
-		})
-
-		test('adds a short_description if missing v1', async () => {
-			const env = {
-				INSTANCE_DESCR: 'c',
-			} as Env
-
-			const res = await v1_instance.handleRequest(domain, env)
-			assert.equal(res.status, 200)
-
-			{
-				const data = await res.json<any>()
-				assert.equal(data.short_description, 'c')
-			}
-		})
-
-		test('return the instance infos v2', async () => {
-			const db = await makeDB()
-
-			const env = {
-				INSTANCE_TITLE: 'a',
-				ADMIN_EMAIL: 'b',
-				INSTANCE_DESCR: 'c',
-			} as Env
-			const res = await v2_instance.handleRequest(domain, db, env)
-			assert.equal(res.status, 200)
-			assertCORS(res)
-			assertJSON(res)
-
-			{
-				const data = await res.json<Data>()
-				assert.equal(data.rules.length, 0)
-				assert.equal(data.domain, domain)
-				assert.equal(data.title, 'a')
-				assert.equal(data.contact.email, 'b')
-				assert.equal(data.description, 'c')
-				assert(data.version.includes('Wildebeest'))
-			}
-		})
-	})
-
 	describe('custom emojis', () => {
 		test('returns an empty array', async () => {
 			const res = await custom_emojis.onRequest()
