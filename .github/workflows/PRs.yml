@@ -58,6 +58,8 @@ jobs:
 
   test-ui:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.30.0
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -65,12 +67,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.13.x
+          cache: "yarn"
       - name: Install dependencies
         run: yarn
       - name: Run App in the background
         run: yarn ci-dev-test-ui &
-      - name: Install Playwright Browsers
-        run: yarn playwright install --with-deps
       - name: Run Playwright tests
         run: yarn playwright test
       - uses: actions/upload-artifact@v3
